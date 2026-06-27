@@ -58,6 +58,9 @@
   <property name="compile.includedFiles" value="**/*.java"/>
   <property name="compile.excludedFiles" value=""/>
   <property name="compile.includeAntRuntime" value="false"/>
+  <property name="compile.source.version" value="1.5"/>
+  <property name="compile.target.version" value="1.5"/>
+  <property name="compile.bootclasspath" value="${compile.library.dir}/classes.jar:${compile.library.dir}/ui.jar"/>
 
   <property name="deploy.product.dir" location="${compile.product.dir}"/>
 
@@ -159,6 +162,9 @@
       destdir="${compile.classes}"
       extdirs="${compile.extdirs}"
       fork="${compile.fork}"
+      source="${compile.source.version}"
+      target="${compile.target.version}"
+      bootclasspath="${compile.bootclasspath}"
       includes="${compile.includedFiles}"
       excludes="${compile.excludedFiles}"
       memoryMaximumSize="${compile.memoryMaximumSize}"

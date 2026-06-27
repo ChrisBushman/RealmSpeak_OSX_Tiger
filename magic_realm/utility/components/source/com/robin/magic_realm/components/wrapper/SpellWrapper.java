@@ -19,7 +19,6 @@ package com.robin.magic_realm.components.wrapper;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -103,7 +102,10 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	}
 	public boolean targetsCharacterOrDenizen() {
 		if(targetsClearing())return false;
-		return getTargets().stream().anyMatch(t -> t.isCharacter() || t.isMonster() || t.isNative());
+		for (RealmComponent t : getTargets()) {
+			if (t.isCharacter() || t.isMonster() || t.isNative()) return true;
+		}
+		return false;
 	}
 	/**
 	 * This method is here to help differentiate spells that target individuals versus those that
@@ -279,8 +281,9 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 			TileLocation loc = getCaster().getCurrentLocation(); // might be null if character is dead!
 			boolean casterIsDead = (new CombatWrapper(getCaster().getGameObject())).getKilledBy()!=null;
 				
-			getGameObject().getHoldAsGameObjects().stream()
-				.forEach(go -> restoreAbsorbedMonster(go, loc, casterIsDead));
+			for (GameObject go : new ArrayList<GameObject>(getGameObject().getHoldAsGameObjects())) {
+				restoreAbsorbedMonster(go, loc, casterIsDead);
+			}
 				
 			// Remove all targets
 			setBoolean(TARGET_IDS,false);
@@ -428,10 +431,9 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	}
 	public RealmComponent getFirstTarget() {
 		ArrayList targetids = getList(TARGET_IDS);
-		if(targetids == null)return null;
-		
-		Optional first = targetids.stream().findFirst();		
-		GameObject target = getGameObject().getGameData().getGameObject(first.get());
+		if(targetids == null || targetids.isEmpty()) return null;
+		String firstId = (String) targetids.get(0);
+		GameObject target = getGameObject().getGameData().getGameObject(Long.valueOf(firstId));
 		return RealmComponent.getRealmComponent(target);
 	}
 	
@@ -444,15 +446,15 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	}
 	
 	public ArrayList<RealmComponent> getTargets() {
-		ArrayList<?> targetids = getList(TARGET_IDS);
-		
-		return targetids != null
-				? targetids.stream()
-						.mapToLong(id -> Long.valueOf((String)id))
-						.mapToObj(id -> getGameObject().getGameData().getGameObject(id))
-						.map(go -> RealmComponent.getRealmComponent(go))
-						.collect(Collectors.toCollection(ArrayList::new))
-				: new ArrayList<RealmComponent>();
+		ArrayList targetids = getList(TARGET_IDS);
+		if (targetids == null) return new ArrayList<RealmComponent>();
+		ArrayList<RealmComponent> result = new ArrayList<RealmComponent>();
+		for (Iterator i = targetids.iterator(); i.hasNext();) {
+			String id = (String) i.next();
+			GameObject go = getGameObject().getGameData().getGameObject(Long.valueOf(id));
+			result.add(RealmComponent.getRealmComponent(go));
+		}
+		return result;
 	}
 	/**
 	 * This returns the number of actual targets.  If a single target is listed more than once (i.e., Stones Fly), it still is only
@@ -460,10 +462,8 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	 */
 	public int getTargetCount() {
 		ArrayList targetids = getList(TARGET_IDS);
-		
-		return targetids != null
-				? (int) targetids.stream().distinct().count()
-				: 0;
+		if (targetids == null) return 0;
+		return new HashSet(targetids).size();
 	}
 	
 	public boolean targetsGameObject(GameObject go) {
@@ -484,21 +484,22 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	public boolean targetsRealmComponents(Collection<?> components) {
 		ArrayList targetids = getList(TARGET_IDS);
 		if(targetids == null) return false;
-		
-		return components.stream()
-			.map(c -> (RealmComponent)c)
-			.anyMatch(rc -> targetids.contains(rc.getGameObject().getStringId()));
+		for (Object c : components) {
+			RealmComponent rc = (RealmComponent) c;
+			if (targetids.contains(rc.getGameObject().getStringId())) return true;
+		}
+		return false;
 	}
 	
 	public ArrayList<RealmComponent> getTargetedRealmComponents(Collection<?> components) {
 		ArrayList targetids = getList(TARGET_IDS);
-		
-		return targetids != null
-				? components.stream()
-						.map(c -> (RealmComponent)c)
-						.filter(rc -> targetids.contains(rc.getGameObject().getStringId()))
-						.collect(Collectors.toCollection(ArrayList::new))
-				: new ArrayList<RealmComponent>();
+		ArrayList<RealmComponent> result = new ArrayList<RealmComponent>();
+		if (targetids == null) return result;
+		for (Object c : components) {
+			RealmComponent rc = (RealmComponent) c;
+			if (targetids.contains(rc.getGameObject().getStringId())) result.add(rc);
+		}
+		return result;
 	}
 	
 	/**
@@ -782,7 +783,9 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 			energize();
 			
 			ISpellEffect[] effects = SpellEffectFactory.create(getName().toLowerCase());	
-			getTargets().forEach(t -> affect(effects, parent, theGame, (RealmComponent)t));	
+			for (RealmComponent t : getTargets()) {
+				affect(effects, parent, theGame, t);
+			}
 			
 			if (!(isPhaseSpell() && hasPhaseChit())) { // ignore phase spells that still have a phase chit active!!
 				setBoolean(SPELL_AFFECTED,true);
@@ -823,7 +826,9 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		ISpellEffect[] effects = SpellEffectFactory.create(getName().toLowerCase());
 		
 		GameWrapper theGame = GameWrapper.findGame(getCaster().getGameData());
-		getTargets().stream().forEach(t -> unaffect(effects, theGame, t));
+		for (RealmComponent t : getTargets()) {
+			unaffect(effects, theGame, t);
+		}
 		setBoolean(SPELL_AFFECTED,false);
 	}
 	
@@ -853,12 +858,10 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		return getFirstTarget(); // Not real fond of this, but it will work in all cases where it matters
 	}
 	public GameObject getTransformAnimal() {
-		
-		Optional<GameObject> animal = getGameObject().getHoldAsGameObjects().stream()
-										.filter(t -> t.hasThisAttribute("animal"))
-										.findFirst();
-												
-		return animal.isPresent() ? animal.get() : null;
+		for (GameObject t : getGameObject().getHoldAsGameObjects()) {
+			if (t.hasThisAttribute("animal")) return t;
+		}
+		return null;
 	}
 	
 	public boolean isImmuneTo(RealmComponent rc) {

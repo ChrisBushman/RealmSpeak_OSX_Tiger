@@ -233,6 +233,8 @@
 		<depend type="library" name="jdom"/>
 		<depend type="library" name="xerces"/>
 		<depend type="library" name="browserLauncher"/>
+		<depend type="library" name="mail"/>
+		<depend type="library" name="activation"/>
 		<depend type="project" name="general_io"/>
 		<depend type="project" name="general_util"/>
 		<depend type="project" name="general_graphics"/>

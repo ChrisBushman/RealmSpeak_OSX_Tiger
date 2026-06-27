@@ -156,9 +156,14 @@ public class TransmorphEffect implements ISpellEffect {
 					character.addGold(gold); // add gold, in case transmorphed character picked up some gold!
 				}
 				
-				spell.getGameObject().getHoldAsGameObjects().stream()
-					.filter(go -> RealmComponent.getRealmComponent(go).isItem())
-					.forEach(i -> character.getGameObject().add(i));
+				ArrayList<GameObject> itemsFromSpell = new ArrayList<GameObject>();
+				for (Iterator si = spell.getGameObject().getHoldAsGameObjects().iterator(); si.hasNext();) {
+					GameObject go = (GameObject) si.next();
+					if (RealmComponent.getRealmComponent(go).isItem()) itemsFromSpell.add(go);
+				}
+				for (GameObject item : itemsFromSpell) {
+					character.getGameObject().add(item);
+				}
 			}
 		}
 	}
@@ -246,9 +251,13 @@ public class TransmorphEffect implements ISpellEffect {
 			// Move all inventory to the spell, so it doesn't appear in window anymore,
 			// but will on double-click of the spell.  This should also disable inventory
 			// without changing its active/inactive location			
-			character.getInventory().stream()
-				.filter(go -> RealmComponent.getRealmComponent(go).isItem())
-				.forEach(i -> spell.getGameObject().add(i));
+			ArrayList<GameObject> itemsFromInventory = new ArrayList<GameObject>();
+			for (GameObject go : character.getInventory()) {
+				if (RealmComponent.getRealmComponent(go).isItem()) itemsFromInventory.add(go);
+			}
+			for (GameObject item : itemsFromInventory) {
+				spell.getGameObject().add(item);
+			}
 		}
 		if (target.isMistLike()) {
 			// Mists cannot have a target!
