@@ -18,6 +18,7 @@
 package com.robin.magic_realm.components.swing;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.*;
 import java.util.ArrayList;
@@ -64,6 +65,8 @@ public class VictoryConditionButton extends JPanel {
 		
 		addMouseListener(littleClicky);
 		updateControls();
+		// Force small preferred width so GridBagLayout doesn't overflow on Tiger
+		setPreferredSize(new Dimension(1, 120));
 	}
 	public void addChangeListener(ChangeListener changeListener) {
 		if (changeListeners==null) {

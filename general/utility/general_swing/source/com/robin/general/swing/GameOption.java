@@ -96,7 +96,7 @@ public class GameOption {
 //		panel.setMinimumSize(new Dimension(1,1));
 //		panel.setPreferredSize(new Dimension(1,1));
 //		panel.setMaximumSize(new Dimension(1,1));
-		panel.setMaximumSize(new Dimension(2000,50));
+		panel.setMaximumSize(new Dimension(2000,75));
 //		panel.setPreferredSize(new Dimension(2000,50));
 		updateColor();
 	}
