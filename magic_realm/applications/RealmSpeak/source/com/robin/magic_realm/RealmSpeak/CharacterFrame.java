@@ -240,7 +240,9 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 			JLabel label = new JLabel(ImageCache.getIcon("curse/illhealth"));
 			label.setEnabled(!nullified);
 			Collection<String> list = character.getGameObject().getThisAttributeList(Constants.MESMERIZE);
-			String effects = String.join(", ", list);
+			StringBuilder effectsSb = new StringBuilder();
+			for (String s : list) { if (effectsSb.length() > 0) effectsSb.append(", "); effectsSb.append(s); }
+			String effects = effectsSb.toString();
 			label.setToolTipText("Mesmerize - "+effects + postfix);
 			box.add(label);
 		}

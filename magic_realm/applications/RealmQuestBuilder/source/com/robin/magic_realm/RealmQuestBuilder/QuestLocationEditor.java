@@ -27,11 +27,11 @@ public class QuestLocationEditor extends GenericEditor {
 	private QuestLocation location;
 	
 	private JTextField name;
-	private JComboBox<LocationType> type;
+	private JComboBox type;
 	private JCheckBox hideNotifcation;
 	private JCheckBox locationForClonedQuests;
-	private JComboBox<LocationClearingType> clearingType;
-	private JComboBox<LocationTileSideType> tileSideType;
+	private JComboBox clearingType;
+	private JComboBox tileSideType;
 	private JRadioButton sameClearing;
 	private JRadioButton sameTile;
 	private JLabel descriptionLabel;
@@ -251,7 +251,7 @@ public class QuestLocationEditor extends GenericEditor {
 		form.add(Box.createVerticalStrut(10));
 		
 		line = group.createLabelLine("Clearing Type");
-		clearingType = new JComboBox<LocationClearingType>(LocationClearingType.values());
+		clearingType = new JComboBox(LocationClearingType.values());
 		ComponentTools.lockComponentSize(clearingType,100,25);
 		clearingType.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
@@ -264,7 +264,7 @@ public class QuestLocationEditor extends GenericEditor {
 		form.add(Box.createVerticalStrut(10));
 		
 		line = group.createLabelLine("Tile Side");
-		tileSideType = new JComboBox<LocationTileSideType>(LocationTileSideType.values());
+		tileSideType = new JComboBox(LocationTileSideType.values());
 		ComponentTools.lockComponentSize(tileSideType,100,25);
 		tileSideType.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
@@ -289,7 +289,7 @@ public class QuestLocationEditor extends GenericEditor {
 		form.add(Box.createVerticalStrut(10));
 		
 		line = group.createLabelLine("Type");
-		type = new JComboBox<LocationType>(LocationType.values());
+		type = new JComboBox(LocationType.values());
 		ComponentTools.lockComponentSize(type,100,25);
 		type.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {

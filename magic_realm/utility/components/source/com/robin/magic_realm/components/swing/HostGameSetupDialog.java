@@ -109,7 +109,7 @@ public class HostGameSetupDialog extends AggressiveDialog {
 	protected JSlider minMapRating;
 	protected JRadioButton boardPlayerSetup;
 	
-	protected JComboBox<GameObject> startingSeason;
+	protected JComboBox startingSeason;
 	protected JCheckBox useWeather;
 	protected JLabel optionalWeatherWarning;
 	

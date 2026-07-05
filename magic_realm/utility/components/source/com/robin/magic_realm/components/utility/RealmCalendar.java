@@ -385,27 +385,19 @@ public class RealmCalendar {
 	}
 	public String getMissionPrimaryTarget(int month,String type) {
 		updateSeason(month);
-		switch(type) {
-			case "food_ale": return foodAlePrimaryTarget;
-			case "escort_party": return escortPartyPrimaryTarget;
-			case "food_ale_sr": return foodAlePrimaryTarget;
-			case "escort_party_sr": return escortPartyPrimaryTarget;
-			case "books_art": return booksArtPrimaryTarget;
-			case "tour_guide": return tourGuidePrimaryTarget;
-		}
+		if ("food_ale".equals(type) || "food_ale_sr".equals(type)) return foodAlePrimaryTarget;
+		if ("escort_party".equals(type) || "escort_party_sr".equals(type)) return escortPartyPrimaryTarget;
+		if ("books_art".equals(type)) return booksArtPrimaryTarget;
+		if ("tour_guide".equals(type)) return tourGuidePrimaryTarget;
 		return "";
 	}
 	public String getMissionSecondaryTarget(int month,String type) {
 		updateSeason(month);
-		switch(type) {
-		case "food_ale": return foodAleSecondaryTarget;
-		case "escort_party": return escortPartySecondaryTarget;
-		case "food_ale_sr": return foodAleSecondaryTarget;
-		case "escort_party_sr": return escortPartySecondaryTarget;
-		case "books_art": return booksArtSecondaryTarget;
-		case "tour_guide": return tourGuideSecondaryTarget;
-	}
-	return "";
+		if ("food_ale".equals(type) || "food_ale_sr".equals(type)) return foodAleSecondaryTarget;
+		if ("escort_party".equals(type) || "escort_party_sr".equals(type)) return escortPartySecondaryTarget;
+		if ("books_art".equals(type)) return booksArtSecondaryTarget;
+		if ("tour_guide".equals(type)) return tourGuideSecondaryTarget;
+		return "";
 	}
 	public String getWeatherAttribute(int month,String key) {
 		updateSeason(month);

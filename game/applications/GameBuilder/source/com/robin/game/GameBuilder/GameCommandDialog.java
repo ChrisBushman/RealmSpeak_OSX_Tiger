@@ -17,7 +17,7 @@ public class GameCommandDialog extends JDialog {
 	protected GameCommand originalCommand;
 	protected GameCommand modelCommand; // This is the model that allows us to know which controls are showing
 	
-	protected JComboBox<String> type;
+	protected JComboBox type;
 	protected JTextField newPool;
 	protected JComboBox from;
 	protected JComboBox to;
@@ -25,7 +25,7 @@ public class GameCommandDialog extends JDialog {
 	protected JTextField attribute;
 	protected JTextField value;
 	protected IntegerField count;
-	protected JComboBox<String> transferType;
+	protected JComboBox transferType;
 	protected JTextField keyVals;
 	
 	protected Box newPoolBox;
@@ -86,7 +86,7 @@ public class GameCommandDialog extends JDialog {
 		getContentPane().setLayout(new BorderLayout());
 			Box box = Box.createVerticalBox();
 				line = group.createLabelLine("Type");
-					type = new JComboBox<String>();
+					type = new JComboBox();
 					type.addItem(GameCommandCreate.NAME);
 					type.addItem(GameCommandAlter.NAME);
 					if (poolNames.size()>1) {
@@ -166,7 +166,7 @@ public class GameCommandDialog extends JDialog {
 				countBox.add(Box.createHorizontalGlue());
 			box.add(countBox);
 				transferTypeBox = group.createLabelLine("Transfer");
-					transferType = new JComboBox<String>();
+					transferType = new JComboBox();
 					transferType.addItem(GamePool.RANDOM_NAME);
 					transferType.addItem(GamePool.FROM_BEGINNING_NAME);
 					transferType.addItem(GamePool.FROM_END_NAME);

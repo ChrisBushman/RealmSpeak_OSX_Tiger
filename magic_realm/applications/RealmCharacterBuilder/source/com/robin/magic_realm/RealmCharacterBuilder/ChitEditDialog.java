@@ -30,7 +30,7 @@ public class ChitEditDialog extends AggressiveDialog {
 	private ButtonPanel speedSelector;
 	private ButtonPanel effortSelector;
 	
-	private JComboBox<SpecialSelect> specialSelections;
+	private JComboBox specialSelections;
 	
 	private JButton doneButton;
 	
@@ -190,7 +190,7 @@ public class ChitEditDialog extends AggressiveDialog {
 			for (int i=0;i<specialSelect.length;i++) {
 				specialSelect[i] = new SpecialSelect(SPECIAL_SELECT[i]);
 			}
-			specialSelections = new JComboBox<SpecialSelect>(specialSelect);
+			specialSelections = new JComboBox(specialSelect);
 			specialSelections.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
 					SpecialSelect ss = (SpecialSelect)specialSelections.getSelectedItem();

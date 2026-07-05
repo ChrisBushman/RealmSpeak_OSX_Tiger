@@ -289,7 +289,7 @@ public class CharacterTradeFrame extends JFrame {
 		private RealmObjectPanel view;
 		
 		private ArrayList<String> discoveries;
-		private JList<DiscoveryListModel> discoveryList;
+		private JList discoveryList;
 		private DiscoveryListModel discoveryModel;
 		private JButton shareButton;
 		private JButton unshareButton;
@@ -314,7 +314,7 @@ public class CharacterTradeFrame extends JFrame {
 			
 			discoveries = new ArrayList<String>();
 			discoveryModel = new DiscoveryListModel(discoveries);
-			discoveryList = new JList<DiscoveryListModel>(discoveryModel);
+			discoveryList = new JList(discoveryModel);
 			discoveryList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 			add(new JScrollPane(discoveryList),"East");
 			

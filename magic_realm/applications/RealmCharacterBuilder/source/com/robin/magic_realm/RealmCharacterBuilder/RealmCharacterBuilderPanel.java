@@ -787,7 +787,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 		private JButton customArmorButton;
 		
 		// Starting Spells
-		private JComboBox<String> startingSpellCount;
+		private JComboBox startingSpellCount;
 		
 		// Special Advantages
 		private AdvantagePanel advantagePanel0;
@@ -875,7 +875,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 				JPanel middleLeft = new JPanel(new BorderLayout());
 				middleLeft.add(getWeaponPanel(),"Center");
 					Box line = group.createLabelLine("# Spells");
-					startingSpellCount = new JComboBox<String>(RealmCharacterConstants.SPELL_COUNT);
+					startingSpellCount = new JComboBox(RealmCharacterConstants.SPELL_COUNT);
 					startingSpellCount.setSelectedItem(String.valueOf(model.getCharacter().getGameObject().getInt(levelKey,"spellcount")));
 					startingSpellCount.addActionListener(new ActionListener() {
 						public void actionPerformed(ActionEvent ev) {

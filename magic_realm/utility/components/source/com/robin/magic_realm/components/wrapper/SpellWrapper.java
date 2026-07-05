@@ -590,8 +590,8 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		ArrayList<String> targetids = getList(TARGET_IDS);
 		if(targetids == null)return null;
 		
-		Optional<String> first = targetids.stream().findFirst();		
-		GameObject target = getGameObject().getGameData().getGameObject(first.get());
+		if (targetids.isEmpty()) return null;
+		GameObject target = getGameObject().getGameData().getGameObject(targetids.get(0));
 		return RealmComponent.getRealmComponent(target);
 	}
 	

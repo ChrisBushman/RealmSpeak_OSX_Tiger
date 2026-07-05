@@ -22,8 +22,8 @@ public class QuestView extends JPanel implements Scrollable {
 
 	private JLabel questName;
 	private JTextArea questDescription;
-	private JList<QuestJournalEntry> questJournalList;
-	private DefaultListModel<QuestJournalEntry> model;
+	private JList questJournalList;
+	private DefaultListModel model;
 	private RealmObjectPanel markedView;
 	private Quest quest;
 
@@ -94,8 +94,8 @@ public class QuestView extends JPanel implements Scrollable {
 		questDescription.setFont(QuestGuiConstants.QuestDescriptionFont);
 		questDescription.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		model = new DefaultListModel<QuestJournalEntry>();
-		questJournalList = new JList<QuestJournalEntry>(model);
+		model = new DefaultListModel();
+		questJournalList = new JList(model);
 		questJournalList.setCellRenderer(new JournalLineRenderer());
 		splitPane = new JSplitPaneImproved(JSplitPane.VERTICAL_SPLIT, true, new JScrollPane(questDescription), new JScrollPane(questJournalList));
 		add(splitPane, BorderLayout.CENTER);

@@ -31,7 +31,7 @@ public class CharacterChooser extends AggressiveDialog {
 	private ArrayList<GameObject> availableMagicUsers;
 	private JLabel characterDisplay;
 	private CharacterListModel listModel;
-	private JList<CharacterListModel> characterList;
+	private JList characterList;
 	
 	private JCheckBox showRegularOption;
 	private JCheckBox showCustomOption;
@@ -91,7 +91,7 @@ public class CharacterChooser extends AggressiveDialog {
 		
 		JPanel left = new JPanel(new BorderLayout());
 		listModel = new CharacterListModel();
-		characterList = new JList<CharacterListModel>(listModel);
+		characterList = new JList(listModel);
 		characterList.setBackground(new Color(200,255,255));
 		left.add(new JScrollPane(characterList),"Center");
 		showRegularOption = new JCheckBox("Regular",true);

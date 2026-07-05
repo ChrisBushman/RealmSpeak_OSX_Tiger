@@ -16,8 +16,7 @@ public class RealmPoems {
 	public static StringBuffer getPoem(String name) {
 		StringBuffer text = new StringBuffer();
 		text.append("<html><body><font size=\"-1\" face=\"Helvetical, Arial, sans-serif\">");
-		switch (name) {
-		case "secrets of magic realm":
+		if ("secrets of magic realm".equals(name)) {
 			text.append("The secrets in Magic Realm lay<br>");
 			text.append("For some, a treasure trove to play<br>");
 			text.append("But with a sharp mind<br>");
@@ -25,8 +24,7 @@ public class RealmPoems {
 			text.append("And emerge victorious, in the fray.<br>");
 			text.append("<br>");
 			text.append("by: Psyrek");
-			break;
-		case "magic realm":
+		} else if ("magic realm".equals(name)) {
 			text.append("In the realm of magic and mystery,<br>");
 			text.append("Where danger lurks around every tree,<br>");
 			text.append("We set out on our quest to find,<br>");
@@ -68,8 +66,7 @@ public class RealmPoems {
 			text.append("And set out once more, to make our own tale flow.<br>");
 			text.append("<br>");
 			text.append("by: Psyrek");
-			break;
-		case "the characters of magic realm":
+		} else if ("the characters of magic realm".equals(name)) {
 			text.append("The Amazon on the run<br>");
 			text.append("Seeking Goblins and fun<br>");
 			text.append("Instead met Trolls<br>");
@@ -168,8 +165,7 @@ public class RealmPoems {
 			text.append("<br>");
 			text.append("<br>");
 			text.append("by: Quantum Jack");
-			break;
-		case "black knight":
+		} else if ("black knight".equals(name)) {
 			text.append("The Black Knight's reputation,<br>");
 			text.append("a tale of Infamy upon denizen breath.<br>");
 			text.append("The mace and crossbow his weapons<br>");
@@ -181,8 +177,7 @@ public class RealmPoems {
 			text.append("... into an unhappily ever after.<br>");
 			text.append("<br>");
 			text.append("by: Caesy Benn");
-			break;
-		case "magician":
+		} else if ("magician".equals(name)) {
 			text.append("The Magician loves a good spell<br>");
 			text.append("But the monsters that secretly dwell<br>");
 			text.append("in each treasure site hiding<br>");
@@ -190,8 +185,7 @@ public class RealmPoems {
 			text.append("the best trinkets and stories to tell.<br>");
 			text.append("<br>");
 			text.append("by: Aashiana");
-			break;
-		case "pilgrim":
+		} else if ("pilgrim".equals(name)) {
 			text.append("The pilgrim casts a spell<br>");
 			text.append("\"Give me strength!\" he yell<br>");
 			text.append("\"I'll give you health\"  a voice shouts<br>");
@@ -199,8 +193,7 @@ public class RealmPoems {
 			text.append("Strength is what he wanted.<br>");
 			text.append("<br>");
 			text.append("by: Moistyclams");
-			break;
-		case "sorceror":
+		} else if ("sorceror".equals(name)) {
 			text.append("The Sorceror does not have a single care<br>");
 			text.append("because he can just Melt to Mist.<br>");
 			text.append("Transforming Tremendous armored monsters into frogs, <br>");
@@ -211,8 +204,7 @@ public class RealmPoems {
 			text.append("the Sorceror will soon be having a Fiery Blast.<br>");
 			text.append("<br>");
 			text.append("by: Caesy Benn");
-			break;
-		case "witch":
+		} else if ("witch".equals(name)) {
 			text.append("There once was a powerful Witch<br>");
 			text.append("Who had a familiar named Stich<br>");
 			text.append("It went to each clearing<br>");
@@ -220,8 +212,7 @@ public class RealmPoems {
 			text.append("And made them all both quite rich.<br>");
 			text.append("<br>");
 			text.append("by: CthulhuKid");
-			break;
-		case "woodsgirl":
+		} else if ("woodsgirl".equals(name)) {
 			text.append("The Woodsgirl leaves home as a child<br>");
 			text.append("Journeys through the forests so wild<br>");
 			text.append("Her aim is quite deadly<br>");
@@ -229,8 +220,7 @@ public class RealmPoems {
 			text.append("She has all the natives beguiled.<br>");
 			text.append("<br>");
 			text.append("by: Aashiana");
-			break;
-		default:
+		} else {
 			return null;
 		}
 		text.append("</font></body></html>");

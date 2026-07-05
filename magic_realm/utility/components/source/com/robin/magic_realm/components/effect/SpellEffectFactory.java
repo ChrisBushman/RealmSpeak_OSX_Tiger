@@ -5,181 +5,178 @@ import com.robin.magic_realm.components.utility.SpellUtility;
 
 public class SpellEffectFactory {	
 	public static ISpellEffect[] create(String spellName,String alternativeSpellEffect){
-		switch(spellName.toLowerCase()){
-			case "absorb essence":return new ISpellEffect[]{new TransmorphEffect("target")};
-			case "animate": return new ISpellEffect[]{new AnimateEffect()};
-			case "ask demon": return new ISpellEffect[]{new AskDemonEffect()};
+		if ("absorb essence".equals(spellName.toLowerCase())) return new ISpellEffect[]{new TransmorphEffect("target")};
+		if ("animate".equals(spellName.toLowerCase())) return new ISpellEffect[]{new AnimateEffect()};
+		if ("ask demon".equals(spellName.toLowerCase())) return new ISpellEffect[]{new AskDemonEffect()};
 		
-			case "bewilder": return new ISpellEffect[]{new ApplyClearingEffect(Constants.BEWILDERED)};
-			case "blazing light": return new ISpellEffect[]{new ExtraCavePhaseEffect()};
-			case "blazing light x": return new ISpellEffect[]{new ApplyNamedEffect(Constants.TORCH_BEARER)};
-			case "body double": return new ISpellEffect[]{new ApplyNamedEffect(Constants.BODY_DOUBLE)};
+		if ("bewilder".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyClearingEffect(Constants.BEWILDERED)};
+		if ("blazing light".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ExtraCavePhaseEffect()};
+		if ("blazing light x".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.TORCH_BEARER)};
+		if ("body double".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.BODY_DOUBLE)};
 		
-			case "blend into background": return new ISpellEffect[]{new ExtraActionEffect("H")};
-			case "blend into background x": return new ISpellEffect[]{new ExtraActionEffect("H")};
-			case "blunting": return new ISpellEffect[]{new ApplyClearingEffect(Constants.BLUNTED)};
-			case "blur": return new ISpellEffect[]{new FinalChitSpeedEffect()};
+		if ("blend into background".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ExtraActionEffect("H")};
+		if ("blend into background x".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ExtraActionEffect("H")};
+		if ("blunting".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyClearingEffect(Constants.BLUNTED)};
+		if ("blur".equals(spellName.toLowerCase())) return new ISpellEffect[]{new FinalChitSpeedEffect()};
 		
-			case "broomstick": return new ISpellEffect[]{new FlyChitEffect()};
+		if ("broomstick".equals(spellName.toLowerCase())) return new ISpellEffect[]{new FlyChitEffect()};
 		
-			case "control bats": return new ISpellEffect[]{new ControlEffect()};
-			case "control dragon": return new ISpellEffect[]{new ControlEffect()};
-			case "curse": return new ISpellEffect[]{new CurseEffect()};
+		if ("control bats".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ControlEffect()};
+		if ("control dragon".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ControlEffect()};
+		if ("curse".equals(spellName.toLowerCase())) return new ISpellEffect[]{new CurseEffect()};
 	
-			case "exorcise": return new ISpellEffect[]{new ExorciseEffect()};
+		if ("exorcise".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ExorciseEffect()};
 		
-			case "deal with goblins": return new ISpellEffect[]{new PacifyEffect(0)};
-			case "disguise": return new ISpellEffect[]{new PacifyEffect(0)};
-			case "disjunction": return new ISpellEffect[]{new ApplyNamedEffect(Constants.NO_WEATHER_FATIGUE),new ApplyNamedEffect(Constants.NO_TERRAIN_HARM)};
+		if ("deal with goblins".equals(spellName.toLowerCase())) return new ISpellEffect[]{new PacifyEffect(0)};
+		if ("disguise".equals(spellName.toLowerCase())) return new ISpellEffect[]{new PacifyEffect(0)};
+		if ("disjunction".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.NO_WEATHER_FATIGUE),new ApplyNamedEffect(Constants.NO_TERRAIN_HARM)};
 		
-			case "dissolve spell": return new ISpellEffect[]{new CancelEffect()};
-			case "divine might": return new ISpellEffect[]{new ApplyNamedEffect(Constants.STRONG_MF)};
-			case "divine shield": return new ISpellEffect[]{new ApplyNamedEffect(Constants.ADDS_ARMOR)};
+		if ("dissolve spell".equals(spellName.toLowerCase())) return new ISpellEffect[]{new CancelEffect()};
+		if ("divine might".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.STRONG_MF)};
+		if ("divine shield".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.ADDS_ARMOR)};
 		
-			case "elemental power": return new ISpellEffect[]{new ForcedEnchantEffect()};
-			case "elemental spirit": return new ISpellEffect[]{new ChitChangeEffect()};
-			case "elven grace": return new ISpellEffect[]{new MoveSpeedChangeEffect()};
+		if ("elemental power".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ForcedEnchantEffect()};
+		if ("elemental spirit".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ChitChangeEffect()};
+		if ("elven grace".equals(spellName.toLowerCase())) return new ISpellEffect[]{new MoveSpeedChangeEffect()};
 		
-			case "enchant artifact": return new ISpellEffect[]{new EnchantEffect()};
-			case "eternal servant": return new ISpellEffect[]{new NoWeightEffect()};
+		if ("enchant artifact".equals(spellName.toLowerCase())) return new ISpellEffect[]{new EnchantEffect()};
+		if ("eternal servant".equals(spellName.toLowerCase())) return new ISpellEffect[]{new NoWeightEffect()};
 		
-			case "fae guard": return new ISpellEffect[]{new SummonFairyEffect()};
-			case "faerie lights": return new ISpellEffect[]{new ChitChangeEffect()};
-			case "filcher": return new ISpellEffect[]{new FilcherEffect()};
+		if ("fae guard".equals(spellName.toLowerCase())) return new ISpellEffect[]{new SummonFairyEffect()};
+		if ("faerie lights".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ChitChangeEffect()};
+		if ("filcher".equals(spellName.toLowerCase())) return new ISpellEffect[]{new FilcherEffect()};
 			
-			case "flame staff": return new ISpellEffect[]{new AddSharpnessEffect(2)};
+		if ("flame staff".equals(spellName.toLowerCase())) return new ISpellEffect[]{new AddSharpnessEffect(2)};
 			
-			case "flying carpet spell": return new ISpellEffect[]{new FlyStrengthEffect()};
+		if ("flying carpet spell".equals(spellName.toLowerCase())) return new ISpellEffect[]{new FlyStrengthEffect()};
 			
-			case "fog": return new ISpellEffect[]{new ApplyNamedEffect(Constants.SP_NO_PEER)};
+		if ("fog".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.SP_NO_PEER)};
 		
-			case "gravity": return new ISpellEffect[]{new ApplyClearingEffect(Constants.HEAVIED)};
-			case "guide spider or octopus": return new ISpellEffect[]{new ControlEffect()};
+		if ("gravity".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyClearingEffect(Constants.HEAVIED)};
+		if ("guide spider or octopus".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ControlEffect()};
 		
-			case "heal": return new ISpellEffect[]{new HealChitEffect()};
-			case "hop": return new ISpellEffect[]{new TeleportEffect(SpellUtility.TeleportType.RandomClearing)};
-			case "hurricane winds": return new ISpellEffect[]{new HurricaneWindsEffect()};
-			case "hypnotize": return new ISpellEffect[]{new ControlEffect()};
+		if ("heal".equals(spellName.toLowerCase())) return new ISpellEffect[]{new HealChitEffect()};
+		if ("hop".equals(spellName.toLowerCase())) return new ISpellEffect[]{new TeleportEffect(SpellUtility.TeleportType.RandomClearing)};
+		if ("hurricane winds".equals(spellName.toLowerCase())) return new ISpellEffect[]{new HurricaneWindsEffect()};
+		if ("hypnotize".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ControlEffect()};
 		
-			case "levitate": return new ISpellEffect[]{new NoWeightEffect()};
-			case "lost": return new ISpellEffect[]{new ApplyNamedEffect(Constants.SP_MOVE_IS_RANDOM), new MazeCheckEffect()};
-			case "mage guard": return new ISpellEffect[]{new MageGuardEffect()};
-			case "make whole": return new ISpellEffect[]{new MakeWholeEffect()};
-			case "melt into mist": return new ISpellEffect[]{new NullifyEffect(),new DisengageEffect(), new TransmorphEffect("mist")};
-			case "miracle": return new ISpellEffect[]{new MiracleEffect()};
-			case "open gate": return new ISpellEffect[]{new TeleportEffect(SpellUtility.TeleportType.KnownGate)};
+		if ("levitate".equals(spellName.toLowerCase())) return new ISpellEffect[]{new NoWeightEffect()};
+		if ("lost".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.SP_MOVE_IS_RANDOM), new MazeCheckEffect()};
+		if ("mage guard".equals(spellName.toLowerCase())) return new ISpellEffect[]{new MageGuardEffect()};
+		if ("make whole".equals(spellName.toLowerCase())) return new ISpellEffect[]{new MakeWholeEffect()};
+		if ("melt into mist".equals(spellName.toLowerCase())) return new ISpellEffect[]{new NullifyEffect(),new DisengageEffect(), new TransmorphEffect("mist")};
+		if ("miracle".equals(spellName.toLowerCase())) return new ISpellEffect[]{new MiracleEffect()};
+		if ("open gate".equals(spellName.toLowerCase())) return new ISpellEffect[]{new TeleportEffect(SpellUtility.TeleportType.KnownGate)};
 		
-			case "peace": return new ISpellEffect[]{new PeaceEffect()};
-			case "peace with nature": return new ISpellEffect[]{new ApplyNamedEffect(Constants.PEACE_WITH_NATURE)};
+		if ("peace".equals(spellName.toLowerCase())) return new ISpellEffect[]{new PeaceEffect()};
+		if ("peace with nature".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.PEACE_WITH_NATURE)};
 		
-			case "pentangle": return new ISpellEffect[]{new NullifyEffect()};
-			case "persuade": return new ISpellEffect[]{new PacifyEffect(1)};
+		if ("pentangle".equals(spellName.toLowerCase())) return new ISpellEffect[]{new NullifyEffect()};
+		if ("persuade".equals(spellName.toLowerCase())) return new ISpellEffect[]{new PacifyEffect(1)};
 		
-			case "phantasm": return new ISpellEffect[]{new PhantasmEffect()};
-			case "poison": return new ISpellEffect[]{new AddSharpnessEffect(1),new ApplyNamedEffect(Constants.POISON)};
-			case "power of the pit": return new ISpellEffect[]{new PowerPitEffect()};
+		if ("phantasm".equals(spellName.toLowerCase())) return new ISpellEffect[]{new PhantasmEffect()};
+		if ("poison".equals(spellName.toLowerCase())) return new ISpellEffect[]{new AddSharpnessEffect(1),new ApplyNamedEffect(Constants.POISON)};
+		if ("power of the pit".equals(spellName.toLowerCase())) return new ISpellEffect[]{new PowerPitEffect()};
 		
-			case "prayer": return new ISpellEffect[]{new ExtraActionEffect("R")};
-			case "premonition": return new ISpellEffect[]{new ApplyNamedEffect(Constants.CHOOSE_TURN)};
-			case "prophecy": return new ISpellEffect[]{new ApplyNamedEffect(Constants.DAYTIME_ACTIONS)};
-			case "protection from magic": return new ISpellEffect[]{new PhaseChitEffect()};
+		if ("prayer".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ExtraActionEffect("R")};
+		if ("premonition".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.CHOOSE_TURN)};
+		if ("prophecy".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.DAYTIME_ACTIONS)};
+		if ("protection from magic".equals(spellName.toLowerCase())) return new ISpellEffect[]{new PhaseChitEffect()};
 
-			case "raise dead": return new ISpellEffect[]{new SummonEffect(SpellUtility.SummonType.undead.toString())};
-			case "remedy": return new ISpellEffect[]{new CancelEffect()};
-			case "repair armor": return new ISpellEffect[]{new RepairEffect()};
-			case "reverse power": return new ISpellEffect[]{new ColorModEffect()};
+		if ("raise dead".equals(spellName.toLowerCase())) return new ISpellEffect[]{new SummonEffect(SpellUtility.SummonType.undead.toString())};
+		if ("remedy".equals(spellName.toLowerCase())) return new ISpellEffect[]{new CancelEffect()};
+		if ("repair armor".equals(spellName.toLowerCase())) return new ISpellEffect[]{new RepairEffect()};
+		if ("reverse power".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ColorModEffect()};
 		
-			case "see/change weather": return new ISpellEffect[]{new SeeChangeWeatherEffect()};
-			case "see hidden signs": return new ISpellEffect[]{new ExtraActionEffect("S")};
-			case "see hidden signs x": return new ISpellEffect[]{new ExtraActionEffect("S")};
-			case "send": return new ISpellEffect[]{new ControlEffect()};
+		if ("see/change weather".equals(spellName.toLowerCase())) return new ISpellEffect[]{new SeeChangeWeatherEffect()};
+		if ("see hidden signs".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ExtraActionEffect("S")};
+		if ("see hidden signs x".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ExtraActionEffect("S")};
+		if ("send".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ControlEffect()};
 		
-			case "sense danger": return new ISpellEffect[]{new ExtraActionEffect("A")};
-			case "serpent tongue": return new ISpellEffect[]{new ControlEffect()};
-			case "shrink": return new ISpellEffect[]{new ApplyNamedEffect(Constants.SHRINK)};
+		if ("sense danger".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ExtraActionEffect("A")};
+		if ("serpent tongue".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ControlEffect()};
+		if ("shrink".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.SHRINK)};
 		
-			case "slow monster": return new ISpellEffect[]{new ApplyNamedEffect(Constants.SLOWED)};
-			case "small blessing": return new ISpellEffect[]{new SmallBlessingEffect()};
-			case "sparkle": return new ISpellEffect[]{new UnassignEffect()};
+		if ("slow monster".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.SLOWED)};
+		if ("small blessing".equals(spellName.toLowerCase())) return new ISpellEffect[]{new SmallBlessingEffect()};
+		if ("sparkle".equals(spellName.toLowerCase())) return new ISpellEffect[]{new UnassignEffect()};
 		
-			case "spirit guide": return new ISpellEffect[]{new ApplyNamedEffect(Constants.SPIRIT_GUIDE)};
-			case "staff to snake": return new ISpellEffect[]{new ChangeToCompanionEffect()};
-			case "stone gaze": return new ISpellEffect[]{new PetrifyEffect()};
+		if ("spirit guide".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.SPIRIT_GUIDE)};
+		if ("staff to snake".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ChangeToCompanionEffect()};
+		if ("stone gaze".equals(spellName.toLowerCase())) return new ISpellEffect[]{new PetrifyEffect()};
 		
-			case "summon aid": return new ISpellEffect[]{new SummonAidEffect()};
-			case "summon animal": return new ISpellEffect[]{new SummonEffect(SpellUtility.SummonType.animal.toString())};
-			case "summon elemental": return new ISpellEffect[]{new SummonEffect(SpellUtility.SummonType.elemental.toString())};
-			case "sword song": return new ISpellEffect[]{new ApplyNamedEffect(Constants.ALERTED_WEAPON), new AlertWeaponEffect()};
+		if ("summon aid".equals(spellName.toLowerCase())) return new ISpellEffect[]{new SummonAidEffect()};
+		if ("summon animal".equals(spellName.toLowerCase())) return new ISpellEffect[]{new SummonEffect(SpellUtility.SummonType.animal.toString())};
+		if ("summon elemental".equals(spellName.toLowerCase())) return new ISpellEffect[]{new SummonEffect(SpellUtility.SummonType.elemental.toString())};
+		if ("sword song".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.ALERTED_WEAPON), new AlertWeaponEffect()};
 		
-			case "talk to wise bird": return new ISpellEffect[]{new InstantPeerEffect()};
-			case "teleport": return new ISpellEffect[]{new TeleportEffect(SpellUtility.TeleportType.ChooseTileTwo)};
+		if ("talk to wise bird".equals(spellName.toLowerCase())) return new ISpellEffect[]{new InstantPeerEffect()};
+		if ("teleport".equals(spellName.toLowerCase())) return new ISpellEffect[]{new TeleportEffect(SpellUtility.TeleportType.ChooseTileTwo)};
 		
-			case "transform": return new ISpellEffect[]{new TransmorphEffect("roll")};
+		if ("transform".equals(spellName.toLowerCase())) return new ISpellEffect[]{new TransmorphEffect("roll")};
 		
-			case "unleash power": return new ISpellEffect[]{new ActionChangeEffect()};
+		if ("unleash power".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ActionChangeEffect()};
 		
-			case "vale walker": return new ISpellEffect[]{new ApplyNamedEffect(Constants.VALE_WALKER)};
-			case "violent storm": return new ISpellEffect[]{new ViolentStormEffect()};
-			case "vision": return new ISpellEffect[]{new DiscoverRoadEffect()};
+		if ("vale walker".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.VALE_WALKER)};
+		if ("violent storm".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ViolentStormEffect()};
+		if ("vision".equals(spellName.toLowerCase())) return new ISpellEffect[]{new DiscoverRoadEffect()};
 		
-			case "whistle for monsters": return new ISpellEffect[]{new MoveSoundEffect()};
-			case "witch's brew": return new ISpellEffect[]{new ChitChangeEffect()};
+		if ("whistle for monsters".equals(spellName.toLowerCase())) return new ISpellEffect[]{new MoveSoundEffect()};
+		if ("witch's brew".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ChitChangeEffect()};
 			
 			// new spells
-			case "duel": return new ISpellEffect[]{new DuelEffect()};
-			case "fighting hands": return new ISpellEffect[]{new FightChitEffect()};
-			case "flame sword": return new ISpellEffect[]{new MagicWeaponEffect()};
-			case "lucky blow": return new ISpellEffect[]{new FinalChitHarmEffect()};
-			case "magic shield": return new ISpellEffect[]{new MagicShieldEffect()};
-			case "mystic boots": return new ISpellEffect[]{new MoveChitEffect()};
-			case "rocks glow": return new ISpellEffect[]{new LightEffect()};
-			case "sleep": return new ISpellEffect[]{new SleepEffect()};
-			case "spider web": return new ISpellEffect[]{new SpiderWebEffect()};
+		if ("duel".equals(spellName.toLowerCase())) return new ISpellEffect[]{new DuelEffect()};
+		if ("fighting hands".equals(spellName.toLowerCase())) return new ISpellEffect[]{new FightChitEffect()};
+		if ("flame sword".equals(spellName.toLowerCase())) return new ISpellEffect[]{new MagicWeaponEffect()};
+		if ("lucky blow".equals(spellName.toLowerCase())) return new ISpellEffect[]{new FinalChitHarmEffect()};
+		if ("magic shield".equals(spellName.toLowerCase())) return new ISpellEffect[]{new MagicShieldEffect()};
+		if ("mystic boots".equals(spellName.toLowerCase())) return new ISpellEffect[]{new MoveChitEffect()};
+		if ("rocks glow".equals(spellName.toLowerCase())) return new ISpellEffect[]{new LightEffect()};
+		if ("sleep".equals(spellName.toLowerCase())) return new ISpellEffect[]{new SleepEffect()};
+		if ("spider web".equals(spellName.toLowerCase())) return new ISpellEffect[]{new SpiderWebEffect()};
 			
 			// super realm
-			case "alter object": return new ISpellEffect[]{new AlterObjectEffect()};
-			case "alter size": return new ISpellEffect[]{new AlterSizeEffect()};
-			case "barkskin": return new ISpellEffect[]{new ApplyNamedEffect(Constants.BARKSKIN)};
-			case "blinding light": return new ISpellEffect[]{new PhaseChitEffect()};
-			case "blunt": return new ISpellEffect[]{new ApplyNamedEffect(Constants.BLUNT)};
-			case "camouflage": return new ISpellEffect[]{new ApplyNamedEffect(Constants.CAMOUFLAGE)};
-			case "charm snake": return new ISpellEffect[]{new ControlEffect()};
-			case "control horse": return new ISpellEffect[]{new ControlHorseEffect()};
-			case "control element": return new ISpellEffect[]{new ControlEffect()};
-			case "dazzle": return new ISpellEffect[]{new PhaseChitEffect()};
-			case "deal with orcs and goblins": return new ISpellEffect[]{new PacifyEffect(0)};
-			case "dark favor": return new ISpellEffect[]{new PhaseChitEffect()};
-			case "divine protection": return new ISpellEffect[]{new ApplyNamedEffect(Constants.STRENGTHENED_VULNERABILITY)};
-			case "enchant key": return new ISpellEffect[]{new ApplyNamedEffect(Constants.KEY)};
-			case "enchant weapon": return new ISpellEffect[]{new EnchantWeaponEffect(),new ApplyNamedEffect(Constants.IGNORE_MIST_LIKE)};
-			case "free the soul": return new ISpellEffect[]{new FreeTheSoulEffect()};
-			case "free spell": return new ISpellEffect[]{new FreeSpellEffect()};
-			case "frozen water": return new ISpellEffect[]{new FrozenWaterEffect()};
-			case "guide beast": return new ISpellEffect[]{new ControlEffect()};
-			case "grow wings": return new ISpellEffect[]{new ApplyNamedEffect(Constants.GROW_WINGS)};
-			case "holy shield": return new ISpellEffect[]{new PhaseChitEffect()};
-			case "horse whisper": return new ISpellEffect[]{new ApplyNamedEffect(Constants.HORSE_WHISPER),new TurnLightSideUpEffect()};
-			case "lift object": return new ISpellEffect[]{new ApplyNamedEffect(Constants.WEIGHT_NEGLIGIBLE)};
-			case "luck": return new ISpellEffect[]{new PhaseChitEffect()};
-			case "meditate": return new ISpellEffect[]{new MeditateEffect()};
-			case "mesmerize": return new ISpellEffect[]{new MesmerizeEffect()};
-			case "migration": return new ISpellEffect[]{new MigrationEffect()};
-			case "mountain surge": return new ISpellEffect[]{new ApplyClearingEffect(Constants.MOUNTAIN_SURGE)};
-			case "negative aura": return new ISpellEffect[]{new ApplyNamedEffect(Constants.NEGATIVE_AURA)};
-			case "pacify skeletons": return new ISpellEffect[]{new ApplyNamedEffectWithValues(Constants.PACIFY_MONSTER),new ApplyNamedEffectWithValue(Constants.PACIFY_TYPE)};
-			case "redirect": return new ISpellEffect[]{new RedirectEffect()};
-			case "reanimate": return new ISpellEffect[]{new ReanimateEffect()};
-			case "reinvigorate": return new ISpellEffect[]{new ExtraActionEffect("R")};
-			case "reserve": return new ISpellEffect[]{new PhaseChitEffect()};
-			case "summon demon": return new ISpellEffect[]{new SummonEffect(SpellUtility.SummonType.demon.toString())};
-			case "thorns": return new ISpellEffect[]{new ThornsEffect()};
-			case "tracker's sense": return new ISpellEffect[]{new ApplyNamedEffect(Constants.TRACKERS_SENSE)};
-			case "violent winds": return new ISpellEffect[]{new ViolentWindsEffect()};
-			case "water run": return new ISpellEffect[]{new MoveChitEffect()};
-			case "white feathered wing spell": return new ISpellEffect[]{new ApplyDieModEffect()};
+		if ("alter object".equals(spellName.toLowerCase())) return new ISpellEffect[]{new AlterObjectEffect()};
+		if ("alter size".equals(spellName.toLowerCase())) return new ISpellEffect[]{new AlterSizeEffect()};
+		if ("barkskin".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.BARKSKIN)};
+		if ("blinding light".equals(spellName.toLowerCase())) return new ISpellEffect[]{new PhaseChitEffect()};
+		if ("blunt".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.BLUNT)};
+		if ("camouflage".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.CAMOUFLAGE)};
+		if ("charm snake".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ControlEffect()};
+		if ("control horse".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ControlHorseEffect()};
+		if ("control element".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ControlEffect()};
+		if ("dazzle".equals(spellName.toLowerCase())) return new ISpellEffect[]{new PhaseChitEffect()};
+		if ("deal with orcs and goblins".equals(spellName.toLowerCase())) return new ISpellEffect[]{new PacifyEffect(0)};
+		if ("dark favor".equals(spellName.toLowerCase())) return new ISpellEffect[]{new PhaseChitEffect()};
+		if ("divine protection".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.STRENGTHENED_VULNERABILITY)};
+		if ("enchant key".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.KEY)};
+		if ("enchant weapon".equals(spellName.toLowerCase())) return new ISpellEffect[]{new EnchantWeaponEffect(),new ApplyNamedEffect(Constants.IGNORE_MIST_LIKE)};
+		if ("free the soul".equals(spellName.toLowerCase())) return new ISpellEffect[]{new FreeTheSoulEffect()};
+		if ("free spell".equals(spellName.toLowerCase())) return new ISpellEffect[]{new FreeSpellEffect()};
+		if ("frozen water".equals(spellName.toLowerCase())) return new ISpellEffect[]{new FrozenWaterEffect()};
+		if ("guide beast".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ControlEffect()};
+		if ("grow wings".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.GROW_WINGS)};
+		if ("holy shield".equals(spellName.toLowerCase())) return new ISpellEffect[]{new PhaseChitEffect()};
+		if ("horse whisper".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.HORSE_WHISPER),new TurnLightSideUpEffect()};
+		if ("lift object".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.WEIGHT_NEGLIGIBLE)};
+		if ("luck".equals(spellName.toLowerCase())) return new ISpellEffect[]{new PhaseChitEffect()};
+		if ("meditate".equals(spellName.toLowerCase())) return new ISpellEffect[]{new MeditateEffect()};
+		if ("mesmerize".equals(spellName.toLowerCase())) return new ISpellEffect[]{new MesmerizeEffect()};
+		if ("migration".equals(spellName.toLowerCase())) return new ISpellEffect[]{new MigrationEffect()};
+		if ("mountain surge".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyClearingEffect(Constants.MOUNTAIN_SURGE)};
+		if ("negative aura".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.NEGATIVE_AURA)};
+		if ("pacify skeletons".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffectWithValues(Constants.PACIFY_MONSTER),new ApplyNamedEffectWithValue(Constants.PACIFY_TYPE)};
+		if ("redirect".equals(spellName.toLowerCase())) return new ISpellEffect[]{new RedirectEffect()};
+		if ("reanimate".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ReanimateEffect()};
+		if ("reinvigorate".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ExtraActionEffect("R")};
+		if ("reserve".equals(spellName.toLowerCase())) return new ISpellEffect[]{new PhaseChitEffect()};
+		if ("summon demon".equals(spellName.toLowerCase())) return new ISpellEffect[]{new SummonEffect(SpellUtility.SummonType.demon.toString())};
+		if ("thorns".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ThornsEffect()};
+		if ("tracker's sense".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyNamedEffect(Constants.TRACKERS_SENSE)};
+		if ("violent winds".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ViolentWindsEffect()};
+		if ("water run".equals(spellName.toLowerCase())) return new ISpellEffect[]{new MoveChitEffect()};
+		if ("white feathered wing spell".equals(spellName.toLowerCase())) return new ISpellEffect[]{new ApplyDieModEffect()};
 			
-			default: break;
-		}
 		if (alternativeSpellEffect!=null) {
 			return create(alternativeSpellEffect,null);
 		}

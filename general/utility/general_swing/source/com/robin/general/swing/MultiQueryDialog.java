@@ -10,7 +10,7 @@ import javax.swing.text.*;
 public class MultiQueryDialog extends AggressiveDialog {
 
 	protected Hashtable<String, JTextComponent> textComponents = new Hashtable<String, JTextComponent>();
-	protected Hashtable<String, JComboBox<String>> comboBoxes = new Hashtable<String, JComboBox<String>>();
+	protected Hashtable<String, JComboBox> comboBoxes = new Hashtable<String, JComboBox>();
 	protected ArrayList<JTextComponent> requiredInputComponents = new ArrayList<JTextComponent>();
 	
 	protected Box layoutBox;
@@ -94,7 +94,7 @@ public class MultiQueryDialog extends AggressiveDialog {
 		addComponent(label,textComponent);
 		textComponents.put(key,textComponent);
 	}
-	public void addQueryLine(String key,String label,JComboBox<String> comboBox) {
+	public void addQueryLine(String key,String label,JComboBox comboBox) {
 		addComponent(label,comboBox);
 		comboBoxes.put(key,comboBox);
 	}
@@ -106,7 +106,7 @@ public class MultiQueryDialog extends AggressiveDialog {
 		return null;
 	}
 	public Object getComboChoice(String key) {
-		JComboBox<String> comboBox = comboBoxes.get(key);
+		JComboBox comboBox = comboBoxes.get(key);
 		if (comboBox!=null) {
 			return comboBox.getSelectedItem();
 		}
@@ -119,7 +119,7 @@ public class MultiQueryDialog extends AggressiveDialog {
 		MultiQueryDialog dialog = new MultiQueryDialog(new JFrame(),"test");
 		dialog.addQueryLine("name","Name",new JTextField(),true);
 		dialog.addQueryLine("address","Address",new JTextField(),true);
-			JComboBox<String> cb = new JComboBox<String>();
+			JComboBox cb = new JComboBox();
 			cb.addItem("Northern");
 			cb.addItem("Southern");
 			cb.addItem("Norweestum");

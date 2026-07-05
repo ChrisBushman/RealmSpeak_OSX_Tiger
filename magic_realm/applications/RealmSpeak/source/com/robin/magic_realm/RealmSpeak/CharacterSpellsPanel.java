@@ -119,7 +119,7 @@ public class CharacterSpellsPanel extends CharacterFramePanel {
 		listModel.update();
 		bottom.setVisible(!bewitchingSpells.isEmpty());
 	}
-	private class SpellListModel extends AbstractListModel<String> {
+	private class SpellListModel extends AbstractListModel {
 		public String getElementAt(int index) {
 			if (index<getSize()) {
 				SpellWrapper spell = bewitchingSpells.get(index);

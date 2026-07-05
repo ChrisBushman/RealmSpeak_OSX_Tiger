@@ -44,7 +44,7 @@ public class TileEditFrame extends JFrame {
 	protected JButton flipButton;
 	protected JButton applyButton;
 	protected JButton toggleDetailButton;
-	protected JList<GameObject> tileList;
+	protected JList tileList;
 	
 	protected boolean selectionLock = false;
 	protected boolean editOffroad = false;
@@ -55,7 +55,7 @@ public class TileEditFrame extends JFrame {
 	protected JLabel changeWarningLabel;
 	
 	protected JPanel clearingView;
-		protected JList<ClearingDetail> clearingList;
+		protected JList clearingList;
 		protected Box clearingControls;
 			protected ButtonGroup clearingTypeGroup;
 				protected JRadioButton normalClearingType;
@@ -75,7 +75,7 @@ public class TileEditFrame extends JFrame {
 				protected JButton removeClearingButton;
 				
 	protected JPanel pathView;
-		protected JList<PathDetail> pathList;
+		protected JList pathList;
 		protected JPanel pathControls;
 			protected ButtonGroup pathTypeGroup;
 				protected JRadioButton normalPathType;
@@ -110,7 +110,7 @@ public class TileEditFrame extends JFrame {
 		Box box;
 		JScrollPane sp;
 		
-		tileList = new JList<GameObject>(getTiles());
+		tileList = new JList(getTiles());
 		tileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		tileList.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent ev) {
@@ -133,7 +133,7 @@ public class TileEditFrame extends JFrame {
 			JPanel editPanel = new JPanel(new GridLayout(2,1));
 				JPanel clearingEditPanel = new JPanel(new BorderLayout());
 				clearingEditPanel.add(new JLabel("CLEARINGS:"),"North");
-					clearingList = new JList<ClearingDetail>();
+					clearingList = new JList();
 					clearingList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 					clearingList.addListSelectionListener(new ListSelectionListener() {
 						public void valueChanged(ListSelectionEvent ev) {
@@ -264,7 +264,7 @@ public class TileEditFrame extends JFrame {
 			editPanel.add(clearingEditPanel);
 				JPanel pathEditPanel = new JPanel(new BorderLayout());
 				pathEditPanel.add(new JLabel("PATHS:"),"North");
-					pathList = new JList<PathDetail>();
+					pathList = new JList();
 					pathList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 					pathList.addListSelectionListener(new ListSelectionListener() {
 						public void valueChanged(ListSelectionEvent ev) {
@@ -494,7 +494,7 @@ public class TileEditFrame extends JFrame {
 		if (activeTile!=null) {
 			tileView.remove(activeTile);
 		}
-		GameObject tile = tileList.getSelectedValue();
+		GameObject tile = (GameObject) tileList.getSelectedValue();
 		if (tile!=null) {
 			activeTile = new TileEditComponent(tile);
 			activeTile.initSize();
@@ -522,7 +522,7 @@ public class TileEditFrame extends JFrame {
 	public void updateClearingButtons() {
 		ClearingDetail selected = null;
 		if (activeTile!=null) {
-			selected = clearingList.getSelectedValue();
+			selected = (ClearingDetail) clearingList.getSelectedValue();
 			if (selected!=null) {
 				String type = selected.getType();
 				if (type.equals("normal")) {
@@ -566,7 +566,7 @@ public class TileEditFrame extends JFrame {
 	public void updateClearings() {
 		ClearingDetail selected = null;
 		if (activeTile!=null) {
-			selected = clearingList.getSelectedValue();
+			selected = (ClearingDetail) clearingList.getSelectedValue();
 			if (selected!=null) {
 				if (normalClearingType.isSelected()) {
 					selected.setType("normal");
@@ -600,7 +600,7 @@ public class TileEditFrame extends JFrame {
 	}
 	public void changeClearingPos(Point p) {
 		if (activeTile!=null) {
-			ClearingDetail selected = clearingList.getSelectedValue();
+			ClearingDetail selected = (ClearingDetail) clearingList.getSelectedValue();
 			if (selected!=null) {
 				activeTile.didChange();
 				updateControls();
@@ -640,7 +640,7 @@ public class TileEditFrame extends JFrame {
 	}
 	public void removeClearing() {
 		if (activeTile == null) return;
-		ClearingDetail selected = clearingList.getSelectedValue();
+		ClearingDetail selected = (ClearingDetail) clearingList.getSelectedValue();
 		if (selected == null) return;
 		
 		ArrayList<ClearingDetail> allClearings = (ArrayList<ClearingDetail>) activeTile.getClearingDetail();
@@ -686,7 +686,7 @@ public class TileEditFrame extends JFrame {
 	public void updatePathButtons() {
 		PathDetail selected = null;
 		if (activeTile!=null) {
-			selected = pathList.getSelectedValue();
+			selected = (PathDetail) pathList.getSelectedValue();
 			if (selected!=null) {
 				String type = selected.getType();
 				if (type.equals("normal")) {
@@ -719,7 +719,7 @@ public class TileEditFrame extends JFrame {
 	public void updatePaths() {
 		PathDetail selected = null;
 		if (activeTile!=null) {
-			selected = pathList.getSelectedValue();
+			selected = (PathDetail) pathList.getSelectedValue();
 			if (selected!=null) {
 				if (normalPathType.isSelected()) {
 					selected.setType("normal");
@@ -834,7 +834,7 @@ public class TileEditFrame extends JFrame {
 	}
 	public void addPathArcPoint(Point p) {
 		if (activeTile!=null) {
-			PathDetail selected = pathList.getSelectedValue();
+			PathDetail selected = (PathDetail) pathList.getSelectedValue();
 			if (selected!=null) {
 				activeTile.didChange();
 				updateControls();

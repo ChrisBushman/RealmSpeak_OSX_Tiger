@@ -2171,7 +2171,7 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 		}
 		
 		MultiQueryDialog dialog = new MultiQueryDialog(RealmSpeakFrame.this,"Join Game Prefs");
-		JComboBox<String> cb = new JComboBox(prefMan.getList("joinIpAddress").toArray());
+		JComboBox cb = new JComboBox(prefMan.getList("joinIpAddress").toArray());
 		cb.setEditable(true);
 		dialog.addQueryLine("ip","IP Address",cb);
 		dialog.addQueryLine("port","Port",new JTextField(prefMan.get("joinPort")),true);

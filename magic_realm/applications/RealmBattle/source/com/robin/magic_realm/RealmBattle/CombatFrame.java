@@ -3353,14 +3353,14 @@ public class CombatFrame extends JFrame {
 		if (chooser.getSelectedText()!=null) {
 			String selection = chooser.getSelectedOptionKey();
 						
-			switch (selection.substring(0,1)) {
-			case "W":
+			String selFirst = selection.substring(0,1);
+			if ("W".equals(selFirst)) {
 				RealmComponent chit = chooser.getFirstSelectedComponent();
 				CombatWrapper combatChit = new CombatWrapper(chit.getGameObject());
 				combatChit.setCombatBoxDefense(box);
 				combatChit.setPlacedAsParryShield(true);
 				combatChit.setSheetOwnerId(characterRc);
-				
+
 				RealmComponent weapon = chooser.getLastSelectedComponent();
 				if (weapon!=null) {
 					combatChit.setWeaponId(weapon);
@@ -3370,21 +3370,17 @@ public class CombatFrame extends JFrame {
 					combatWeapon.setSheetOwnerId(characterRc);
 				}
 				charCombat.setPlayedAttack(true);
-				break;
-			case "C":
+			} else if ("C".equals(selFirst)) {
 				RealmComponent fightChit = chooser.getFirstSelectedComponent();
 				CombatWrapper combatFightChit = new CombatWrapper(fightChit.getGameObject());
 				combatFightChit.setCombatBoxDefense(box);
 				combatFightChit.setPlacedAsParryShield(true);
 				combatFightChit.setSheetOwnerId(characterRc);
 				charCombat.setPlayedBonusParry(true);
-				break;
-			case "S":
-			default:
+			} else {
 				RealmComponent shield = chooser.getFirstSelectedComponent();
 				CombatWrapper combat = new CombatWrapper(shield.getGameObject());
 				combat.setCombatBoxDefense(box);
-				break;
 			}
 
 		}

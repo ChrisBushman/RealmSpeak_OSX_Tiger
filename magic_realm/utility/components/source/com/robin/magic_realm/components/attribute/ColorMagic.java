@@ -152,15 +152,12 @@ public class ColorMagic implements Comparable {
 	}
 	
 	public static ColorMagic getMagicColorFromMagicType(String type) {
-		switch(type) {
-			case "I": return new ColorMagic(WHITE,true);
-			case "II": return new ColorMagic(GRAY,true);
-			case "III": return new ColorMagic(GOLD,true);
-			case "IV": return new ColorMagic(PURPLE,true);
-			case "V": return new ColorMagic(BLACK,true);
-			default:
-				return null;
-		}
+		if ("I".equals(type)) return new ColorMagic(WHITE,true);
+		if ("II".equals(type)) return new ColorMagic(GRAY,true);
+		if ("III".equals(type)) return new ColorMagic(GOLD,true);
+		if ("IV".equals(type)) return new ColorMagic(PURPLE,true);
+		if ("V".equals(type)) return new ColorMagic(BLACK,true);
+		return null;
 	}
 	
 }

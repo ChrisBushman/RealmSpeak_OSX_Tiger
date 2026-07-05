@@ -131,20 +131,11 @@ public class MagicRealmColor {
 	}
 	
 	public static Color getClanColor(String clan) {
-		switch(clan) {
-		case "1":
-			return BLUE;
-		case "2":
-			return GREEN;
-		case "3":
-			return RED;
-		case "4":
-			return PURPLE;
-		case "5":
-			return ORANGE;
-		case "0":
-		default:
-			return YELLOW;
-		}
+		if ("1".equals(clan)) return BLUE;
+		if ("2".equals(clan)) return GREEN;
+		if ("3".equals(clan)) return RED;
+		if ("4".equals(clan)) return PURPLE;
+		if ("5".equals(clan)) return ORANGE;
+		return YELLOW;
 	}
 }

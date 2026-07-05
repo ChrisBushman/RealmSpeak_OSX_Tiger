@@ -52,16 +52,13 @@ public class Tile {
 		return edgeName;
 	}
 	public static int getEdgeIntByName(String edge) {
-		int edgeInt = -1;
-		switch(edge) {
-			case "S":	edgeInt = 0;   break;
-			case "SW":	edgeInt = 1;  break;
-			case "NW":	edgeInt = 2;  break;
-			case "N":	edgeInt = 3;   break;
-			case "NE":	edgeInt = 4;  break;
-			case "SE":	edgeInt = 5;  break;
-		}
-		return edgeInt;
+		if ("S".equals(edge))  return 0;
+		if ("SW".equals(edge)) return 1;
+		if ("NW".equals(edge)) return 2;
+		if ("N".equals(edge))  return 3;
+		if ("NE".equals(edge)) return 4;
+		if ("SE".equals(edge)) return 5;
+		return -1;
 	}
 	public static Point getPositionFromGameObject(GameObject obj) {
 		String pos = obj.getAttribute(MAP_GRID,MAP_POSITION);

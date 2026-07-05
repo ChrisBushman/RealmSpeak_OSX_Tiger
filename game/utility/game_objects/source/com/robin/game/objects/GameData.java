@@ -552,7 +552,7 @@ public class GameData extends ModifyableObject implements Serializable {
 		game.setAttribute(new Attribute("file_version","1.0"));
 		game.setAttribute(new Attribute("name",gameName));
 		game.setAttribute(new Attribute("description",gameDesc==null?"":gameDesc));
-		if (scenarioDesc!=null && !scenarioDesc.isEmpty()) {
+		if (scenarioDesc!=null && scenarioDesc.length() > 0) {
 			game.setAttribute(new Attribute("scenarioDescription",scenarioDesc==null?"":scenarioDesc));
 		}
 		if (scenarioRandomGoldSpecialPlacement) {

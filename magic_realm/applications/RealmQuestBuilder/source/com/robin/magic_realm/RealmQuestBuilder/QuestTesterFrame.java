@@ -58,20 +58,20 @@ public class QuestTesterFrame extends JFrame {
 	JLabel guild;
 
 	// Inventory
-	JList<GameObject> activeInventory;
-	JList<GameObject> inactiveInventory;
+	JList activeInventory;
+	JList inactiveInventory;
 
 	// Hirelings, Journal, Marked Things
-	JList<RealmComponent> hirelings;
+	JList hirelings;
 	JButton hirelingAdd;
 	JButton hirelingUnhire;
 	JButton hirelingKill;
 	JButton hirelingToggleFollow;
-	JList<QuestJournalEntry> journalList;
-	JList<RealmComponent> markedThings;
+	JList journalList;
+	JList markedThings;
 
 	// Clearing
-	JList<RealmComponent> clearingComponents;
+	JList clearingComponents;
 	JLabel clearingTitle;
 	JButton pickupFromClearingButton;
 	JButton removeFromClearingButton;
@@ -590,7 +590,7 @@ public class QuestTesterFrame extends JFrame {
 		JPanel superPanel = new JPanel(new BorderLayout());
 		JPanel panel = new JPanel(new GridLayout(2, 1));
 
-		activeInventory = new JList<GameObject>();
+		activeInventory = new JList();
 		activeInventory.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		activeInventory.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
@@ -604,7 +604,7 @@ public class QuestTesterFrame extends JFrame {
 		activeInventory.setCellRenderer(new QuestListRenderer());
 		panel.add(makeTitledScrollPane("Active Inventory", activeInventory));
 
-		inactiveInventory = new JList<GameObject>();
+		inactiveInventory = new JList();
 		inactiveInventory.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		inactiveInventory.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
@@ -641,7 +641,7 @@ public class QuestTesterFrame extends JFrame {
 		toggleActive.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				if (activeInventory.getSelectedIndex() != -1) {
-					GameObject thing = activeInventory.getSelectedValue();
+					GameObject thing = (GameObject) activeInventory.getSelectedValue();
 					if (TreasureUtility.doDeactivate(QuestTesterFrame.this, character, thing)) {
 						updateCharacterPanel();
 						retestQuest();
@@ -649,7 +649,7 @@ public class QuestTesterFrame extends JFrame {
 					}
 				}
 				else if (inactiveInventory.getSelectedIndex() != -1) {
-					GameObject thing = inactiveInventory.getSelectedValue();
+					GameObject thing = (GameObject) inactiveInventory.getSelectedValue();
 					if (TreasureUtility.doActivate(QuestTesterFrame.this, character, thing, null, false)) {
 						updateCharacterPanel();
 						retestQuest();
@@ -664,7 +664,7 @@ public class QuestTesterFrame extends JFrame {
 		remove.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				if (activeInventory.getSelectedIndex() != -1) {
-					GameObject thing = activeInventory.getSelectedValue();
+					GameObject thing = (GameObject) activeInventory.getSelectedValue();
 					if (TreasureUtility.doDeactivate(QuestTesterFrame.this, character, thing)) {
 						thing.detach();
 						updateCharacterPanel();
@@ -672,7 +672,7 @@ public class QuestTesterFrame extends JFrame {
 					}
 				}
 				else if (inactiveInventory.getSelectedIndex() != -1) {
-					GameObject thing = inactiveInventory.getSelectedValue();
+					GameObject thing = (GameObject) inactiveInventory.getSelectedValue();
 					thing.detach();
 					updateCharacterPanel();
 					retestQuest();
@@ -686,7 +686,7 @@ public class QuestTesterFrame extends JFrame {
 			public void actionPerformed(ActionEvent ev) {
 				TileLocation tl = character.getCurrentLocation();
 				if (activeInventory.getSelectedIndex() != -1) {
-					GameObject thing = activeInventory.getSelectedValue();
+					GameObject thing = (GameObject) activeInventory.getSelectedValue();
 					if (TreasureUtility.doDeactivate(QuestTesterFrame.this, character, thing)) {
 						tl.clearing.add(thing, character);
 						updateCharacterPanel();
@@ -694,7 +694,7 @@ public class QuestTesterFrame extends JFrame {
 					}
 				}
 				else if (inactiveInventory.getSelectedIndex() != -1) {
-					GameObject thing = inactiveInventory.getSelectedValue();
+					GameObject thing = (GameObject) inactiveInventory.getSelectedValue();
 					tl.clearing.add(thing, character);
 					updateCharacterPanel();
 					retestQuest();
@@ -756,7 +756,7 @@ public class QuestTesterFrame extends JFrame {
 				params.targetOfSearch = list.get(0);
 
 				if (activeInventory.getSelectedIndex() != -1) {
-					GameObject item = activeInventory.getSelectedValue();
+					GameObject item = (GameObject) activeInventory.getSelectedValue();
 					if (TreasureUtility.doDeactivate(QuestTesterFrame.this, character, item)) {
 						item.detach();
 						params.objectList.add(item);
@@ -766,7 +766,7 @@ public class QuestTesterFrame extends JFrame {
 					}
 				}
 				else if (inactiveInventory.getSelectedIndex() != -1) {
-					GameObject item = inactiveInventory.getSelectedValue();
+					GameObject item = (GameObject) inactiveInventory.getSelectedValue();
 					item.detach();
 					params.objectList.add(item);
 					character.testQuestRequirements(QuestTesterFrame.this, params);
@@ -828,7 +828,7 @@ public class QuestTesterFrame extends JFrame {
 	private JPanel buildCharacterHirelingPanel() {
 		JPanel panel = new JPanel(new GridLayout(3, 1));
 		JPanel hirelingsPanel = new JPanel(new BorderLayout());	
-		hirelings = new JList<RealmComponent>();
+		hirelings = new JList();
 		hirelings.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		hirelings.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
@@ -864,7 +864,7 @@ public class QuestTesterFrame extends JFrame {
 		hirelingUnhire.setToolTipText("Unhire hireling");
 		hirelingUnhire.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				RealmComponent hireling = hirelings.getSelectedValue();
+				RealmComponent hireling = (RealmComponent) hirelings.getSelectedValue();
 				if (hireling != null) {
 					character.removeHireling(hireling.getGameObject());
 				}
@@ -877,7 +877,7 @@ public class QuestTesterFrame extends JFrame {
 		hirelingKill.setToolTipText("Kill hireling");
 		hirelingKill.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				RealmComponent hireling = hirelings.getSelectedValue();
+				RealmComponent hireling = (RealmComponent) hirelings.getSelectedValue();
 				killDenizen(hireling);
 				
 				CombatWrapper combat = new CombatWrapper(hireling.getGameObject());
@@ -894,7 +894,7 @@ public class QuestTesterFrame extends JFrame {
 		hirelingToggleFollow.setToolTipText("Toggle hireling to follow character");
 		hirelingToggleFollow.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				RealmComponent hireling = hirelings.getSelectedValue();
+				RealmComponent hireling = (RealmComponent) hirelings.getSelectedValue();
 				if (hireling != null) {
 					if (hireling.getHeldBy().getGameObject() != character.getGameObject()) {
 						character.getGameObject().add(hireling.getGameObject());
@@ -913,12 +913,12 @@ public class QuestTesterFrame extends JFrame {
 		hirelingsPanel.add(hirelingButtons, BorderLayout.SOUTH);
 		panel.add(makeTitledScrollPane("Hirelings", hirelingsPanel));
 
-		journalList = new JList<QuestJournalEntry>();
+		journalList = new JList();
 		journalList.setCellRenderer(new JournalEntryListRenderer());
 		panel.add(makeTitledScrollPane("Journal", journalList));
 				
 		JPanel markedThingsPanel = new JPanel(new BorderLayout());
-		markedThings = new JList<RealmComponent>();
+		markedThings = new JList();
 		markedThings.setCellRenderer(new MarkedThingsListRenderer());
 		markedThingsPanel.add(markedThings);
 		panel.add(makeTitledScrollPane("Marked Things", markedThingsPanel));
@@ -926,7 +926,7 @@ public class QuestTesterFrame extends JFrame {
 	}
 	
 	private void updateHirelingsButtons() {
-		RealmComponent rc = hirelings.getSelectedValue();
+		RealmComponent rc = (RealmComponent) hirelings.getSelectedValue();
 		hirelingUnhire.setEnabled(rc != null);
 		hirelingKill.setEnabled(rc != null);
 		hirelingToggleFollow.setEnabled(rc != null);
@@ -944,7 +944,7 @@ public class QuestTesterFrame extends JFrame {
 		searchClearingButton = new JButton("Search");
 		searchClearingButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				RealmComponent rc = clearingComponents.getSelectedValue();
+				RealmComponent rc = (RealmComponent) clearingComponents.getSelectedValue();
 				if (rc == null) {
 					rc = character.getCurrentTile();
 				}
@@ -955,7 +955,7 @@ public class QuestTesterFrame extends JFrame {
 		openLocationButton = new JButton("Open Location");
 		openLocationButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				RealmComponent rc = clearingComponents.getSelectedValue();
+				RealmComponent rc = (RealmComponent) clearingComponents.getSelectedValue();
 				ArrayList<GameObject> objectsToOpen = new ArrayList<GameObject>();
 				objectsToOpen.add(rc.getGameObject());
 				TreasureUtility.openOneObject(QuestTesterFrame.this, character, objectsToOpen, null, true);
@@ -1006,7 +1006,7 @@ public class QuestTesterFrame extends JFrame {
 		locationButtonsWithTitlePanel.add(locationButtonsPanel, BorderLayout.NORTH);
 		clearingChitsPanel.add(locationButtonsWithTitlePanel, BorderLayout.NORTH);
 		
-		clearingComponents = new JList<RealmComponent>();
+		clearingComponents = new JList();
 		clearingComponents.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		clearingComponents.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
@@ -1167,7 +1167,7 @@ public class QuestTesterFrame extends JFrame {
 		pickupFromClearingButton = new JButton("Pick Up");
 		pickupFromClearingButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				RealmComponent rc = clearingComponents.getSelectedValue();
+				RealmComponent rc = (RealmComponent) clearingComponents.getSelectedValue();
 				if (rc == null)
 					return;
 				if (rc.isItem()) {
@@ -1190,7 +1190,7 @@ public class QuestTesterFrame extends JFrame {
 		removeFromClearingButton = new JButton("Remove");
 		removeFromClearingButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				RealmComponent rc = clearingComponents.getSelectedValue();
+				RealmComponent rc = (RealmComponent) clearingComponents.getSelectedValue();
 				if (rc == null)
 					return;
 				if (rc.ownedBy(RealmComponent.getRealmComponent(character.getGameObject()))) {
@@ -1205,7 +1205,7 @@ public class QuestTesterFrame extends JFrame {
 		discoverButton = new JButton("Discover");
 		discoverButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				RealmComponent rc = clearingComponents.getSelectedValue();
+				RealmComponent rc = (RealmComponent) clearingComponents.getSelectedValue();
 				Search.discoverChit(QuestTesterFrame.this, character, character.getCurrentLocation().clearing, rc, new QuestRequirementParams(), null,false);
 				updateCharacterPanel();
 				retestQuest();
@@ -1215,7 +1215,7 @@ public class QuestTesterFrame extends JFrame {
 		killDenizenButton = new JButton("Kill");
 		killDenizenButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				RealmComponent victim = clearingComponents.getSelectedValue();
+				RealmComponent victim = (RealmComponent) clearingComponents.getSelectedValue();
 				if (victim == null)
 					return;
 				int index = clearingComponents.getSelectedIndex();
@@ -1622,7 +1622,7 @@ public class QuestTesterFrame extends JFrame {
 	}
 	
 	private void updateClearingButtons() {
-		RealmComponent rc = clearingComponents.getSelectedValue();
+		RealmComponent rc = (RealmComponent) clearingComponents.getSelectedValue();
 		pickupFromClearingButton.setEnabled(rc != null);
 		removeFromClearingButton.setEnabled(rc != null);
 		discoverButton.setEnabled(rc != null);

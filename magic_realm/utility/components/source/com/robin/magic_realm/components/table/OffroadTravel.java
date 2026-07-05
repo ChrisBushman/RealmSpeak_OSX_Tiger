@@ -142,7 +142,7 @@ public class OffroadTravel extends Search {
 		boolean sideExists = false;
 		ArrayList<String> list = null;
 		for (int i = 0; i<=5; i++) {
-			list = (ArrayList<String>) current.tile.getGameObject().getAttributeBlock(sideString).getOrDefault(Constants.OFFROAD_TRAVEL_SIDE+"_"+i,null);
+			list = (ArrayList<String>) current.tile.getGameObject().getAttributeBlock(sideString).get(Constants.OFFROAD_TRAVEL_SIDE+"_"+i);
 			if (list!=null && !list.isEmpty()) {
 				for (int j=0; j<list.size(); j++) {
 					if (list.get(j).matches(String.valueOf(currentClearingNum))) {
