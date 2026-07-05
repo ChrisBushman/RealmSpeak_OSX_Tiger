@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmQuestBuilder;
 
 import java.awt.BorderLayout;
@@ -90,11 +73,13 @@ public class QuestStepPanel extends JPanel {
 		requirementPanel.getDeleteAction().setEnabled(requirementsTable.getSelectedRowCount()==1);
 		requirementPanel.getMoveUpAction().setEnabled(requirementsTable.getSelectedRow()>0);
 		requirementPanel.getMoveDownAction().setEnabled(requirementsTable.getSelectedRow()>=0 && requirementsTable.getSelectedRow()<step.getRequirements().size()-1);
+		requirementPanel.updateUI();
 		
 		rewardPanel.getEditAction().setEnabled(rewardsTable.getSelectedRowCount()==1);
 		rewardPanel.getDeleteAction().setEnabled(rewardsTable.getSelectedRowCount()==1);
 		rewardPanel.getMoveUpAction().setEnabled(rewardsTable.getSelectedRow()>0);
 		rewardPanel.getMoveDownAction().setEnabled(rewardsTable.getSelectedRow()>=0 && rewardsTable.getSelectedRow()<step.getRewards().size()-1);
+		rewardPanel.updateUI();
 	}
 	
 	private void initComponents() {
@@ -222,9 +207,12 @@ public class QuestStepPanel extends JPanel {
 
 		requirementPanel = new QuestTableEditorPanel("Requirements",requirementsTable,true) {
 			public void add() {
-				ButtonOptionDialog dialog = new ButtonOptionDialog(parent, null, "Choose a requirement type:", "New Requirement", true,3);
+				ButtonOptionDialog dialog = new ButtonOptionDialog(parent, null, "Choose a requirement type:", "New Requirement", true,4);
 				for (RequirementType rt : RequirementType.values()) {
-					boolean enabled = rt!=RequirementType.OccupyLocation || quest.getLocations().size()>0;
+					boolean enabled = (rt!=RequirementType.OccupyLocation && rt!=RequirementType.LocationExists && rt!=RequirementType.Counter)
+							|| (rt==RequirementType.OccupyLocation && quest.getLocations().size()>0)
+							|| (rt==RequirementType.LocationExists && quest.getLocations().size()>0)
+							|| (rt==RequirementType.Counter && quest.getCounters().size()>0);
 					dialog.addSelectionObject(rt,enabled,rt.getDescription());
 				}
 				dialog.setVisible(true);
@@ -331,9 +319,11 @@ public class QuestStepPanel extends JPanel {
 		
 		rewardPanel = new QuestTableEditorPanel("Rewards",rewardsTable,true) {
 			public void add() {
-				ButtonOptionDialog dialog = new ButtonOptionDialog(parent, null, "Choose a reward type:", "New Reward", true,3);
+				ButtonOptionDialog dialog = new ButtonOptionDialog(parent, null, "Choose a reward type:", "New Reward", true,4);
 				for (RewardType rt : RewardType.values()) {
-					boolean enabled = !rt.requiresLocations() || quest.getLocations().size()>0;
+					boolean enabled = (!rt.requiresLocations() && rt!=RewardType.Counter)
+							|| (rt.requiresLocations() && quest.getLocations().size()>0)
+							|| (rt==RewardType.Counter && quest.getCounters().size()>0);					
 					dialog.addSelectionObject(rt,enabled,rt.getDescription());
 				}
 				dialog.setVisible(true);
@@ -422,7 +412,7 @@ public class QuestStepPanel extends JPanel {
 				if (rowIndex >= skip)
 					rowIndex++;
 				QuestStep rowStep = quest.getSteps().get(rowIndex);
-				ArrayList steps;
+				ArrayList<String> steps;
 				switch (columnIndex) {
 					case 0:
 						steps = step.getRequiredSteps();

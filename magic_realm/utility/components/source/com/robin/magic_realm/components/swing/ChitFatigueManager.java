@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.swing;
 
 import java.awt.Color;
@@ -24,6 +7,7 @@ import java.util.*;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.SwingConstants;
 
 import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
@@ -84,7 +68,7 @@ public class ChitFatigueManager extends ChitManager {
 		}
 		
 		String info = sb.size()==0?"":("Used "+sb.toString());
-		fatigueInfoLabel = new JLabel(info,JLabel.CENTER);
+		fatigueInfoLabel = new JLabel(info,SwingConstants.CENTER);
 		southDisplay.add(fatigueInfoLabel,"North");
 	}
 	protected String getActionName() {
@@ -105,10 +89,10 @@ public class ChitFatigueManager extends ChitManager {
 		return currentCount==-1 || move<0 || fight<0 || magic<0;
 	}
 	protected boolean canMakeChange() {
-		for (Iterator i=fatiguedChits.getAllChits().iterator();i.hasNext();) {
-			CharacterActionChitComponent chit = (CharacterActionChitComponent)i.next();
-			int effort = chit.getEffortAsterisks();
-			if (effort==1 && validChit(chit,true)) {
+		for (ChitComponent chit : fatiguedChits.getAllChits()) {
+			CharacterActionChitComponent aChit = (CharacterActionChitComponent)chit;
+			int effort = aChit.getEffortAsterisks();
+			if (effort==1 && validChit(aChit,true)) {
 				// They CAN make change
 				return true;
 			}
@@ -147,39 +131,34 @@ public class ChitFatigueManager extends ChitManager {
 		return testValue>0 && testValue-effort>=-1;
 	}
 	protected boolean countsAsMove(CharacterActionChitComponent chit) {
-		return chit.isMove() || chit.isFly() || chit.isAnyEffort();
+		return chit.isMove() || chit.isFly() || chit.isAnyEffort() || chit.isHitpoint();
 	}
 	protected boolean countsAsFight(CharacterActionChitComponent chit) {
-		return chit.isFight() || chit.isFightAlert() || chit.isAnyEffort();
+		return chit.isFight() || chit.isFightAlert() ||  chit.isReflex() || chit.isAnyEffort();
 	}
 	protected boolean countsAsMagic(CharacterActionChitComponent chit) {
-		return chit.isColor() || chit.isMagic() || chit.isAnyEffort();
+		return (chit.isColor() || chit.isMagic() || chit.isAnyEffort()) && !chit.isColorOnlyChit();
 	}
 	protected int totalPossibleCount() {
 		int val = 0;
-		for (Iterator i=activeChits.getAllChits().iterator();i.hasNext();) {
-			ChitComponent chit = (ChitComponent)i.next();
+		for (ChitComponent chit : activeChits.getAllChits()) {
 			if (chit.isActionChit() && validChit((CharacterActionChitComponent)chit)) {
 				int effort = ((CharacterActionChitComponent)chit).getEffortAsterisks();
 				val += effort;
 				val += 1; // Add one more, because each fatigued chit can be wounded to satisfy fatigue, and non-effort chits can be wounded too.
-//System.out.println(chit.getGameObject().getName()+" is "+effort+" + 1");
 			}
 		}
 		// fatigued chits are wounded one at a time after this (this can only happen when special weather conditions are in play)
-		for (Iterator i=fatiguedChits.getAllChits().iterator();i.hasNext();) {
-			ChitComponent chit = (ChitComponent)i.next();
+		for (ChitComponent chit : fatiguedChits.getAllChits()) {
 			if (chit.isActionChit() && validChit((CharacterActionChitComponent)chit)) {
 				val += 1; // effort has no effect at this point
-//System.out.println(chit.getGameObject().getName()+" is 1 more");
 			}
 		}
 		
 		return val;
 	}
 	private boolean areActiveEffortChits() {
-		for (Iterator i=activeChits.getAllChits().iterator();i.hasNext();) {
-			ChitComponent chit = (ChitComponent)i.next();
+		for (ChitComponent chit : activeChits.getAllChits()) {
 			if (chit.isActionChit()) {
 				CharacterActionChitComponent aChit = (CharacterActionChitComponent)chit;
 				if (validChit(aChit) && !aChit.isColor() && aChit.getEffortAsterisks()>0) {
@@ -190,8 +169,7 @@ public class ChitFatigueManager extends ChitManager {
 		return false;
 	}
 	private boolean areColorChits() {
-		for (Iterator i=activeChits.getAllChits().iterator();i.hasNext();) {
-			ChitComponent chit = (ChitComponent)i.next();
+		for (ChitComponent chit : activeChits.getAllChits()) {
 			if (chit.isActionChit()) {
 				CharacterActionChitComponent aChit = (CharacterActionChitComponent)chit;
 				if (validChit(aChit) && aChit.isColor()) {
@@ -296,10 +274,10 @@ public class ChitFatigueManager extends ChitManager {
 							updateEffort(clickedChit,-effort);
 							makeChangeType = TYPE_NA;
 							if (currentCount<0) {
-								if (clickedChit.isMove()) {
+								if (clickedChit.isMove() || clickedChit.isHitpoint()) {
 									makeChangeType = TYPE_MOVE;
 								}
-								else if (clickedChit.isFight() || clickedChit.isFightAlert()) {
+								else if (clickedChit.isFight() || clickedChit.isFightAlert() || clickedChit.isReflex()) {
 									makeChangeType = TYPE_FIGHT;
 								}
 							}
@@ -389,15 +367,14 @@ public class ChitFatigueManager extends ChitManager {
 		wrapper.initChits();
 		
 		// artifically fatigue and wound some chits
-		ArrayList list = new ArrayList(wrapper.getAllChits());
+		ArrayList<CharacterActionChitComponent> list = new ArrayList<CharacterActionChitComponent>(wrapper.getAllChits());
 		Collections.sort(list);
 		int n=0;
-		for (Iterator i=list.iterator();i.hasNext();) {
-			CharacterActionChitComponent aChit = (CharacterActionChitComponent)i.next();
+		for (CharacterActionChitComponent aChit : list) {
 			System.out.println((n++)+" "+aChit.getGameObject().getName());
 		}
 		
-		CharacterActionChitComponent aChit = (CharacterActionChitComponent)list.get(1);
+		CharacterActionChitComponent aChit = list.get(1);
 		aChit.getGameObject().setThisAttribute("action","FLY");
 		aChit.getGameObject().setThisAttribute("effort","1");
 		
@@ -406,7 +383,7 @@ public class ChitFatigueManager extends ChitManager {
 //			aChit = (CharacterActionChitComponent)list.get(i);
 //			aChit.makeWounded();
 //		}
-		aChit = (CharacterActionChitComponent)list.get(11);
+		aChit = list.get(11);
 		aChit.enchant();
 //		(new Curse(new JFrame())).applyThree(wrapper);
 		return wrapper;
@@ -420,12 +397,12 @@ public class ChitFatigueManager extends ChitManager {
 		wrapper.initChits();
 		
 		// artifically fatigue and wound some chits
-		ArrayList list = new ArrayList(wrapper.getAllChits());
+		ArrayList<CharacterActionChitComponent> list = new ArrayList<CharacterActionChitComponent>(wrapper.getAllChits());
 		Collections.sort(list);
 		if (preFatigue) {
-			CharacterActionChitComponent aChit = (CharacterActionChitComponent)list.get(3);
+			CharacterActionChitComponent aChit = list.get(3);
 			aChit.makeFatigued();
-			aChit = (CharacterActionChitComponent)list.get(7);
+			aChit = list.get(7);
 			aChit.makeFatigued();
 		}
 //		//for (int i=4;i<11;i++) {

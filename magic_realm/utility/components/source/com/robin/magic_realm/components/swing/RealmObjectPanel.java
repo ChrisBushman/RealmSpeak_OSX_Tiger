@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.swing;
 
 import java.awt.*;
@@ -30,7 +13,7 @@ import com.robin.general.swing.ImageCache;
 import com.robin.magic_realm.components.*;
 
 public class RealmObjectPanel extends JPanel implements Scrollable {
-	private static final ArrayList EMPTY_LIST = new ArrayList();
+	private static final ArrayList<RealmComponent> EMPTY_LIST = new ArrayList<RealmComponent>();
 	public static final int SINGLE_SELECTION = 1;
 	public static final int MULTIPLE_SELECTION = 2;
 	
@@ -45,7 +28,7 @@ public class RealmObjectPanel extends JPanel implements Scrollable {
 	
 	protected boolean flipView = false;
 	
-	private ArrayList listSelectionListeners;
+	private ArrayList<ListSelectionListener> listSelectionListeners;
 	
 	private FlowLayout layout;
 	
@@ -137,7 +120,7 @@ public class RealmObjectPanel extends JPanel implements Scrollable {
 	}
 	public void addSelectionListener(ListSelectionListener listener) {
 		if (listSelectionListeners == null) {
-			listSelectionListeners = new ArrayList();
+			listSelectionListeners = new ArrayList<ListSelectionListener>();
 		}
 		if (!listSelectionListeners.contains(listener)) {
 			listSelectionListeners.add(listener);
@@ -154,8 +137,7 @@ public class RealmObjectPanel extends JPanel implements Scrollable {
 	private void fireSelectionChanged() {
 		if (listSelectionListeners!=null) {
 			ListSelectionEvent ev = new ListSelectionEvent(this,0,0,false);
-			for (Iterator i=listSelectionListeners.iterator();i.hasNext();) {
-				ListSelectionListener listener = (ListSelectionListener)i.next();
+			for (ListSelectionListener listener : listSelectionListeners) {
 				listener.valueChanged(ev);
 			}
 		}
@@ -186,12 +168,12 @@ public class RealmObjectPanel extends JPanel implements Scrollable {
 		fireSelectionChanged();
 	}
 	public GameObject[] getSelectedGameObjects() {
-		ArrayList gameObjects = new ArrayList();
+		ArrayList<GameObject> gameObjects = new ArrayList<GameObject>();
 		for (Iterator i=selected.iterator();i.hasNext();) {
 			RealmComponent comp = (RealmComponent)i.next();
 			gameObjects.add(comp.getGameObject());
 		}
-		return (GameObject[])gameObjects.toArray(new GameObject[gameObjects.size()]);
+		return gameObjects.toArray(new GameObject[gameObjects.size()]);
 	}
 	public GameObject getSelectedGameObject() {
 		GameObject[] sel = getSelectedGameObjects();
@@ -206,8 +188,8 @@ public class RealmObjectPanel extends JPanel implements Scrollable {
 		}
 		return null;
 	}
-	public Collection getSelectedComponents() {
-		return new ArrayList(selected);
+	public Collection<RealmComponent> getSelectedComponents() {
+		return new ArrayList<RealmComponent>(selected);
 	}
 	public int getSelectedCount() {
 		return selected.size();
@@ -230,9 +212,9 @@ public class RealmObjectPanel extends JPanel implements Scrollable {
 		super.add(rc);
 		adjustSize();
 	}
-	public void addRealmComponents(Collection c) {
-		for (Iterator i=c.iterator();i.hasNext();) {
-			addRealmComponent((RealmComponent)i.next());
+	public void addRealmComponents(Collection<RealmComponent> c) {
+		for (RealmComponent rc : c) {
+			addRealmComponent(rc);
 		}
 	}
 	public void addObject(GameObject obj) {
@@ -242,9 +224,9 @@ public class RealmObjectPanel extends JPanel implements Scrollable {
 		}
 		adjustSize();
 	}
-	public void addObjects(Collection c) {
-		for (Iterator i=c.iterator();i.hasNext();) {
-			RealmComponent comp = RealmComponent.getRealmComponent((GameObject)i.next());
+	public void addObjects(Collection<GameObject> c) {
+		for (GameObject go : c) {
+			RealmComponent comp = RealmComponent.getRealmComponent(go);
 			if (comp!=null && !(comp instanceof TileComponent)) {
 				super.add(comp);
 			}
@@ -283,11 +265,10 @@ public class RealmObjectPanel extends JPanel implements Scrollable {
 		}
 	}
 	public void paint(Graphics g) {
-		Collection rcs = getAllRealmComponents();
+		Collection<RealmComponent> rcs = getAllRealmComponents();
 		if (rcs==null) rcs = EMPTY_LIST;
 		if (flipViewOn==true) {
-			for (Iterator i=rcs.iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
+			for (RealmComponent rc : rcs) {
 				if (rc.isChit()) {
 					ChitComponent chit = (ChitComponent)rc;
 					chit.setShowFlipSide(true);
@@ -310,8 +291,7 @@ public class RealmObjectPanel extends JPanel implements Scrollable {
 		}
 		if (!isEnabled()) {
 			g.setColor(disabledColor);
-			for (Iterator i=rcs.iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
+			for (RealmComponent rc : rcs) {
 				Rectangle r = rc.getBounds();
 				g.fillRect(r.x,r.y,r.width,r.height);
 			}
@@ -370,10 +350,9 @@ public class RealmObjectPanel extends JPanel implements Scrollable {
 			if (target!=null) {
 				if (manualFlipEnabled && ev.isShiftDown()) {
 					// flip the object
-					if (target!=null && !target.isSpell() && !target.isTreasure()) {
-						RealmComponent rc = (RealmComponent)target;
-						rc.flip();
-						updateFlipped(rc);
+					if (!target.isSpell() && !target.isTreasure()) {
+						target.flip();
+						updateFlipped(target);
 						repaint();
 					}
 				}

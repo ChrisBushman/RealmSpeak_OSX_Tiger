@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.map;
 
 import java.awt.Point;
@@ -25,8 +8,6 @@ import com.robin.game.objects.GameObject;
 import com.robin.game.objects.GamePool;
 
 public class Tile {
-	public static final String ANCHOR_TILENAME = "Borderland";
-	
 	public static boolean debug = false;
 	
 	//										0  1  2  3  4  5  
@@ -70,11 +51,20 @@ public class Tile {
 		}
 		return edgeName;
 	}
+	public static int getEdgeIntByName(String edge) {
+		if ("S".equals(edge))  return 0;
+		if ("SW".equals(edge)) return 1;
+		if ("NW".equals(edge)) return 2;
+		if ("N".equals(edge))  return 3;
+		if ("NE".equals(edge)) return 4;
+		if ("SE".equals(edge)) return 5;
+		return -1;
+	}
 	public static Point getPositionFromGameObject(GameObject obj) {
 		String pos = obj.getAttribute(MAP_GRID,MAP_POSITION);
 		StringTokenizer st = new StringTokenizer(pos,",");
-		int px = Integer.valueOf(st.nextToken()).intValue();
-		int py = Integer.valueOf(st.nextToken()).intValue();
+		int px = Integer.parseInt(st.nextToken());
+		int py = Integer.parseInt(st.nextToken());
 		return new Point(px,py);
 	}
 	public static int getRelativeEdgeNumber(String val) {
@@ -89,7 +79,7 @@ public class Tile {
 	}
 	public static int getRotationFromGameObject(GameObject obj) {
 		String rot = obj.getAttribute(MAP_GRID,MAP_ROTATION);
-		return Integer.valueOf(rot).intValue();
+		return Integer.parseInt(rot);
 	}
 	public static String convertEdge(String val,int rot) {
 		return getEdgeName(getRotatedEdgeNumber(val,rot));
@@ -102,22 +92,23 @@ public class Tile {
 	 * Reconstructs the mapGrid hash from the prebuilt gameobjects.  Note that this method can only be called
 	 * AFTER setting up the map with buildMap
 	 */
-	public static Hashtable readMap(GameData data,Collection keyVals) {
-		Hashtable mapGrid = new Hashtable();
+	public static Hashtable<Point, Tile> readMap(GameData data,Collection<String> keyVals) {
+		Hashtable<Point, Tile> mapGrid = new Hashtable<Point, Tile>();
 		// loop through all gameObjects to get tiles
 		GamePool pool = new GamePool(data.getGameObjects());
-		for (Iterator i=pool.extract(keyVals).iterator();i.hasNext();) {
-			GameObject obj = (GameObject)i.next();
+		for (GameObject obj : pool.extract(keyVals)) {
 			if (obj.hasKey("tile")) {
 				Tile tile = new Tile(obj);
-				tile.readFromGameObject();
-				mapGrid.put(tile.getMapPosition(),tile);
+				if (tile.getGameObject().hasAttribute(Tile.MAP_GRID, Tile.MAP_POSITION)) {
+					tile.readFromGameObject();
+					mapGrid.put(tile.getMapPosition(),tile);
+				}
 			}
 		}
 		return mapGrid;
 	}
 	
-	protected ArrayList clearings;
+	protected ArrayList<String> clearings;
 
 	protected GameObject gameObject;
 	
@@ -144,7 +135,7 @@ public class Tile {
 		}
 	}
 	public void build() {
-		clearings = new ArrayList();
+		clearings = new ArrayList<String>();
 		paths = new Hashtable[2];
 		paths[SIDE_NORMAL] = new Hashtable();
 		buildPaths(paths[SIDE_NORMAL],gameObject.getAttributeBlock("normal"));
@@ -175,12 +166,10 @@ public class Tile {
 		this.name = name;
 	}
 	
-	public boolean connectsToTilename(Hashtable mapGrid,String clearingKey,String tilename) {
-if (debug) System.out.println("------------------");
-		return connectsToTilename(mapGrid,clearingKey,tilename,new ArrayList());
+	public boolean connectsToTilename(Hashtable<Point,Tile> mapGrid,String clearingKey,String tilename) {
+		return connectsToTilename(mapGrid,clearingKey,tilename,new ArrayList<String>());
 	} 
-	private boolean connectsToTilename(Hashtable mapGrid,String clearingKey,String tilename,ArrayList touchedClearings) {
-if (debug) System.out.println(name+":"+clearingKey);
+	private boolean connectsToTilename(Hashtable<Point,Tile> mapGrid,String clearingKey,String tilename,ArrayList<String> touchedClearings) {
 		touchedClearings.add(name+":"+clearingKey);
 
 		// Check the obvious
@@ -190,13 +179,12 @@ if (debug) System.out.println(name+":"+clearingKey);
 		}
 	
 		// Get all clearings connected to this clearing
-		Collection c = getConnected(clearingKey);
+		Collection<String> c = getConnected(clearingKey);
 		
 		// Remove any clearings already "touched"
 		if (c!=null && c.size()>0) {
 			// Cycle through connected clearings
-			for (Iterator i=c.iterator();i.hasNext();) {
-				String connectedClearing = (String)i.next();
+			for (String connectedClearing : c) {
 				if (!touchedClearings.contains(name+":"+connectedClearing)) {
 					if (isEdge(connectedClearing)) {
 						touchedClearings.add(name+":"+connectedClearing);
@@ -206,17 +194,16 @@ if (debug) System.out.println(name+":"+clearingKey);
 						// First find the tile that connects on that side
 						int realEdge = getRealEdgeNumber(connectedClearing);
 						Point adjPos = getAdjacentPosition(position,realEdge);
-						Tile adjTile = (Tile)mapGrid.get(adjPos);
+						Tile adjTile = mapGrid.get(adjPos);
 						
 						if (adjTile!=null) {
 							// Find the edge of the adjacent tile that touches this tile
 							int adjTileRealEdge = (realEdge+3)%6;
 							int adjTileRelativeEdge = adjTileRealEdge-adjTile.getRotation();
 							while(adjTileRelativeEdge<0) adjTileRelativeEdge+=6;
-							Collection newTileClearings = adjTile.getConnected(getEdgeName(adjTileRelativeEdge));
+							Collection<String> newTileClearings = adjTile.getConnected(getEdgeName(adjTileRelativeEdge));
 							if (newTileClearings!=null) {
-								for (Iterator nt=newTileClearings.iterator();nt.hasNext();) {
-									String newTileClearing = (String)nt.next();
+								for (String newTileClearing : newTileClearings) {
 									if (adjTile.connectsToTilename(mapGrid,newTileClearing,tilename,touchedClearings)) {
 										// The connected clearing on the adjacent tile connects to tilename, so this connects.
 										return true;
@@ -237,13 +224,17 @@ if (debug) System.out.println(name+":"+clearingKey);
 		
 		return false;
 	}
-	// These methods are just here so I can code - their purpose will be coded later
+
 	public int getClearingCount() {
 		return clearings.size();
 	}
 	
-	public Collection getConnected(String clearing) {
-		return (Collection)paths[side].get(clearing);
+	public ArrayList<String> getClearings() {
+		return clearings;
+	}
+	
+	public Collection<String> getConnected(String clearing) {
+		return (Collection<String>)paths[side].get(clearing);
 	}
 	public GameObject getGameObject() {
 		return gameObject;
@@ -296,10 +287,10 @@ if (debug) System.out.println(name+":"+clearingKey);
 		}
 	}
 	
-	private void updatePathHash(Hashtable pathHash,String from,String to) {
-		ArrayList list = (ArrayList)pathHash.get(from);
+	private void updatePathHash(Hashtable<String, ArrayList<String>> pathHash,String from,String to) {
+		ArrayList<String> list = pathHash.get(from);
 		if (list==null) {
-			list = new ArrayList();
+			list = new ArrayList<String>();
 			pathHash.put(from,list);
 		}
 		if (!list.contains(to)) {
@@ -315,7 +306,6 @@ if (debug) System.out.println(name+":"+clearingKey);
 		gameObject.setAttribute(MAP_GRID,MAP_ROTATION,String.valueOf(rotation));
 	}
 	
-//	private static final int[] REQ_CLEARINGS = {2,4,5,6};
 	/**
 	 * @param mapGrid	The map Hash of Point keys to Tile objects
 	 * @param tile		The Tile object to be tested
@@ -324,48 +314,120 @@ if (debug) System.out.println(name+":"+clearingKey);
 	 * 
 	 * @return		true if the Tile object will fit at the specified location and rotation.
 	 */
-	public static boolean isMappingPossibility(Hashtable mapGrid,Tile tile,Point pos,int rot) {
+	public static boolean isMappingPossibility(Hashtable mapGrid,Tile tile,Point pos,int rot,String anchorTilename,boolean hillTilesRule,boolean rangeSetup,boolean rangeSetupVariant) {
 		// Setup the position
 		tile.setMapPosition(pos);
 		tile.setRotation(rot);
-		
 		// First test the join
 		boolean joinError = false;
+		boolean riverConnected = false;
+		int adjTileCount = 0;
 		for (int edge=0;edge<6;edge++) {
 			Tile adjTile = (Tile)mapGrid.get(Tile.getAdjacentPosition(pos,edge));
 			// Only need to test joins where there is a tile
 			if (adjTile!=null) {
 				if (tile.getPathState(edge)!=adjTile.getPathState((edge+3)%6)) {
-					if (debug) {
-						System.out.println(tile.name+" doesn't line up with "+adjTile.name);
-						System.out.println(tile.name+" path state for "+edge+" is "+tile.getPathState(edge));
-						System.out.println(adjTile.name+" path state for "+((edge+3)%6)+" is "+adjTile.getPathState((edge+3)%6));
-					}
-					return false; // if they don't line up, there is no need to continue here!!
+					return false;
 				}
+				ArrayList<String> pathsTypes = tile.getPathTypes(tile.side,(edge-rot+6)%6);
+				ArrayList<String> adjTilePathsTypes = adjTile.getPathTypes(adjTile.side,(edge+9-adjTile.getRotation())%6);
+				if ((pathsTypes.contains("river") && !adjTilePathsTypes.contains("river")) || (adjTilePathsTypes.contains("river") && !pathsTypes.contains("river"))) {
+					return false;
+				}
+				if (pathsTypes.contains("river") && adjTilePathsTypes.contains("river")) {
+					riverConnected = true;
+				}
+				if ((rangeSetup || rangeSetupVariant) && !tile.hasRiverPaths(0)) {
+					if (rangeSetup) {
+						for (String clearing : tile.getClearings()) {
+							if (tile.clearingConnectsToEdge(clearing,edge,0)) {
+								Collection<String> c = tile.getConnected(clearing);
+								if (c!=null && c.size()>0) {
+									for (String connectedClearing : c) {
+										if (Tile.clearingIsEdge(connectedClearing)) {
+											int realEdge = tile.getRealEdgeNumber(connectedClearing);
+											int adjTileRealEdge = (realEdge+3)%6;
+											int adjTileRelativeEdge = adjTileRealEdge-adjTile.getRotation();
+											while(adjTileRelativeEdge<0) adjTileRelativeEdge+=6;
+											Collection<String> newTileClearings = adjTile.getConnected(getEdgeName(adjTileRelativeEdge));
+											if (newTileClearings!=null) {
+												for (String newClearing : newTileClearings) {
+													if (tile.getTypeForClearing(clearing,0).matches("mountain") && !adjTile.getTypeForClearing(newClearing,0).matches("mountain")) {
+														return false;
+													}
+													if (tile.getTypeForClearing(clearing,0).matches("caves") && !adjTile.getTypeForClearing(newClearing,0).matches("caves")) {
+														return false;
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					if (rangeSetupVariant) {
+						boolean mountain = false;
+						boolean caves = false;
+						for (String type : tile.getClearingTypes(0)) {
+							if (type.matches("mountain")) mountain = true;
+							if (type.matches("caves")) mountain = true;
+						}
+						if (mountain || caves) {
+							boolean adjMountain = false;
+							boolean adjCaves = false;
+							for (String type : adjTile.getClearingTypes(0)) {
+								if (type.matches("mountain")) adjMountain = true;
+								if (type.matches("caves")) adjCaves = true;
+							}
+							if (mountain && !adjMountain) return false;
+							if (caves && !adjCaves) return false;
+						}
+					}
+					
+					String tileType = tile.getGameObject().getThisAttribute("tile_type");
+					String adjacentTileType = adjTile.getGameObject().getThisAttribute("tile_type");
+					if ((tileType.matches("W") || tileType.matches("F")) && !adjacentTileType.matches("W") && !adjacentTileType.matches("F")) {
+						return false;
+					}
+					if ((tileType.matches("V") && adjacentTileType.matches("H")) || (tileType.matches("H") && adjacentTileType.matches("V"))) {
+						return false;
+					}
+				}
+				adjTileCount++;
 			}
 		}
+		if (adjTileCount<2 && !tile.name.matches(anchorTilename) && !tile.getGameObject().hasThisAttribute("map_building_prio") && mapGrid.size()!=1) {
+			return false;
+		}
 		
+		if (!riverConnected && tile.hasRiverPaths(tile.side) && !tile.name.matches(anchorTilename)) {
+			return false;
+		}
 		boolean allConnect = true;
 		boolean anyConnect = false;
-		
-		for (int i=0;i<6;i++) {
-			if (tile.connectsToTilename(mapGrid,"clearing_"+(i+1),ANCHOR_TILENAME)) {
+		for (String clearing : tile.getClearings()) {
+			if (tile.connectsToTilename(mapGrid,clearing,anchorTilename)) {
 				anyConnect = true;
 			}
 			else {
 				allConnect = false;
+				if (anyConnect==true) break;
 			}
 		}
 		
-		// Now, if the tile has 6-clearings, check to be sure the paths
-		// lead back to the borderland tile.
-		if (tile.getClearingCount()==6) {
+		String tileType = tile.getGameObject().getThisAttribute("tile_type");
+		// Now, if the tile has 6-clearings, check to be sure the paths lead back to the borderland tile.
+		if (tile.getClearingCount()==6 && tileType!="V" && tileType!="W" && tileType!="H" && !tile.hasRiverPaths(tile.side)) {
 			// I think I only need to check clearings 2 and 6 (or something like that)
 			if (!allConnect) {
 				if (debug) System.out.println(tile.name+" doesn't have all 6 clearings connecting");
 				joinError = true;
 			}
+		}
+		else if (hillTilesRule && tileType.matches("H") && !allConnect) {
+			if (debug) System.out.println(tile.name+" (hill tile) doesn't have all clearings connecting");
+			joinError = true;
 		}
 		else {
 			if (!anyConnect) {
@@ -375,16 +437,147 @@ if (debug) System.out.println(name+":"+clearingKey);
 		}
 		
 		// If the tile has no join errors, save the result
-		// (no need to check if adjacent to two tiles here)
 		return !joinError;
 	}
+	
+	public static boolean isMappingNextToPrioritizedTile(Hashtable mapGrid,Tile tile,Point pos,int rot) {
+		tile.setMapPosition(pos);
+		tile.setRotation(rot);
+		for (int edge=0;edge<6;edge++) {
+			Tile adjTile = (Tile)mapGrid.get(Tile.getAdjacentPosition(pos,edge));
+			if (adjTile!=null && (tile.getGameObject().hasThisAttribute("map_building_increase_prio_tile_placement") || tile.getGameObject().hasThisAttribute("anchor_tile"))) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public ArrayList<String> getPathTypes(int side,int edge) {
+		String sideName; 
+		if (side == 0) {
+			sideName = "normal";
+		}
+		else {
+			sideName = "enchanted";
+		}
+		String edgeName = getEdgeName(edge);
+		ArrayList<String> pathsTypes = new ArrayList<String>();
+		int i=1;
+		Hashtable attributes = gameObject.getAttributeBlock(sideName);
+		while (true) {
+			if (attributes.get("path_"+i+"_type")!=null) {
+				String from = (String)attributes.get("path_"+i+"_from");
+				String to = (String)attributes.get("path_"+i+"_to");
+				if (from.matches(edgeName) || to.matches(edgeName)) {
+					pathsTypes.add((String)attributes.get("path_"+i+"_type"));
+				}
+				i++;
+			}
+			else {
+				break;
+			}
+		}
+		return pathsTypes;
+	}
+	
+	public ArrayList<String> getClearingTypes(int side) {
+		String sideName; 
+		if (side == 0) {
+			sideName = "normal";
+		}
+		else {
+			sideName = "enchanted";
+		}
+		ArrayList<String> clearingTypes = new ArrayList<String>();
+		Hashtable attributes = gameObject.getAttributeBlock(sideName);
+		for (int i=1;i<=9;i++) {
+			if (attributes.get("clearing_"+i+"_type")!=null) {
+				clearingTypes.add((String)attributes.get("clearing_"+i+"_type"));
+			}
+		}
+		return clearingTypes;
+	}
+	
+	public String getTypeForClearing(String clearing, int side) {
+		String sideName; 
+		if (side == 0) {
+			sideName = "normal";
+		}
+		else {
+			sideName = "enchanted";
+		}
+		Hashtable attributes = gameObject.getAttributeBlock(sideName);
+		return (String)attributes.get(clearing+"_type");
+	}
+	
+	public boolean clearingConnectsToEdge(String clearing, int edge, int side) {
+		String sideName; 
+		if (side == 0) {
+			sideName = "normal";
+		}
+		else {
+			sideName = "enchanted";
+		}
+		String edgeName = getEdgeName(edge);
+		int i=1;
+		Hashtable attributes = gameObject.getAttributeBlock(sideName);
+		while (true) {
+			if (attributes.get("path_"+i+"_type")!=null) {
+				String from = (String)attributes.get("path_"+i+"_from");
+				String to = (String)attributes.get("path_"+i+"_to");
+				if ((from.matches(edgeName) && to.matches(clearing)) || (from.matches(clearing) && to.matches(edgeName))) {
+					return true;
+				}
+				i++;
+			}
+			else {
+				break;
+			}
+		}
+		return false;
+	}
+	
+	public static boolean clearingIsEdge(String clearing) {
+		if (clearing.matches("clearing_.*")) {
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean hasRiverPaths(int side) {
+		String sideName; 
+		if (side == 0) {
+			sideName = "normal";
+		}
+		else {
+			sideName = "enchanted";
+		}
+		int i=1;
+		Hashtable attributes = gameObject.getAttributeBlock(sideName);
+		while (true) {
+			if (attributes.get("path_"+i+"_type")!=null) {
+				String path = (String)attributes.get("path_"+i+"_type");
+				i++;
+				if (path.matches("river")) {
+					return true;
+				}
+			}
+			else {
+				break;
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * @return		A Collection of Point objects that reference possible map placements
 	 */
-	public static ArrayList findAvailableMapPositions(Hashtable mapGrid) {
-		ArrayList availableMapPositions = new ArrayList();
-		for (Iterator t=mapGrid.values().iterator();t.hasNext();) {
-			Tile tile = (Tile)t.next();
+	public static ArrayList<Point> findAvailableMapPositions(Hashtable<Point, Tile> mapGrid,String anchorTilename) {
+		return findAvailableMapPositions(mapGrid,anchorTilename,false,false);
+	}
+	public static ArrayList<Point> findAvailableMapPositions(Hashtable<Point, Tile> mapGrid, String anchorTilename, boolean autoBuildRiver, boolean hillTilesRule) {
+		ArrayList<Point> availableMapPositions = new ArrayList<Point>();
+		for (Tile tile : mapGrid.values()) {
 			Point pos = tile.getMapPosition();
 			
 			// Cycle through all adjacent positions to the mapped tile
@@ -399,14 +592,27 @@ if (debug) System.out.println(name+":"+clearingKey);
 							// Count adjacent tiles (joined or not)
 							int adjCount = 0;
 							for (int adj=0;adj<6;adj++) {
-								Tile adjTile = (Tile)mapGrid.get(Tile.getAdjacentPosition(adjPos,adj));
+								Tile adjTile = mapGrid.get(Tile.getAdjacentPosition(adjPos,adj));
 								if (adjTile!=null) {
 									adjCount++;
 								}
 							}
 							// only places adjacent to two tiles (unless only one tile on map)
-							if (mapGrid.size()==1 || adjCount>1) {
-								availableMapPositions.add(adjPos);
+							if (mapGrid.size()==1 || adjCount>1 || tile.getGameObject().hasThisAttribute("map_building_prio")) {
+								if (hillTilesRule && tile.getGameObject().getThisAttribute("tile_type").matches("H")) {
+									boolean connects = true;
+									for (String clearing : tile.getClearings()) {
+										if (!tile.connectsToTilename(mapGrid,clearing,anchorTilename)) {
+											connects = false;
+											break;
+										}
+									}
+									if (connects) {
+										availableMapPositions.add(adjPos);
+									}
+								} else {
+									availableMapPositions.add(adjPos);
+								}
 							}
 						}
 					}

@@ -1,7 +1,5 @@
 package com.robin.magic_realm.components.effect;
 
-import java.util.Iterator;
-
 import com.robin.game.objects.GameObject;
 import com.robin.magic_realm.components.ArmorChitComponent;
 import com.robin.magic_realm.components.RealmComponent;
@@ -22,8 +20,8 @@ public class MageGuardEffect implements ISpellEffect {
 		ArmorCreator creator = new ArmorCreator("mageguard");
 		GameObject guard = creator.createOrReuseArmor(context.Game.getGameData());
 		creator.setupGameObject(guard, "Mage Guard", "staff", "H", "", 1, ARMOR_CHOICE);
-		creator.setupSide(guard, "intact", 0, "gray");
-		creator.setupSide(guard, "damaged", 0, "white");
+		ArmorCreator.setupSide(guard, "intact", 0, "gray");
+		ArmorCreator.setupSide(guard, "damaged", 0, "white");
 
 		ArmorChitComponent armor = new ArmorChitComponent(guard);
 		armor.setOwner(cc);
@@ -35,18 +33,13 @@ public class MageGuardEffect implements ISpellEffect {
 	@Override
 	public void unapply(SpellEffectContext context) {
 		GameObject guard = null;
-		for (Iterator i = context.Caster.getHoldAsGameObjects().iterator(); i.hasNext();) {
-			GameObject go = (GameObject) i.next();
+		for (GameObject go : context.Caster.getHold()) {
 			if ("Mage Guard".equals(go.getName())) {
 				guard = go;
 				break;
 			}
 		}
-
-		//remove guard
 		if (guard != null) context.Caster.remove(guard);
-
-		//return the staff
 		context.Caster.add(context.Target.getGameObject());
 	}
 

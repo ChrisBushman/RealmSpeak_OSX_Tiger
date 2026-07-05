@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle;
 
 import java.util.ArrayList;
@@ -22,6 +5,7 @@ import java.util.Iterator;
 
 import com.robin.game.objects.*;
 import com.robin.magic_realm.components.BattleChit;
+import com.robin.magic_realm.components.CharacterChitComponent;
 import com.robin.magic_realm.components.RealmComponent;
 import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
@@ -36,15 +20,16 @@ public class BattleSummaryWrapper extends GameObjectWrapper {
 	public String getBlockName() {
 		return "_BSUM_";
 	}
-	public void initFromBattleChits(ArrayList battleChits) {
+	public void initFromBattleChits(ArrayList<BattleChit> battleChits) {
 		clearBattleSummary();
 		
-		for (Iterator i=battleChits.iterator();i.hasNext();) {
-			BattleChit bp = (BattleChit)i.next();
+		ArrayList<GameObject> battleChitsAdded = new ArrayList<GameObject>();
+		for (BattleChit bp : battleChits) {
+			if (battleChitsAdded.contains(bp.getGameObject())) continue;
 			if (bp instanceof SpellWrapper) {
 				SpellWrapper spell = (SpellWrapper)bp;
-				for (Iterator n=spell.getTargets().iterator();n.hasNext();) {
-					BattleChit target = (BattleChit)n.next();
+				for (RealmComponent rc : spell.getTargets()) {
+					BattleChit target = (BattleChit)rc;
 					addBattleSummaryKill(bp.getGameObject(),target.getGameObject());
 				}
 			}
@@ -58,20 +43,27 @@ public class BattleSummaryWrapper extends GameObjectWrapper {
 				if (target!=null) {
 					addBattleSummaryKill(bp.getGameObject(),target.getGameObject());
 				}
+				if (bp instanceof CharacterChitComponent) {
+					BattleChit target2 = (BattleChit) ((CharacterChitComponent)bp).get2ndTarget();
+					if (target2!=null) {
+						addBattleSummaryKill(bp.getGameObject(),target2.getGameObject());
+					}
+				}	
 			}
+			battleChitsAdded.add(bp.getGameObject());
 		}
 	}
 	public BattleSummary getBattleSummary() {
 		BattleSummary bs = new BattleSummary();
-		ArrayList attackers = getList(ATTACKERS);
-		ArrayList targets = getList(TARGETS);
+		ArrayList<String> attackers = getList(ATTACKERS);
+		ArrayList<String> targets = getList(TARGETS);
 		GameData data = getGameObject().getGameData();
 		if (attackers!=null && attackers.size()>0) {
-			Iterator k = attackers.iterator();
-			Iterator d = targets.iterator();
+			Iterator<String> k = attackers.iterator();
+			Iterator<String> d = targets.iterator();
 			while(k.hasNext()) {
-				String kid = (String)k.next();
-				String did = (String)d.next();
+				String kid = k.next();
+				String did = d.next();
 				GameObject kGo = data.getGameObject(Long.valueOf(kid));
 				GameObject dGo = data.getGameObject(Long.valueOf(did));
 				bs.addAttackerTarget(kGo,dGo);

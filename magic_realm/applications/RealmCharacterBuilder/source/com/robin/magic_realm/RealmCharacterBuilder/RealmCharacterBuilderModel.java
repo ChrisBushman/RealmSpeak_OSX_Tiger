@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmCharacterBuilder;
 
 import java.awt.image.BufferedImage;
@@ -31,6 +14,7 @@ import com.robin.general.io.ZipUtilities;
 import com.robin.general.swing.*;
 import com.robin.general.util.OrderedHashtable;
 import com.robin.magic_realm.components.CharacterChitComponent;
+import com.robin.magic_realm.components.CharacterInfoCard;
 import com.robin.magic_realm.components.RealmComponent;
 import com.robin.magic_realm.components.utility.*;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
@@ -47,6 +31,7 @@ public class RealmCharacterBuilderModel {
 	public static final String CHARACTER_PICTURE_GIF_FILENAME = "_RCB2212_picture";
 	public static final String CHARACTER_TOKEN_GIF_FILENAME = "_RCB2212_symbol";
 	public static final String CHARACTER_WEAPON_GIF_PREFIX = "_RCB2212_weapon_";
+	public static final String CHARACTER_ARMOR_GIF_PREFIX = "_RCB2212_armor_";
 	public static final String CHARACTER_BADGE_GIF_PREFIX = "_RCB2212_badge_";
 	
 	private CharacterWrapper character;
@@ -58,13 +43,21 @@ public class RealmCharacterBuilderModel {
 	private ImageIcon pictureIcon = null;
 	
 	private Hashtable<String,GameObject> weaponHash;
+	private Hashtable<String,GameObject> armorHash;
 	
 	public RealmCharacterBuilderModel(GameData data) {
+		ArrayList<GameObject> list = new ArrayList<GameObject>(data.getGameObjects());
+		init(list);
+	}
+	
+	public RealmCharacterBuilderModel(Collection<GameObject> collection) {
+		init(collection);
+	}
+	
+	private void init(Collection<GameObject> collection) {
 		chit = new GameObject[12];
 		int n=0;
-		ArrayList list = new ArrayList(data.getGameObjects());
-		for (Iterator i=list.iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		for (GameObject go : collection) {
 			String opt = go.getThisAttribute("optional");
 			if ("add".equals(opt)) {
 				continue;
@@ -85,6 +78,11 @@ public class RealmCharacterBuilderModel {
 		ArrayList<GameObject> weapons = pool.find(TemplateLibrary.WEAPON_QUERY);
 		for (GameObject go:weapons) {
 			weaponHash.put(go.getName(),go);
+		}
+		armorHash = new Hashtable<String,GameObject>();
+		ArrayList<GameObject> armors = pool.find(TemplateLibrary.ARMOR_QUERY);
+		for (GameObject go:armors) {
+			armorHash.put(go.getName(),go);
 		}
 	}
 	public CharacterInfoCard getCard() {
@@ -150,13 +148,21 @@ public class RealmCharacterBuilderModel {
 			chit[i].setThisAttribute(Constants.ICON_FOLDER,iconFolder);
 		}
 	}
-	public void updateWeaponIcon(GameObject weapon,ImageIcon icon) {
+	public static void updateWeaponIcon(GameObject weapon,ImageIcon icon) {
 		String iconFolder = RealmCharacterConstants.CUSTOM_ICON_BASE_PATH+"weapons";
 		String iconName = weapon.getName().toLowerCase(); // this may change when the file is saved!
 		String iconPath = iconFolder+"/"+iconName;
 		ImageCache._placeImage(iconPath,icon); // Trick the cache to use this icon
 		weapon.setThisAttribute(Constants.ICON_FOLDER,iconFolder);
 		weapon.setThisAttribute(Constants.ICON_TYPE,iconName);
+	}
+	public static void updateArmorIcon(GameObject armor,ImageIcon icon) {
+		String iconFolder = RealmCharacterConstants.CUSTOM_ICON_BASE_PATH+"armor";
+		String iconName = armor.getName().toLowerCase(); // this may change when the file is saved!
+		String iconPath = iconFolder+"/"+iconName;
+		ImageCache._placeImage(iconPath,icon); // Trick the cache to use this icon
+		armor.setThisAttribute(Constants.ICON_FOLDER,iconFolder);
+		armor.setThisAttribute(Constants.ICON_TYPE,iconName);
 	}
 	public ImageIcon getCharacterSymbol() {
 		return characterSymbol;
@@ -170,33 +176,51 @@ public class RealmCharacterBuilderModel {
 	public boolean hasWeapon(String name) {
 		return weaponHash.containsKey(name);
 	}
-	/**
-	 * This will grab the weapon names from all four levels, and remove any GameObjects that are NOT used
-	 */
+	public void addArmor(String name,GameObject armor) {
+		armorHash.put(name,armor);
+	}
+	public GameObject getArmor(String name) {
+		return armorHash.get(name);
+	}
+	public boolean hasArmor(String name) {
+		return armorHash.containsKey(name);
+	}
 	public void updateWeaponUsage() {
-		ArrayList<String> weapons = new ArrayList<String>();
+		updateItemUsage("weapon", TemplateLibrary.WEAPON_QUERY, weaponHash);
+	}
+	public void updateArmorUsage() {
+		updateItemUsage("custom_armor", TemplateLibrary.ARMOR_QUERY, armorHash);
+	}
+	/**
+	 * This will grab the item names from all four levels, and remove any GameObjects that are NOT used
+	 */
+	private void updateItemUsage(String itemType, String query, Hashtable<String,GameObject> hashtable) {
+		ArrayList<String> items = new ArrayList<String>();
 		for (int i=1;i<=4;i++) {
 			String levelKey = "level_"+i;
-			String weapon = character.getGameObject().getAttribute(levelKey,"weapon");
-			if (weapon!=null && !weapons.contains(weapon)) {
-				weapons.add(weapon);
+			String item = character.getGameObject().getAttribute(levelKey,itemType);
+			if (item!=null && !items.contains(item)) {
+				items.add(item);
 			}
 		}
 		GamePool pool = new GamePool(character.getGameObject().getGameData().getGameObjects());
 		ArrayList<GameObject> toRemove = new ArrayList<GameObject>();
-		ArrayList<GameObject> currentWeapons = pool.find(TemplateLibrary.WEAPON_QUERY);
-		for (GameObject go:currentWeapons) {
-			if (!weapons.contains(go.getName())) {
+		ArrayList<GameObject> currentItems = pool.find(query);
+		for (GameObject go:currentItems) {
+			if (!items.contains(go.getName())) {
 				toRemove.add(go);
 			}
 		}
 		for (GameObject go:toRemove) {
-			weaponHash.remove(go.getName());
+			hashtable.remove(go.getName());
 			character.getGameObject().getGameData().removeObject(go);
 		}
 	}
 	public ArrayList<String> getAllWeaponNames() {
 		return new ArrayList<String>(weaponHash.keySet());
+	}
+	public ArrayList<String> getAllArmorNames() {
+		return new ArrayList<String>(armorHash.keySet());
 	}
 	public boolean saveToFile(File file,boolean graphicsOnly) {
 		String name = character.getGameObject().getName().replace(' ','_');
@@ -253,6 +277,21 @@ public class RealmCharacterBuilderModel {
 					if (!graphicsOnly) weaponFile.deleteOnExit();
 					exportImage(weaponFile,icon);
 					fileList.add(weaponFile);
+				}
+			}
+			ArrayList<String> armorNames = getAllArmorNames();
+			for (String armorName:armorNames) {
+				GameObject go = getArmor(armorName);
+				String iconFolder = go.getThisAttribute(Constants.ICON_FOLDER);
+				if (iconFolder.startsWith(RealmCharacterConstants.CUSTOM_ICON_BASE_PATH)) {
+					// All custom icons require saving
+					String iconName = go.getThisAttribute(Constants.ICON_TYPE);
+					String filename = iconFolder+"/"+iconName;
+					ImageIcon icon = ImageCache.getIcon(filename);
+					File armorFile = new File(dir+name+CHARACTER_ARMOR_GIF_PREFIX+armorName.replace(' ','_')+IMAGE_EXTENSION);
+					if (!graphicsOnly) armorFile.deleteOnExit();
+					exportImage(armorFile,icon);
+					fileList.add(armorFile);
 				}
 			}
 			// Badge icons
@@ -345,18 +384,32 @@ public class RealmCharacterBuilderModel {
 		}
 		return list;
 	}
+	public ArrayList<GameObject> getAllUniqueArmor() {
+		ArrayList<String> armorNames = new ArrayList<String>();
+		for (int i=1;i<=4;i++) {
+			String name = character.getGameObject().getAttribute("level_"+i,"custom_armor");
+			if (name!=null && !armorNames.contains(name)) {
+				armorNames.add(name);
+			}
+		}
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
+		for (String armorName:armorNames) {
+			GameObject go = getWeapon(armorName);
+			list.add(go);
+		}
+		return list;
+	}
 	public ArrayList<GameObject> getAllCompanions() {
 		ArrayList<String> companionNames = new ArrayList<String>();
 		for (int i=1;i<=4;i++) {
-			ArrayList list = character.getGameObject().getAttributeList("level_"+i,Constants.COMPANION_NAME);
+			ArrayList<String> list = character.getGameObject().getAttributeList("level_"+i,Constants.COMPANION_NAME);
 			if (list!=null) {
 				companionNames.addAll(list);
 			}
 		}
 		ArrayList<GameObject> ret = new ArrayList<GameObject>();
 		for (String name:companionNames) {
-			for (Iterator i=character.getGameObject().getGameData().getGameObjects().iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
+			for (GameObject go : character.getGameObject().getGameData().getGameObjects()) {
 				if (name.equals(go.getName())) {
 					ret.add(go);
 					if (go.getHoldCount()>0) {
@@ -413,10 +466,6 @@ public class RealmCharacterBuilderModel {
 		character.setThisAttribute("vulnerability","L");
 		character.setThisAttribute("icon_type","question");
 		character.setThisAttribute("icon_folder",RealmCharacterConstants.CUSTOM_ICON_BASE_PATH+"characters");
-// test
-//character.addAttributeListItem("level_2","advantages","TEST: Did this work?  What if this is a really really long explanation?");
-//character.setAttribute("level_2","badge_icon",RealmCharacterConstants.CUSTOM_ICON_BASE_PATH+"badges/two");
-//character.setAttribute("level_2","no_magic_fatigue","");
 		for (int i=1;i<=4;i++) {
 			String name = i==4?"Untitled":("Level "+i);
 			character.setAttribute("level_"+i,"name",name);
@@ -451,8 +500,7 @@ public class RealmCharacterBuilderModel {
 		character.setThisAttribute(Constants.CUSTOM_CHARACTER);
 		
 		// Create all the chits
-		for (Iterator i=template.getHold().iterator();i.hasNext();) {
-			GameObject chitTemplate = (GameObject)i.next();
+		for (GameObject chitTemplate : template.getHold()) {
 			GameObject chit = gameData.createNewObject();
 			chit.copyAttributesFrom(chitTemplate);
 			character.add(chit);
@@ -469,19 +517,22 @@ public class RealmCharacterBuilderModel {
 		if (!weaponNames.isEmpty()) {
 			GamePool pool = new GamePool(template.getGameData().getGameObjects());
 			ArrayList<GameObject> allWeapons = pool.find(TemplateLibrary.WEAPON_QUERY);
+			ArrayList<String> createdWeapons = new ArrayList<String>();
 			for (GameObject go:allWeapons) {
 				if (weaponNames.contains(go.getName())) {
 					weaponNames.remove(go.getName());
 				}
-				GameObject weapon = gameData.createNewObject();
-				weapon.copyAttributesFrom(go);
+				if (!createdWeapons.contains(go.getName())) {
+					GameObject weapon = gameData.createNewObject();
+					weapon.copyAttributesFrom(go);
+					createdWeapons.add(go.getName());
+				}
 			}
 		}
 		
 		// Copy the relationships so they show
-		OrderedHashtable hash = character.getAttributeBlock(Constants.BASE_RELATIONSHIP);
-		for (Iterator i=hash.keySet().iterator();i.hasNext();) {
-			String key = (String)i.next();
+		OrderedHashtable<String, Object> hash = character.getAttributeBlock(Constants.BASE_RELATIONSHIP);
+		for (String key : hash.keySet()) {
 			String val = (String)hash.get(key);
 			character.setAttribute(Constants.GAME_RELATIONSHIP,key,val);
 		}
@@ -489,16 +540,25 @@ public class RealmCharacterBuilderModel {
 		return gameData;
 	}
 	public static RealmCharacterBuilderModel createFromFile(File file) {
-		// load it
-		File[] files = ZipUtilities.unzip(file);
+		// Extract to a unique temp dir so concurrent instances don't collide on shared filenames
+		File tempDir;
+		try {
+			tempDir = File.createTempFile("rschar_", null);
+			tempDir.delete();
+			tempDir.mkdir();
+		} catch (IOException ex) {
+			throw new RealmCharacterException("Unable to create temp dir for "+file.getAbsolutePath()+": "+ex);
+		}
+		File[] files = ZipUtilities.unzip(file, tempDir);
 		if (files==null) {
 			throw new RealmCharacterException("Unable to open "+file.getAbsolutePath()+":  "+ZipUtilities.lastError);
 		}
-		
+
 		// Make sure all the files will be deleted no matter what happens
 		for (int i=0;i<files.length;i++) {
 			files[i].deleteOnExit();
 		}
+		tempDir.deleteOnExit();
 		
 		RealmCharacterBuilderModel model = null;
 		// First, get the XML file, so the model can be created
@@ -536,7 +596,14 @@ public class RealmCharacterBuilderModel {
 					String weaponName = cropName(CHARACTER_WEAPON_GIF_PREFIX,model.getCharacter().getGameObject().getName(),filename);
 					weaponName = weaponName.replace('_',' ');
 					GameObject weapon = model.getWeapon(weaponName);
-					model.updateWeaponIcon(weapon,icon);
+					RealmCharacterBuilderModel.updateWeaponIcon(weapon,icon);
+				}
+				else if (filename.indexOf(CHARACTER_ARMOR_GIF_PREFIX)>0) {
+					ImageIcon icon = IconFactory.findIcon(files[i].getAbsolutePath());
+					String armorName = cropName(CHARACTER_ARMOR_GIF_PREFIX,model.getCharacter().getGameObject().getName(),filename);
+					armorName = armorName.replace('_',' ');
+					GameObject armor = model.getArmor(armorName);
+					RealmCharacterBuilderModel.updateArmorIcon(armor,icon);
 				}
 				else if (filename.indexOf(CHARACTER_BADGE_GIF_PREFIX)>0) {
 					ImageIcon icon = IconFactory.findIcon(files[i].getAbsolutePath());
@@ -569,12 +636,10 @@ public class RealmCharacterBuilderModel {
 		}
 		ArrayList<String> unknownChars = new ArrayList<String>();
 		File customFolder = new File(customFolderPath);
-//System.out.println(customFolder.getAbsolutePath());
 		if (customFolder.isDirectory() && customFolder.exists()) {
 			File[] charFile = customFolder.listFiles();
 			for (int i=0;i<charFile.length;i++) {
 				if (charFile[i].getAbsolutePath().endsWith(".rschar")) {
-//System.out.println(charFile[i].getAbsolutePath());
 					try {
 						RealmCharacterBuilderModel model = RealmCharacterBuilderModel.createFromFile(charFile[i]);
 						if (model!=null) {
@@ -596,7 +661,6 @@ public class RealmCharacterBuilderModel {
 						String at = ex.getStackTrace().length>0?("\n            at "+ex.getStackTrace()[0].toString()):"";
 						unknownChars.add(charFile[i].getName()+" - "+ex.toString()+at);
 					}
-//System.out.println(CustomCharacterLibrary.getSingleton().getCharacterUniqueKey(model.getCharacter().getGameObject().getName()));
 				}
 			}
 		}
@@ -611,6 +675,37 @@ public class RealmCharacterBuilderModel {
 			JOptionPane.showMessageDialog(null,sb.toString(),"Invalid Custom Characters",JOptionPane.WARNING_MESSAGE);
 		}
 	}
+	public static ArrayList<ArrayList<String>> loadAllCustomCharacterCards() {
+		String customFolderPath = "./characters/"; // default
+		if (System.getProperty("customFolder")!=null) {
+			customFolderPath = System.getProperty("customFolder")+File.separator;
+		}
+		ArrayList<ArrayList<String>> customCards = new ArrayList<ArrayList<String>>();
+		File customFolder = new File(customFolderPath);
+		if (customFolder.isDirectory() && customFolder.exists()) {
+			File[] charFile = customFolder.listFiles();
+			for (int i=0;i<charFile.length;i++) {
+				if (charFile[i].getAbsolutePath().endsWith(".rschar")) {
+					try {
+						RealmCharacterBuilderModel model = RealmCharacterBuilderModel.createFromFile(charFile[i]);
+						if (model!=null) {
+							GameObject go = model.getCharacter().getGameObject();
+							ArrayList<String> temp = new ArrayList<String>();
+							temp.add(go.getName());
+							temp.add(go.getAttribute("level_4","name"));
+							String iconFolder = go.getThisAttribute(Constants.ICON_FOLDER);
+							String iconType = go.getThisAttribute(Constants.ICON_TYPE);
+							temp.add(iconFolder+"/"+iconType);
+							customCards.add(temp);
+						}
+					}
+					catch(Exception ex) {
+					}
+				}
+			}
+		}
+		return customCards;
+	}
 	public static void addCustomCharacters(HostPrefWrapper hostPrefs,GameData dataSource) {
 		// Add all custom characters
 		hostPrefs.clearCharacterKeys();
@@ -623,8 +718,7 @@ public class RealmCharacterBuilderModel {
 			newChar.copyAttributesFrom(template);
 			newChar.setThisKeyVals(hostPrefs.getGameKeyVals());
 			RealmComponent.clearOwner(newChar);
-			for (Iterator i=template.getHold().iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
+			for (GameObject go : template.getHold()) {
 				if (go.hasThisAttribute("character_chit")) {
 					GameObject newChit = dataSource.createNewObject();
 					newChit.copyAttributesFrom(go);

@@ -1,24 +1,8 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.Serializable;
 import java.util.*;
 
 import javax.swing.ImageIcon;
@@ -27,6 +11,7 @@ import javax.swing.JComponent;
 import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
 import com.robin.general.graphics.GraphicsUtil;
+import com.robin.magic_realm.components.attribute.ColorMagic;
 import com.robin.magic_realm.components.attribute.Strength;
 import com.robin.magic_realm.components.attribute.TileLocation;
 import com.robin.magic_realm.components.quest.Quest;
@@ -38,14 +23,24 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	public static final int DISPLAY_STYLE_CLASSIC = 0;
 	public static final int DISPLAY_STYLE_COLOR = 1;
 	public static final int DISPLAY_STYLE_FRENZEL = 2;
-	
+	public static final int DISPLAY_STYLE_LEGENDARY = 3;
+	public static final int DISPLAY_STYLE_ALTERNATIVE = 4;
 	public static int displayStyle = DISPLAY_STYLE_COLOR;
-	
+	public static boolean displayColoredStats = true;
+	public static boolean displayArmor = false;
+	public static boolean displaySubline = false;
+
 	public static boolean isDisplayStyleColor() {
 		return displayStyle==DISPLAY_STYLE_COLOR;
 	}
 	public static boolean isDisplayStyleFrenzel() {
 		return displayStyle==DISPLAY_STYLE_FRENZEL;
+	}
+	public static boolean isDisplayStyleAlternative() {
+		return displayStyle==DISPLAY_STYLE_ALTERNATIVE;
+	}
+	public static boolean isDisplayStyleLegendary() {
+		return displayStyle==DISPLAY_STYLE_LEGENDARY;
 	}
 	public static boolean useColorIcons() {
 		return displayStyle==DISPLAY_STYLE_COLOR || displayStyle==DISPLAY_STYLE_FRENZEL;
@@ -61,7 +56,10 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	public static final String OWNER_ID = "owner_id"; // game object id of owner
 	public static final String OWNER_TERM_OF_HIRE = "owner_term";
 	private static final String TARGET_ID = "target_id"; // game object id of target
+	private static final String TARGET_2ND_ID = "target_2nd_id"; // game object id of secondary target
 	private static final String TARGET_INDEX = "targ_idx"; // a counter that indicates who targets who first (needed for War!)
+	private static final String TARGET_2ND_INDEX = "targ_2nd_idx"; // a counter that indicates who targets who first (needed for War!)
+	private static final String TARGET_ATTACKED = "targ_attacked";	
 
 	// Chit identifiers
 	public static final String CHARACTER = "character";
@@ -83,9 +81,11 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	public static final String FLY_CHIT = "fly_chit";
 	public static final String NATIVE = "native";
 	public static final String HORSE = "horse";
+	public static final String MONSTER_STEED = "monster_steed";
 	public static final String DWELLING = "dwelling";
 	public static final String TREASURE = "treasure";
 	public static final String BOON = "boon";
+	public static final String CREDIT = "credit";
 	public static final String SPELL = "spell";
 	public static final String FAMILIAR = "familiar";
 	public static final String PHANTASM = "phantasm";
@@ -104,6 +104,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	// Other identifiers
 	public static final String NATIVE_HORSE = "native_horse";
 	public static final String TREASURE_WITHIN_TREASURE = "treasure_within_treasure";
+	public static final String VIRTUAL_DWELLING = "virtual_dwelling";
 
 	public static boolean fullDetail = true; // by default, all objects should be detailed
 
@@ -133,7 +134,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		return d.width + d.height;
 	}
 
-	public Collection getHold() {
+	public Collection<GameObject> getHold() {
 		return gameObject.getHold();
 	}
 	
@@ -148,7 +149,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	public abstract String getName();
 
 	public String toString() {
-		return gameObject.getName();
+		return gameObject.getNameWithNumber();
 	}
 
 	public void useShadow(boolean val) {
@@ -231,15 +232,15 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	}
 	
 	public boolean isHiredLeader() {
-		return isNativeLeader() && CharacterWrapper.hasPlayerBlock(getGameObject());
+		return isNativeLeader() && (CharacterWrapper.hasPlayerBlock(getGameObject()) || getOwnerId()!=null);
 	}
 
 	public boolean isControlledMonster() {
-		return isMonster() && CharacterWrapper.hasPlayerBlock(getGameObject());
+		return isMonster() && (CharacterWrapper.hasPlayerBlock(getGameObject()) || getOwnerId()!=null);
 	}
 	
 	public boolean isControlledNative() {
-		return isNative() && CharacterWrapper.hasPlayerBlock(getGameObject());
+		return isNative() && (CharacterWrapper.hasPlayerBlock(getGameObject()) || getOwnerId()!=null);
 	}
 	
 	public boolean isAnyLeader() {
@@ -249,6 +250,11 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	public boolean isPlayerControlledLeader() {
 		return isCharacter() || isHiredLeader() || isControlledMonster() || isControlledNative();
 	}
+	
+	public boolean isHiredOrControlled() {
+		return isControlledMonster() || isControlledNative() || isHiredLeader() || isHireling() ;
+	}
+	
 	public boolean canSpy() {
 		return isPlayerControlledLeader() || isFamiliar();
 	}
@@ -310,11 +316,23 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	}
 	
 	public boolean isCompanion() {
-		return getGameObject().hasThisAttribute("companion");
+		return getGameObject().hasThisAttribute(Constants.COMPANION);
 	}
-
+	
+	public boolean isHireling() {
+		return getGameObject().hasThisAttribute(Constants.HIRELING);
+	}
+	
+	public boolean isCloned() {
+		return getGameObject().hasThisAttribute(Constants.CLONED);
+	}
+	
 	public boolean isMonster() {
 		return (this instanceof MonsterChitComponent) && !(this instanceof MonsterPartChitComponent);
+	}
+	
+	public boolean isSummoned() {
+		return getGameObject().hasThisAttribute(Constants.SUMMONED);
 	}
 	
 	public boolean isTraveler() {
@@ -337,9 +355,43 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		return false;
 	}
 	
+	public boolean isSound() {
+		return (this instanceof SoundChitComponent);
+	}
+	
+	public boolean isWarning() {
+		return (this instanceof WarningChitComponent);
+	}
+	
+	public boolean isQuest() {
+		return (this instanceof QuestCardComponent);
+	}
+	
 	public boolean hasMagicProtection() {
 		CharacterWrapper character = new CharacterWrapper(getGameObject());
 		return character.hasMagicProtection();
+	}
+	
+	public boolean hasMagicColorImmunity(SpellWrapper spell) {
+		if (!getGameObject().hasThisAttribute(Constants.MAGIC_IMMUNITY)) return false;
+		
+		String protection = getGameObject().getThisAttribute(Constants.MAGIC_IMMUNITY);
+		ColorMagic cm = ColorMagic.makeColorMagic(protection,false);
+		ColorMagic spellColor = spell.getRequiredColorMagic();
+		if (spellColor==null) spellColor = spell.getColorChitMagicColor();
+
+		if (spellColor!=null) {
+			if (cm!=null && cm.sameColorAs(spellColor)) return true;
+			if (protection.matches("prism") && spellColor.isPrismColor()) return true;
+			return false;
+		}
+		
+		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		colors.addAll((new CharacterWrapper(getGameObject()).getInfiniteColorSources()));
+		for (ColorMagic color : colors) {
+			if ((cm!=null && !cm.sameColorAs(color)) || (protection.matches("prism") && !color.isPrismColor())) return false;
+		}
+		return true;
 	}
 	
 	public boolean isTransformAnimal() {
@@ -378,6 +430,10 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		return (this instanceof BoonChitComponent);
 	}
 	
+	public boolean isCredit() {
+		return (this instanceof CreditChitComponent);
+	}
+	
 	public boolean isVisitor() {
 		return gameObject.hasThisAttribute(Constants.VISITOR);
 	}
@@ -400,6 +456,14 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	
 	public boolean isMinorCharacter() {
 		return (this instanceof MinorCharacterChitComponent);
+	}
+	
+	public boolean isNomad() {
+		return (this instanceof GoldSpecialChitComponent) && gameObject.hasThisAttribute(Constants.NOMAD);
+	}
+	
+	public boolean isTask() {
+		return (this instanceof GoldSpecialChitComponent) && gameObject.hasThisAttribute(Constants.TASK);
 	}
 
 	public boolean isActivated() {
@@ -428,11 +492,10 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		}
 			
 		Integer pacifyType = null;
-		ArrayList list = getGameObject().getThisAttributeList("pacifyBlocks");
+		ArrayList<String> list = getGameObject().getThisAttributeList("pacifyBlocks");
 		if (list!=null) {
 			String testId = character.getGameObject().getStringId();
-			for (Iterator i=list.iterator();i.hasNext();) {
-				String pacifyBlock = (String)i.next();
+			for (String pacifyBlock : list) {
 				String charId = getGameObject().getAttribute(pacifyBlock,"pacifyChar");
 				if (charId.equals(testId)) {
 					pacifyType = getGameObject().getInt(pacifyBlock,"pacifyType");
@@ -446,8 +509,19 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 				invWithPacify.add(character.getGameObject());
 			}
 			for (GameObject test:invWithPacify) {
-				ArrayList monsters = test.getThisAttributeList("pacifymonster");
+				boolean pacified = false;
+				ArrayList<String> monsters = test.getThisAttributeList("pacifymonster");
 				if (monsters.contains(getGameObject().getName())) {
+					pacified = true;
+				} else {
+					for (String type : monsters) {
+						if (getGameObject().hasThisAttribute(type.toLowerCase())) {
+							pacified = true;
+							break;
+						}
+					}
+				}
+				if (pacified) {
 					int testPacify = test.getThisInt("pacifyType");
 					if (pacifyType==null || testPacify>pacifyType) { // use the BEST one
 						pacifyType = testPacify;
@@ -459,11 +533,10 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	}
 	
 	public SpellWrapper getPacificationSpell(CharacterWrapper character) {
-		ArrayList list = getGameObject().getThisAttributeList("pacifyBlocks");
+		ArrayList<String> list = getGameObject().getThisAttributeList("pacifyBlocks");
 		if (list!=null) {
 			String testId = character.getGameObject().getStringId();
-			for (Iterator i=list.iterator();i.hasNext();) {
-				String pacifyBlock = (String)i.next();
+			for (String pacifyBlock : list) {
 				String charId = getGameObject().getAttribute(pacifyBlock,"pacifyChar");
 				if (charId.equals(testId)) {
 					GameObject theSpell = getGameObject().getGameData().getGameObject(Long.valueOf(pacifyBlock.substring(6)));
@@ -515,6 +588,10 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		}
 	}
 	
+	public void setTermOfHire(int newTerm) {
+		gameObject.setAttribute(REALMCOMPONENT_BLOCK,OWNER_TERM_OF_HIRE,newTerm);
+	}
+	
 	public void addTermOfHire(int val) {
 		int currentTerm = getTermOfHire();
 		int newTerm = currentTerm+val;
@@ -542,6 +619,17 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	}
 	
 	/**
+	 * Set the secondary target
+	 */
+	public void set2ndTarget(RealmComponent target) {
+		gameObject.setAttribute(REALMCOMPONENT_BLOCK,TARGET_2ND_ID, target.gameObject.getStringId());
+		int ti = nextTargetIndex(gameObject.getGameData());
+		gameObject.setAttribute(REALMCOMPONENT_BLOCK,TARGET_2ND_INDEX,ti);
+		CombatWrapper combat = new CombatWrapper(target.getGameObject());
+		combat.addAttacker(getGameObject());
+	}
+	
+	/**
 	 * @return		A number that indicates a point in time that the target was assigned.  Lower numbers
 	 * 				indicate earlier assignments.
 	 */
@@ -555,7 +643,23 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	public RealmComponent getTarget() {
 		return RealmComponent.getRealmComponentFromId(gameObject.getGameData(), gameObject.getAttribute(REALMCOMPONENT_BLOCK,TARGET_ID));
 	}
+	
+	/**
+	 * Get the secondary target
+	 */
+	public RealmComponent get2ndTarget() {
+		return RealmComponent.getRealmComponentFromId(gameObject.getGameData(), gameObject.getAttribute(REALMCOMPONENT_BLOCK,TARGET_2ND_ID));
+	}
 
+	public boolean hasTarget() {
+		return getTarget() != null || get2ndTarget() != null;
+	}
+	
+	public void clearTargets() {
+		clearTarget();
+		clear2ndTarget();
+	}
+	
 	/**
 	 * Clear primary target
 	 */
@@ -576,6 +680,36 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 			}
 		}
 	}
+	
+	/**
+	 * Clear secondary target
+	 */
+	public void clear2ndTarget() {
+		RealmComponent target = get2ndTarget();
+		if (target!=null) {
+			gameObject.removeAttribute(REALMCOMPONENT_BLOCK,TARGET_2ND_ID);
+			gameObject.removeAttribute(REALMCOMPONENT_BLOCK,TARGET_2ND_INDEX);
+			gameObject.removeAttribute(REALMCOMPONENT_BLOCK,TARGET_ATTACKED);
+			CombatWrapper combat = new CombatWrapper(target.getGameObject());
+			combat.removeAttacker(getGameObject());
+			
+			// Seems like a RED-side-up T Monster should flip back to light when the target is cleared...
+			if (isMonster()) {
+				MonsterChitComponent monster = (MonsterChitComponent)this;
+				if (monster.isPinningOpponent()) {
+					monster.flip();
+				}
+			}
+		}
+	}
+	
+	public void setTargetAttacked() {
+		gameObject.setAttribute(REALMCOMPONENT_BLOCK,TARGET_ATTACKED);
+	}
+	
+	public boolean getTargetAttacked() {
+		return gameObject.hasAttribute(REALMCOMPONENT_BLOCK,TARGET_ATTACKED);
+	}
 
 	public boolean isDenizen() {
 		return (isMonster() || isNative()) && !gameObject.hasAttribute(REALMCOMPONENT_BLOCK,OWNER_ID); // no owner, then must be denizen
@@ -585,6 +719,12 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		String val = gameObject.getAttribute(REALMCOMPONENT_BLOCK,TARGET_ID);
 		if (val != null) {
 			if (val.equals(comp.gameObject.getStringId())) {
+				return true;
+			}
+		}
+		String val2nd = gameObject.getAttribute(REALMCOMPONENT_BLOCK,TARGET_2ND_ID);
+		if (val2nd != null) {
+			if (val2nd.equals(comp.gameObject.getStringId())) {
 				return true;
 			}
 		}
@@ -600,8 +740,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	}
 	
 	public BattleHorse getHorseIncludeDead() { // gets the horse, even if it is dead
-		for (Iterator i = gameObject.getHold().iterator(); i.hasNext();) {
-			GameObject go = (GameObject) i.next();
+		for (GameObject go : gameObject.getHold()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc instanceof BattleHorse) {
 				return (BattleHorse) rc;
@@ -620,8 +759,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		return getHorse(checkLocation,-1);
 	}
 	public BattleHorse getHorse(boolean checkLocation,int attackOrderPos) {
-		for (Iterator i = gameObject.getHold().iterator(); i.hasNext();) {
-			GameObject go = (GameObject) i.next();
+		for (GameObject go : gameObject.getHold()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc instanceof BattleHorse) {
 				BattleHorse bh = (BattleHorse)rc;
@@ -630,12 +768,12 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 					if (checkLocation) {
 						// Make sure not in a cave!
 						TileLocation tl = getCurrentLocation();
-						if (tl!=null && tl.hasClearing() && tl.clearing.isCave()) {
+						if (tl!=null && tl.hasClearing() && (tl.clearing.isCave() || tl.clearing.isWater()) && !bh.getGameObject().hasThisAttribute(Constants.STEED_IN_CAVES_AND_WATER)) {
 							// No horse can be played in a cave, so they are "non-existant"
 							return null;
 						}
 					}
-					if (isNative()) {
+					if (isNative() || rc.isMonster()) {
 						// Make sure native is NOT transformed
 						if (getGameObject().hasAttributeBlock("this_h")) {
 							return null;
@@ -741,8 +879,12 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		else if (obj.hasThisAttribute(TREASURE)) {
 			comp = new TreasureCardComponent(obj);
 		}
-		else if (obj.hasThisAttribute(SPELL)) {
-			comp = new SpellCardComponent(obj);
+		else if (obj.hasThisAttribute(SPELL) || obj.hasThisAttribute(Constants.SPELL_DENIZEN)) {
+			if (obj.hasThisAttribute(Constants.EVENT)) {
+				comp = new EventSpellCardComponent(obj);
+			} else {
+				comp = new SpellCardComponent(obj);
+			}
 		}
 		else if (obj.hasThisAttribute(QUEST)) {
 			comp = new QuestCardComponent(obj);
@@ -750,8 +892,11 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		else if (obj.hasThisAttribute(BOON)) {
 			comp = new BoonChitComponent(obj);
 		}
+		else if (obj.hasThisAttribute(CREDIT)) {
+			comp = new CreditChitComponent(obj);
+		}
 		else if (obj.hasThisAttribute(HORSE)) {
-			if (obj.hasThisAttribute(NATIVE)) {
+			if (obj.hasThisAttribute(NATIVE) || obj.hasThisAttribute(MONSTER_STEED)) {
 				comp = new NativeSteedChitComponent(obj);
 			}
 			else {
@@ -764,6 +909,9 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		else if (obj.hasThisAttribute(NATIVE)) {
 			if (!obj.hasThisAttribute(HORSE) && !obj.hasThisAttribute(DWELLING)) {
 				comp = new NativeChitComponent(obj);
+			}
+			if (obj.hasThisAttribute(VIRTUAL_DWELLING)) {
+				comp = new DwellingVirtualChitComponent(obj);
 			}
 		}
 		else if (obj.hasThisAttribute(CHARACTER)) {
@@ -844,8 +992,8 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 			comp = new MinorCharacterChitComponent(obj);
 		}
 		if (comp != null && cache) {
-			Hashtable componentHash = getComponentHash(obj);
-			componentHash.put(new Long(obj.getId()), comp);
+			Hashtable<Comparable, Serializable> componentHash = getComponentHash(obj);
+			componentHash.put(Long.valueOf(obj.getId()), comp);
 		}
 		return comp;
 	}
@@ -854,7 +1002,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		return createRealmComponent(go,false);
 	}
 
-	private static Hashtable getComponentHash(GameObject go) {
+	private static Hashtable<Comparable, Serializable> getComponentHash(GameObject go) {
 		return getComponentHash(go.getGameData());
 	}
 	
@@ -875,14 +1023,14 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	 * @return			The Hashtable for the corresponding data object.  This is necessary to keep client and
 	 * 					host data separated when handling these objects!
 	 */
-	private static Hashtable getComponentHash(GameData data) {
+	private static Hashtable<Comparable, Serializable> getComponentHash(GameData data) {
 		if (dataComponentHash == null) {
-			dataComponentHash = new Hashtable();
+			dataComponentHash = new Hashtable<Long, Hashtable<Comparable<String>, Serializable>>();
 		}
-		Long dataid = new Long(data.getDataId());
+		Long dataid = Long.valueOf(data.getDataId());
 		Hashtable componentHash = (Hashtable) dataComponentHash.get(dataid);
 		if (componentHash == null) {
-			componentHash = new Hashtable();
+			componentHash = new Hashtable<Comparable, Serializable>();
 			dataComponentHash.put(dataid, componentHash);
 			
 			// Make sure there is a master object to handle things like a target index counter
@@ -897,10 +1045,9 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		return componentHash;
 	}
 
-	public static ArrayList getRealmComponents(Collection objects) {
-		ArrayList list = new ArrayList();
-		for (Iterator i = objects.iterator(); i.hasNext();) {
-			GameObject go = (GameObject) i.next();
+	public static ArrayList<RealmComponent> getRealmComponents(Collection<GameObject> objects) {
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
+		for (GameObject go: objects) {
 			list.add(RealmComponent.getRealmComponent(go));
 		}
 		return list;
@@ -922,7 +1069,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		RealmComponent comp = null;
 		Hashtable componentHash = getComponentHash(obj);
 		if (componentHash != null) {
-			comp = (RealmComponent) componentHash.get(new Long(obj.getId()));
+			comp = (RealmComponent) componentHash.get(Long.valueOf(obj.getId()));
 		}
 		if (comp == null) {
 			comp = createRealmComponent(obj,true);
@@ -958,7 +1105,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		if (stringId != null && componentHash != null) {
 			try {
 				Long id = Long.valueOf(stringId);
-				GameObject go = (GameObject) dataSource.getGameObject(id);
+				GameObject go = dataSource.getGameObject(id);
 				if (go!=null) {
 					return getRealmComponent(go);
 				}
@@ -999,7 +1146,17 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		return !getImmunities().isEmpty();
 	}
 	public boolean isImmuneTo(RealmComponent rc) {
-		ArrayList list = getImmunities();
+		if (affectedByKey(Constants.HOLY_WATER)) {
+			if (rc.getGameObject().hasThisAttribute(Constants.DEMON)
+					|| rc.getGameObject().hasThisAttribute(Constants.IMP)
+					|| rc.getGameObject().hasThisAttribute(Constants.SUCCUBUS)
+					|| rc.getGameObject().hasThisAttribute(Constants.VAMPIRE)
+					|| rc.getGameObject().hasThisAttribute(Constants.DEVIL)
+					|| rc.getGameObject().hasThisAttribute(Constants.UNDEAD_SUMMONED)) {
+				return true;
+			}
+		}
+		ArrayList<String> list = getImmunities();
 		if (!list.isEmpty()) {
 			// Make sure we resolve to the monster, not the part!
 			if (rc.isMonsterPart()) {
@@ -1015,8 +1172,8 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		}
 		return false;
 	}
-	private ArrayList getImmunities() {
-		ArrayList immunities = new ArrayList();
+	private ArrayList<String> getImmunities() {
+		ArrayList<String> immunities = new ArrayList<String>();
 		if (getGameObject().hasThisAttribute(Constants.MONSTER_IMMUNITY)) {
 			immunities.addAll(getGameObject().getThisAttributeList(Constants.MONSTER_IMMUNITY));
 		}
@@ -1028,8 +1185,90 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 			immunities.add("Imp");
 			immunities.add("Winged Demon");
 			immunities.add("Demon");
+			immunities.add("Devil");
 		}
 		return immunities;
+	}
+	public boolean hasEnhancedMonsterControlAbility() {
+		CharacterWrapper character = new CharacterWrapper(getGameObject());
+		return getGameObject().hasThisAttribute(Constants.MONSTER_CONTROL_ENHANCED) || !character.getActiveInventoryValuesForThisKey(Constants.MONSTER_CONTROL_ENHANCED,null).isEmpty();
+	}
+	public Hashtable<String,Integer[]> getControllableMonsters() {
+		return getControllableMonsters(false);
+	}
+	public Hashtable<String,Integer[]> getControllableMonstersEnhanced() {
+		return getControllableMonsters(true);
+	}
+	public Hashtable<String,Integer[]> getControllableMonsters(boolean enhancedOnly) {
+		Hashtable<String,Integer[]> controls = new Hashtable<String,Integer[]>();
+		if (getGameObject().hasThisAttribute(Constants.MONSTER_CONTROL) && (!enhancedOnly || getGameObject().hasThisAttribute(Constants.MONSTER_CONTROL_ENHANCED))) {
+			int duration = getGameObject().getThisInt(Constants.MONSTER_CONTROL_DURATION);
+			int limit = getGameObject().getThisInt(Constants.MONSTER_CONTROL_LIMIT);
+			for (String type : getGameObject().getThisAttributeList(Constants.MONSTER_CONTROL)) {
+				controls.put(type,new Integer[] {duration,limit});
+			}
+		}
+		if (isCharacter()) {
+			CharacterWrapper character = new CharacterWrapper(getGameObject());
+			for (GameObject inventory : character.getActiveInventoryAndTravelers()) {
+				if (inventory.hasThisAttribute(Constants.MONSTER_CONTROL) && (!enhancedOnly || inventory.hasThisAttribute(Constants.MONSTER_CONTROL_ENHANCED))) {
+					int duration = inventory.getThisInt(Constants.MONSTER_CONTROL_DURATION);
+					int limit = inventory.getThisInt(Constants.MONSTER_CONTROL_LIMIT);
+					for (String type : inventory.getThisAttributeList(Constants.MONSTER_CONTROL)) {
+						Integer[] values = controls.get(type);
+						int durationCalc = values==null?duration:((values[0]==0||duration==0)?0:Math.max(values[0], duration));
+						int limitCalc = values==null?limit:((values[1]==0||limit==0)?0:values[1]+limit);
+						controls.put(type,new Integer[] {durationCalc,limitCalc});
+					}
+				}
+			}
+		}
+		return controls;
+	}
+	public Set<String> getControllableMonsterNames(boolean enhancedOnly) {
+		return getControllableMonsters(enhancedOnly).keySet();
+	}
+	public Integer getControllableMonsterDuration(boolean enhancedOnly,String monsterType) {
+		if (getControllableMonsters(enhancedOnly).get(monsterType)!=null) {
+			int duration = getControllableMonsters(enhancedOnly).get(monsterType)[0];
+			return duration==0?Constants.TEN_YEARS:duration;
+		}
+		return null;
+	}
+	public Integer getControllableMonsterLimit(boolean enhancedOnly,String monsterType) {
+		if (getControllableMonsters(enhancedOnly).get(monsterType)!=null) {
+			int limit = getControllableMonsters(enhancedOnly).get(monsterType)[1];
+			return limit==0?999:limit;
+		}
+		return null;
+	}
+	public boolean fears(RealmComponent rc) {
+		ArrayList<String> list = getFears();
+		if (!list.isEmpty()) {
+			// Make sure we resolve to the monster, not the part!
+			if (rc.isMonsterPart()) {
+				rc = RealmComponent.getRealmComponent(rc.getGameObject().getHeldBy());
+			}
+			
+			// list will contain monster names like:  Flying Demon, Demon, Imp
+			String name = rc.getGameObject().getName();
+			if (rc.getGameObject().hasThisAttribute(Constants.BOARD_NUMBER)) {
+				name = name.substring(0,name.length()-2);
+			}
+			return list.contains(name);
+		}
+		return false;
+	}
+	private ArrayList<String> getFears() {
+		ArrayList<String> fears = new ArrayList<String>();
+		if (getGameObject().hasThisAttribute(Constants.MONSTER_FEAR)) {
+			fears.addAll(getGameObject().getThisAttributeList(Constants.MONSTER_FEAR));
+		}
+		if (isCharacter()) {
+			CharacterWrapper character = new CharacterWrapper(getGameObject());
+			fears.addAll(character.getActiveInventoryValuesForThisKey(Constants.MONSTER_FEAR,","));
+		}
+		return fears;
 	}
 	public String getFacing() {
 		return getGameObject().getThisAttribute(Constants.FACING_KEY);
@@ -1066,7 +1305,49 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	}
 	
 	public Strength getWeight() {
-		return affectedByKey(Constants.NO_WEIGHT) ? new Strength() : new Strength(getGameObject().getThisAttribute(Constants.WEIGHT));
+		return getWeight(null);
+	}
+	
+	protected Strength getWeightWithoutModifiers(String fallback) {
+		return getWeight(fallback,false);
+	}
+	private Strength getWeight(String fallback) {
+		return getWeight(fallback,true);
+	}
+	private Strength getWeight(String fallback,boolean includeModifiers) {
+		int mod = 0;
+		if (includeModifiers) {
+			if (gameObject.hasThisAttribute(Constants.WEIGHT_NEGLIGIBLE)) return new Strength("N");
+			if (!affectedByKey(Constants.ENCHANTED_WEAPON)
+					|| (!gameObject.hasThisAttribute(RealmComponent.WEAPON) && !gameObject.hasThisAttribute(RealmComponent.ARMOR) && !gameObject.hasThisAttribute(Constants.SHIELD)
+						&& !gameObject.hasThisAttribute(Constants.MONSTER_WEAPON) && !gameObject.hasThisAttribute("part"))) {
+				if (affectedByKey(Constants.NO_WEIGHT)) return new Strength();
+				if (gameObject.hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) mod++;
+				if (gameObject.hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT)) mod--;
+				if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT)) {
+					return new Strength(getGameObject().getThisAttribute(Constants.ALTER_WEIGHT),mod);
+				}
+			}
+		}
+		String baseValue = "";
+		if(getGameObject().hasThisAttribute(Constants.POTION)) {
+			baseValue = "N";
+		}
+		else if(getGameObject().hasThisAttribute(Constants.WEIGHT)) {
+			baseValue=getGameObject().getThisAttribute(Constants.WEIGHT);
+		}
+		else {
+			baseValue=getGameObject().getThisAttribute(Constants.VULNERABILITY);
+		}
+		if (fallback!=null && (baseValue==null||(baseValue.length() == 0))) {
+			baseValue=fallback;
+		}
+		
+		return new Strength(baseValue,mod);
+	}
+
+	public Strength getWeightWithFallback(String value) {
+		return getWeight(value);
 	}
 	
 	public String getThisBlock() {

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.util;
 
 import java.util.*;
@@ -34,12 +17,11 @@ public class OrderedHashtable<T,U> extends Hashtable<T,U> {
 	public U put(T key,U value) {
 		U ret = super.put(key,value);
 		if (orderedKeys==null) {
-			orderedKeys = new ArrayList();
+			orderedKeys = new ArrayList<T>();
 		}
 		if (!orderedKeys.contains(key)) {
 			orderedKeys.add(key);
 		}
-//validate();
 		return ret;
 	}
 	public void putAll(Map map) {
@@ -49,13 +31,13 @@ public class OrderedHashtable<T,U> extends Hashtable<T,U> {
 			put(key,val);
 		}
 	}
-	public Set keySet() {
-		return new LinkedHashSet(orderedKeys);
+	public Set<T> keySet() {
+		return new LinkedHashSet<T>(orderedKeys);
 	}
 	public Collection<U> values() {
-		ArrayList vals = new ArrayList();
+		ArrayList<U> vals = new ArrayList<U>();
 		if (orderedKeys==null) {
-			orderedKeys = new ArrayList();
+			orderedKeys = new ArrayList<T>();
 		}
 		for (T key:orderedKeys) {
 			vals.add(get(key));
@@ -65,7 +47,6 @@ public class OrderedHashtable<T,U> extends Hashtable<T,U> {
 	public U remove(Object key) {
 		U ret = super.remove(key);
 		orderedKeys.remove(key);
-//validate();
 		return ret;
 	}
 	
@@ -87,7 +68,7 @@ public class OrderedHashtable<T,U> extends Hashtable<T,U> {
 		return orderedKeys;
 	}
 	public Object insert(int index,T key,U val) {
-		ArrayList newOrderedKeys = new ArrayList();
+		ArrayList<T> newOrderedKeys = new ArrayList<T>();
 		for (int i=0;i<orderedKeys.size();i++) {
 			if (i==index) {
 				newOrderedKeys.add(key);
@@ -98,7 +79,7 @@ public class OrderedHashtable<T,U> extends Hashtable<T,U> {
 		return this.put(key,val);
 	}
 	public Object replace(int index,T key,U val) {
-		ArrayList newOrderedKeys = new ArrayList();
+		ArrayList<T> newOrderedKeys = new ArrayList<T>();
 		for (int i=0;i<orderedKeys.size();i++) {
 			String currentKey = (String)orderedKeys.get(i);
 			if (i==index) {

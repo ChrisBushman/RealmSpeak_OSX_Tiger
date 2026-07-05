@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.graphics;
 
 import java.awt.*;
@@ -157,7 +140,7 @@ public class GraphicsUtil {
 			angle = 0;
 		}
 		else {
-			angle = Math.atan2((double)dy,(double)dx);
+			angle = Math.atan2(dy,dx);
 		}
 
 		
@@ -201,8 +184,8 @@ public class GraphicsUtil {
 			// ...but do the line SEGMENTS intersect?
 			if (ua>=0.0 && ua<=1.0 && ub>=0.0 && ub<=1.0) {
 				// Yes, the line segements intersect
-				int x = line1P1.x + (int)(ua * (double)(line1P2.x - line1P1.x));
-				int y = line1P1.y + (int)(ua * (double)(line1P2.y - line1P1.y));
+				int x = line1P1.x + (int)(ua * (line1P2.x - line1P1.x));
+				int y = line1P1.y + (int)(ua * (line1P2.y - line1P1.y));
 				return new Point(x,y);
 			}
 		}
@@ -409,8 +392,8 @@ public class GraphicsUtil {
 			u = u/((dx*dx)+(dy*dy));
 			if (u<0.0 || u>1.0)
 				return 999999;
-			intersectionX = (int)((double)x1 + (u*(double)dx));
-			intersectionY = (int)((double)y1 + (u*(double)dy));
+			intersectionX = (int)(x1 + (u*dx));
+			intersectionY = (int)(y1 + (u*dy));
 		}
 		dx = intersectionX - px;
 		dy = intersectionY - py;
@@ -559,8 +542,8 @@ public class GraphicsUtil {
 	}
 	public static Point asPoint(String s) {
 		StringTokenizer st = new StringTokenizer(s,",");
-		int x = Integer.valueOf(st.nextToken()).intValue();
-		int y = Integer.valueOf(st.nextToken()).intValue();
+		int x = Integer.parseInt(st.nextToken());
+		int y = Integer.parseInt(st.nextToken());
 		return new Point(x,y);
 	}
     public static Point shortenedLineFar(Point p1, Point p2, int pixelsShort) {

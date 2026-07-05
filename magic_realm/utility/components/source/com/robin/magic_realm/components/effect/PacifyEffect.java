@@ -21,7 +21,7 @@ public class PacifyEffect implements ISpellEffect {
 		RealmComponent target = context.Target;
 		
 		if(SpellUtility.targetsAreBeingAttackedByHirelings(combat.getAttackers(), context.Caster)){
-			context.Spell.expireSpell();
+			context.Spell.cancelSpell();
 			return;
 		}
 	
@@ -34,6 +34,10 @@ public class PacifyEffect implements ISpellEffect {
 		RealmComponent targetTarget = target.getTarget();
 		if (targetTarget!=null && targetTarget.getGameObject().equals(context.Spell.getCaster().getGameObject())) {
 			target.clearTarget();
+		}
+		RealmComponent targetTarget2 = target.get2ndTarget();
+		if (targetTarget2!=null && targetTarget2.getGameObject().equals(context.Spell.getCaster().getGameObject())) {
+			target.clear2ndTarget();
 		}
 		
 		// If you made them watchful, make them unwatchful again
@@ -51,7 +55,7 @@ public class PacifyEffect implements ISpellEffect {
 	public void unapply(SpellEffectContext context) {
 		String pacifyBlock = Constants.PACIFY+ context.Spell.getGameObject().getStringId();
 		
-		ArrayList inlist = context.Target.getGameObject().getAttributeList("this","pacifyBlocks");
+		ArrayList<String> inlist = context.Target.getGameObject().getAttributeList("this","pacifyBlocks");
 		
 		if (inlist!=null) { // might be null if the spell was cancelled partway through
 			ArrayList<String> list = new ArrayList<String>(inlist);

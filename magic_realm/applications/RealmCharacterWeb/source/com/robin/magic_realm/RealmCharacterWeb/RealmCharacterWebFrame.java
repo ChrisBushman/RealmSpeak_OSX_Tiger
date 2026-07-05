@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmCharacterWeb;
 
 import java.awt.BorderLayout;
@@ -34,8 +17,8 @@ import org.jdom.output.XMLOutputter;
 import com.robin.general.io.ArgumentParser;
 import com.robin.general.io.FileManager;
 import com.robin.general.swing.ComponentTools;
-import com.robin.magic_realm.RealmCharacterBuilder.CharacterInfoCard;
 import com.robin.magic_realm.RealmCharacterWeb.build.*;
+import com.robin.magic_realm.components.CharacterInfoCard;
 
 public class RealmCharacterWebFrame extends JFrame {
 	private static final String WEB_LAYOUT_FILE = "webLayout.xml";
@@ -95,7 +78,7 @@ public class RealmCharacterWebFrame extends JFrame {
 				if (ev.getClickCount()==2) {
 					int row = layoutTable.getSelectedRow();
 					if (row>=0) {
-						RscharLayout layout = (RscharLayout)layoutRecords.get(row);
+						RscharLayout layout = layoutRecords.get(row);
 						CharacterInfoCard card = layout.getModel().getCard();
 						ImageIcon icon = card.getImageIcon(true);
 						JOptionPane.showMessageDialog(RealmCharacterWebFrame.this,new JLabel(icon));

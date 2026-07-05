@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.graphics;
 
 import java.awt.*;
@@ -34,8 +17,8 @@ public class TextType {
 	protected static final Font defaultFont = new Font("Dialog",Font.PLAIN,11);
 	protected static final Color defaultColor = Color.black;
 
-	protected static Hashtable typeFonts = null;
-	protected static Hashtable typeColors = null;
+	protected static Hashtable<String, Font> typeFonts = null;
+	protected static Hashtable<String, Color> typeColors = null;
 	
 	/**
 	 * Adds a type to the TextType palette
@@ -43,13 +26,13 @@ public class TextType {
 	public static void addType(String typeName,Font font,Color color) {
 		if (font!=null) {
 			if (typeFonts==null) {
-				typeFonts = new Hashtable();
+				typeFonts = new Hashtable<String, Font>();
 			}
 			typeFonts.put(typeName,font);
 		}
 		if (color!=null) {
 			if (typeColors==null) {
-				typeColors = new Hashtable();
+				typeColors = new Hashtable<String, Color>();
 			}
 			typeColors.put(typeName,color);
 		}
@@ -76,7 +59,7 @@ public class TextType {
 	public Font getFont() {
 		Font font = null;
 		if (typeFonts!=null) {
-			font = (Font)typeFonts.get(type);
+			font = typeFonts.get(type);
 		}
 		if (font==null) {
 			font = defaultFont;
@@ -91,7 +74,7 @@ public class TextType {
 	public Color getColor() {
 		Color color = null;
 		if (typeColors!=null) {
-			color = (Color)typeColors.get(type);
+			color = typeColors.get(type);
 		}
 		if (color==null) {
 			color = defaultColor;
@@ -130,7 +113,7 @@ public class TextType {
 			// Build lines
 			int currentWidth = 0;
 			StringBuffer sb = new StringBuffer();
-			ArrayList lines = new ArrayList();
+			ArrayList<String> lines = new ArrayList<String>();
 			for (int i=0;i<word.length;i++) {
 				int newWidth = currentWidth+wordWidth[i];
 				
@@ -151,7 +134,7 @@ public class TextType {
 				lines.add(sb.toString());
 			}
 			
-			line = (String[])lines.toArray(new String[lines.size()]);
+			line = lines.toArray(new String[lines.size()]);
 		}
 	}
 	
@@ -202,7 +185,7 @@ public class TextType {
 		if (rotate!=0) {
 			orig = g.getTransform();
 			AffineTransform rotated = new AffineTransform(orig);
-			rotated.rotate(Math.toRadians((double)rotate),x,y);
+			rotated.rotate(Math.toRadians(rotate),x,y);
 			g.setTransform(rotated);
 		}
 		int offset = 0;
@@ -212,6 +195,8 @@ public class TextType {
 				break;
 			case Right:
 				offset = width - screen.getFontMetrics().stringWidth(text);
+				break;
+			default:
 				break;
 		}
 		g.drawString(text,x+offset,y);

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle;
 
 import java.awt.*;
@@ -132,10 +115,9 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		BattleGroup denizenGroup = battleModel.getDenizenBattleGroup();
 		if (denizenGroup!=null && denizenGroup.size()>0) {
-			for (Iterator i=denizenGroup.getBattleParticipants().iterator();i.hasNext();) {
-				RealmComponent denizen = (RealmComponent)i.next();
+			for (RealmComponent denizen : denizenGroup.getBattleParticipants()) {
 				CombatWrapper combat = new CombatWrapper(denizen.getGameObject());
-				if (denizen.getTarget()==null && !combat.isSheetOwner()) {
+				if (denizen.getTarget()==null && denizen.get2ndTarget()==null && !combat.isSheetOwner()) {
 					list.add(denizen);
 				}
 			}
@@ -176,8 +158,8 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 		TileLocation current = battleModel.getBattleLocation();
 		ArrayList<Integer> color = new ArrayList<Integer>(); // only need to show one instance of each
 		for (ColorMagic cm:current.clearing.getAllSourcesOfColor(true)) {
-			if (color.contains(cm.getColorNumber())) continue;
-			color.add(cm.getColorNumber());
+			if (color.contains(Integer.valueOf(cm.getColorNumber()))) continue;
+			color.add(Integer.valueOf(cm.getColorNumber()));
 			exportImage(path.path(cm.getColorName()+".jpg"),cm.getIcon(),1.0f,Color.white);
 			sb.append(generateImageElement(0,cm.getColorName(),cm.getColorName()+".jpg"));
 		}
@@ -187,8 +169,7 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 		
 		for (CharacterChitComponent chit:battleModel.getAllParticipatingCharacters()) {
 			CharacterWrapper character = new CharacterWrapper(chit.getGameObject());
-			for (Iterator n=character.getBattlingNativeGroups().iterator();n.hasNext();) {
-				String groupName = (String)n.next();
+			for (String groupName : character.getBattlingNativeGroups()) {
 				sb.append("<table cellpadding=\"2\"><tr><td bgcolor=\"#FFFF00\">");
 				sb.append("<b>The ");
 				sb.append(StringUtilities.capitalize(groupName));

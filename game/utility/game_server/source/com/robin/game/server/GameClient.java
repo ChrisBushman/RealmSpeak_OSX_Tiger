@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.server;
 
 import java.net.*;
@@ -32,6 +15,8 @@ public abstract class GameClient extends GameNet {
 	private static final String THREAD_NAME = "GameClient.ThreadName";
 	
 	private static final int MILLISECONDS_SLEEP_PER_REQUEST = 50;
+	
+	private static final int SLEEPS_TO_HIT_TIMEOUT = 100;
 	
 	public static final String DATA_NAME = "client";
 	
@@ -74,7 +59,7 @@ public abstract class GameClient extends GameNet {
 	
 	protected boolean hosting = false;
 	
-	protected ArrayList changeListeners = null;
+	protected ArrayList<ChangeListener> changeListeners = null;
 	
 	public GameClient(String dataPath,String ipAddress,String clientName,String clientPass) {
 		this(dataPath,ipAddress,clientName,clientPass,GameHost.DEFAULT_PORT);
@@ -138,7 +123,6 @@ public abstract class GameClient extends GameNet {
 	}
 	public void kill() {
 		leave = true;
-		//System.out.println("Client should die soon");
 	}
 	public String getClientName() {
 		return clientName;
@@ -183,8 +167,7 @@ public abstract class GameClient extends GameNet {
 		if (changeListeners!=null) {
 			logger.finer("listenerCount="+changeListeners.size());
 			ChangeEvent event = new ChangeEvent(this);
-			for (Iterator i=changeListeners.iterator();i.hasNext();) {
-				ChangeListener listener = (ChangeListener)i.next();
+			for (ChangeListener listener : changeListeners) {
 				StateFireThread thread = new StateFireThread(listener,event);
 				thread.start();
 			}
@@ -232,7 +215,7 @@ public abstract class GameClient extends GameNet {
 	 * Handles
 	 */
 	private void handleResponse(RequestObject ro) throws SocketTimeoutException,Exception {
-		ArrayList list;
+		ArrayList<GameObjectChange> list;
 		if (!ro.isIdle()) logger.fine("handleResponse "+ro);
 		int response;
 		try {
@@ -249,8 +232,7 @@ public abstract class GameClient extends GameNet {
 							// Instead of loading all the objects, just load changes
 							list = readCollection();
 							logger.fine("Client received update: "+list.size()+" changes.");
-							for (Iterator i=list.iterator();i.hasNext();) {
-								GameObjectChange action = (GameObjectChange)i.next();
+							for (GameObjectChange action : list) {
 								logger.finer("   "+action);
 								action.applyChange(gameData);
 							}
@@ -470,18 +452,32 @@ public abstract class GameClient extends GameNet {
 	 * Submits changes to the client, and waits for them to be live.
 	 */
 	public synchronized static void submitAndWait(GameClient client) {
+		submitWaitOrTimeout(client,false);
+	}
+	
+	public synchronized void submitWithTimeout() {
+		submitWaitOrTimeout(this,true);
+		waitingSubmit = false;
+	}
+	
+	private synchronized static void submitWaitOrTimeout(GameClient client, boolean timeout) {
 		// Test to make sure this is not being called by the same thread as the client!
 		if (THREAD_NAME.equals(Thread.currentThread().getName())) {
 			throw new IllegalStateException("Ack!  Can't call submitAndWait from the SAME THREAD as the client!");
 		}
 		
 		logger.fine("submitAndWait");
-//System.out.println("submitAndWait");
 		client.submitChanges();
 		try {
 			Thread.sleep(MILLISECONDS_SLEEP_PER_REQUEST); // give it a chance...
+			int sleeping = 0;
 			while(client.waitingToSubmit()) {
 				Thread.sleep(MILLISECONDS_SLEEP_PER_REQUEST); // Without this, it hangs unnecessarily
+				sleeping++;
+				if (timeout && sleeping >= SLEEPS_TO_HIT_TIMEOUT) {
+					logger.fine("timeout");
+					break;
+				}
 			}
 		}
 		catch(Exception ex) {
@@ -489,7 +485,6 @@ public abstract class GameClient extends GameNet {
 			ex.printStackTrace();
 		}
 		logger.fine("Done waiting");
-//System.out.println("Done waiting");
 	}
 	
 	public static void broadcastClient(String key,String message) {

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
@@ -33,6 +16,7 @@ import com.robin.magic_realm.components.quest.requirement.QuestRequirementParams
 import com.robin.magic_realm.components.swing.*;
 import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.utility.RealmLogging;
+import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class CharacterQuestPanel extends CharacterFramePanel {
 
@@ -63,12 +47,12 @@ public class CharacterQuestPanel extends CharacterFramePanel {
 	
 	private void initComponents() {
 		setLayout(new BorderLayout(10, 10));
-		JLabel ins = new JLabel("Right-click quest for more info",JLabel.CENTER);
+		JLabel ins = new JLabel("Right-click quest for more info",SwingConstants.CENTER);
 		ins.setOpaque(true);
 		ins.setBackground(MagicRealmColor.PALEYELLOW);
 		ins.setFont(new Font("Dialog",Font.BOLD,14));
 		add(ins,"North");
-		if (getHostPrefs().hasPref(Constants.QST_QUEST_CARDS)) {
+		if (getHostPrefs().isUsingQuestCards() || getHostPrefs().isUsingGuildQuests()) {
 			add(createQuestCardPanel());
 		}
 		else {
@@ -88,9 +72,9 @@ public class CharacterQuestPanel extends CharacterFramePanel {
 		QuestState state = quest.getState();
 		
 		QuestView view = new QuestView(state==QuestState.Assigned && (!quest.isAllPlay() || quest.isActivateable())?activateQuestListener:null);
-		view.updatePanel(quest);
+		view.updatePanel(quest,getCharacter());
 		ComponentTools.lockComponentSize(view,640,480);
-		FrameManager.showDefaultManagedFrame(getMainFrame(), view, qc.getGameObject().getName(), qc.getFaceUpIcon(), true);
+		FrameManager.showDefaultManagedFrame(getMainFrame(), view, qc.getGameObject().getName(), qc.getFaceUpIcon(), true, ImageCache.getIcon("badges/lore"));
 	}
 	private JPanel createQuestCardPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
@@ -161,38 +145,38 @@ public class CharacterQuestPanel extends CharacterFramePanel {
 		});
 		controls.add(drawQuestsButton);
 
-		viewAllPlayCardsButton = new JButton("All-Play Cards");
-		viewAllPlayCardsButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ev) {
-				//QuestDeck deck = QuestDeck.findDeck(getCharacter().getGameData());
-				
-				boolean added = false;
-				RealmObjectPanel panel = new RealmObjectPanel();
-				for(Quest quest:characterQuests) {
-					if (quest.isAllPlay() && !quest.getState().isFinished()) {
-						panel.addObject(quest.getGameObject());
-						added = true;
+		if (getHostPrefs().isUsingQuestCards()) {
+			viewAllPlayCardsButton = new JButton("All-Play Cards");
+			viewAllPlayCardsButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ev) {	
+					boolean added = false;
+					RealmObjectPanel panel = new RealmObjectPanel();
+					for(Quest quest:characterQuests) {
+						if (quest.isAllPlay() && !quest.getState().isFinished()) {
+							panel.addObject(quest.getGameObject());
+							added = true;
+						}
+					}
+					panel.addMouseListener(new MouseAdapter() {
+						public void mousePressed(MouseEvent ev) {
+							RealmObjectPanel panel = (RealmObjectPanel)ev.getSource();
+							showQuestInfo(panel.getComponentAt(ev.getPoint()));
+						}
+					});
+	
+					ComponentTools.lockComponentSize(panel,640,480);
+					
+					if (added) {
+						FrameManager.showDefaultManagedFrame(getMainFrame(), new JScrollPane(panel), "Available All-Play Cards", ImageCache.getIcon("quests/token"), true, ImageCache.getIcon("badges/lore"));
+					}
+					else {
+						JOptionPane.showMessageDialog(getMainFrame(), "No All-Play cards left.", "None Left", JOptionPane.INFORMATION_MESSAGE);
 					}
 				}
-				panel.addMouseListener(new MouseAdapter() {
-					public void mousePressed(MouseEvent ev) {
-						RealmObjectPanel panel = (RealmObjectPanel)ev.getSource();
-						showQuestInfo(panel.getComponentAt(ev.getPoint()));
-					}
-				});
-
-				ComponentTools.lockComponentSize(panel,640,480);
-				
-				if (added) {
-					FrameManager.showDefaultManagedFrame(getMainFrame(), new JScrollPane(panel), "Available All-Play Cards", ImageCache.getIcon("quests/token"), true);
-				}
-				else {
-					JOptionPane.showMessageDialog(getMainFrame(), "No All-Play cards left.", "None Left", JOptionPane.INFORMATION_MESSAGE);
-				}
-			}
-		});
-		controls.add(Box.createHorizontalGlue());
-		controls.add(viewAllPlayCardsButton);
+			});
+			controls.add(Box.createHorizontalGlue());
+			controls.add(viewAllPlayCardsButton);
+		}
 		
 		panel.add(controls,BorderLayout.SOUTH);
 		
@@ -203,16 +187,19 @@ public class CharacterQuestPanel extends CharacterFramePanel {
 		String dayKey = getCharacter().getCurrentDayKey();
 		RealmLogging.logMessage(getCharacter().getName(),"Activated Quest Card: "+quest.getName());
 		quest.setState(QuestState.Active, getCharacter().getCurrentDayKey(), getCharacter());
-		if (quest.testRequirements(getMainFrame(), getCharacter(), new QuestRequirementParams())) {
+		QuestRequirementParams questRequirementParams = new QuestRequirementParams();
+		questRequirementParams.timeOfCall = getGameHandler().getGame().getGamePhase();
+		if (quest.testRequirements(getMainFrame(), getCharacter(), questRequirementParams)) {
 			getCharacter().testQuestRequirements(getMainFrame()); // Make sure that all quests get updated (auto-journal)
 			getCharacterFrame().updateCharacter();
-			getMainFrame().getGameHandler().getInspector().redrawMap();
+			getGameHandler().getInspector().redrawMap();
 		}
-		if (quest.getState()!=QuestState.Assigned && quest.isAllPlay()) {
+		if (quest.getState()!=QuestState.Assigned && quest.isAllPlay() && !quest.isMultipleUse()) {
 			quest.revertAllPlay(dayKey,getCharacter());
 			quest.clearAllPlay();
 			getCharacterFrame().updateCharacter();
 		}
+		getGameHandler().submitChanges();
 		questHandPanel.repaint();
 	}
 
@@ -242,12 +229,18 @@ public class CharacterQuestPanel extends CharacterFramePanel {
 				Quest quest = new Quest(go);
 				getCharacter().removeQuest(quest);
 				deck.discardCard(quest);
-				RealmLogging.logMessage(getCharacter().getName(),"Discarded Quest Card: "+quest.getName());
+				if (getHostPrefs().hasPref(Constants.HOUSE3_SHOW_DISCARED_QUEST)) {
+					RealmLogging.logMessage(getCharacter().getName(),"Discarded Quest Card: "+quest.getName());
+				}
+				else {
+					RealmLogging.logMessage(getCharacter().getName(),"Discarded a quest card.");
+				}
 			}
 			getCharacter().setDiscardedQuests(true);
-			updatePanel();
 			updateControls();
 		}
+		updatePanel();
+		getGameHandler().submitChanges();
 	}
 
 	private void doDrawQuests() {
@@ -263,6 +256,8 @@ public class CharacterQuestPanel extends CharacterFramePanel {
 		RealmLogging.logMessage(getCharacter().getName(),sb.toString());
 		updatePanel();
 		updateControls();
+		getGameHandler().getInspector().redrawMap();
+		getGameHandler().submitChanges();
 	}
 
 	private Quest getSelectedQuest() {
@@ -274,35 +269,42 @@ public class CharacterQuestPanel extends CharacterFramePanel {
 	}
 
 	private void updateControls() {
-		if (getHostPrefs().hasPref(Constants.QST_QUEST_CARDS)) {
+		HostPrefWrapper hostPrefs = getHostPrefs();
+		if (hostPrefs.isUsingQuestCards() || hostPrefs.isUsingGuildQuests()) {
 			Quest selQuest = getSelectedQuest();
 			boolean gameStarted = getGame().getGameStarted();
+			boolean isBirdsong = getGameHandler().getGame().isRecording();
 			activateQuestButton.setEnabled(gameStarted && selQuest != null && selQuest.getState() == QuestState.Assigned && !selQuest.isAllPlay());
 
 			boolean canDiscardQuests = !getCharacter().alreadyDiscardedQuests() && gameStarted;
-			boolean characterIsAtDwelling = getCharacter().getCurrentLocation().isAtDwelling(true);
-			boolean isBirdsong = getGameHandler().getGame().isRecording();
-			discardQuestButton.setEnabled(canDiscardQuests && characterIsAtDwelling && isBirdsong && selQuest!=null && selQuest.isDiscardable());
+			boolean questCanAlwaysBeDiscarded = selQuest!=null && selQuest.getGameObject().hasThisAttribute(QuestConstants.DISCARD_ALWAYS) && gameStarted && isBirdsong;
+			boolean questCannotBeDiscarded = selQuest!=null && selQuest.getGameObject().hasThisAttribute(QuestConstants.DISCARD_NEVER);
+			boolean characterIsAtLocation = getCharacter().getCurrentLocation() != null;
+			boolean characterIsAtDwelling = characterIsAtLocation && getCharacter().getCurrentLocation().isAtDwelling(true);
+			boolean characterIsAtGuild = characterIsAtLocation && getCharacter().getCurrentLocation().isAtGuild();
+			discardQuestButton.setEnabled(questCanAlwaysBeDiscarded || (canDiscardQuests && !questCannotBeDiscarded && isBirdsong && selQuest!=null && selQuest.getState() == QuestState.Assigned &&
+					((hostPrefs.isUsingQuestCards() && characterIsAtDwelling && !selQuest.isAllPlay()) || (hostPrefs.isUsingGuildQuests() && characterIsAtGuild))));
 
-			boolean hasAvailableSlots = (getCharacter().getQuestSlotCount() - getCharacter().getUnfinishedQuestCount()) > 0;
-			drawQuestsButton.setEnabled(characterIsAtDwelling && isBirdsong && hasAvailableSlots && getCharacter().isCharacter());
+			boolean hasAvailableSlots = (getCharacter().getQuestSlotCount(hostPrefs) - getCharacter().getUnfinishedNotAllPlayQuestCount()) > 0;
+			drawQuestsButton.setEnabled(isBirdsong && hasAvailableSlots && getCharacter().isCharacter() &&
+					((hostPrefs.hasPref(Constants.QST_QUEST_CARDS) && characterIsAtDwelling) || (hostPrefs.isUsingGuildQuests() && characterIsAtGuild)));
 		}
 	}
 
 	public void updatePanel() {
 		characterQuests = getCharacter().getAllQuests();
-		
-		if (getHostPrefs().hasPref(Constants.QST_QUEST_CARDS)) {
-			int slots = getCharacter().getQuestSlotCount();
+		HostPrefWrapper hostPrefs = getHostPrefs();
+		if (hostPrefs.isUsingQuestCards() || hostPrefs.isUsingGuildQuests()) {
+			int slots = getCharacter().getQuestSlotCount(hostPrefs);
 			questHandPanel.removeAll();
 			completedQuestsPanel.removeAll();
 			for(Quest quest:characterQuests) {
 				if (quest.getState().isFinished()) {
-					if  (quest.getInt(QuestConstants.VP_REWARD)>0) {
+					if  (quest.getInt(QuestConstants.VP_REWARD)>0 || hostPrefs.isUsingGuildQuests()) {
 						completedQuestsPanel.addObject(quest.getGameObject());
 					}
 				}
-				else if (!quest.isAllPlay()) {
+				else if (!quest.isAllPlay() || hostPrefs.isUsingGuildQuests() || (quest.isAllPlay() && quest.isMultipleUse() && quest.isActivateable() && quest.getState()==QuestState.Active)) {
 					questHandPanel.addObject(quest.getGameObject());
 					slots--;
 				}
@@ -311,9 +313,9 @@ public class CharacterQuestPanel extends CharacterFramePanel {
 				questHandPanel.add(new EmptyCardComponent());
 			}
 		}
-		else {
-			if (characterQuests.size() == 1) {
-				questView.updatePanel(characterQuests.get(0));
+		else { //BoQ
+			if (getCharacter().getAllNonEventQuests().size() == 1) {
+				questView.updatePanel(getCharacter().getAllNonEventQuests().get(0),getCharacter());
 			}
 		}
 	}

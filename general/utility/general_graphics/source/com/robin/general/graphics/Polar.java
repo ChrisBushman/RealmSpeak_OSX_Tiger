@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.graphics;
 
 import java.awt.*;
@@ -71,7 +54,7 @@ public class Polar {
 		}
 		else {
 			length = (int)Math.sqrt((dx*dx)+(dy*dy));
-			angle = toDegrees(Math.atan2((double)dy,(double)dx));
+			angle = toDegrees(Math.atan2(dy,dx));
 		}
 		origin = center;
 		setRect();
@@ -96,14 +79,14 @@ public class Polar {
 	}
 		
 	public static double toRadians(int deg) {
-		return (Math.PI * (double)deg)/180;
+		return (Math.PI * deg)/180;
 	}
 	
 	public static int toDegrees(double rad) {
-		return normalAngle((int)(((double)rad * 180)/Math.PI));
+		return normalAngle((int)((rad * 180)/Math.PI));
 	}
 	
-	private void init() {
+	private static void init() {
 		if (cos==null) {
 			cos = new double[MAX_DEGREES];
 			for (int i=0;i<MAX_DEGREES;i++) {
@@ -124,8 +107,8 @@ public class Polar {
 		
 	private Point getPoint() {
 		normalizeAngle();
-		int x = ((int)((double)length * cos[angle])) + origin.x;
-		int y = ((int)((double)length * sin[angle])) + origin.y;
+		int x = ((int)(length * cos[angle])) + origin.x;
+		int y = ((int)(length * sin[angle])) + origin.y;
 		return new Point(x,y);
 	}
 	

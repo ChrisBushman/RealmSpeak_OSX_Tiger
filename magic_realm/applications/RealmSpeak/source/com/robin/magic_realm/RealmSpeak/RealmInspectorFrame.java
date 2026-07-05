@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.BorderLayout;
@@ -27,8 +10,10 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import com.robin.game.objects.GameData;
+import com.robin.general.swing.IconFactory;
 import com.robin.magic_realm.components.attribute.ChatLine;
 import com.robin.magic_realm.components.swing.CenteredMapView;
+import com.robin.magic_realm.components.swing.MapDefaultViewControl;
 import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.utility.RealmCalendar;
 import com.robin.magic_realm.components.wrapper.*;
@@ -84,9 +69,11 @@ public class RealmInspectorFrame extends RealmSpeakInternalFrame {
 		setTitle(sb.toString());
 		map.setShowEmbellishments(game.getGameStarted());
 		map.setReplot(true);
+		map.updateTilesStyle();
 		map.repaint();
 	}
 	private void initComponents() {
+		setFrameIcon(IconFactory.findIcon("images/interface/build.gif"));
 		setSize(640,480);
 		getContentPane().setLayout(new BorderLayout());
 		
@@ -102,18 +89,33 @@ public class RealmInspectorFrame extends RealmSpeakInternalFrame {
 			}
 		});
 
-		getContentPane().add(map,"Center");
+		// CenteredMapView overrides paint() directly without calling super.paint()/paintChildren(),
+		// so a Swing child added directly to map would never actually be painted. The "Default
+		// View"/"Set Default" overlay is therefore added as a SIBLING of map inside a JLayeredPane,
+		// on a higher layer so it floats on top and still receives its own click events.
+		final JLayeredPane mapLayeredPane = new JLayeredPane();
+		mapLayeredPane.add(map,JLayeredPane.DEFAULT_LAYER);
+		final MapDefaultViewControl defaultViewControl = new MapDefaultViewControl(map);
+		mapLayeredPane.add(defaultViewControl,JLayeredPane.PALETTE_LAYER);
+		mapLayeredPane.addComponentListener(new ComponentAdapter() {
+			public void componentResized(ComponentEvent ev) {
+				map.setBounds(0,0,mapLayeredPane.getWidth(),mapLayeredPane.getHeight());
+				defaultViewControl.reanchor(mapLayeredPane.getWidth(),mapLayeredPane.getHeight());
+			}
+		});
+		getContentPane().add(mapLayeredPane,BorderLayout.CENTER);
+		defaultViewControl.reanchor(mapLayeredPane.getWidth(),mapLayeredPane.getHeight());
 		addKeyListener(map.getShiftKeyListener());
-		
+
 		zoomSlider = new JSlider(10,100,70);
 		zoomSlider.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent ev) {
-				double val = (double)zoomSlider.getValue();
+				double val = zoomSlider.getValue();
 				double scale = val/100.0;
 				map.setScale(scale);
 			}
 		});
-		getContentPane().add(zoomSlider,"South");
+		getContentPane().add(zoomSlider,BorderLayout.SOUTH);
 		zoomSlider.setVisible(false);
 		
 		map.addMouseListener(new MouseAdapter() {
@@ -155,6 +157,11 @@ public class RealmInspectorFrame extends RealmSpeakInternalFrame {
 			ex.printStackTrace();
 		}
 		map.centerMap();
+		if (!map.hasDefaultView()) {
+			// First time this map window is organized, the initial centered view becomes the
+			// default view (until the user explicitly overrides it with "Set Default").
+			map.setAsDefaultView();
+		}
 	}
 	public boolean onlyOneInstancePerGame() {
 		return true;

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.swing;
 
 import java.awt.*;
@@ -101,7 +84,7 @@ public class ButtonOptionDialog extends AggressiveDialog {
 		
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 	}
-	private void setBestAreaSize(JTextArea area) {
+	private static void setBestAreaSize(JTextArea area) {
 //		ComponentTools.lockComponentSize(area,200,70);
 		area.setMinimumSize(new Dimension(20,20));
 //		String text = area.getText();
@@ -123,8 +106,8 @@ public class ButtonOptionDialog extends AggressiveDialog {
 		if (finished) {
 			throw new IllegalStateException("You cannot add selection objects to finished panel.");
 		}
-		for (Iterator i=c.iterator();i.hasNext();) {
-			addSelectionObject(i.next());
+		for (Object o : c) {
+			addSelectionObject(o);
 		}
 	}
 	public void addSelectionObjectArray(Object[] object) {

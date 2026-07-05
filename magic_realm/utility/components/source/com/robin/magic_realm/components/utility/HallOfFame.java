@@ -1,27 +1,9 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.utility;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 
 import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
@@ -47,12 +29,9 @@ public class HallOfFame {
 	public static final String CAT_MAGIC_USERS = "MagicUser";
 	public static final String CAT_FIGHTERS = "Fighter";
 	
-	private Comparator scoreComparator = new Comparator() {
-		public int compare(Object o1, Object o2) {
+	private Comparator<GameObject> scoreComparator = new Comparator<GameObject>() {
+		public int compare(GameObject go1, GameObject go2) {
 			int ret = 0;
-			
-			GameObject go1 = (GameObject)o1;
-			GameObject go2 = (GameObject)o2;
 			
 			int s1 = go1.getThisInt(TOTAL_SCORE);
 			int s2 = go2.getThisInt(TOTAL_SCORE);
@@ -61,12 +40,6 @@ public class HallOfFame {
 			return ret;
 		}
 	};
-	
-//	public static final String V_GREAT_TREASURES = "GT";
-//	public static final String V_USABLE_SPELLS = "US";
-//	public static final String V_FAME = "F";
-//	public static final String V_NOTORIETY = "N";
-//	public static final String V_GOLD = "G";
 	
 	private static HallOfFame singleton = null;
 	
@@ -86,10 +59,9 @@ public class HallOfFame {
 		}
 	}
 	
-	public ArrayList getAllCharacterNames() {
-		ArrayList names = new ArrayList();
-		for (Iterator i=hallData.getGameObjects().iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+	public ArrayList<String> getAllCharacterNames() {
+		ArrayList<String> names = new ArrayList<String>();
+		for (GameObject go : hallData.getGameObjects()) {
 			if (go.getHeldBy()!=null && !names.contains(go.getName())) {
 				names.add(go.getName());
 			}
@@ -107,10 +79,9 @@ public class HallOfFame {
 		return go;
 	}
 	
-	private boolean isWorthy(ArrayList list,GameObject go) {
+	private static boolean isWorthy(ArrayList<GameObject> list,GameObject go) {
 		int score = go.getThisInt(TOTAL_SCORE);
-		for (Iterator i=list.iterator();i.hasNext();) {
-			GameObject test = (GameObject)i.next();
+		for (GameObject test : list) {
 			int ts = test.getThisInt(TOTAL_SCORE);
 			if (score>ts) { // only need one!
 				return true;
@@ -127,7 +98,7 @@ public class HallOfFame {
 	private void updateList(String listName,GameObject go) {
 		GameObject listGo = getHolderFor(listName);
 		
-		ArrayList list = listGo.getHold();
+		ArrayList<GameObject> list = listGo.getHold();
 		if (list.size()<MAX_ENTRIES_PER_CATEGORY || isWorthy(list,go)) {
 			add(listGo,go);
 			Collections.sort(list,scoreComparator);
@@ -156,6 +127,21 @@ public class HallOfFame {
 		go.setThisAttribute(RS_VERSION,Constants.REALM_SPEAK_VERSION);
 		go.setThisAttribute(GAME_DATE,DateUtility.convertDate2String(DateUtility.getNow()));
 		
+		// Check for duplicate entry
+		for (GameObject existing : hallData.getGameObjects()) {
+			if (!existing.getName().matches(go.getName())) continue;
+			if (!existing.getThisAttribute(CharacterWrapper.V_GREAT_TREASURES).matches(go.getThisAttribute(CharacterWrapper.V_GREAT_TREASURES))) continue;
+			if (!existing.getThisAttribute(CharacterWrapper.V_USABLE_SPELLS).matches(go.getThisAttribute(CharacterWrapper.V_USABLE_SPELLS))) continue;
+			if (!existing.getThisAttribute(CharacterWrapper.V_FAME).matches(go.getThisAttribute(CharacterWrapper.V_FAME))) continue;
+			if (!existing.getThisAttribute(CharacterWrapper.V_NOTORIETY).matches(go.getThisAttribute(CharacterWrapper.V_NOTORIETY))) continue;
+			if (!existing.getThisAttribute(CharacterWrapper.V_GOLD).matches(go.getThisAttribute(CharacterWrapper.V_GOLD))) continue;
+			if (!existing.getThisAttribute(TOTAL_VPS).matches(go.getThisAttribute(TOTAL_VPS))) continue;
+			if (!existing.getThisAttribute(TOTAL_SCORE).matches(go.getThisAttribute(TOTAL_SCORE))) continue;
+			if (!existing.getThisAttribute(PLAYER_NAME).matches(go.getThisAttribute(PLAYER_NAME))) continue;
+			if (!existing.getThisAttribute(DAYS_PLAYED).matches(go.getThisAttribute(DAYS_PLAYED))) continue;
+			return;
+		}
+		
 		// Tack on hostprefs
 		OrderedHashtable block = go.getAttributeBlock(HostPrefWrapper.HOST_PREF_BLOCK);
 		block.putAll(hostPrefs.getGameObject().getAttributeBlock(HostPrefWrapper.HOST_PREF_BLOCK));
@@ -173,8 +159,7 @@ public class HallOfFame {
 	private void saveResults() {
 		if (hallData!=null) {
 			// First, remove all NEW_ENTRY keys
-			for (Iterator i=hallData.getGameObjects().iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
+			for (GameObject go : hallData.getGameObjects()) {
 				go.removeThisAttribute(NEW_ENTRY);
 			}
 			hallData.zipToFile(zipFile);

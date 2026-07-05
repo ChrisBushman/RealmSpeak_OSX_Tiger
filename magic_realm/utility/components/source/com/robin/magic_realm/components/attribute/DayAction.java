@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.attribute;
 
 public class DayAction {
@@ -38,22 +21,26 @@ public class DayAction {
 		Heal,
 		Repair,
 		Fortify,
-	};
+		Steal,
+		Offroad
+	}
 	
 	public static DayAction HIDE_ACTION = new DayAction(ActionId.Hide,"Hide","H","hide");
 	public static DayAction MOVE_ACTION = new DayAction(ActionId.Move,"Move","M","move"); // (clearing)
 	public static DayAction SEARCH_ACTION = new DayAction(ActionId.Search,"Search","S","search");
 	public static DayAction TRADE_ACTION = new DayAction(ActionId.Trade,"Trade","T","trade");
-	public static DayAction REST_ACTION = new DayAction(ActionId.Rest,"Rest","R","rest"); 
-	public static DayAction ALERT_ACTION = new DayAction(ActionId.Alert,"Alert","A","alert"); 
+	public static DayAction REST_ACTION = new DayAction(ActionId.Rest,"Rest","R","rest");
+	public static DayAction ALERT_ACTION = new DayAction(ActionId.Alert,"Alert","A","alert");
 	public static DayAction HIRE_ACTION = new DayAction(ActionId.Hire,"Hire","HR","hire");
 	public static DayAction FOLLOW_ACTION = new DayAction(ActionId.Follow,"Follow","F","follow");  // (individual)
-	public static DayAction SPELL_ACTION = new DayAction(ActionId.Spell,"Spell","SP","spell"); 
-	public static DayAction SPELL_PREP_ACTION = new DayAction(ActionId.SpellPrep,"Spell Prep","SPX","spell"); 
+	public static DayAction SPELL_ACTION = new DayAction(ActionId.Spell,"Enchant","E","spell");
+	public static DayAction SPELL_PREP_ACTION = new DayAction(ActionId.SpellPrep,"Enchant Meditation","EM","spell");
 	public static DayAction ENH_PEER_ACTION = new DayAction(ActionId.EnhPeer,"Enh.Peer","P","peer"); // (clearing) 
 	public static DayAction FLY_ACTION = new DayAction(ActionId.Fly,"Fly","FLY","fly"); // (tile) 
 	public static DayAction REMOTE_SPELL_ACTION = new DayAction(ActionId.RemSpell,"Rem.Spell","RS","remotespell"); // (clearing)
 	public static DayAction CACHE_ACTION = new DayAction(ActionId.Cache,"Cache","C","cache");
+	public static DayAction STEAL_ACTION = new DayAction(ActionId.Steal,"Steal","ST","steal");
+	public static DayAction OFFROAD_TRAVEL_ACTION = new DayAction(ActionId.Offroad,"Offroad","O","offroad");
 	
 	// Special Actions (custom characters)
 	public static DayAction HEAL_ACTION = new DayAction(ActionId.Heal,"Heal","HL","heal");				// Mostly like REST
@@ -75,6 +62,8 @@ public class DayAction {
 		FLY_ACTION,
 		REMOTE_SPELL_ACTION,
 		CACHE_ACTION,
+		STEAL_ACTION,
+		OFFROAD_TRAVEL_ACTION,
 		
 		HEAL_ACTION,
 		REPAIR_ACTION,

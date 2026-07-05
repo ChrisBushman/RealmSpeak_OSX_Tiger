@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.objects;
 
 import java.io.IOException;
@@ -31,13 +14,16 @@ import com.robin.general.util.OrderedHashtable;
 public class GameObject extends ModifyableObject implements Serializable {
 
 	public static final int NO_ID_ASSIGNED = -1;
+	public static boolean showVul = false;
+	public static boolean showNumbers = false;
 
 	protected static XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
 
 	private static final String THIS = "this";
-	protected OrderedHashtable attributeBlocks; // Holds Hashtables linked by a type key
+	protected OrderedHashtable<String, OrderedHashtable> attributeBlocks; // Holds Hashtables linked by a type key
 	protected GameObject heldBy; // Can only be held by one parent
-	protected ArrayList hold; // All GameObjects contained by this object
+	protected ArrayList<GameObject> hold; // All GameObjects contained by this object
+	protected ArrayList<Long> holdIds;
 
 	protected GameObject uncommitted; // a skeleton game object to manage uncommitted changes (tracks attributes AND hold)
 
@@ -62,17 +48,13 @@ public class GameObject extends ModifyableObject implements Serializable {
 		id = assign_id;
 		version = 0;
 
-		if (parent != null) { // FIXME I'm not sure I WANT this all the time!
+		if (parent != null) {
 			addChangeListener(parent.getModifyListener());
-//			addChangeListener(new ChangeListener() {
-//				public void stateChanged(ChangeEvent ev) {
-//					parent.setModified(true);
-//				}
-//			});
 		}
-		attributeBlocks = new OrderedHashtable();
+		attributeBlocks = new OrderedHashtable<String, OrderedHashtable>();
 		heldBy = null;
-		hold = new ArrayList();
+		hold = new ArrayList<GameObject>();
+		holdIds = new ArrayList<Long>();
 		reset();
 		revertNameToDefault();
 		setModified(true);
@@ -109,29 +91,33 @@ public class GameObject extends ModifyableObject implements Serializable {
 	}
 
 	private void startUncommitted() {
-		// Builds the uncommitted object to look just like this object in every respect
-		uncommitted = new GameObject();
-		uncommitted.id = this.id;
-		uncommitted.setName(name); // so that keyval searches with name actually work!!
-		uncommitted._setVersion(version);
-		for (Iterator i = attributeBlocks.keySet().iterator(); i.hasNext();) {
-			String blockName = (String) i.next();
-			OrderedHashtable attributes = (OrderedHashtable) attributeBlocks.get(blockName);
-			for (Iterator j = attributes.keySet().iterator(); j.hasNext();) {
-				String attributeKey = (String) j.next();
+		// Builds the uncommitted object to look just like this object in every respect.
+		// THREADING: this.uncommitted is read by stopUncommitted() on whatever thread calls
+		// commit() or rollback(), which can race with this method running on a different thread
+		// Fix: build the snapshot entirely via a local variable and publish it to the field only
+		// once, at the very end. Concurrent stopUncommitted() calls that null this.uncommitted
+		// during the loop are harmless - we are not reading the field, only writing it once done.
+		GameObject local = new GameObject();
+		local.id = this.id;
+		local.setName(name); // so that keyval searches with name actually work!!
+		local._setVersion(version);
+		for (String blockName : attributeBlocks.keySet()) {
+			OrderedHashtable<String,OrderedHashtable> attributes = attributeBlocks.get(blockName);
+			for (String attributeKey : attributes.keySet()) {
 				Object value = attributes.get(attributeKey);
 				if (value instanceof String) {
-					uncommitted.getAttributeBlock(blockName).put(attributeKey, value);
+					local.getAttributeBlock(blockName).put(attributeKey, value);
 				}
 				else {
-					uncommitted.getAttributeBlock(blockName).put(attributeKey, new ArrayList((Collection) value));
+					local.getAttributeBlock(blockName).put(attributeKey, new ArrayList((Collection) value));
 				}
 			}
 		}
-		uncommitted.heldBy = heldBy;
-		uncommitted.hold.addAll(hold);
-		
-		uncommitted.copyChangeListeners(this);
+		local.heldBy = heldBy;
+		local.hold.addAll(hold);
+		local.holdIds.addAll(holdIds);
+		local.copyChangeListeners(this);
+		uncommitted = local;
 	}
 
 	public void rollback() {
@@ -200,13 +186,12 @@ public class GameObject extends ModifyableObject implements Serializable {
 	/**
 	 * Add all GameObjects in the collection
 	 */
-	public void addAll(Collection c) {
+	public void addAll(Collection<GameObject> c) {
 		if (needHoldResolved) {
 			throw new IllegalArgumentException("Cannot add object:  needHoldResolved is true");
 		}
-		ArrayList list = new ArrayList(c);
-		for (Iterator i = list.iterator(); i.hasNext();) {
-			GameObject obj = (GameObject) i.next();
+		ArrayList<GameObject> list = new ArrayList<GameObject>(c);
+		for (GameObject obj : list) {
 			add(obj);
 		}
 	}
@@ -220,11 +205,9 @@ public class GameObject extends ModifyableObject implements Serializable {
 			throw new IllegalStateException("Cannot buildChanges with uncommitted changes");
 		}
 		ArrayList<GameObjectChange> changes = new ArrayList<GameObjectChange>();
-		for (Iterator i = getAttributeBlockNames().iterator(); i.hasNext();) {
-			String blockName = (String) i.next();
-			OrderedHashtable block = getAttributeBlock(blockName);
-			for (Iterator k = block.keySet().iterator(); k.hasNext();) {
-				String attributeName = (String) k.next();
+		for (String blockName : getAttributeBlockNames()) {
+			OrderedHashtable<String, Object> block = getAttributeBlock(blockName);
+			for (String attributeName : block.keySet()) {
 				Object value = block.get(attributeName);
 				if (value instanceof String) {
 					GameAttributeChange change = new GameAttributeChange(this);
@@ -239,20 +222,19 @@ public class GameObject extends ModifyableObject implements Serializable {
 			}
 		}
 
-		for (Iterator i = hold.iterator(); i.hasNext();) {
-			GameObject obj = (GameObject) i.next();
+		for (GameObject obj : hold) {
 			GameHoldAddChange change = new GameHoldAddChange(this);
 			change.setHoldId(obj.getId());
 			changes.add(change);
 		}
-
+		
 		return changes;
 	}
 
 	/**
 	 * @return			A list of GameObjectChange objects required to make this game object look exactly like the other
 	 */
-	public ArrayList buildChanges(GameObject other) {
+	public ArrayList<GameObjectChange> buildChanges(GameObject other) {
 		if (uncommitted != null || other.uncommitted != null) {
 			throw new IllegalStateException("Cannot buildChanges with uncommitted changes");
 		}
@@ -260,15 +242,13 @@ public class GameObject extends ModifyableObject implements Serializable {
 		 * Assumptions:
 		 * 		1)  Each game object with the same id in each data object has the same blockNames
 		 */
-		ArrayList changes = new ArrayList();
-		for (Iterator i = getAttributeBlockNames().iterator(); i.hasNext();) {
-			String blockName = (String) i.next();
-			OrderedHashtable block = getAttributeBlock(blockName);
-			OrderedHashtable otherBlock = other.getAttributeBlock(blockName);
+		ArrayList<GameObjectChange> changes = new ArrayList<GameObjectChange>();
+		for (String blockName : getAttributeBlockNames()) {
+			OrderedHashtable<String, Object> block = getAttributeBlock(blockName);
+			OrderedHashtable<String, Object> otherBlock = other.getAttributeBlock(blockName);
 			if (otherBlock != null) {
 				// check for changed and deleted attributes
-				for (Iterator k = block.keySet().iterator(); k.hasNext();) {
-					String attributeName = (String) k.next();
+				for (String attributeName : block.keySet()) {
 					Object value = block.get(attributeName);
 					Object otherValue = otherBlock.get(attributeName);
 					if (otherValue != null) {
@@ -333,8 +313,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 		}
 
 		// Check for new blocks
-		for (Iterator i = other.getAttributeBlockNames().iterator(); i.hasNext();) {
-			String blockName = (String) i.next();
+		for (String blockName : other.getAttributeBlockNames()) {
 			if (!hasAttributeBlock(blockName)) {
 				OrderedHashtable otherBlock = other.getAttributeBlock(blockName);
 				for (Iterator k = otherBlock.keySet().iterator(); k.hasNext();) {
@@ -355,8 +334,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 		}
 
 		// Search for hold additions
-		for (Iterator i = other.hold.iterator(); i.hasNext();) {
-			GameObject go = (GameObject) i.next();
+		for (GameObject go : other.hold) {
 			if (!hold.contains(go)) {
 				GameHoldAddChange action = new GameHoldAddChange(other);
 				action.setHoldId(go.getId());
@@ -365,8 +343,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 		}
 
 		// Search for hold removals
-		for (Iterator i = hold.iterator(); i.hasNext();) {
-			GameObject go = (GameObject) i.next();
+		for (GameObject go : hold) {
 			if (!other.hold.contains(go)) {
 				GameHoldRemoveChange action = new GameHoldRemoveChange(other);
 				action.setHoldId(go.getId());
@@ -384,7 +361,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 		if (needHoldResolved) {
 			throw new IllegalArgumentException("Cannot remove object:  needHoldResolved is true");
 		}
-		GameObject[] toClear = (GameObject[]) hold.toArray(new GameObject[hold.size()]);
+		GameObject[] toClear = hold.toArray(new GameObject[hold.size()]);
 		for (int i = 0; i < toClear.length; i++) {
 			remove(toClear[i]);
 		}
@@ -401,9 +378,8 @@ public class GameObject extends ModifyableObject implements Serializable {
 		reset();
 		setName(new String(obj.getName()));
 		// Need to do a deep copy here!
-		for (Iterator i = obj.getAttributeBlocks().orderedKeys().iterator(); i.hasNext();) {
-			String blockName = (String) i.next();
-			OrderedHashtable block = (OrderedHashtable) obj.getAttributeBlocks().get(blockName);
+		for (String blockName : obj.getAttributeBlocks().orderedKeys()) {
+			OrderedHashtable block = obj.getAttributeBlocks().get(blockName);
 			for (Iterator v = block.orderedKeys().iterator(); v.hasNext();) {
 				String key = (String) v.next();
 				Object val = block.get(key);
@@ -423,20 +399,19 @@ public class GameObject extends ModifyableObject implements Serializable {
 	public void copyFrom(GameObject obj) {
 		copyAttributesFrom(obj);
 		needHoldResolved = true;
-		for (Iterator i = obj.getHold().iterator(); i.hasNext();) {
-			GameObject held = (GameObject) i.next();
-			hold.add(new Long(held.getId()));
+		for (GameObject held : obj.getHold()) {
+			holdIds.add(Long.valueOf(held.getId()));
 		}
 	}
 
 	/**
 	 * Create a new attribute block (ie., side_1, side_2, this)
 	 */
-	private OrderedHashtable createAttributeBlock(String blockName) {
+	private OrderedHashtable<String, Object> createAttributeBlock(String blockName) {
 		if (!hasAttributeBlock(blockName)) {
-			attributeBlocks.put(blockName, new OrderedHashtable());
+			attributeBlocks.put(blockName, new OrderedHashtable<String, Object>());
 		}
-		return (OrderedHashtable) attributeBlocks.get(blockName);
+		return attributeBlocks.get(blockName);
 	}
 
 	/**
@@ -462,14 +437,12 @@ public class GameObject extends ModifyableObject implements Serializable {
 		return _allAttributesMatch(go) && go._allAttributesMatch(this);
 	}
 	private boolean _allAttributesMatch(GameObject go) {
-		for (Iterator i=getAttributeBlockNames().iterator();i.hasNext();) {
-			String attributeBlock = (String)i.next();
+		for (String attributeBlock : getAttributeBlockNames()) {
 			if (!go.hasAttributeBlock(attributeBlock)) {
 				return false;
 			}
-			OrderedHashtable block = getAttributeBlock(attributeBlock);
-			for (Iterator n=block.keySet().iterator();n.hasNext();) {
-				String key = (String)n.next();
+			OrderedHashtable<String, Object> block = getAttributeBlock(attributeBlock);
+			for (String key : block.keySet()) {
 				String val = (String)block.get(key);
 				if (!go.hasAttribute(attributeBlock,key)) {
 					return false;
@@ -484,7 +457,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 
 	public int getAttributeInt(String blockName, String key) {
 		// don't catch the exception here: I want it!
-		return Integer.valueOf(getAttribute(blockName, key)).intValue();
+		return Integer.parseInt(getAttribute(blockName, key));
 	}
 
 	/**
@@ -495,7 +468,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 			return uncommitted.getAttribute(blockName, key);
 		}
 		if (attributeBlocks.containsKey(blockName)) {
-			OrderedHashtable attributeBlock = (OrderedHashtable) attributeBlocks.get(blockName);
+			OrderedHashtable attributeBlock = attributeBlocks.get(blockName);
 			return (String) attributeBlock.get(key.toLowerCase());
 		}
 		return null;
@@ -506,13 +479,13 @@ public class GameObject extends ModifyableObject implements Serializable {
 			return uncommitted.getObject(blockName, key);
 		}
 		if (attributeBlocks.containsKey(blockName)) {
-			OrderedHashtable attributeBlock = (OrderedHashtable) attributeBlocks.get(blockName);
+			OrderedHashtable attributeBlock = attributeBlocks.get(blockName);
 			return attributeBlock.get(key.toLowerCase());
 		}
 		return null;
 	}
 
-	public OrderedHashtable getAttributeBlock(String blockName) {
+	public OrderedHashtable<String, Object> getAttributeBlock(String blockName) {
 		if (uncommitted != null) {
 			return uncommitted.getAttributeBlock(blockName);
 		}
@@ -526,14 +499,14 @@ public class GameObject extends ModifyableObject implements Serializable {
 		return attributeBlocks.size();
 	}
 
-	public Collection getAttributeBlockNames() {
+	public Collection<String> getAttributeBlockNames() {
 		if (uncommitted != null) {
 			return uncommitted.getAttributeBlockNames();
 		}
 		return attributeBlocks.keySet();
 	}
 
-	public OrderedHashtable getAttributeBlocks() {
+	public OrderedHashtable<String, OrderedHashtable> getAttributeBlocks() {
 		if (uncommitted != null) {
 			return uncommitted.getAttributeBlocks();
 		}
@@ -545,7 +518,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 			throw new IllegalStateException("Cannot generate XML for uncommitted object");
 		}
 		Element element = null;
-		OrderedHashtable attributeBlock = (OrderedHashtable) attributeBlocks.get(blockName);
+		OrderedHashtable attributeBlock = attributeBlocks.get(blockName);
 		if (attributeBlock != null) {
 			element = new Element("AttributeBlock");
 			element.setAttribute(new Attribute("blockName", blockName));
@@ -556,13 +529,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 
 				if (val instanceof String) { // attribute
 					Element attributeElement = new Element("attribute");
-					//try {
-						attributeElement.setAttribute(key, val.toString());
-					//}
-					//catch(IllegalNameException ex) {
-					//	System.out.println(fineDetail());
-					//	throw ex;
-					//}
+					attributeElement.setAttribute(key, val.toString());
 					element.addContent(attributeElement);
 				}
 				else if (val instanceof Collection) { // attributeList
@@ -583,19 +550,17 @@ public class GameObject extends ModifyableObject implements Serializable {
 		return element;
 	}
 
-	public ArrayList getAttributeList(String blockName, String key) {
+	public ArrayList<String> getAttributeList(String blockName, String key) {
 		if (uncommitted != null) {
 			return uncommitted.getAttributeList(blockName, key);
 		}
 		if (attributeBlocks.containsKey(blockName)) {
-			OrderedHashtable attributeBlock = (OrderedHashtable) attributeBlocks.get(blockName);
+			OrderedHashtable attributeBlock = attributeBlocks.get(blockName);
 			Object obj = attributeBlock.get(key.toLowerCase());
 			if (obj==null || obj instanceof ArrayList) {
 				return (ArrayList)obj;
 			}
-			else{
-				throw new IllegalArgumentException("Found string instead of list for '"+blockName+"' and '"+key+"' in GameObject "+getName());
-			}
+			throw new IllegalArgumentException("Found string instead of list for '"+blockName+"' and '"+key+"' in GameObject "+getName());
 		}
 		return null;
 	}
@@ -621,28 +586,11 @@ public class GameObject extends ModifyableObject implements Serializable {
 		return heldBy;
 	}
 
-	public ArrayList getHold() {
+	public ArrayList<GameObject> getHold() {
 		if (uncommitted != null) {
 			return uncommitted.hold;
 		}
 		return hold;
-	}
-	
-	public ArrayList<GameObject> getHoldAsGameObjects(){
-		ArrayList<GameObject> result = new ArrayList<GameObject>();
-		ArrayList toCopy = new ArrayList();
-		
-		if (uncommitted != null) {
-			toCopy = uncommitted.hold;
-		} else {
-			toCopy = hold;
-		}
-
-		for(Iterator i=toCopy.iterator();i.hasNext();){
-			result.add((GameObject)i.next());
-		}
-		
-		return result;
 	}
 
 	public int getHoldCount() {
@@ -659,7 +607,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 	public int getInt(String blockName, String key) throws NumberFormatException {
 		String val = getAttribute(blockName, key);
 		if (val != null && val.trim().length()>0) {
-			return Integer.valueOf(val).intValue();
+			return Integer.parseInt(val);
 		}
 		return 0;
 	}
@@ -674,6 +622,17 @@ public class GameObject extends ModifyableObject implements Serializable {
 		return null;
 	}
 
+	public String getNameWithNumber() {
+		StringBuffer text = new StringBuffer(name);
+		if (showVul && this.hasThisAttribute("vulnerability")) {
+			text.append(" (" + this.getThisAttribute("vulnerability") + ")");
+		}
+		if (showNumbers && this.hasThisAttribute("number")) {
+			text.append(" (" + this.getThisAttribute("number") + ")");
+		}
+		return text.toString();
+	}
+	
 	public String getName() {
 		return name;
 	}
@@ -690,7 +649,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 		return getAttributeBlock(THIS);
 	}
 
-	public ArrayList getThisAttributeList(String key) {
+	public ArrayList<String> getThisAttributeList(String key) {
 		return getAttributeList(THIS, key);
 	}
 
@@ -703,12 +662,10 @@ public class GameObject extends ModifyableObject implements Serializable {
 		sb.append(name+"["+id+"]\n");
 		sb.append("\theldBy="+heldBy+"\n");
 		sb.append("\tholds="+hold+"\n");
-		for (Iterator i=getAttributeBlockNames().iterator();i.hasNext();) {
-			String block = (String)i.next();
+		for (String block : getAttributeBlockNames()) {
 			sb.append("\t"+block+"\n");
-			Hashtable hash = getAttributeBlock(block);
-			for (Iterator n=hash.keySet().iterator();n.hasNext();) {
-				String key = (String)n.next();
+			Hashtable<String, Object> hash = getAttributeBlock(block);
+			for (String key : hash.keySet()) {
 				Object val = hash.get(key);
 				sb.append("\t\t"+key+"="+val+"\n");
 			}
@@ -726,10 +683,6 @@ public class GameObject extends ModifyableObject implements Serializable {
 	}
 	public Element getXML() {
 		if (uncommitted != null) {
-//			System.out.println("------CURRENT----------\n"+fineDetail());
-//			System.out.println("-----UNCOMMITTED-------\n"+uncommitted.fineDetail());
-//			System.out.println("----CHANGES-----\n"+parent.getObjectChanges());
-//			throw new IllegalStateException("Cannot generate XML for uncommitted object: "+toString());
 			return uncommitted.getXML();
 		}
 		Element element = new Element("GameObject");
@@ -741,8 +694,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 			element.addContent(getAttributeBlockXML(blockName));
 		}
 		// Gather contains info
-		for (Iterator i = hold.iterator(); i.hasNext();) {
-			GameObject go = (GameObject) i.next();
+		for (GameObject go : hold) {
 			element.addContent(go.getContainsXML());
 		}
 
@@ -780,47 +732,62 @@ public class GameObject extends ModifyableObject implements Serializable {
 	 * The format for a keyVal is "key=val", and a key alone is simply "key".  Will also exclude
 	 * items from the list based on negative keys like "!key=val" and "!key".
 	 */
-	public boolean hasAllKeyVals(Collection keyVals) {
+	public boolean hasAllKeyVals(Collection<String> keyVals) {
 		if (uncommitted != null) {
 			return uncommitted.hasAllKeyVals(keyVals);
 		}
 		// First, cleanup the keys and keyVals
-		ArrayList fixedKeyVals = new ArrayList();
-		ArrayList fixedNegativeKeyVals = new ArrayList();
-		for (Iterator i = keyVals.iterator(); i.hasNext();) {
-			String string = (String) i.next();
-			StringTokenizer tokens = new StringTokenizer(string, "=");
-			if (tokens.countTokens() == 1) {
-				String key = tokens.nextToken().trim().toLowerCase();
-				if (key.startsWith("!")) {
-					fixedNegativeKeyVals.add(key);
+		ArrayList<String> fixedKeyVals = new ArrayList<String>();
+		ArrayList<String> fixedNegativeKeyVals = new ArrayList<String>();
+		for (String string : keyVals) {
+			if (string.contains("|")) {
+				StringTokenizer tokens = new StringTokenizer(string, "|");
+				boolean keyFound = false;
+				while (tokens.hasMoreTokens()) {
+					String singleKey = tokens.nextToken().trim().toLowerCase();
+					if (hasAllKeyVals(singleKey)) {
+						keyFound = true;
+						break;
+					}
 				}
-				else {
-					fixedKeyVals.add(key);
+				if (!keyFound) {
+					return false;
 				}
 			}
-			else if (tokens.countTokens() == 2) {
-				String key = tokens.nextToken().trim().toLowerCase();
-				String val = tokens.nextToken().trim();
-				if (key.startsWith("!")) {
-					fixedNegativeKeyVals.add(key + "=" + val);
+			else {
+				StringTokenizer tokens = new StringTokenizer(string, "=");
+				if (tokens.countTokens() == 1) {
+					String key = tokens.nextToken().trim().toLowerCase();
+					if (key.startsWith("!")) {
+						fixedNegativeKeyVals.add(key);
+					}
+					else {
+						fixedKeyVals.add(key);
+					}
 				}
-				else {
-					fixedKeyVals.add(key + "=" + val);
+				else if (tokens.countTokens() == 2) {
+					String key = tokens.nextToken().trim().toLowerCase();
+					String val = tokens.nextToken().trim();
+					if (key.startsWith("!")) {
+						fixedNegativeKeyVals.add(key + "=" + val);
+					}
+					else {
+						fixedKeyVals.add(key + "=" + val);
+					}
 				}
 			}
 		}
 
 		// Now collect prepped keyVals from the attributeBlocks
-		HashSet attributes = new HashSet();
+		HashSet<String> attributes = new HashSet<String>();
 		attributes.add("name=" + name); // name is always one of the choices
-		ArrayList absOrderedKeys = attributeBlocks.orderedKeys();
+		ArrayList<String> absOrderedKeys = attributeBlocks.orderedKeys();
 		for (int i=0;i<absOrderedKeys.size();i++) {
-			String blockName = (String)absOrderedKeys.get(i);
-			OrderedHashtable attributeBlock = (OrderedHashtable) attributeBlocks.get(blockName);
-			ArrayList abOrderedKeys = attributeBlock.orderedKeys();
+			String blockName = absOrderedKeys.get(i);
+			OrderedHashtable<String, OrderedHashtable> attributeBlock = attributeBlocks.get(blockName);
+			ArrayList<String> abOrderedKeys = attributeBlock.orderedKeys();
 			for (int k=0;k<abOrderedKeys.size();k++) {
-				String key = (String) abOrderedKeys.get(k);
+				String key = abOrderedKeys.get(k);
 				Object val = attributeBlock.get(key);
 
 				if (val instanceof String) {
@@ -845,8 +812,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 		}
 		boolean hasAllPos = attributes.containsAll(fixedKeyVals);
 		boolean hasNoNeg = true;
-		for (Iterator i = fixedNegativeKeyVals.iterator(); i.hasNext();) {
-			String keyVal = (String) i.next();
+		for (String keyVal : fixedNegativeKeyVals) {
 			if (attributes.contains(keyVal.substring(1))) {
 				hasNoNeg = false;
 				break;
@@ -885,9 +851,9 @@ public class GameObject extends ModifyableObject implements Serializable {
 			return uncommitted.hasKey(key);
 		}
 		key = key.toLowerCase();
-		for (Enumeration e = attributeBlocks.keys(); e.hasMoreElements();) {
-			String blockName = (String) e.nextElement();
-			OrderedHashtable attributeBlock = (OrderedHashtable) attributeBlocks.get(blockName);
+		for (Enumeration<String> e = attributeBlocks.keys(); e.hasMoreElements();) {
+			String blockName = e.nextElement();
+			OrderedHashtable attributeBlock = attributeBlocks.get(blockName);
 			if (attributeBlock.containsKey(key)) {
 				return true;
 			}
@@ -903,16 +869,12 @@ public class GameObject extends ModifyableObject implements Serializable {
 			return uncommitted.hasKey(blockName, key);
 		}
 		key = key.toLowerCase();
-		OrderedHashtable attributeBlock = (OrderedHashtable) attributeBlocks.get(blockName);
+		OrderedHashtable attributeBlock = attributeBlocks.get(blockName);
 		return (attributeBlock != null && attributeBlock.containsKey(key));
 	}
 
 	public boolean hasThisAttribute(String key) {
 		return hasAttribute(THIS, key);
-	}
-	
-	private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-		in.defaultReadObject();
 	}
 
 	/**
@@ -1005,7 +967,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 		stopUncommitted();
 		if (attributeBlocks.containsKey(from)) {
 			if (!attributeBlocks.containsKey(to)) {
-				OrderedHashtable block = (OrderedHashtable)attributeBlocks.remove(from);
+				OrderedHashtable block = attributeBlocks.remove(from);
 				attributeBlocks.put(to,block);
 				version++;
 			}
@@ -1034,12 +996,11 @@ public class GameObject extends ModifyableObject implements Serializable {
 	public void _copyAttributeBlockFrom(GameObject source,String blockName) {
 		stopUncommitted();
 		if (source.hasAttributeBlock(blockName)) {
-			OrderedHashtable block = source.getAttributeBlock(blockName);
-			for (Iterator i=block.keySet().iterator();i.hasNext();) {
-				String key = (String)i.next();
+			OrderedHashtable<String, Object> block = source.getAttributeBlock(blockName);
+			for (String key : block.keySet()) {
 				Object val = block.get(key);
 				if (val instanceof ArrayList) {
-					ArrayList copy = new ArrayList((ArrayList)val);
+					ArrayList<String> copy = new ArrayList<String>((ArrayList<String>)val);
 					_setAttributeList(blockName,key,copy);
 				}
 				else {
@@ -1054,12 +1015,12 @@ public class GameObject extends ModifyableObject implements Serializable {
 	
 	public void copyAttributeBlock(String fromBlockName,String toBlockName) {
 		// This doesn't use committed block or GameObjectChange - it just uses the base setAttribute and setAttributeList methods, so it will still get tracked
-		OrderedHashtable block = getAttributeBlock(fromBlockName);
+		OrderedHashtable<String, Object> block = getAttributeBlock(fromBlockName);
 		for (Object ok:block.keySet()) {
 			String key = (String)ok;
 			Object val = block.get(key);
 			if (val instanceof ArrayList) {
-				ArrayList copy = new ArrayList((ArrayList)val);
+				ArrayList<String> copy = new ArrayList<String>((ArrayList<String>)val);
 				setAttributeList(toBlockName,key,copy);
 			}
 			else {
@@ -1110,7 +1071,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 	public boolean _removeAttribute(String blockName, String key) {
 		stopUncommitted();
 		if (attributeBlocks.containsKey(blockName)) {
-			OrderedHashtable attributeBlock = (OrderedHashtable) attributeBlocks.get(blockName);
+			OrderedHashtable attributeBlock = attributeBlocks.get(blockName);
 			boolean ret = (attributeBlock.remove(key.toLowerCase()) != null);
 			if (ret) {
 				setModified(true);
@@ -1128,46 +1089,23 @@ public class GameObject extends ModifyableObject implements Serializable {
 	public void reset() {
 		attributeBlocks.clear();
 		hold.clear();
+		holdIds.clear();
 		needHoldResolved = false;
 	}
 
-//	/**
-//	 * Provide this method with a collection of all objects to resolve the hold
-//	 */
-//	public void resolveHold(Collection allObjects) {
-//		if (needHoldResolved) {
-//			needHoldResolved = false;
-//			// Fix hold
-//			ArrayList numbers = hold;
-//			hold = new ArrayList();
-//			for (Iterator n = numbers.iterator(); n.hasNext();) {
-//				Long number = (Long) n.next();
-//				for (Iterator i = allObjects.iterator(); i.hasNext();) {
-//					GameObject obj = (GameObject) i.next();
-//					if (obj.equalsId(number)) {
-//						add(obj);
-//					}
-//				}
-//			}
-//		}
-//	}
-	/**
-	 * This should be faster than the way I was doing it (iterate through a collection)
-	 */
-	public void resolveHold(HashMap objectHash) {
+	public void resolveHold(HashMap<Long, GameObject> objectHash) {
 		if (needHoldResolved) {
 			needHoldResolved = false;
 			// Fix hold
-			ArrayList numbers = hold;
-			hold = new ArrayList();
-			for (Iterator n = numbers.iterator(); n.hasNext();) {
-				Long number = (Long) n.next();
-				GameObject obj = (GameObject)objectHash.get(number);
-if (obj==null) {
-	System.out.println("Error during resolveHold:  Cannot find: "+number);
-}
+			hold = new ArrayList<GameObject>();
+			for (Long number : holdIds) {
+				GameObject obj = objectHash.get(number);
+				if (obj==null) {
+					System.out.println("Error during resolveHold:  Cannot find: "+number);
+				}
 				add(obj);
 			}
+			holdIds.clear();
 		}
 	}
 
@@ -1262,10 +1200,10 @@ if (obj==null) {
 	/**
 	 * Add a new attribute list
 	 */
-	public void setAttributeList(String blockName, String key, ArrayList val) {
+	public void setAttributeList(String blockName, String key, ArrayList<String> val) {
 		if (parent != null && parent.isTracksChanges()) {
 			GameAttributeListChange change = new GameAttributeListChange(this);
-			change.setAttributeList(blockName, key, (ArrayList) getAttributeList(blockName, key), val);
+			change.setAttributeList(blockName, key, getAttributeList(blockName, key), val);
 			parent.addChange(change);
 			if (uncommitted == null) {
 				startUncommitted();
@@ -1310,7 +1248,7 @@ if (obj==null) {
 
 	public void _removeAttributeListItem(String blockName, String key, String item) {
 		stopUncommitted();
-		ArrayList c = getAttributeList(blockName, key);
+		ArrayList<String> c = getAttributeList(blockName, key);
 		if (c == null) {
 			return;
 		}
@@ -1344,9 +1282,9 @@ if (obj==null) {
 
 	public void _addAttributeListItem(String blockName, String key, String item) {
 		stopUncommitted();
-		ArrayList c = getAttributeList(blockName, key);
+		ArrayList<String> c = getAttributeList(blockName, key);
 		if (c == null) {
-			c = new ArrayList();
+			c = new ArrayList<String>();
 			_setAttributeList(blockName, key, c);
 		}
 		if (item==null) {
@@ -1427,20 +1365,20 @@ if (obj==null) {
 		setAttributeBoolean(THIS, key, val);
 	}
 
-	public void setThisAttributeList(String key, ArrayList val) {
+	public void setThisAttributeList(String key, ArrayList<String> val) {
 		setAttributeList(THIS, key, val);
 	}
 
 	public void setXML(Element element) {
-		String sid = (String) element.getAttribute("id").getValue();
+		String sid = element.getAttribute("id").getValue();
 		try {
-			Integer n = Integer.valueOf(sid);
-			id = n.intValue();
+			int n = Integer.parseInt(sid);
+			id = n;
 			reset();
 			revertNameToDefault();
 			Attribute nameAtt = element.getAttribute("name");
 			if (nameAtt != null) {
-				setName((String) nameAtt.getValue());
+				setName(nameAtt.getValue());
 			}
 
 			// Retrieve attribute block info
@@ -1455,8 +1393,8 @@ if (obj==null) {
 			// for now, add ids to hold and set the flag to resolve
 			for (Iterator i = contains.iterator(); i.hasNext();) {
 				Element contain = (Element) i.next();
-				String csid = (String) contain.getAttribute("id").getValue();
-				hold.add(Long.valueOf(csid));
+				String csid = contain.getAttribute("id").getValue();
+				holdIds.add(Long.valueOf(csid));
 			}
 			needHoldResolved = true;
 			setModified(true);
@@ -1535,14 +1473,13 @@ if (obj==null) {
 			StringTokenizer tokens = new StringTokenizer(keyVal, "=");
 			String key = tokens.nextToken().trim().toLowerCase();
 			if (!key.startsWith("!")) {
-//System.out.println("stripping "+blockName+","+key+" from "+name);
 				removeAttribute(blockName,key);
 			}
 		}
 	}
 
 	// Serializable interface
-	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+	private static void writeObject(java.io.ObjectOutputStream out) throws IOException {
 		out.defaultWriteObject();
 	}
 	
@@ -1593,8 +1530,7 @@ if (obj==null) {
 			ArrayList<GameObject> nextLayer = new ArrayList<GameObject>();
 			for(GameObject go:layer) {
 				allQuestObjects.add(go);
-				for(Iterator i=go.getHold().iterator();i.hasNext();) {
-					GameObject held = (GameObject)i.next();
+				for(GameObject held : go.getHold()) {
 					if (!allQuestObjects.contains(held)) {
 						nextLayer.add(held);
 					}
@@ -1611,24 +1547,3 @@ if (obj==null) {
 		setName(getName()+" - Erased");
 	}
 }
-
-/*
- <GameObject id="628" name="Berserker Move H5*">
- <AttributeBlock blockName="this">
- <attribute character_chit="berserker" />
- <attribute action="move" />
- <attribute strength="H" />
- <attribute speed="5" />
- <attribute effort="1" />
- <attributeList keyName="actions">
- <attributeVal N1="move 123" />
- <attributeVal N2="hide" />
- <attributeVal N3="hide" />
- <attributeVal N4="hide" />
- </attributeList>
- <attribute character_level="1" />
- <attribute original_game="" />
- </AttributeBlock>
- </GameObject>
-
- */

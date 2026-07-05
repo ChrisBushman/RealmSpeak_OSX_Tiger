@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
@@ -90,7 +73,7 @@ public class ActionRowChooser extends AggressiveDialog {
 		getContentPane().add(split,"Center");
 		
 		JPanel controlPanel = new JPanel(new BorderLayout());
-		JLabel label = new JLabel("Click rows to move actions between tables",JLabel.CENTER);
+		JLabel label = new JLabel("Click rows to move actions between tables",SwingConstants.CENTER);
 		controlPanel.add(label,"Center");
 		doneButton = new JButton("Done");
 		doneButton.addActionListener(new ActionListener() {
@@ -101,7 +84,7 @@ public class ActionRowChooser extends AggressiveDialog {
 		controlPanel.add(doneButton,"East");
 		getContentPane().add(controlPanel,"South");
 		
-		tally = new JLabel("",JLabel.CENTER);
+		tally = new JLabel("",SwingConstants.CENTER);
 		tally.setFont(new Font("Dialog",Font.BOLD,18));
 		getContentPane().add(tally,"North");
 		
@@ -143,10 +126,10 @@ public class ActionRowChooser extends AggressiveDialog {
 			repaint();
 		}
 	}
-	private JPanel createTablePanel(ActionRowTableModel model,String title,Color titleColor) {
+	private static JPanel createTablePanel(ActionRowTableModel model,String title,Color titleColor) {
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.add(new JScrollPane(model.createTable()),"Center");
-		JLabel label = new JLabel(title,JLabel.CENTER);
+		JLabel label = new JLabel(title,SwingConstants.CENTER);
 		label.setFont(new Font("Dialog",Font.BOLD,18));
 		label.setForeground(titleColor);
 		panel.add(label,"North");

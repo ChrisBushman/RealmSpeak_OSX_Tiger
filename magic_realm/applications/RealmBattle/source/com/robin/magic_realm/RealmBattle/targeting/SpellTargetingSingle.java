@@ -1,41 +1,29 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle.targeting;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Hashtable;
-import java.util.Iterator;
+
+import javax.swing.JOptionPane;
 
 import com.robin.game.objects.GameObject;
+import com.robin.magic_realm.RealmBattle.BattleGroup;
 import com.robin.magic_realm.RealmBattle.CombatFrame;
 import com.robin.magic_realm.RealmBattle.CombatSheet;
 import com.robin.magic_realm.components.RealmComponent;
+import com.robin.magic_realm.components.attribute.TileLocation;
 import com.robin.magic_realm.components.swing.RealmComponentOptionChooser;
+import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
+import com.robin.magic_realm.components.wrapper.CombatWrapper;
 import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public abstract class SpellTargetingSingle extends SpellTargeting {
 	
-	protected ArrayList identifiers = new ArrayList();
-	protected Hashtable secondaryTargets = new Hashtable(); // A hash of lists by identifier
+	protected ArrayList<String> identifiers = new ArrayList<String>();
+	protected Hashtable<String, ArrayList> secondaryTargets = new Hashtable<String, ArrayList>(); // A hash of lists by identifier
 	protected String secondaryTargetChoiceString = "";
 
 	protected SpellTargetingSingle(CombatFrame combatFrame, SpellWrapper spell) {
@@ -48,28 +36,25 @@ public abstract class SpellTargetingSingle extends SpellTargeting {
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(combatFrame,"Select a Target for "+spell.getName()+":",true);
 		if (identifiers.isEmpty()) {
 			if (gameObjects.isEmpty()) {
-				ArrayList list = new ArrayList(secondaryTargets.keySet());
+				ArrayList<String> list = new ArrayList<String>(secondaryTargets.keySet());
 				Collections.sort(list);
 				chooser.addStrings(list);
 			}
 			else {
 				// Rather than just dump them in, there should be a small icon indicating which sheet they are on
-				Hashtable hash = new Hashtable();
-				ArrayList combatSheets = combatFrame.getAllCombatSheets();
-				for (Iterator i=combatSheets.iterator();i.hasNext();) {
-					CombatSheet sheet = (CombatSheet)i.next();
+				Hashtable<RealmComponent, RealmComponent> hash = new Hashtable<RealmComponent, RealmComponent>();
+				ArrayList<CombatSheet> combatSheets = combatFrame.getAllCombatSheets();
+				for (CombatSheet sheet : combatSheets) {
 					RealmComponent aSheetOwner = sheet.getSheetOwner();
-					Collection c = sheet.getAllParticipantsOnSheet();
-					for (Iterator n=c.iterator();n.hasNext();) {
-						RealmComponent sp = (RealmComponent)n.next();
+					Collection<RealmComponent> c = sheet.getAllParticipantsOnSheet();
+					for (RealmComponent sp : c) {
 						hash.put(sp,aSheetOwner);
 					}
 				}
 				
-				for (Iterator i=gameObjects.iterator();i.hasNext();) {
-					GameObject gameObject = (GameObject)i.next();
+				for (GameObject gameObject : gameObjects) {
 					RealmComponent rc = RealmComponent.getRealmComponent(gameObject);
-					RealmComponent aSheetOwner = (RealmComponent)hash.get(rc);
+					RealmComponent aSheetOwner = hash.get(rc);
 					String option = chooser.generateOption();
 					if (aSheetOwner!=null) {
 						chooser.addRealmComponentToOption(option,aSheetOwner,RealmComponentOptionChooser.DisplayOption.MediumIcon);
@@ -83,8 +68,8 @@ public abstract class SpellTargetingSingle extends SpellTargeting {
 		}
 		else {
 			for (int i=0;i<identifiers.size();i++) {
-				String identifier = (String)identifiers.get(i);
-				GameObject pick = (GameObject)gameObjects.get(i);
+				String identifier = identifiers.get(i);
+				GameObject pick = gameObjects.get(i);
 				RealmComponent rc = RealmComponent.getRealmComponent(pick);
 				String option = identifier+i;
 				chooser.addOption(option,identifier);
@@ -98,11 +83,31 @@ public abstract class SpellTargetingSingle extends SpellTargeting {
 		String selText = chooser.getSelectedText();
 		if (selText!=null) {
 			RealmComponent theTarget = chooser.getLastSelectedComponent();
+			
+			if (hostPrefs.hasPref(Constants.SR_ADV_PROTECTED_LEADERS_TARGETING)) {
+				if (theTarget.isNativeLeader() && !theTarget.isHiredOrControlled() && !theTarget.getGameObject().hasThisAttribute(Constants.DEAD)) {
+					CombatWrapper combatWrapperTarget = new CombatWrapper(theTarget.getGameObject());
+					if (combatWrapperTarget.getKilledBy()==null) {
+						String groupName = theTarget.getGameObject().getThisAttribute(RealmComponent.NATIVE).toLowerCase();
+						BattleGroup group = combatFrame.getBattleModel().getDenizenBattleGroup();
+						for (RealmComponent member : group.getBattleParticipants()) {
+							if (!member.isNativeLeader() && member.isNative() && member.getGameObject().getThisAttribute(RealmComponent.NATIVE).toLowerCase().matches(groupName) && !member.isHiredOrControlled()) {
+								CombatWrapper combatWrapper = new CombatWrapper(member.getGameObject());
+								if (combatWrapper.getAttackerCount()==0) {
+									JOptionPane.showMessageDialog(combatFrame,"Cannot attack Native Leader unless all other unhired natives of the same group are also targeted.","Protected Leader",JOptionPane.INFORMATION_MESSAGE);
+									return false;
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			updateSecondaryTargetsAfterSelection(activeCharacter.getCurrentLocation(), theTarget);
 			if (theTarget==null) {
 				CombatFrame.broadcastMessage(activeCharacter.getGameObject().getName(),"Targets the "+selText+" with "+spell.getGameObject().getName());
-				ArrayList list = (ArrayList)secondaryTargets.get(selText);
-				for (Iterator i=list.iterator();i.hasNext();) {
-					RealmComponent rc = (RealmComponent)i.next();
+				ArrayList<RealmComponent> list = secondaryTargets.get(selText);
+				for (RealmComponent rc : list) {
 					spell.addTarget(hostPrefs,rc.getGameObject());
 					combatFrame.makeWatchfulNatives(rc,true);
 				}
@@ -110,24 +115,31 @@ public abstract class SpellTargetingSingle extends SpellTargeting {
 			else {
 				spell.addTarget(hostPrefs,theTarget.getGameObject());
 				combatFrame.makeWatchfulNatives(theTarget,true);
-				CombatFrame.broadcastMessage(activeCharacter.getGameObject().getName(),"Targets the "+theTarget.getGameObject().getName()+" ("+selText+") with "+spell.getGameObject().getName());
+				String message = "Targets the "+theTarget.getGameObject().getNameWithNumber();
+				if (selText != "") {
+					message = message + " ("+selText+")";
+				}
+				message = message + " with "+spell.getGameObject().getName();
+				CombatFrame.broadcastMessage(activeCharacter.getGameObject().getName(),message);
 				if (selText.trim().length()>0) {
 					spell.setExtraIdentifier(selText);
 				}
 				if (!secondaryTargets.isEmpty()) {
 					chooser = new RealmComponentOptionChooser(combatFrame,secondaryTargetChoiceString,false);
-					Hashtable hash = new Hashtable();
-					ArrayList list = (ArrayList)secondaryTargets.get(selText);
-					for (Iterator i=list.iterator();i.hasNext();) {
-						GameObject st = (GameObject)i.next();
+					Hashtable<String, GameObject> hash = new Hashtable<String, GameObject>();
+					ArrayList<GameObject> list = secondaryTargets.get(selText);
+					if (list.isEmpty()) {
+						return true;
+					}
+					for (GameObject st : list) {
 						String name = st.getName();
-						chooser.addOption(name,name); // FIXME This assumes names only here
+						chooser.addOption(name,name);
 						hash.put(name,st);
 					}
 					chooser.setVisible(true);
 					selText = chooser.getSelectedText();
 					if (selText!=null) {
-						GameObject st = (GameObject)hash.get(selText);
+						GameObject st = hash.get(selText);
 						spell.setSecondaryTarget(st);
 					} // shouldn't ever be null with no cancel button!
 				}
@@ -136,10 +148,12 @@ public abstract class SpellTargetingSingle extends SpellTargeting {
 		}
 		return false;
 	}
-	private void updateChooserWithContent(RealmComponentOptionChooser chooser,String option,RealmComponent rc) {
-		for (Iterator h=rc.getGameObject().getHold().iterator();h.hasNext();) {
-			GameObject hgo = (GameObject)h.next();
+	private static void updateChooserWithContent(RealmComponentOptionChooser chooser,String option,RealmComponent rc) {
+		for (GameObject hgo : rc.getGameObject().getHold()) {
 			chooser.addGameObjectToOption(option,hgo);
 		}
+	}
+	public void updateSecondaryTargetsAfterSelection(TileLocation battleLocation, RealmComponent theTarget) {
+		// can be overwritten
 	}
 }

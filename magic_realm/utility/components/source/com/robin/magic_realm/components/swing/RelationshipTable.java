@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.swing;
 
 import java.awt.*;
@@ -65,7 +48,7 @@ public class RelationshipTable extends JTable {
 				String[] ret = list.get(row);
 				String relBlock = ret[0];
 				String fullName = ret[1];
-				String groupName = fullName.substring(1); // First letter is either N or V
+				String groupName = fullName.substring(1); // First letter is either N or V or G
 				
 				if (relBlock.length()>Constants.GAME_RELATIONSHIP.length()) {
 					fullName = fullName+" "+relBlock.substring(relBlock.length()-1);
@@ -75,7 +58,14 @@ public class RelationshipTable extends JTable {
 					character = character.getHiringCharacter();
 				}
 				
-				int rel = character.getRelationship(relBlock,groupName);
+				boolean rovingNative = ret.length>=3&&ret[2]!=null&&ret[2].matches(Constants.ROVING_NATIVE)?true:false;
+				boolean guild = ret.length>=4&&ret[3]!=null&&ret[3].matches(Constants.GUILD)?true:false;
+				int rel = 0;
+				if (guild) {
+					rel = character.isGuildMember(groupName.toLowerCase()) ? character.getCurrentGuildLevel()-1 : -1; // UNFRIENDLY if not a guild member.
+				} else {
+					rel = character.getRelationship(relBlock,groupName,rovingNative);
+				}
 				
 				Color lightColor = Color.white;
 				

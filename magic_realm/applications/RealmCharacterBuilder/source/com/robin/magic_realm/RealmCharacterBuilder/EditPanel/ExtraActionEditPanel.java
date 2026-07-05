@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmCharacterBuilder.EditPanel;
 
 import java.awt.GridLayout;
@@ -44,17 +27,18 @@ public class ExtraActionEditPanel extends AdvantageEditPanel {
 		addOption("REST","R");
 		addOption("ALERT","A");
 		addOption("HIRE","HR");
-		addOption("SPELL","SP");
+		addOption("ENCHANT","E");
 		addOption("PEER","P");
 		addOption("FLY","FLY");
 		addOption("REMOTE SP","RS");
 		addOption("CACHE","C");
+		addOption("not-MOVE","!M");
+		addOption("OFFROAD","O");
 		
 		// Initialize, if you can
-		ArrayList extra = getAttributeList(Constants.EXTRA_ACTIONS);
+		ArrayList<String> extra = getAttributeList(Constants.EXTRA_ACTIONS);
 		if (extra!=null) {
-			for (Iterator i=extra.iterator();i.hasNext();) {
-				String extraAction = (String)i.next();
+			for (String extraAction : extra) {
 				JRadioButton button = actionHash.get(extraAction);
 				button.setSelected(true);
 				break; // assume only ONE per list
@@ -80,7 +64,7 @@ public class ExtraActionEditPanel extends AdvantageEditPanel {
 		for (String action:actionHash.keySet()) {
 			JRadioButton button = actionHash.get(action);
 			if (button.isSelected()) {
-				ArrayList list = new ArrayList();
+				ArrayList<String> list = new ArrayList<String>();
 				list.add(action);
 				setAttributeList(Constants.EXTRA_ACTIONS,list);
 				break;

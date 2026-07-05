@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmCharacterBuilder.EditPanel;
 
 import java.awt.BorderLayout;
@@ -32,17 +15,19 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 public class DieModEditPanel extends AdvantageEditPanel {
 	
 	private static final String[][] TABLE = {
+		{"Natives","Meeting","Commerce"},
+		{"Spells","Curse","PoP:powerofthepit","Wish","Transform","Lost","Violent Storm","Magic Missile:magicmissil","Alter Object:alterobject","Alter Size:altersize","Dark Favor:darkfavor","Devils Spell:devilsspell","Free the Soul:freethesoul","Meditate","Mesmerize","Summon Demon:summondemon"},
 		{"Actions","Hide","Hire","Trade"},
 		{"Battle","Missile","Thrown","Fumble","Stumble"},
-		{"Spells","Curse","PoP:powerofthepit","Wish"},
-		{"Natives","Commerce","Meeting"},
+		
+		{"Expansion","Raise Dead:raisedead","Summon Elemental:summonelemental","Summon Animal:summonanimal","Capture","Stealing"},
+		{"Treasure within Treasure","TWT:twt", "Toadstool Circle", "Crypt of the Knight", "Enchanted Meadow", "Cicle of Stones", "Ethereal Abbey", "Fairy Grove", "Haunted Grave", "Mage Library"},
 		{"Search","Locate","Loot","Magic Sight:magicsight","Peer","Read Runes:readrunes"},
-		{"Expansion","Raise Dead:raisedead","Summon Elemental:summonelemental","Summon Animal:summonanimal","Capture"},
 	};
 	
 	private static final String[][] CONDITION = {
 		{"Clearings","Woods:>woods","Caves:>caves","Mountains:>mountain"},
-		{"Civilizations","Lost City:lost city%","Lost Castle:lost castle%","Ruins:%ruins%"},
+		{"Civilizations","Lost City:lost city%","Lost Castle:lost castle%","Lost Fortress:lost fortress%","Lost Palace:lost palace%","Ruins:%ruins%"},
 		{"Tiles","Woods:% woods","Valley:% valley","Swamp:% swamp"},
 		{"Warnings","Stink:stink %","Smoke:smoke %","Bones:bones %","Dank:dank %","Ruins:ruins %"},
 	};
@@ -106,7 +91,7 @@ public class DieModEditPanel extends AdvantageEditPanel {
 		allTablesOption.setOptions(specificTableOptions);
 		Box column = null;
 		for (int i=0;i<TABLE.length;i++) {
-			if (i==0 || i==3) {
+			if (i==0 || i==4) {
 				column = Box.createVerticalBox();
 				column.add(Box.createVerticalGlue());
 				innerTableBox.add(column);
@@ -148,9 +133,9 @@ public class DieModEditPanel extends AdvantageEditPanel {
 		add(mainPanel,"Center");
 		
 		// Initialize
-		ArrayList diemodList = getAttributeList(Constants.DIEMOD);
+		ArrayList<String> diemodList = getAttributeList(Constants.DIEMOD);
 		if (diemodList!=null && !diemodList.isEmpty()) {
-			String diemod = (String)diemodList.get(0); // only ever ONE of these
+			String diemod = diemodList.get(0); // only ever ONE of these
 			StringTokenizer tokens = new StringTokenizer(diemod,":");
 			if (tokens.countTokens()==3) {
 				String typeKey = tokens.nextToken();
@@ -262,7 +247,7 @@ public class DieModEditPanel extends AdvantageEditPanel {
 		fullKey.append(typeKey);
 		fullKey.append(tableKey.toString());
 		fullKey.append(conditionKey.toString());
-		ArrayList list = new ArrayList();
+		ArrayList<String> list = new ArrayList<String>();
 		list.add(fullKey.toString());
 		setAttributeList(Constants.DIEMOD,list);
 	}

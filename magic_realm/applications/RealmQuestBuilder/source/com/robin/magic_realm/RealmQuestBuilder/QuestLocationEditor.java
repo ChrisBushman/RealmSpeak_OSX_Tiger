@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmQuestBuilder;
 
 import java.awt.BorderLayout;
@@ -28,8 +11,10 @@ import javax.swing.text.*;
 
 import com.robin.game.objects.*;
 import com.robin.general.swing.*;
+import com.robin.magic_realm.RealmCharacterBuilder.EditPanel.CompanionEditPanel;
 import com.robin.magic_realm.components.*;
 import com.robin.magic_realm.components.quest.*;
+import com.robin.magic_realm.components.utility.Constants;
 
 public class QuestLocationEditor extends GenericEditor {
 	
@@ -43,12 +28,43 @@ public class QuestLocationEditor extends GenericEditor {
 	
 	private JTextField name;
 	private JComboBox type;
+	private JCheckBox hideNotifcation;
+	private JCheckBox locationForClonedQuests;
 	private JComboBox clearingType;
 	private JComboBox tileSideType;
 	private JRadioButton sameClearing;
 	private JRadioButton sameTile;
 	private JLabel descriptionLabel;
 	private SuggestionTextArea locationList;
+	
+	private static String [] companions = getAllCompanionNames();
+	private static String [] travelers = null;
+	
+	private static String[] getAllCompanionNames() {
+		ArrayList<String> companions = new ArrayList<String>();
+		String[] people = CompanionEditPanel.COMPANIONS[3];
+			boolean first = true;
+			for (String name : people) {
+				// skip first every time
+				if (first) {
+					first = false;
+					continue;
+				}
+				String[] ret = name.split(":");
+				companions.add(ret[0]);
+			}
+		return companions.toArray(new String[0]);
+	}
+	
+	private static String[] getAllTravelerNames(GameData realmSpeakData) {
+		ArrayList<String> travelers = new ArrayList<String>();
+		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
+		ArrayList<GameObject> templates = pool.find(Constants.TRAVELER_TEMPLATE);
+		for (GameObject t : templates) {
+			travelers.add(t.getName());
+		}
+		return travelers.toArray(new String[0]);
+	}
 	
 	public QuestLocationEditor(JFrame parent,GameData realmSpeakData,Quest quest,QuestLocation location) {
 		super(parent,realmSpeakData);
@@ -65,6 +81,11 @@ public class QuestLocationEditor extends GenericEditor {
 	
 	private static void initSuggestionWords(GameData realmSpeakData) {
 		suggestionWords = new ArrayList<String>();
+		travelers = getAllTravelerNames(realmSpeakData);
+		Collections.addAll(suggestionWords, QuestConstants.wolfs);
+		Collections.addAll(suggestionWords, QuestConstants.transforms);
+		Collections.addAll(suggestionWords, companions);
+		Collections.addAll(suggestionWords, travelers);
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
 		String query = "!part,!summon,!spell,!tile,!character_chit,!virtual_dwelling,!season,!test,!character";
 		for(GameObject go:pool.find(query)) {
@@ -73,11 +94,17 @@ public class QuestLocationEditor extends GenericEditor {
 		}
 		for(GameObject go:pool.find("tile")) {
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
-			suggestionWords.add(tile.getTileCode());
-			suggestionWords.add(go.getName());
+			if (!suggestionWords.contains(tile.getTileCode())) {
+				suggestionWords.add(tile.getTileCode());
+			}
+			if (!suggestionWords.contains(go.getName())) {
+				suggestionWords.add(go.getName());
+			}
 			for(ClearingDetail clearing:tile.getClearings()) {
 				String name = go.getName()+" "+clearing.getNum();
-				suggestionWords.add(name);
+				if (!suggestionWords.contains(name)) {
+					suggestionWords.add(name);
+				}
 			}
 		}
 		Collections.sort(suggestionWords);
@@ -86,17 +113,19 @@ public class QuestLocationEditor extends GenericEditor {
 	private void readLocation() {
 		name.setText(location.getName());
 		type.setSelectedItem(location.getLocationType());
+		hideNotifcation.setSelected(location.hideNotification());
+		locationForClonedQuests.setSelected(location.locationForClonedQuests());
 		clearingType.setSelectedItem(location.getLocationClearingType());
 		tileSideType.setSelectedItem(location.getLocationTileSideType());
 		sameClearing.setSelected(!location.isSameTile());
 		sameTile.setSelected(location.isSameTile());
 		if (location.getChoiceAddresses()!=null) {
 			StringBuilder sb = new StringBuilder();
-			for (Iterator i=location.getChoiceAddresses().iterator();i.hasNext();) {
+			for (String i : location.getChoiceAddresses()) {
 				if (sb.length()>0) {
 					sb.append("\n");
 				}
-				sb.append(i.next());
+				sb.append(i);
 			}
 			locationList.setText(sb.toString());
 			verifyLocations();
@@ -111,6 +140,8 @@ public class QuestLocationEditor extends GenericEditor {
 	private void saveLocation() {
 		location.setName(name.getText());
 		location.setLocationType((LocationType)type.getSelectedItem());
+		location.setHideNotification(hideNotifcation.isSelected());
+		location.setLocationForClonedQuests(locationForClonedQuests.isSelected());
 		location.setLocationClearingType((LocationClearingType)clearingType.getSelectedItem());
 		location.setLocationTileSideType((LocationTileSideType)tileSideType.getSelectedItem());
 		location.setSameTile(sameTile.isSelected());
@@ -144,7 +175,7 @@ public class QuestLocationEditor extends GenericEditor {
 		StringBuilder sb = new StringBuilder();
 		for (String token:getLocationList()) {
 			sb.append(token);
-			if (!QuestLocation.validLocation(realmSpeakData,token)) {
+			if (!Arrays.asList(QuestConstants.wolfs).contains(token) && !Arrays.asList(QuestConstants.transforms).contains(token) && !Arrays.asList(companions).contains(token) && !Arrays.asList(travelers).contains(token) && !QuestLocation.validLocation(realmSpeakData,token)) {
 				sb.append(INVALID);
 			}
 			sb.append("\n");
@@ -163,7 +194,7 @@ public class QuestLocationEditor extends GenericEditor {
 	}
 	private void initComponents() {
 		setTitle("Quest Location");
-		setSize(640,480);
+		setSize(800,480);
 		setLayout(new BorderLayout());
 		add(buildForm(),BorderLayout.CENTER);
 		add(buildOkCancelLine(),BorderLayout.SOUTH);
@@ -245,7 +276,7 @@ public class QuestLocationEditor extends GenericEditor {
 		form.add(line);
 		form.add(Box.createVerticalStrut(10));
 		
-		line = group.createLabelLine("Clearing or Tile");
+		line = group.createLabelLine("Clearing or Tile (only for requirements)");
 		ButtonGroup bg = new ButtonGroup();
 		sameClearing = new JRadioButton("Same Clearing",true);
 		bg.add(sameClearing);
@@ -269,6 +300,31 @@ public class QuestLocationEditor extends GenericEditor {
 		line.add(Box.createHorizontalStrut(10));
 		descriptionLabel = new JLabel("");
 		line.add(descriptionLabel);
+		line.add(Box.createHorizontalGlue());
+		form.add(line);
+		form.add(Box.createVerticalStrut(10));
+		
+		line = group.createLabelLine("Hide notifcation when selecting location");
+		hideNotifcation = new JCheckBox();
+		ComponentTools.lockComponentSize(hideNotifcation,100,25);
+		hideNotifcation.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				updateControls();
+			}
+		});
+		line.add(hideNotifcation);
+		line.add(Box.createHorizontalGlue());
+		form.add(line);
+		
+		line = group.createLabelLine("Set location for all cloned quests");
+		locationForClonedQuests = new JCheckBox();
+		ComponentTools.lockComponentSize(locationForClonedQuests,100,25);
+		locationForClonedQuests.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				updateControls();
+			}
+		});
+		line.add(locationForClonedQuests);
 		line.add(Box.createHorizontalGlue());
 		form.add(line);
 		form.add(Box.createVerticalStrut(10));

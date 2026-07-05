@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.io;
 
 import java.awt.*;
@@ -49,7 +32,7 @@ public class ImageZip {
 	}
 	private static Image string2Image(String string) {
 		try {
-			ArrayList integers = new ArrayList();
+			ArrayList<Integer> integers = new ArrayList<Integer>();
 			StringTokenizer st = new StringTokenizer(string,",");
 			while(st.hasMoreTokens()) {
 				String val = st.nextToken();
@@ -57,12 +40,12 @@ public class ImageZip {
 				integers.add(n);
 			}
 			
-			int w = ((Integer)integers.remove(0)).intValue();
-			int h = ((Integer)integers.remove(0)).intValue();
+			int w = integers.remove(0).intValue();
+			int h = integers.remove(0).intValue();
 			BufferedImage bi = new BufferedImage(w,h,BufferedImage.TYPE_4BYTE_ABGR);
 			for (int x=0;x<w;x++) {
 				for (int y=0;y<h;y++) {
-					int rgb = ((Integer)integers.remove(0)).intValue();
+					int rgb = integers.remove(0).intValue();
 					bi.setRGB(x,y,rgb);
 				}
 			}
@@ -100,13 +83,13 @@ public class ImageZip {
 		return unzipImages(new FileInputStream(filename));
 	}
 	public static Image[] unzipImages(InputStream inputStream) {
-		ArrayList images = new ArrayList();
+		ArrayList<Image> images = new ArrayList<Image>();
 		try {
 			ZipInputStream zi = new ZipInputStream(inputStream);
 //			ZipEntry ze;
 			while ((zi.getNextEntry())!=null) {
 				byte[]data = new byte[BUFFER];
-				ArrayList allBytes = new ArrayList();
+				ArrayList<Byte> allBytes = new ArrayList<Byte>();
 				int size;
 				while((size=zi.read(data,0,BUFFER))!=-1) {
 					for (int i=0;i<size;i++) {
@@ -115,8 +98,7 @@ public class ImageZip {
 				}
 				data = new byte[allBytes.size()];
 				int n=0;
-				for (Iterator i=allBytes.iterator();i.hasNext();) {
-					Byte b = (Byte)i.next();
+				for (Byte b : allBytes) {
 					data[n++] = b.byteValue();
 				}
 				
@@ -127,7 +109,7 @@ public class ImageZip {
 			}
 			zi.close();
 			
-			return (Image[])images.toArray(new Image[images.size()]);
+			return images.toArray(new Image[images.size()]);
 		}
 		catch(Exception ex) {
 			ex.printStackTrace();

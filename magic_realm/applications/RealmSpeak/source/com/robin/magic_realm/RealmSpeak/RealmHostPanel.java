@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.BorderLayout;
@@ -40,7 +23,11 @@ import com.robin.magic_realm.RealmBattle.BattleModel;
 import com.robin.magic_realm.RealmBattle.RealmBattle;
 import com.robin.magic_realm.components.MonsterChitComponent;
 import com.robin.magic_realm.components.RealmComponent;
+import com.robin.magic_realm.components.WarningChitComponent;
 import com.robin.magic_realm.components.attribute.TileLocation;
+import com.robin.magic_realm.components.events.RealmEvents;
+import com.robin.magic_realm.components.quest.GamePhaseType;
+import com.robin.magic_realm.components.quest.requirement.QuestRequirementParams;
 import com.robin.magic_realm.components.swing.RealmLogWindow;
 import com.robin.magic_realm.components.utility.*;
 import com.robin.magic_realm.components.wrapper.*;
@@ -63,7 +50,7 @@ public class RealmHostPanel extends JPanel {
 	
 	protected JButton killConnectionButton;
 
-	protected ArrayList changeListeners;
+	protected ArrayList<ChangeListener> changeListeners;
 
 	private boolean listen;
 	private boolean doAutoSave = false;
@@ -197,20 +184,18 @@ public class RealmHostPanel extends JPanel {
 
 				// Find all characters belonging to that server
 				GamePool pool = new GamePool(RealmObjectMaster.getRealmObjectMaster(host.getGameData()).getPlayerCharacterObjects());
-				ArrayList keyVals = new ArrayList();
+				ArrayList<String> keyVals = new ArrayList<String>();
 				keyVals.add(CharacterWrapper.NAME_KEY + "=" + server.getClientName());
-				Collection chars = pool.find(keyVals);
+				ArrayList<GameObject> chars = pool.find(keyVals);
 				if (chars != null && !chars.isEmpty()) {
-					for (Iterator i = chars.iterator(); i.hasNext();) {
-						GameObject aChar = (GameObject) i.next();
+					for (GameObject aChar : chars) {
 						CharacterWrapper lostChar = new CharacterWrapper(aChar);
 						if (lostChar.isActive()) {
 							lostChar.setMissingInAction(true);
 						}
-						Collection minions = lostChar.getMinions();
+						ArrayList<GameObject> minions = lostChar.getMinions();
 						if (minions!=null) {
-							for (Iterator m=minions.iterator();m.hasNext();) {
-								GameObject minion = (GameObject)m.next();
+							for (GameObject minion : minions) {
 								CharacterWrapper lostMinion = new CharacterWrapper(minion);
 								lostMinion.setMissingInAction(true);
 							}
@@ -253,7 +238,7 @@ public class RealmHostPanel extends JPanel {
 
 	public void addChangeListener(ChangeListener listener) {
 		if (changeListeners == null) {
-			changeListeners = new ArrayList();
+			changeListeners = new ArrayList<ChangeListener>();
 		}
 		changeListeners.add(listener);
 	}
@@ -270,8 +255,7 @@ public class RealmHostPanel extends JPanel {
 	private void fireStateChanged() {
 		if (changeListeners != null) {
 			ChangeEvent ev = new ChangeEvent(this);
-			for (Iterator i = changeListeners.iterator(); i.hasNext();) {
-				ChangeListener listener = (ChangeListener) i.next();
+			for (ChangeListener listener : changeListeners) {
 				listener.stateChanged(ev);
 			}
 		}
@@ -298,7 +282,6 @@ public class RealmHostPanel extends JPanel {
 			RealmLogWindow.getSingleton().save(AUTOSAVEFILE_BIRDSONG);
 			doAutoSave = false;
 			logger.fine("Saved file");
-//System.out.println("Auto save during update");
 		}
 		logger.fine("updateGame - done");
 	}
@@ -308,7 +291,6 @@ public class RealmHostPanel extends JPanel {
 			host.getGameData().zipToFile(AUTOSAVEFILE);
 			RealmLogWindow.getSingleton().save(AUTOSAVEFILE);
 			logger.fine("Saved midday file");
-//System.out.println("Auto save midday during update");
 		}
 	}
 
@@ -322,6 +304,12 @@ public class RealmHostPanel extends JPanel {
 			
 			// Add a number of days equal to (8-DIW)
 			game.setDay(8-days);
+			
+			boolean freezing = cal.isFreezingWeather(game.getMonth());
+			RealmUtility.updateWaterClearings(game.getGameData(),freezing);
+			
+			logger.fine("Exiting updateGameState");
+			return;
 		}
 
 		int currentGameState = game.getState();
@@ -350,30 +338,54 @@ public class RealmHostPanel extends JPanel {
 		ArrayList<GameObject> denizenObjects = RealmObjectMaster.getRealmObjectMaster(host.getGameData()).getDenizenObjects();
 		for (GameObject go:denizenObjects) {
 			String blownSpellId = go.getThisAttribute(Constants.BLOWS_TARGET);
-			if (blownSpellId!=null) {
+			boolean hurricaneWindsEvent = go.hasThisAttribute(Constants.EVENT_HURRICANE_WINDS);
+			if (blownSpellId!=null || hurricaneWindsEvent) {
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (!rc.getGameObject().hasThisAttribute(Constants.DEAD) && !rc.isPlayerControlledLeader()) {
 					// Land now!
 					TileLocation current = rc.getCurrentLocation();
 					if (current!=null) {
-						current.setFlying(false);
+						int clearingCount = current.tile.getClearingCount();
+						ArrayList<Integer> clearingsTriedToLand = new ArrayList<Integer>();
 						while(current.clearing==null) {
 							int r = RandomNumber.getHighLow(1,6);
-							current.clearing = current.tile.getClearing(r);
+							if (!current.tile.getClearing(r).isAffectedByViolentWinds()) {
+								current.clearing = current.tile.getClearing(r);
+							}
+							else {
+								if (!clearingsTriedToLand.contains(r))  clearingsTriedToLand.add(r);
+							}
+							if (clearingsTriedToLand.size() == clearingCount) break;
 						}
-						ClearingUtility.moveToLocation(go,current);
+						if (current.clearing!=null) {
+							current.setFlying(false);
+							if (!hostPrefs.hasPref(Constants.HOUSE2_HURRICANE_WINDS_BLOWS_HIRELINGS)) {
+								TileLocation loc = rc.getCurrentLocation();
+								if (loc.clearing!=null) {
+									for (GameObject item : rc.getGameObject().getHold()) {
+										RealmComponent itemRc = RealmComponent.getRealmComponent(item);
+										if ((itemRc.isHiredOrControlled() || itemRc.isNative() || itemRc.isMonster()) && itemRc.getCurrentLocation().equals(loc)) {
+											loc.clearing.add(item, null);
+										}
+									}
+								}
+							}
+							ClearingUtility.moveToLocation(go,current);
+						}
 					}
 				}
 				
-				// Regardless, expire the wind spell
-				GameObject spellGo = host.getGameData().getGameObject(Long.valueOf(blownSpellId));
-				SpellWrapper spell = new SpellWrapper(spellGo);
-				spell.expireSpell();
+				if (blownSpellId!=null) {
+					// Regardless, expire the wind spell
+					GameObject spellGo = host.getGameData().getGameObject(Long.valueOf(blownSpellId));
+					SpellWrapper spell = new SpellWrapper(spellGo);
+					spell.expireSpell();
+				}
 			}
 		}
 
-		for (Iterator i = livingCharacters.iterator(); i.hasNext();) {
-			CharacterWrapper character = new CharacterWrapper((GameObject) i.next());
+		for (GameObject characterGo : livingCharacters) {
+			CharacterWrapper character = new CharacterWrapper(characterGo);
 
 			if (character.getCurrentMonth() != game.getMonth() || character.getCurrentDay() != game.getDay()) {
 				// Must be a new character or new day - set 'em up.
@@ -382,10 +394,15 @@ public class RealmHostPanel extends JPanel {
 				TileLocation current = character.getCurrentLocation();
 
 				// First, see if game is over!
-				if (game.getState() == GameWrapper.GAME_STATE_GAMEOVER) {
+				if (game.isGameOver()) {
 					// Mark game over
 					character.applyMidnight();
 					character.setGameOver(true);
+					QuestRequirementParams params = new QuestRequirementParams();
+					character.testQuestRequirements(null, params);
+					if (hostPrefs.hasPref(Constants.SR_DEDUCT_VPS) && !hostPrefs.hasPref(Constants.EXP_DEVELOPMENT_SR)) {
+						character.addPenaltyVps();
+					}
 				}
 				else if (current!=null && !character.isGone()) {
 					// Setup BIRDSONG
@@ -397,6 +414,8 @@ public class RealmHostPanel extends JPanel {
 					character.setShelteredPhases(cal.getShelteredPhases(game.getMonth()));
 					character.setMountainMoveCost(cal.getMountainMoveCost(game.getMonth()));
 					character.startNewDay(cal,hostPrefs);
+					
+					character.distributeMonsterControlInCurrentClearing();
 					
 //						if (game.getTurnCount()>1 && game.getDay()==1) {
 //							// New month (other than first).  Update VPs
@@ -417,46 +436,90 @@ public class RealmHostPanel extends JPanel {
 		}
 		
 		// Extract active characters, so we don't get stuck in an infinite loop
-		ArrayList activeCharacters = new ArrayList();
-		for (Iterator i = livingCharacters.iterator(); i.hasNext();) {
-			CharacterWrapper character = new CharacterWrapper((GameObject) i.next());
+		ArrayList<CharacterWrapper> activeCharacters = new ArrayList<CharacterWrapper>();
+		for (GameObject characterGo : livingCharacters) {
+			CharacterWrapper character = new CharacterWrapper(characterGo);
 			if (character.isActive()) {
 				activeCharacters.add(character);
 			}
 		}
-
+		
 		if (activeCharacters.size() > 0 && recordingCount == 0 && game.getState() != GameWrapper.GAME_STATE_GAMEOVER) { // FINISH BIRDSONG, START PLAY
 			// Done recording, order players, and start next phase
 			logger.fine("Done recording.  Order players and start next phase.");
 
 			// Roll monster die (or dice)
 			DieRoller monsterDieRoller = new DieRoller();
-			monsterDieRoller.addRedDie();
-			if (hostPrefs.hasPref(Constants.EXP_DOUBLE_MONSTER_DIE)) {
-				monsterDieRoller.addRedDie();
+			DieRoller nativeDieRoller = new DieRoller();
+			int numberOfDice = 1;
+			if (hostPrefs.hasPref(Constants.EXP_MONSTER_DIE_PER_SET) && hostPrefs.getMultiBoardEnabled()) {
+				numberOfDice = hostPrefs.getMultiBoardCount();
 			}
+			if (hostPrefs.hasPref(Constants.EXP_DOUBLE_MONSTER_DIE)) {
+				numberOfDice = numberOfDice*2;
+			}
+			
+			for (int i=0; i<numberOfDice; i++) {
+				monsterDieRoller.addRedDie();
+				if (hostPrefs.usesSuperRealm()) {
+					nativeDieRoller.addRedDie();
+				}
+			}
+			
 			monsterDieRoller.rollDice("Monster Roll");
-//System.err.println("RealmHostPanel: DEBUGGO");
-//monsterDieRoller.setValue(0,3);
 			game.setMonsterDie(monsterDieRoller);
 			host.broadcast("host","Monster Die roll is "+monsterDieRoller.getDescription(false));
+			if (hostPrefs.usesSuperRealm()) {
+				nativeDieRoller.rollDice("Native Roll");
+				game.setNativeDie(nativeDieRoller);
+				host.broadcast("host","Native Die roll is "+nativeDieRoller.getDescription(false));
+			}
 
+			if (hostPrefs.hasPref(Constants.SR_EVENTS)) {
+				if (cal.isFirstDayOfAWeek(game.getDay())) {
+					RealmEvents.shuffleEvents(host);
+				}
+				if(game.getDay()>=RealmEvents.firstEventDay || game.getMonth()>=RealmEvents.firstEventMonth) {
+					RealmEvents.drawEvent(host);
+				}
+				RealmEvents.applyBirdsong(host);
+				monsterDieRoller = game.getMonsterDie();
+				nativeDieRoller = game.getNativeDie();
+			}
+			
 			game.clearRegeneratedDenizens();
-			if (RealmCalendar.isSeventhDay(game.getDay())) {
+			
+			if (RealmCalendar.isSeventhDay(game.getDay()) && !hostPrefs.hasPref(Constants.SR_NO_7TH_DAY_REGENERATION)) {
+				SetupCardUtility.resetGeneralDwellings(host.getGameData());
 				// Reset Denizens on 7th day
-				SetupCardUtility.resetDenizens(host.getGameData(), monsterDieRoller.getValue(0));
+				SetupCardUtility.resetDenizens(host.getGameData(), monsterDieRoller.getValue(0), hostPrefs.hasPref(Constants.SR_HORSES_REGENERATION));
 				if (monsterDieRoller.getNumberOfDice()>1) {
-					SetupCardUtility.resetDenizens(host.getGameData(), monsterDieRoller.getValue(1));
+					SetupCardUtility.resetDenizens(host.getGameData(), monsterDieRoller.getValue(1), hostPrefs.hasPref(Constants.SR_HORSES_REGENERATION));
+				}
+				if (nativeDieRoller!=null) {
+					SetupCardUtility.resetNatives(host.getGameData(), nativeDieRoller.getValue(0));
+				}
+				if (nativeDieRoller!=null && nativeDieRoller.getNumberOfDice()>1) {
+					SetupCardUtility.resetNatives(host.getGameData(), nativeDieRoller.getValue(1));
+				}
+				
+				// for events only
+				if (monsterDieRoller.getNumberOfDice()>2) {
+					SetupCardUtility.resetDenizens(host.getGameData(), monsterDieRoller.getValue(2), hostPrefs.hasPref(Constants.SR_HORSES_REGENERATION));
+				}
+				if (nativeDieRoller!=null && nativeDieRoller.getNumberOfDice()>2) {
+					SetupCardUtility.resetNatives(host.getGameData(), nativeDieRoller.getValue(2));
 				}
 			}
 
 			// Figure out who is following who, and determine which characters actually get to move here
-			ArrayList allChars = new ArrayList(getLivingCharacters());
-			HashMap followHash = new HashMap(); // to identify follow cycles
-			HashMap charHash = new HashMap(); // to identify all characters quickly
-			ArrayList charPool = new ArrayList(); // the ultimate list of characters that perform actions
-			for (Iterator i = allChars.iterator(); i.hasNext();) {
-				CharacterWrapper character = new CharacterWrapper((GameObject) i.next());
+			ArrayList<GameObject> allChars = new ArrayList<GameObject>(getLivingCharacters());
+			HashMap<String,String> followHash = new HashMap<String,String>(); // to identify follow cycles
+			HashMap<String,CharacterWrapper> charHash = new HashMap<String,CharacterWrapper>(); // to identify all characters quickly
+			ArrayList<CharacterWrapper> charPool = new ArrayList<CharacterWrapper>(); // the ultimate list of characters that perform actions
+			for (GameObject characterGo : allChars) {
+				characterGo.removeThisAttribute(Constants.COMRADE_WILL_BE_FOLLOWED_TODAY);
+				CharacterWrapper character = new CharacterWrapper(characterGo);
 				if (!character.isGone() && !character.isJustUnhired()) {
 					character.setTodaysMonsterRoll(monsterDieRoller);
 					character.clearActionFollowers();
@@ -468,14 +531,13 @@ public class RealmHostPanel extends JPanel {
 				}
 			}
 			if (followHash.size() > 0) {
-				ArrayList keys = new ArrayList(charHash.keySet());
-				for (Iterator i = keys.iterator(); i.hasNext();) {
-					String id = (String) i.next();
-					CharacterWrapper character = (CharacterWrapper) charHash.get(id);
+				ArrayList<String> keys = new ArrayList<String>(charHash.keySet());
+				for (String id : keys) {
+					CharacterWrapper character = charHash.get(id);
 					String nextFollowId = id;
 					String followId = null;
 					boolean cancelFollow = false;
-					while ((nextFollowId = (String) followHash.get(nextFollowId)) != null) {
+					while ((nextFollowId = followHash.get(nextFollowId)) != null) {
 						if (nextFollowId.equals(id)) {
 							cancelFollow = true;
 							followId = null; // Cancel follow when cycles back to name
@@ -485,7 +547,7 @@ public class RealmHostPanel extends JPanel {
 					}
 					if (followId != null) {
 						// Following someone, so add as an action follower, and leave out of the charPool
-						CharacterWrapper followee = (CharacterWrapper) charHash.get(followId);
+						CharacterWrapper followee = charHash.get(followId);
 						followee.addActionFollower(character);
 					}
 					else if (!cancelFollow) {
@@ -500,7 +562,7 @@ public class RealmHostPanel extends JPanel {
 			}
 			
 			// Randomize the character order
-			ArrayList randPool = new ArrayList();
+			ArrayList<CharacterWrapper> randPool = new ArrayList<CharacterWrapper>();
 			while (!charPool.isEmpty()) {
 				int r = RandomNumber.getRandom(charPool.size());
 				randPool.add(charPool.remove(r));
@@ -508,9 +570,8 @@ public class RealmHostPanel extends JPanel {
 			charPool = randPool;
 			
 			// Strip out characters that have an ability to choose which turn to take
-			ArrayList prefCharPool = new ArrayList(); // the characters who will get to go before anyone else
-			for (Iterator i=charPool.iterator();i.hasNext();) {
-				CharacterWrapper character = (CharacterWrapper)i.next();
+			ArrayList<CharacterWrapper> prefCharPool = new ArrayList<CharacterWrapper>(); // the characters who will get to go before anyone else
+			for (CharacterWrapper character : charPool) {
 				if (character.affectedByKey(Constants.CHOOSE_TURN)) {
 					prefCharPool.add(character);
 				}
@@ -518,7 +579,7 @@ public class RealmHostPanel extends JPanel {
 			if (prefCharPool.size()>0) {
 				charPool.removeAll(prefCharPool);
 				if (prefCharPool.size()>1) {
-					CharacterWrapper last = (CharacterWrapper)prefCharPool.get(prefCharPool.size()-1);
+					CharacterWrapper last = prefCharPool.get(prefCharPool.size()-1);
 					last.setLastPreemptivePlayer(true);
 				}
 			}
@@ -529,26 +590,29 @@ public class RealmHostPanel extends JPanel {
 			}
 
 			int order = 2;
-			for (Iterator i = charPool.iterator(); i.hasNext();) {
-				CharacterWrapper character = (CharacterWrapper) i.next();
+			for (Iterator<CharacterWrapper> i = charPool.iterator(); i.hasNext();) {
+				CharacterWrapper character = i.next();
 				if (character.isMinion()) {
 					// Skip the minion - it will be assigned a turn when the owner is assigned a turn
 					continue;
 				}
 				
-				ArrayList minions = character.getMinions();
+				ArrayList<GameObject> minions = character.getMinions();
 				if (minions!=null) {
-					for (Iterator n=minions.iterator();n.hasNext();) {
-						GameObject minion = (GameObject)n.next();
+					for (GameObject minion : minions) {
 						CharacterWrapper minChar = new CharacterWrapper(minion);
 						if (minChar.getFollowStringId()==null) {
 							if (minChar.canPlay()) {
 								// The character has a familiar that is not following anyone, so it goes right
 								// before the character.
 								minChar.setPlayOrder(order++);
+								if (minChar.getPlayerOrdering()==0) {
+									minChar.setPlayerOrdering(order++);
+								}
 							}
 							else {
 								minChar.setPlayOrder(0);
+								minChar.setPlayerOrdering(0);
 								minChar.setDoRecord(false);
 								minChar.clearCurrentActions();
 							}
@@ -558,21 +622,19 @@ public class RealmHostPanel extends JPanel {
 				
 				int playOrder = order++;
 				character.setPlayOrder(playOrder);
-//					character.setCombatPlayOrder(playOrder);
+				character.setPlayerOrdering(playOrder);
 				character.setLastPlayer(!i.hasNext());
 				// Followers get their "turns" directly AFTER the guide
 				boolean first = true;
-				for (Iterator n = character.getActionFollowers().iterator(); n.hasNext();) {
-					CharacterWrapper actionFollower = (CharacterWrapper) n.next();
+				for (CharacterWrapper actionFollower : character.getActionFollowers()) {
 					if (!first) {
 						actionFollower.setNoSummon(true); // Every follower should not summon monsters!  They are a group.
 					}
 					first = false;
 
-					ArrayList actionFollowerMinions = actionFollower.getMinions();
+					ArrayList<GameObject> actionFollowerMinions = actionFollower.getMinions();
 					if (actionFollowerMinions!=null) {
-						for (Iterator m=actionFollowerMinions.iterator();m.hasNext();) {
-							GameObject minion = (GameObject)m.next();
+						for (GameObject minion : actionFollowerMinions) {
 							CharacterWrapper minChar = new CharacterWrapper(minion);
 							if (minChar.getFollowStringId()==null) {
 								// The following character has a familiar that is not following anyone, so it goes right
@@ -594,13 +656,12 @@ public class RealmHostPanel extends JPanel {
 	}
 	private void updateGameStatePlaying() { // DAYTIME
 		logger.fine("DAYTIME");
-		Collection activeCharacters = getLivingCharacters();
+		ArrayList<GameObject> activeCharacters = getLivingCharacters();
 		int min = Integer.MAX_VALUE;
-//			ArrayList postponedChars = new ArrayList(); // I think there can only be one at a time here...
 		CharacterWrapper postponedChar = null;
-		ArrayList chars = new ArrayList();
-		for (Iterator i = activeCharacters.iterator(); i.hasNext();) {
-			CharacterWrapper character = new CharacterWrapper((GameObject) i.next());
+		ArrayList<CharacterWrapper> chars = new ArrayList<CharacterWrapper>();
+		for (GameObject characterGo : activeCharacters) {
+			CharacterWrapper character = new CharacterWrapper(characterGo);
 			if (!character.isJustUnhired()) { // In case a Native HQ is returned to the setup card after a wish result
 				int playOrder = character.getPlayOrder();
 				if (playOrder > 0) {
@@ -628,18 +689,15 @@ public class RealmHostPanel extends JPanel {
 				autoSaveNow();
 				
 				// Sort, so the list is in player order
-				Collections.sort(chars,new Comparator() {
-					public int compare(Object o1,Object o2) {
-						CharacterWrapper c1 = (CharacterWrapper)o1;
-						CharacterWrapper c2 = (CharacterWrapper)o2;
+				Collections.sort(chars,new Comparator<CharacterWrapper>() {
+					public int compare(CharacterWrapper c1,CharacterWrapper c2) {
 						return c1.getPlayOrder()-c2.getPlayOrder();
 					}
 				});
 				
 				// Check for the condition where ALL remaining chars can CHOOSE_TURN
 				boolean allChooseTurn = true;
-				for (Iterator i=chars.iterator();i.hasNext();) {
-					CharacterWrapper test = (CharacterWrapper)i.next();
+				for (CharacterWrapper test : chars) {
 					if (!test.getGameObject().hasThisAttribute(Constants.CHOOSE_TURN)) {
 						allChooseTurn = false;
 						break;
@@ -654,7 +712,7 @@ public class RealmHostPanel extends JPanel {
 					boolean added = false;
 					boolean afterMinion = false;
 					for (int i=1;i<chars.size();i++) {
-						CharacterWrapper test = (CharacterWrapper)chars.get(i);
+						CharacterWrapper test = chars.get(i);
 						if (test.getFollowStringId()==null) { // not following
 							if (!afterMinion && test.getMinionCount()==0) { // not AFTER a minion or BEFORE a minion keeper
 								if (!test.getGameObject().hasThisAttribute(Constants.CHOOSE_TURN)) { // not another preempter
@@ -686,8 +744,7 @@ public class RealmHostPanel extends JPanel {
 				// renumber
 				int n=1;
 				CharacterWrapper last = null;
-				for (Iterator i = chars.iterator(); i.hasNext();) {
-					CharacterWrapper character = (CharacterWrapper) i.next();
+				for (CharacterWrapper character : chars) {
 					character.setPlayOrder(n);
 					if (n==1) {
 						sendEmail("It is the "+character.getGameObject().getName()+"'s turn to play.",character.getPlayerName());
@@ -705,9 +762,13 @@ public class RealmHostPanel extends JPanel {
 		}
 		else {
 			// move on to the next game stage here
-			for (Iterator i = activeCharacters.iterator(); i.hasNext();) {
-				CharacterWrapper character = new CharacterWrapper((GameObject) i.next());
+			for (GameObject characterGo : activeCharacters) {
+				CharacterWrapper character = new CharacterWrapper(characterGo);
 				character.applySunset();
+			}
+			
+			if (hostPrefs.hasPref(Constants.SR_EVENTS)) {
+				RealmEvents.applySunset(host);
 			}
 			game.setState(GameWrapper.GAME_STATE_RESOLVING);
 			sendEmailAll("The day is over, and the game moves into evening combat.");
@@ -716,10 +777,10 @@ public class RealmHostPanel extends JPanel {
 			SpellMasterWrapper spellMaster = SpellMasterWrapper.getSpellMaster(host.getGameData());
 			spellMaster.expireDaySpells();
 			
+			ClearingUtility.restoreChitState(host.getGameData());
 			// Init combat
 			if (hostPrefs.getEnableBattles()) {
 				// Init battles, so that RealmBattle.nextCombatAction will work
-				ClearingUtility.restoreChitState(host.getGameData());
 				RealmBattle.resetCombat(host.getGameData());
 				RealmBattle.initCombatOrder(host.getGameData());
 			}
@@ -733,6 +794,35 @@ public class RealmHostPanel extends JPanel {
 	private void updateGameStateResolving() {
 		logger.fine("EVENING");
 		autoSaveNow();
+		ArrayList<GameObject> activeCharacters = getLivingCharacters();
+		for (GameObject go:activeCharacters) {
+			CharacterWrapper character = new CharacterWrapper(go);
+			TileLocation loc = character.getCurrentLocation();
+			if (loc == null || loc.isFlying() || loc.clearing == null) continue;
+			for (GameObject item : character.getActiveInventory()) {
+				if (item.hasThisAttribute(Constants.SCENTED_BAIT)) {
+					for (RealmComponent rc : loc.tile.getAllClearingComponents()) {
+						if (rc.isMonster() && !rc.isHiredOrControlled() && !((MonsterChitComponent)rc).isBlocked()) {					
+							loc.clearing.add(rc.getGameObject(),null);
+						}
+					}
+				}
+			}
+		}
+		for (GameObject go:activeCharacters) {
+			CharacterWrapper character = new CharacterWrapper(go);
+			TileLocation loc = character.getCurrentLocation();
+			if (loc == null || loc.isFlying() || loc.clearing == null) continue;
+			for (GameObject item : character.getActiveInventory()) {
+				if (item.hasThisAttribute(Constants.MAGIC_FOOD)) {
+					for (RealmComponent rc : loc.tile.getAllClearingComponents()) {
+						if (rc.isMonster() && !rc.isHiredOrControlled()) {
+							loc.clearing.add(rc.getGameObject(),null);
+						}
+					}
+				}
+			}
+		}
 		if (RealmBattle.newClearingCombat) {
 			// Save at the beginning of every separate combat
 			RealmBattle.newClearingCombat = false;
@@ -741,10 +831,12 @@ public class RealmHostPanel extends JPanel {
 		}
 		if (!RealmBattle.nextCombatAction(host,host.getGameData())) {
 			// First, see if ANY character is day end trading
-			ArrayList<GameObject> activeCharacters = getLivingCharacters();
 			for (GameObject go:activeCharacters) {
 				CharacterWrapper character = new CharacterWrapper(go);
-				if (character.getWantsDayEndTrades()) {
+				if (hostPrefs.hasPref(Constants.FE_NO_END_OF_DAY_TRADING)) {
+					character.setDayEndTradingActive(false);
+				}
+				else if (character.getWantsDayEndTrades()) {
 					character.setBlocked(false);
 					character.setDayEndTradingActive(true);
 				}
@@ -761,6 +853,13 @@ public class RealmHostPanel extends JPanel {
 		ArrayList<GameObject> activeCharacters = getLivingCharacters();
 		for (GameObject go:activeCharacters) {
 			CharacterWrapper character = new CharacterWrapper(go);
+			character.getGameObject().removeThisAttribute(Constants.NO_COMBAT);
+			character.getGameObject().removeThisAttribute(Constants.NO_SUMMONING);
+			character.getGameObject().removeThisAttribute(Constants.NO_PROWLING);
+			character.getGameObject().removeThisAttribute(Constants.NO_UNHIDE);
+			character.getGameObject().removeThisAttribute(Constants.SEARCHED_PIT);
+			character.setPlayerOrderingLastRound(character.getPlayerOrdering());
+			character.setPlayerOrdering(0);
 			if (character.isDayEndTradingActive()) {
 				doneTrading = false;
 			}
@@ -781,19 +880,33 @@ public class RealmHostPanel extends JPanel {
 		for (GameObject go:pool.find("guild,color_source")) {
 			go.removeThisAttribute("color_source");
 		}
+		for (GameObject item:pool.find("item,"+Constants.MAGIC_COLOR_BONUS)) {
+			item.removeThisAttribute(Constants.MAGIC_COLOR_BONUS_ACTIVE);
+		}
+		for (GameObject item:pool.find("item,"+Constants.RING)) {
+			item.removeThisAttribute(Constants.RING_USED);
+		}
 		
 		// Clean up all tile combat results (PEACE clearings, and WasFatigue results)
 		for (GameObject go:RealmObjectMaster.getRealmObjectMaster(host.getGameData()).getTileObjects()) {
 			CombatWrapper.clearAllCombatInfo(go);
 		}
 
-		// Expire Combat spells, and deenergize permanent spells
+		// Expire Combat spells, and deenergize permanent spells, uneffect midnight spells
 		SpellMasterWrapper spellMaster = SpellMasterWrapper.getSpellMaster(host.getGameData());
 		spellMaster.expireCombatSpells();
 		spellMaster.deenergizePermanentSpells();
+		spellMaster.uneffectTargetsForMidnightSpells(game);
+		
+		if (hostPrefs.hasPref(Constants.SR_EVENTS)) {
+			RealmEvents.expireEvents(host);
+		}
+		
+		testQuestRequirements(activeCharacters);
 		
 		// New Day
 		int daysToAdd = 1; // default
+		int bumpMonth = 0;
 		if (RealmCalendar.isSeventhDay(game.getDay())) {
 			// Apply new weather here (if using weather)
 			if (hostPrefs.isUsingSeasons() && hostPrefs.hasPref(Constants.OPT_WEATHER)) {
@@ -805,10 +918,12 @@ public class RealmHostPanel extends JPanel {
 				host.broadcast("host", "The weather for the week is "+cal.getWeatherName(game.getMonth()));
 				game.updateWeatherChit();
 				host.broadcast("host","A new weather chit was chosen.");
+				boolean freezing = cal.isFreezingWeather(game.getMonth());
+				RealmUtility.updateWaterClearings(game.getGameData(),freezing);
 			}
 			
 			// When calculating days in the NEXT week, we may be referring to a new month
-			int bumpMonth = game.getDay()==28?1:0;
+			bumpMonth = game.getDay()==28?1:0;
 			
 			// Determine how many days in the week (DIW)
 			int days = cal.getDays(game.getMonth()+bumpMonth);
@@ -816,10 +931,12 @@ public class RealmHostPanel extends JPanel {
 			// Add a number of days equal to (8-DIW)
 			daysToAdd = 8-days;
 		}
+		if (hostPrefs.hasPref(Constants.FE_DEADLY_REALM) && bumpMonth == 1) {
+			SetupCardUtility.turnMonstersAndNativesDarkSideUp(host.getGameData());
+		}
 		
 		// Decrement all terms of hire
-		for (Iterator i = pool.find(hostPrefs.getGameKeyVals() + "," + RealmComponent.OWNER_TERM_OF_HIRE).iterator(); i.hasNext();) {
-			GameObject go = (GameObject) i.next();
+		for (GameObject go : pool.find(hostPrefs.getGameKeyVals() + "," + RealmComponent.OWNER_TERM_OF_HIRE)) {
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			rc.decrementTermOfHire(daysToAdd);
 			if (rc.getTermOfHire() == 0) {
@@ -828,13 +945,61 @@ public class RealmHostPanel extends JPanel {
 					CharacterWrapper character = new CharacterWrapper(owner.getGameObject());
 					character.removeHireling(go);
 					host.broadcast("host",character.getGameObject().getName()+" loses "+rc.getGameObject().getName()+" as a hireling (term is up).");
+					if (hostPrefs.hasPref(Constants.SR_OPT_REGROUPING) && rc.isNative()) {
+						SetupCardUtility.regroupNative(rc,host.getGameData());
+					}
 				}
 				else {
 					throw new IllegalStateException("For some reason, " + go.getName() + " is owned by " + owner.getGameObject().getName() + ", which is not a character!!!");
 				}
 			}
 		}
-
+		
+		if (hostPrefs.hasPref(Constants.SR_END_OF_MONTH_REGENERATION) && RealmCalendar.isLastDayOfMonth(game.getDay())) {
+			SetupCardUtility.resetGeneralDwellings(host.getGameData());
+			for (int i = 1; i<=6; i++) {
+				SetupCardUtility.resetDenizens(host.getGameData(), i, hostPrefs.hasPref(Constants.SR_HORSES_REGENERATION),false);
+				SetupCardUtility.resetNatives(host.getGameData(), i,false);
+			}
+		}
+		if (hostPrefs.hasPref(Constants.SR_END_OF_MONTH_REGENERATION) && RealmCalendar.isLastDayOfMonth(game.getDay())) {
+			for (GameObject go:pool.find(hostPrefs.getGameKeyVals() + ",dwelling,warning,general_dwelling,tile_type=W")) {
+				GameObject tile = go.getHeldBy();
+				if (tile!=null && tile.hasThisAttribute("tile")) {
+					ArrayList<GameObject> chits = new ArrayList<GameObject>();
+					for (GameObject chit : tile.getHold()) {
+						if (RealmComponent.getRealmComponent(chit).isWarning()) {
+							chits.add(chit);
+						}
+					}
+					for (GameObject chit : chits) {
+						chit.add(go);
+					}
+				}
+			}
+			
+			ArrayList<WarningChitComponent> chits = new ArrayList<WarningChitComponent>();
+			for (GameObject go:pool.find(hostPrefs.getGameKeyVals() + ",chit,warning,tile_type=W")) {
+				RealmComponent rc = RealmComponent.getRealmComponent(go);
+				if (!rc.isDwelling() && go.hasThisAttribute(RealmComponent.WARNING) && rc instanceof WarningChitComponent) {
+					WarningChitComponent chit = (WarningChitComponent)rc;
+					chits.add(chit);
+				}
+			}
+			ArrayList<RealmComponent> tiles = new ArrayList<RealmComponent>();
+			for (WarningChitComponent chit : chits) {
+				chit.setFaceDown();
+				chit.getGameObject().removeThisAttribute("seen");
+				tiles.add(chit.getHeldBy());
+				chit.getHeldBy().getGameObject().remove(chit.getGameObject());
+			}
+			Collections.shuffle(chits);
+			Collections.shuffle(tiles);
+			for (int i = 0; i < chits.size(); i++) {
+				tiles.get(i).getGameObject().add(chits.get(i).getGameObject());
+			}
+		}
+		
 		// Finally, add day(s)
 		int month = game.getMonth();
 		game.addDay(daysToAdd);
@@ -856,16 +1021,15 @@ public class RealmHostPanel extends JPanel {
 		host.broadcast(Constants.BROADCAST_ATTENTION,"");
 		sendEmailAll("New day started:  "+"Month "+game.getMonth()+", Day "+game.getDay());
 		
-		// Re-energize permanent spells (FIXME this doesn't seem to be sufficient for Flying Carpet??)
 		spellMaster.energizePermanentSpells(null,game);
 		
-		checkForGameEnd(activeCharacters);
+		checkForGameEnd(activeCharacters);		
 	}
 	private void checkForGameEnd(ArrayList<GameObject> livingCharacters) {
 		if (hostPrefs.hasPref(Constants.QST_BOOK_OF_QUESTS)) {
 			for (GameObject go:livingCharacters) {
 				CharacterWrapper character = new CharacterWrapper(go);
-				if (character.isCharacter() && character.isAllQuestsComplete()) {
+				if (character.isCharacter() && character.getAllNonEventQuests().size()>0 && character.getUnfinishedNonEventQuestCount()==0) {
 					setGameOver();
 					break;
 				}
@@ -894,11 +1058,24 @@ public class RealmHostPanel extends JPanel {
 			if (rc.isCharacter()) {
 				CharacterWrapper character = new CharacterWrapper(go);
 				character.setGameOver(true);
+				QuestRequirementParams params = new QuestRequirementParams();
+				character.testQuestRequirements(null, params);
+				if (hostPrefs.hasPref(Constants.SR_DEDUCT_VPS) && !hostPrefs.hasPref(Constants.EXP_DEVELOPMENT_SR)) {
+					character.addPenaltyVps();
+				}
 			}
 		}
 		SpellMasterWrapper spellMaster = SpellMasterWrapper.getSpellMaster(host.getGameData());
 		spellMaster.expireCombatSpells();
 		spellMaster.deenergizePermanentSpells();
+	}
+	private static void testQuestRequirements(ArrayList<GameObject> livingCharacters) {
+		for (GameObject go:livingCharacters) {
+			CharacterWrapper character = new CharacterWrapper(go);
+			QuestRequirementParams params = new QuestRequirementParams();
+			params.timeOfCall = GamePhaseType.Midnight;
+			character.testQuestRequirements(new JFrame(), params);
+		}
 	}
 	private void sendEmailAll(String message) {
 		sendEmail(message,null);
@@ -951,9 +1128,9 @@ public class RealmHostPanel extends JPanel {
 	 */
 	private GameWrapper findGame() {
 		GamePool pool = new GamePool(host.getGameData().getGameObjects());
-		Collection mrGameObjects = pool.extract(GameWrapper.getKeyVals());
+		Collection<GameObject> mrGameObjects = pool.extract(GameWrapper.getKeyVals());
 		if (mrGameObjects.size() == 1) {
-			GameObject go = (GameObject) mrGameObjects.iterator().next();
+			GameObject go = mrGameObjects.iterator().next();
 			return new GameWrapper(go);
 		}
 		GameObject go = host.getGameData().createNewObject();
@@ -974,7 +1151,6 @@ public class RealmHostPanel extends JPanel {
 
 		if (hostPrefs.getAutosaveEnabled()) {
 			host.getGameData().zipToFile(AUTOSAVEFILE);
-//JOptionPane.showMessageDialog(null,"Auto save during setup");
 		}
 	}
 
@@ -994,20 +1170,7 @@ public class RealmHostPanel extends JPanel {
 	 * @return		All active (non-dead) characters
 	 */
 	private ArrayList<GameObject> getLivingCharacters() {
-		GamePool pool = new GamePool(RealmObjectMaster.getRealmObjectMaster(host.getGameData()).getPlayerCharacterObjects());
-		ArrayList list = pool.find(CharacterWrapper.NAME_KEY);
-		ArrayList<GameObject> active = new ArrayList<GameObject>();
-		for (Iterator i = list.iterator(); i.hasNext();) {
-			CharacterWrapper character = new CharacterWrapper((GameObject) i.next());
-			if (!character.isDead()) {
-				active.add(character.getGameObject());
-				ArrayList<GameObject> minions = character.getMinions();
-				if (minions!=null) {
-					active.addAll(minions);
-				}
-			}
-		}
-		return active;
+		return RealmUtility.getLivingCharacters(host.getGameData());
 	}
 	public ArrayList<String> getPlayerNames() {
 		ArrayList<String> names = new ArrayList<String>();
@@ -1053,8 +1216,8 @@ public class RealmHostPanel extends JPanel {
 							String email = clientName == null ? null : playerEmails.get(null);
 							return email == null ? "NA" : email;
 						case 3:
-							Collection c = RealmObjectMaster.getRealmObjectMaster(host.getGameData()).getPlayerCharacterObjects();
-							return new Integer((new GamePool(c)).find(CharacterWrapper.NAME_KEY + "=" + server.getClientName()).size());
+							ArrayList<GameObject> c = RealmObjectMaster.getRealmObjectMaster(host.getGameData()).getPlayerCharacterObjects();
+							return Integer.valueOf((new GamePool(c)).find(CharacterWrapper.NAME_KEY + "=" + server.getClientName()).size());
 					}
 				}
 			}

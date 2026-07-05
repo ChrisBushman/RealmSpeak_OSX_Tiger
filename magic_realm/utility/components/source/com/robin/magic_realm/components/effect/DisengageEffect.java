@@ -16,7 +16,7 @@ public class DisengageEffect implements ISpellEffect {
 		ArrayList<GameObject> attackers = combat.getAttackers();
 
 		for (GameObject a : attackers) {
-			RealmComponent.getRealmComponent(a).clearTarget();
+			RealmComponent.getRealmComponent(a).clearTargets();
 		}
 
 		for (GameObject a : attackers) {
@@ -31,8 +31,6 @@ public class DisengageEffect implements ISpellEffect {
 
 	@Override
 	public void unapply(SpellEffectContext context) {
-		// TODO Auto-generated method stub
-
 	}
 
 }

@@ -1,24 +1,6 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.table;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.swing.*;
 
@@ -51,8 +33,7 @@ public class ReadRunes extends RealmTable {
 		super(frame,null);
 		this.spellLocation = spellLocation;
 		
-		for (Iterator i=spellLocation.getHold().iterator();i.hasNext();) {
-			GameObject spell = (GameObject)i.next();
+		for (GameObject spell : spellLocation.getHold()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(spell);
 			if (rc.isSpell()) {
 				if (!spell.hasThisAttribute(Constants.SPELL_AWAKENED)) { // select the first non-activated spell
@@ -75,11 +56,22 @@ public class ReadRunes extends RealmTable {
 		return "ReadRunes";
 	}
 	public String apply(CharacterWrapper character,DieRoller roller) {
-//	System.err.println("REMOVE THIS LINE!!!! ReadRunes");
-//	roller.setValue(0,5);
-//	roller.setValue(1,5);
 		// Before rolling, you must select a target spell, which for artifacts/books includes AWAKENED spells
 		targetSpell = selectFromAllAwakenedSpells(character);
+		
+		if (roller.getHighDieResult()==5 && roller.getLowDieResult()<5) {
+			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
+			if (hostPrefs.hasPref(Constants.SR_ADV_EASIER_SPELL_LEARNING)) {
+				String result1 = super.apply(character,roller);
+				int low = roller.getLowDieResult();
+				if (low<1) {
+					low = 1;
+				}
+				String result2 = super.apply(character,low);
+				return result1 + " AND " + result2;
+			}
+		}
+		
 		return super.apply(character,roller);
 	}
 	public String applyOne(CharacterWrapper character) {
@@ -104,7 +96,7 @@ public class ReadRunes extends RealmTable {
 
 	public String applyFive(CharacterWrapper character) {
 		// Curse
-		setNewTable(new Curse(getParentFrame()));
+		setNewTable(new Curse(getParentFrame(), character.getGameObject()));
 		
 		QuestRequirementParams qp = new QuestRequirementParams();
 		qp.actionName = getTableKey();
@@ -121,13 +113,11 @@ public class ReadRunes extends RealmTable {
 		return "Nothing";
 	}
 	private String getSpellName() {
-		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(targetSpell.getGameData());
-		if (hostPrefs.hasPref(Constants.HOUSE1_NO_SECRETS)) {
-			return targetSpell.getName();
-		}
-		return "##a Spell|"+targetSpell.getName()+"##";
+		return SpellUtility.getSpellName(targetSpell);
 	}
 	private String learnAndAwaken(CharacterWrapper character) {
+		revealTravelersForSpellSite(character,spellLocation);
+		
 		if (targetSpell==null) {
 			return "Learn and Awaken (nothing)";
 		}
@@ -153,28 +143,26 @@ public class ReadRunes extends RealmTable {
 		return ret;
 	}
 	private GameObject selectFromAllAwakenedSpells(CharacterWrapper character) {
-		ArrayList list = new ArrayList();
-		for (Iterator i=spellLocation.getHold().iterator();i.hasNext();) {
-			GameObject spell = (GameObject)i.next();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
+		for (GameObject spell : spellLocation.getHold()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(spell);
-			if (rc.isSpell() && character.canLearn(spell) && rc.getGameObject().hasThisAttribute(Constants.SPELL_AWAKENED)) {
+			if (rc.isSpell() && ((character.canLearn(spell) && rc.getGameObject().hasThisAttribute(Constants.SPELL_AWAKENED)) || character.affectedByKey(Constants.MAGE_DIARY))) {
 				list.add(spell);
 			}
 		}
-		if (topSpell!=null) {
+		if (topSpell!=null && !character.affectedByKey(Constants.MAGE_DIARY)) {
 			list.add(topSpell);
 		}
 		if (list.size()>0) {
 			if (list.size()==1) { // the choice is obvious
-				return (GameObject)list.get(0);
+				return list.get(0);
 			}
 			
 			// otherwise:
 			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(getParentFrame(),"Choose a spell:",false);
-			for (Iterator i=list.iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
+			for (GameObject go : list) {
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
-				if (go.hasThisAttribute(Constants.SPELL_AWAKENED)) {
+				if (go.hasThisAttribute(Constants.SPELL_AWAKENED) || character.affectedByKey(Constants.MAGE_DIARY)) {
 					chooser.addRealmComponent(rc);
 				}
 				else {
@@ -224,5 +212,11 @@ public class ReadRunes extends RealmTable {
 		ArrayList<ImageIcon> list = new ArrayList<ImageIcon>();
 		list.add(getIconForSearch(RealmComponent.getRealmComponent(spellLocation)));
 		return list;
+	}
+	
+	private void revealTravelersForSpellSite(CharacterWrapper character,GameObject spellLocation) {
+		if (spellLocation.hasThisAttribute("spell_site")) {
+			revealTravelers(character,spellLocation);
+		}
 	}
 }

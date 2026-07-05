@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmCharacterBuilder.EditPanel;
 
 import java.awt.BorderLayout;
@@ -23,6 +6,8 @@ import java.util.*;
 
 import javax.swing.*;
 
+import com.robin.general.swing.ComponentTools;
+import com.robin.general.swing.IntegerField;
 import com.robin.general.util.StringBufferedList;
 import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
@@ -30,25 +15,67 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 public class MonsterInteractionEditPanel extends AdvantageEditPanel {
 	
 	private static final String[][] MONSTERS = {
-		{"Animals","Giant Bat","Wolf","T Serpent","H Serpent","H Spider","T Spider","Viper","Octopus","Crow","Scorpion","Carnoplant","Sabertooth","Wasp Queen"},
+		{"Animals","Giant Bat","Wolf","T Serpent","H Serpent","H Spider","T Spider","Viper","Octopus","Crow","Scorpion","Carnoplant","Sabertooth","Wasp Queen","Rat","Bear","Alligator","T Scorpion","H Scorpion"},
 		
 		{"Dragons","T Flying Dragon","T Dragon","H Flying Dragon","H Dragon","Firedrake","Wyrm","Basilisk"},
-		{"Fantastic","Minotaur","Griffon","Behemoth","Cockatrice","Harpy","Gargrath","Swamp Thing"},
+		{"Fantastic","Minotaur","Griffon","Behemoth","Cockatrice","Harpy","Gargrath","Swamp Thing","Giant Pod"},
 		
-		{"Humanoids","Giant","Ogre","Spear Goblin","Axe Goblin","Sword Goblin","T Troll","H Troll","Lizardman","Rat Man","Sword Orc","Orc Archer","Kobold","Frost Giant"},
+		{"Humanoids","Giant","Ogre","Spear Goblin","Axe Goblin","Sword Goblin","T Troll","H Troll","Lizardman","Rat Man","Sword Orc","Orc Archer","Kobold","Frost Giant","Bow Goblin","Orc"},
 		
-		{"Spirits/Undead","Ghost","Shade","Skeleton","Skeletal Archer","Skeletal Swordsman","Swamp Haunt","Tomb Guard","Wraith","Zombie"},
+		{"Spirits/Undead","Ghost","Shade","Skeleton","Skeletal Archer","Skeletal Swordsman","Swamp Haunt","Tomb Guard","Wraith","Zombie","Sword Skeleton","Spear Skeleton","Axe Skeleton","Bow Skeleton","Vampire","Skeleton Knight"},
 		
-		{"Demons","Winged Demon","Demon","Imp","Balrog"},
-		{"Elementals","Earth Elemental","Air Elemental","Fire Elemental","Water Elemental"},
+		{"Demons","Winged Demon","Demon","Imp","Balrog","Gargoyle","T Gargoyle","H Gargoyle","Succubus"},
+		{"Elementals","Earth Elemental","Air Elemental","Fire Elemental","Water Elemental","Prism Anomaly","Purple Anomaly","Gold Anomaly","Grey Anomaly","Golem","Titan","Colossus"},
 	};
 
 	private Hashtable<String,JCheckBox> hash;
+	private String selection;
+	private String duration;
+	private String limit;
+	private JCheckBox enhancedControl;
+	private JCheckBox validateControl;
+	JTextField durationComponent = new JTextField("Duration");
+	JTextField limitComponent = new JTextField("Limit");
 	
-	public MonsterInteractionEditPanel(CharacterWrapper pChar, String levelKey) {
+	public MonsterInteractionEditPanel(CharacterWrapper pChar, String levelKey, String selected) {
 		super(pChar, levelKey);
+		this.selection = selected;
+		setBorder(BorderFactory.createTitledBorder(toString())); // update name
+		
 		hash = new Hashtable<String,JCheckBox>();
 		setLayout(new BorderLayout());
+		
+		if (controlSelected()) {
+			Box box = Box.createHorizontalBox();
+			JLabel label = new JLabel("Duration (empty or 0 = forever):  ");
+			box.add(label);
+			duration = getAttribute(Constants.MONSTER_CONTROL_DURATION);
+			durationComponent = new IntegerField(duration == null ? "1" : duration);
+			durationComponent.setVisible(true);
+			ComponentTools.lockComponentSize(durationComponent,36,18);
+			box.add(durationComponent);
+			box.add(Box.createHorizontalStrut(10));
+			JLabel labelLimit = new JLabel("Limit (empty or 0 = unlimited):  ");
+			box.add(labelLimit);
+			limit = getAttribute(Constants.MONSTER_CONTROL_LIMIT);
+			limitComponent = new IntegerField(limit == null ? "0" : limit);
+			limitComponent.setVisible(true);
+			ComponentTools.lockComponentSize(limitComponent,36,18);
+			box.add(limitComponent);
+			box.add(Box.createHorizontalStrut(10));
+			enhancedControl = new JCheckBox("Enhanced Command");
+			if (hasAttribute(Constants.MONSTER_CONTROL_ENHANCED)) {
+				enhancedControl.setSelected(true);
+			}
+			box.add(enhancedControl);
+			box.add(Box.createHorizontalStrut(10));
+			validateControl = new JCheckBox("Loose control when loosing minor character");
+			if (hasAttribute(Constants.MONSTER_CONTROL_VALIDATE_CONTROL)) {
+				validateControl.setSelected(true);
+			}
+			box.add(validateControl);
+			add(box,"North");
+		}
 		
 		JPanel main = new JPanel(new GridLayout(1,5));
 		
@@ -81,10 +108,39 @@ public class MonsterInteractionEditPanel extends AdvantageEditPanel {
 		
 		add(main,"Center");
 		
-		ArrayList list = getAttributeList(Constants.MONSTER_IMMUNITY);
+		updateSelection();
+	}
+	
+	private boolean immunitySelected() {
+		return selection == Constants.MONSTER_IMMUNITY;
+	}
+	private boolean controlSelected() {
+		return selection == Constants.MONSTER_CONTROL;
+	}
+	private boolean fearSelected() {
+		return selection == Constants.MONSTER_FEAR;
+	}
+	private boolean friendlinessSelected() {
+		return selection == Constants.MONSTER_FRIENDLINESS;
+	}
+	
+	private void updateSelection() {
+		ArrayList<String> list = new ArrayList<String>();
+		if (immunitySelected()) {
+			list = getAttributeList(Constants.MONSTER_IMMUNITY);
+		}
+		else if (controlSelected()) {
+			list = getAttributeList(Constants.MONSTER_CONTROL);
+		}
+		else if (fearSelected()) {
+			list = getAttributeList(Constants.MONSTER_FEAR);
+		}
+		else if (friendlinessSelected()) {
+			list = getAttributeList(Constants.MONSTER_FRIENDLINESS);
+		}
+		
 		if (list!=null) {
-			for (Iterator i=list.iterator();i.hasNext();) {
-				String name = (String)i.next();
+			for (String name : list) {
 				JCheckBox option = hash.get(name);
 				if (option!=null) {
 					option.setSelected(true);
@@ -92,6 +148,7 @@ public class MonsterInteractionEditPanel extends AdvantageEditPanel {
 			}
 		}
 	}
+	
 	private void addOptionList(Box box,String[] list) {
 		JPanel panel = new JPanel(new GridLayout(list.length-1,1));
 		panel.setBorder(BorderFactory.createTitledBorder(list[0]));
@@ -105,18 +162,53 @@ public class MonsterInteractionEditPanel extends AdvantageEditPanel {
 	}
 
 	protected void applyAdvantage() {
-		ArrayList list = new ArrayList();
+		ArrayList<String> list = new ArrayList<String>();
 		for (String name:hash.keySet()) {
 			JCheckBox option = hash.get(name);
 			if (option.isSelected()) {
 				list.add(name);
 			}
 		}
-		setAttributeList(Constants.MONSTER_IMMUNITY,list);
+		if (immunitySelected()) {
+			setAttributeList(Constants.MONSTER_IMMUNITY,list);
+		}
+		else if (controlSelected()) {
+			setAttributeList(Constants.MONSTER_CONTROL,list);
+			duration = durationComponent.getText();
+			setAttribute(Constants.MONSTER_CONTROL_DURATION,duration == null || duration == "0" ? String.valueOf(Constants.TEN_YEARS) : duration);
+			limit = limitComponent.getText();
+			setAttribute(Constants.MONSTER_CONTROL_LIMIT,limit == null || limit == "0" ? "0" : limit);
+			if (enhancedControl.isSelected()) {
+				setAttribute(Constants.MONSTER_CONTROL_ENHANCED);
+			}
+			else {
+				removeAttribute(Constants.MONSTER_CONTROL_ENHANCED);
+			}
+			if (validateControl.isSelected()) {
+				setAttribute(Constants.MONSTER_CONTROL_VALIDATE_CONTROL);
+			}
+			else {
+				removeAttribute(Constants.MONSTER_CONTROL_VALIDATE_CONTROL);
+			}
+		}
+		else if (fearSelected()) {
+			setAttributeList(Constants.MONSTER_FEAR,list);
+		}
+		else if (friendlinessSelected()) {
+			setAttributeList(Constants.MONSTER_FRIENDLINESS,list);
+		}
 	}
 	public String getSuggestedDescription() {
 		StringBuffer sb = new StringBuffer();
-		sb.append("Is immune to the ");
+		if (immunitySelected()) {
+			sb.append("Is immune to the ");
+		}
+		else if (controlSelected()) {
+			sb.append("Can command the ");
+		}
+		else if (controlSelected()) {
+			sb.append("Cannot attack the ");
+		}
 		StringBufferedList list = new StringBufferedList(", ","and ");
 		for (String name:hash.keySet()) {
 			JCheckBox option = hash.get(name);
@@ -131,10 +223,28 @@ public class MonsterInteractionEditPanel extends AdvantageEditPanel {
 	}
 
 	public boolean isCurrent() {
+		if (controlSelected()) {
+			return hasAttribute(Constants.MONSTER_CONTROL);
+		}
+		else if (fearSelected()) {
+			return hasAttribute(Constants.MONSTER_FEAR);
+		}
+		else if (friendlinessSelected()) {
+			return hasAttribute(Constants.MONSTER_FRIENDLINESS);
+		}
 		return hasAttribute(Constants.MONSTER_IMMUNITY);
 	}
 	
 	public String toString() {
+		if (controlSelected()) {
+			return "Monster Command";
+		}
+		else if (fearSelected()) {
+			return "Monster Fear";
+		}
+		else if (friendlinessSelected()) {
+			return "Monster Friendliness";
+		}
 		return "Monster Immunity";
 	}
 }

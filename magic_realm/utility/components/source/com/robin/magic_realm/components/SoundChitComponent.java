@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
 import java.awt.Graphics;
@@ -39,13 +22,25 @@ public class SoundChitComponent extends StateChitComponent {
 		TextType tt;
 		
 		if (getGameObject().hasThisAttribute(Constants.ALWAYS_VISIBLE) || isFaceUp()) {
-			String sound = getAttribute("this","sound");
-			tt = new TextType(sound,getChitSize(),"BOLD");
-			tt.draw(g,0,12,Alignment.Center);
+			int y = 12;
+			String iconName = gameObject.getThisAttribute(Constants.ICON_TYPE+_CHIT);
+			String iconFolder = gameObject.getThisAttribute(Constants.ICON_FOLDER+_CHIT);
+			Double size = 0.4;
+			if (gameObject.hasThisAttribute(Constants.ICON_SIZE+_CHIT)) {
+				size = Double.parseDouble(gameObject.getThisAttribute(Constants.ICON_SIZE+_CHIT));
+			}
+			if (iconName!=null && iconFolder!=null) {
+				drawIcon(g,iconFolder,iconName,size,0,-20,null);
+				y = 20;
+			}
 			
-			String clearing = getAttribute("this","clearing");
+			String sound = getThisAttribute("sound");
+			tt = new TextType(sound,getChitSize(),"BOLD");
+			tt.draw(g,0,y,Alignment.Center);
+			
+			String clearing = getThisAttribute("clearing");
 			tt = new TextType(clearing,getChitSize(),"BOLD");
-			tt.draw(g,0,12+tt.getHeight(g),Alignment.Center);
+			tt.draw(g,0,y+tt.getHeight(g),Alignment.Center);
 		}
 	}
 }

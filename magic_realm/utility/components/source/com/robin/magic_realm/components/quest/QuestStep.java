@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest;
 
 import java.util.*;
@@ -64,8 +47,7 @@ public class QuestStep extends GameObjectWrapper {
 	public void refresh() {
 		requirements = new ArrayList<QuestRequirement>();
 		rewards = new ArrayList<QuestReward>();
-		for (Iterator i = getGameObject().getHold().iterator(); i.hasNext();) {
-			GameObject held = (GameObject) i.next();
+		for (GameObject held : getGameObject().getHold()) {
 			if (held.hasThisAttribute(Quest.QUEST_REQUIREMENT)) {
 				String val = held.getThisAttribute(Quest.QUEST_REQUIREMENT);
 				if (val.equals("Location"))
@@ -88,18 +70,6 @@ public class QuestStep extends GameObjectWrapper {
 		return Quest.QUEST_BLOCK;
 	}
 
-	public boolean usesMinorCharacter(QuestMinorCharacter mc) {
-		for (QuestRequirement req : requirements) {
-			if (req.usesMinorCharacter(mc))
-				return true;
-		}
-		for (QuestReward reward : rewards) {
-			if (reward.usesMinorCharacter(mc))
-				return true;
-		}
-		return false;
-	}
-
 	public boolean usesLocationTag(String tag) {
 		String desc = getDescription();
 		if (desc != null && desc.contains(tag)) {
@@ -115,6 +85,34 @@ public class QuestStep extends GameObjectWrapper {
 		}
 		return false;
 	}
+	
+	public boolean usesMinorCharacter(QuestMinorCharacter mc) {
+		for (QuestRequirement req : requirements) {
+			if (req.usesMinorCharacter(mc))
+				return true;
+		}
+		for (QuestReward reward : rewards) {
+			if (reward.usesMinorCharacter(mc))
+				return true;
+		}
+		return false;
+	}
+	
+	public boolean usesCounterTag(String tag) {
+		String desc = getDescription();
+		if (desc != null && desc.contains(tag)) {
+			return true;
+		}
+		for (QuestRequirement req : requirements) {
+			if (req.usesCounterTag(tag))
+				return true;
+		}
+		for (QuestReward reward : rewards) {
+			if (reward.usesCounterTag(tag))
+				return true;
+		}
+		return false;
+	}
 
 	public void setId(int id) {
 		setInt(ID, id);
@@ -124,7 +122,7 @@ public class QuestStep extends GameObjectWrapper {
 		return getInt(ID);
 	}
 
-	protected void clearStates() {
+	public void clearStates() {
 		clear(STATE);
 		for (QuestStepState state : QuestStepState.values()) {
 			clear(state.toString());
@@ -210,23 +208,23 @@ public class QuestStep extends GameObjectWrapper {
 		clear(REQ_STEPS);
 	}
 
-	public ArrayList getRequiredSteps() {
+	public ArrayList<String> getRequiredSteps() {
 		return getList(REQ_STEPS);
 	}
 
 	public boolean isOrigin() {
-		ArrayList requiredSteps = getRequiredSteps();
-		ArrayList failSteps = getFailSteps();
+		ArrayList<String> requiredSteps = getRequiredSteps();
+		ArrayList<String> failSteps = getFailSteps();
 		return (requiredSteps == null || requiredSteps.size() == 0) && (failSteps == null || failSteps.size() == 0);
 	}
 
 	public boolean requires(QuestStep step) {
-		ArrayList requiredSteps = getRequiredSteps();
+		ArrayList<String> requiredSteps = getRequiredSteps();
 		return requiredSteps != null && requiredSteps.contains(step.getGameObject().getStringId());
 	}
 	
 	public boolean requiresFail(QuestStep step) {
-		ArrayList failSteps = getFailSteps();
+		ArrayList<String> failSteps = getFailSteps();
 		return failSteps != null && failSteps.contains(step.getGameObject().getStringId());
 	}
 
@@ -242,7 +240,7 @@ public class QuestStep extends GameObjectWrapper {
 		clear(PREEMPT_STEPS);
 	}
 
-	public ArrayList getPreemptedSteps() {
+	public ArrayList<String> getPreemptedSteps() {
 		return getList(PREEMPT_STEPS);
 	}
 
@@ -258,7 +256,7 @@ public class QuestStep extends GameObjectWrapper {
 		clear(FAIL_STEPS);
 	}
 
-	public ArrayList getFailSteps() {
+	public ArrayList<String> getFailSteps() {
 		return getList(FAIL_STEPS);
 	}
 
@@ -309,7 +307,7 @@ public class QuestStep extends GameObjectWrapper {
 	}
 
 	private void updateIds(Hashtable<Long, GameObject> lookup, String key) {
-		ArrayList oldIds = getList(key);
+		ArrayList<String> oldIds = getList(key);
 		if (oldIds == null || oldIds.size() == 0)
 			return;
 		clear(key);
@@ -338,49 +336,43 @@ public class QuestStep extends GameObjectWrapper {
 		if (reqs.isEmpty()) return true; // no requirements means auto-success
 		QuestStepType type = getReqType();
 		if (type == QuestStepType.And) {
-			boolean resetTime = false;
 			boolean ret = true;
 			for (QuestRequirement req : reqs) {
+				if (req instanceof QuestRequirementNextPhase && ret == false) continue;
+				if (!req.usesAutoJournal() && ret == false) continue;
+				
 				if (req.fulfillsRequirement(frame, character, reqParams)) {
 					logger.fine(getClassName(req.getClass()) + " SUCCESS");
 				}
 				else {
-					if (!(req instanceof QuestRequirementTimePassed)) {
-						resetTime = true;
-					}
 					ret = false;
 					// we continue the loop here in case there are any "Auto-Journal" requirements that need updates
 				}
 			}
-			if (resetTime) {
-				setState(QuestStepState.Ready, character.getCurrentDayKey());
-			}
 			return ret;
 		}
-		else { // OR - any requirement fulfilled is a success
-			boolean oneFulfilled = false;
-			for (QuestRequirement req : reqs) {
-				if (req.fulfillsRequirement(frame, character, reqParams)) {
-					logger.fine("Requirement " + req.getName() + " fulfilled.");
-					oneFulfilled = true;
-					// we continue here in case there are any "Lock" type
-					// requirements!
-				}
+		// OR - any requirement fulfilled is a success
+		boolean oneFulfilled = false;
+		for (QuestRequirement req : reqs) {
+			if (oneFulfilled && !(req instanceof QuestRequirementLocationExists) && !(req instanceof QuestRequirementLocation)) continue;
+			if (req.fulfillsRequirement(frame, character, reqParams)) {
+				logger.fine("Requirement " + req.getName() + " fulfilled.");
+				oneFulfilled = true;
+				// we continue here in case there are any "Lock" type requirements!
 			}
-			return oneFulfilled;
 		}
+		return oneFulfilled;
 	}
 
 	public void preemptSteps(ArrayList<QuestStep> steps, String dayKey) {
-		ArrayList preempt = getPreemptedSteps();
+		ArrayList<String> preempt = getPreemptedSteps();
 		if (preempt == null)
 			return;
 		Hashtable<String, QuestStep> lookup = new Hashtable<String, QuestStep>();
 		for (QuestStep step : steps) {
 			lookup.put(step.getGameObject().getStringId(), step);
 		}
-		for (Iterator i = preempt.iterator(); i.hasNext();) {
-			String reqId = (String) i.next();
+		for (String reqId : preempt) {
 			QuestStep preemptedStep = lookup.get(reqId);
 			preemptedStep.setState(QuestStepState.Failed, dayKey);
 		}
@@ -413,7 +405,7 @@ public class QuestStep extends GameObjectWrapper {
 		}
 	}
 
-	private String chooseReward(JFrame frame, HashLists<String, QuestReward> rewardGroups) {
+	private static String chooseReward(JFrame frame, HashLists<String, QuestReward> rewardGroups) {
 		// First see if the choice is obvious
 		ArrayList<String> keys = new ArrayList<String>(rewardGroups.keySet());
 		keys.remove(QuestReward.ALL_REWARD_GROUP);
@@ -423,7 +415,8 @@ public class QuestStep extends GameObjectWrapper {
 			return QuestReward.ALL_REWARD_GROUP;
 
 		// Nope! Better ask the player then
-		ButtonOptionDialog chooser = new ButtonOptionDialog(frame, null, "Select a reward group:", "Reward Chooser", false);
+		int columns = (int) Math.ceil(rewardGroups.size()/5.0);
+		ButtonOptionDialog chooser = new ButtonOptionDialog(frame, null, "Select a reward group:", "Reward Chooser", false, columns);
 		keys = new ArrayList<String>(rewardGroups.keySet());
 		Collections.sort(keys);
 		Hashtable<String, String> reverseLookup = new Hashtable<String, String>();
@@ -464,7 +457,7 @@ public class QuestStep extends GameObjectWrapper {
 		ArrayList<QuestStep> ret = new ArrayList<QuestStep>();
 		for(QuestStep step:steps) {
 			if (step.getState()!=QuestStepState.Pending) continue;
-			ArrayList list = step.getFailSteps();
+			ArrayList<String> list = step.getFailSteps();
 			if (list!=null && list.contains(id)) ret.add(step);
 		}
 		return ret;

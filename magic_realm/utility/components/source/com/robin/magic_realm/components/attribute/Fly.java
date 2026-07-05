@@ -1,23 +1,7 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.attribute;
 
 import com.robin.magic_realm.components.*;
+import com.robin.magic_realm.components.utility.Constants;
 
 public class Fly {
 	private RealmComponent rc;
@@ -42,7 +26,7 @@ public class Fly {
 	public Speed getSpeed() {
 		return speed;
 	}
-	private Strength _getStrength(RealmComponent rc) {
+	private static Strength _getStrength(RealmComponent rc) {
 		if (rc instanceof CharacterActionChitComponent) {
 			CharacterActionChitComponent chit = (CharacterActionChitComponent)rc;
 			return chit.getStrength();
@@ -64,7 +48,7 @@ public class Fly {
 		}
 		return new Strength(rc.getGameObject().getThisAttribute("strength"));
 	}
-	private Speed _getSpeed(RealmComponent rc) {
+	private static Speed _getSpeed(RealmComponent rc) {
 		if (rc instanceof MonsterMoveChitComponent) {
 			MonsterMoveChitComponent chit = (MonsterMoveChitComponent)rc;
 			return chit.getFlySpeed();
@@ -94,20 +78,26 @@ public class Fly {
 			}
 		}
 	}
+	public boolean mustLand() {
+		if (rc!=null&&rc.getGameObject().hasThisAttribute("must_land")) {
+			return true;			
+		}
+		return false;
+	}
 	public static boolean valid(RealmComponent rc) {
 		if (rc.isFlyChit()) {
 			return true;
 		}
 		else if (rc.isActionChit()) {
-			if ((rc instanceof MonsterActionChitComponent) && rc.getGameObject().hasThisAttribute("flying")) {
+			if ((rc instanceof MonsterActionChitComponent) && (rc.getGameObject().hasThisAttribute(Constants.FLYING) || rc.getGameObject().hasThisAttribute(Constants.GROW_WINGS))) {
 				return true;
 			}
 			else if ((rc instanceof CharacterActionChitComponent) && ((CharacterActionChitComponent)rc).isFly()) {
 				return true;
 			}
 		}
-		else if (rc.isTreasure()) { // Flying Carpet
-			return rc.getGameObject().hasThisAttribute("fly_strength");
+		else if (rc.isTreasure()) { // Flying Carpet or Hound with Grow Wings
+			return rc.getGameObject().hasThisAttribute("fly_strength") || rc.getGameObject().hasThisAttribute(Constants.GROW_WINGS);
 		}
 		return false;
 	}

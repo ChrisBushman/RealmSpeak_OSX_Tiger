@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.BorderLayout;
@@ -28,17 +11,26 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import com.robin.game.objects.GameObject;
+import com.robin.general.swing.ButtonOptionDialog;
 import com.robin.general.swing.LegendLabel;
 import com.robin.magic_realm.components.*;
+import com.robin.magic_realm.components.attribute.ColorMagic;
 import com.robin.magic_realm.components.attribute.TileLocation;
+import com.robin.magic_realm.components.quest.CharacterActionType;
+import com.robin.magic_realm.components.quest.requirement.QuestRequirementParams;
 import com.robin.magic_realm.components.swing.ChitStateViewer;
 import com.robin.magic_realm.components.swing.RealmObjectPanel;
+import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.utility.RealmUtility;
+import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
+import com.robin.magic_realm.components.wrapper.SpellMasterWrapper;
+import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class CharacterChitPanel extends CharacterFramePanel {
 	protected RealmObjectPanel chitHolderPanel;
 	protected JButton fatigueChitButton;
 	protected JButton chitDetailButton;
+	protected JButton enchantChitButton;
 	public CharacterChitPanel(CharacterFrame parent) {
 		super(parent);
 		init();
@@ -80,41 +72,76 @@ public class CharacterChitPanel extends CharacterFramePanel {
 				});
 			box.add(fatigueChitButton);
 			box.add(Box.createHorizontalGlue());
+			enchantChitButton = new JButton("Enchant Chit");
+			enchantChitButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ev) {
+					enchantChit();
+				}
+			});
+		box.add(enchantChitButton);
+			box.add(Box.createHorizontalGlue());
 		add(box,"South");
 	}
-	public void updateControls() {
-		boolean onlyColorChits = false;
+	public void updateControls(boolean isAwaitingReactions) {
+		if (isAwaitingReactions) {
+			fatigueChitButton.setEnabled(false);
+			enchantChitButton.setEnabled(false);
+			return;
+		}
+		boolean enableEnchantChitButton = false;
+		boolean onlyColorMagicChits = false;
 		boolean followingActive = getCharacter().isFollowingCharacterPlayingTurn();
 		boolean playingTurn = getCharacterFrame().getTurnPanel()!=null && getCharacterFrame().getTurnPanel().hasActionsLeft();
+		RealmComponent rc = chitHolderPanel.getSelectedComponent();
 		if ((playingTurn || followingActive) && !getCharacter().isGone() && getGameHandler().getGame().isDaylight()) {
-			TileLocation tl = getCharacter().getCurrentLocation();
-			if (tl!=null && !tl.isBetweenClearings() && !tl.isBetweenTiles()) {
-				RealmComponent rc = chitHolderPanel.getSelectedComponent();
-				if (rc!=null) {
-					onlyColorChits = true;
-					if (rc.isMagicChit()) {
-						MagicChit chit = (MagicChit)rc;
-						if (!chit.isColor()) {
-							onlyColorChits = false;
+			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(getCharacter().getGameData());
+			enableEnchantChitButton = true;
+			if (!getCharacter().isBlocked() || !hostPrefs.hasPref(Constants.OPT_NO_COLOR_CHIT_FOR_BLOCKED_CHARACTERS)) {
+				if (!getCharacter().isSleep() || !hostPrefs.hasPref(Constants.OPT_NO_COLOR_CHIT_FOR_SLEEPING_CHARACTERS)) {
+					TileLocation tl = getCharacter().getCurrentLocation();
+					if (tl!=null && !tl.isBetweenClearings() && !tl.isBetweenTiles()) {
+						if (rc!=null && rc.isMagicChit()) {
+							onlyColorMagicChits = true;
+							MagicChit chit = (MagicChit)rc;
+							if (!chit.isColor()) {
+								onlyColorMagicChits = false;
+							}
 						}
 					}
 				}
 			}
 		}
-		fatigueChitButton.setEnabled(onlyColorChits);
+		fatigueChitButton.setEnabled(onlyColorMagicChits);
+		if (!getCharacter().affectedByKey(Constants.FREE_ENCHANT_CHIT) || getCharacter().getGameObject().hasThisAttribute(Constants.FREE_ENCHANT_CHIT_USED)) {
+			enableEnchantChitButton = false;
+		}
+		enchantChitButton.setEnabled(enableEnchantChitButton && rc!=null && rc.isMagicChit() && ((MagicChit)rc).isEnchantable() && ((MagicChit)rc).getColorMagic()==null);
 	}
 	public void updatePanel() {
+		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(getCharacter().getGameData());
 		// Refresh the chit panel
 		chitHolderPanel.removeAll();
-		ArrayList allChits = new ArrayList(getCharacter().getCompleteChitList());
-		for (Iterator i=allChits.iterator();i.hasNext();) {
-			RealmComponent chit = (RealmComponent)i.next();
+		ArrayList<StateChitComponent> allChits = getCharacter().getCompleteChitList();
+		for (RealmComponent chit : allChits) {
 			chitHolderPanel.add(chit);
 		}
 		for (GameObject go:getCharacter().getInventory()) {
 			RealmComponent item = RealmComponent.getRealmComponent(go);
 			if (item.isEnchanted()) {
 				chitHolderPanel.add(item);
+			}
+		}
+		if (hostPrefs.hasPref(Constants.OPT_ENHANCED_ARTIFACTS_TRANSMORPHED)) {
+			SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(getCharacter().getGameObject().getGameData());
+			for (SpellWrapper spell:sm.getAffectingSpells(getCharacter().getGameObject())) {
+				if (spell.getGameObject().hasThisAttribute("transmorph")) {
+					for (GameObject go : spell.getGameObject().getHold()) {
+						RealmComponent item = RealmComponent.getRealmComponent(go);
+						if (item.isEnchanted()) {
+							chitHolderPanel.add(item);
+						}
+					}
+				}	
 			}
 		}
 		getCharacterFrame().updateControls();
@@ -124,26 +151,25 @@ public class CharacterChitPanel extends CharacterFramePanel {
 		viewer.setVisible(true);
 	}
 	public void burnColorChit() {
-		// This will provide the character a way to recover their color chits
-		// without having to use them in a spell
+		// This will provide the character a way to recover their color chits without having to use them in a spell
 		MagicChit chit = (MagicChit)chitHolderPanel.getSelectedComponent();
 		// because of button disabling, we know this is a color chit
 		
-		ArrayList se = getCharacter().getSpellExtras();
+		ArrayList<String> se = getCharacter().getSpellExtras();
 		int seBefore = se==null?0:se.size();
 		
-		RealmUtility.burnColorChit(getGameHandler().getMainFrame(),getGameHandler().getGame(),getCharacter(),chit);
+		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(getCharacter().getGameData());
+		RealmUtility.burnColorChit(getGameHandler().getMainFrame(),getGameHandler().getGame(),getCharacter(),chit,hostPrefs.hasPref(Constants.OPT_COLOR_CHIT_TARGETING_NO_HIDDEN_TARGETS));
 		
 		if (getCharacterFrame().getTurnPanel()!=null) { // only worry about this if playing a turn
 			se = getCharacter().getSpellExtras();
 			int seAfter = se==null?0:se.size();
 			if (seAfter>seBefore) {
-				// A spell (or spells) were energized manually during the turn.  Make sure these
-				// make it into the PhaseManager
-				ArrayList ses = getCharacter().getSpellExtraSources();
+				// A spell (or spells) were energized manually during the turn.  Make sure these make it into the PhaseManager
+				ArrayList<GameObject> ses = getCharacter().getSpellExtraSources();
 				for (int i=seBefore;i<seAfter;i++) {
-					String seAction = (String)se.get(i);
-					GameObject seGo = (GameObject)ses.get(i);
+					String seAction = se.get(i);
+					GameObject seGo = ses.get(i);
 					getCharacterFrame().getTurnPanel().getPhaseManager().addFreeAction(seAction,seGo);
 				}
 			}
@@ -152,8 +178,21 @@ public class CharacterChitPanel extends CharacterFramePanel {
 		getCharacterFrame().updateActiveCurses(); // in case any curses are nullified
 		chitHolderPanel.clearSelected();
 		getCharacterFrame().updateCharacter();
-//		updatePanel();
 		getGameHandler().getInspector().redrawMap();
 		getGameHandler().submitChanges();
+	}
+	private void enchantChit() {
+		getCharacter().getGameObject().setThisAttribute(Constants.FREE_ENCHANT_CHIT_USED);
+		MagicChit chit = (MagicChit)chitHolderPanel.getSelectedComponent();
+		RealmUtility.enchantChit(getMainFrame(), chit);
+		
+		chitHolderPanel.clearSelected();
+		getCharacterFrame().updateCharacter();
+		getGameHandler().submitChanges();
+		
+		QuestRequirementParams params = new QuestRequirementParams();
+		params.actionType = CharacterActionType.Enchant;
+		params.actionName = "chit";
+		getCharacter().testQuestRequirements(getGameHandler().getMainFrame(),params);
 	}
 }

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmQuestBuilder;
 
 import java.awt.BorderLayout;
@@ -27,10 +10,13 @@ import javax.swing.table.AbstractTableModel;
 
 import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
+import com.robin.game.objects.GameObjectBlockManager;
 import com.robin.general.swing.*;
 import com.robin.magic_realm.RealmQuestBuilder.AbilityEditor.AbilityType;
+import com.robin.magic_realm.components.CharacterActionChitComponent;
 import com.robin.magic_realm.components.quest.Quest;
 import com.robin.magic_realm.components.quest.QuestMinorCharacter;
+import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class MinorCharacterEditor extends GenericEditor {
@@ -119,9 +105,9 @@ public class MinorCharacterEditor extends GenericEditor {
 		});
 		ComponentTools.lockComponentSize(name,200,25);
 		line.add(name);
-		virtual = new JCheckBox("Virtual - Check this if you don't want it to appear in inventory");
-		line.add(Box.createHorizontalStrut(10));
+		virtual = new JCheckBox("Virtual - Does not to appear in inventory (e.g. ability)");
 		virtual.setToolTipText("If a minor character is virtual, it won't appear in the character inventory.");
+		line.add(Box.createHorizontalStrut(10));
 		line.add(virtual);
 		line.add(Box.createHorizontalGlue());
 		form.add(line);
@@ -155,6 +141,7 @@ public class MinorCharacterEditor extends GenericEditor {
 			public void add() {
 				ButtonOptionDialog dialog = new ButtonOptionDialog(parent, null, "Choose an ability type:", "New Ability", true);
 				for (AbilityType rt : AbilityType.values()) {
+					if (rt == AbilityType.MonsterInteraction) continue; // new naming: MonsterImmunity, but this is needed for old abilities
 					dialog.addSelectionObject(rt);
 				}
 				dialog.setLocationRelativeTo(this);
@@ -190,6 +177,15 @@ public class MinorCharacterEditor extends GenericEditor {
 				CharacterWrapper template = new CharacterWrapper(GameObject.createEmptyGameObject());
 				template.getGameObject().copyAttributeBlockFrom(minorCharacter.getGameObject(),abilityBlock);
 				template.getGameObject().copyAttributeBlock(abilityBlock,AbilityEditor.TEMPLATE_ABILITY_BLOCK);
+				if (type == AbilityType.ExtraChit) {
+					GameObjectBlockManager manMinorChar = new GameObjectBlockManager(minorCharacter.getGameObject());
+					GameObject go = manMinorChar.extractGameObjectFromBlocks(Constants.BONUS_CHIT+AbilityEditor.TEMPLATE_ABILITY_BLOCK,true);
+					if (go != null) {
+						CharacterActionChitComponent extraChit = new CharacterActionChitComponent(go);
+						GameObjectBlockManager manTemplate = new GameObjectBlockManager(template.getGameObject());
+						manTemplate.storeGameObjectInBlocks(extraChit.getGameObject(),Constants.BONUS_CHIT+AbilityEditor.TEMPLATE_ABILITY_BLOCK);
+					}
+				}
 				AbilityEditor editor = new AbilityEditor(parent,"Edit Ability",type,template);
 				editor.setLocationRelativeTo(this);
 				editor.setVisible(true);

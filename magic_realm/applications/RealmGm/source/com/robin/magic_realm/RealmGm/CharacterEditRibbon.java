@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmGm;
 
 import java.awt.*;
@@ -75,7 +58,11 @@ public class CharacterEditRibbon extends JPanel {
 	private void initComponents() {
 		setLayout(new BorderLayout());
 		Box box = Box.createVerticalBox();
-		setBorder(BorderFactory.createTitledBorder(character.getName()));
+		String title = character.getName();
+		if (character.isDead()) {
+			title = title + "- DEAD";
+		}
+		setBorder(BorderFactory.createTitledBorder(title));
 		if (character.hasCheated()) {
 			Box line = Box.createHorizontalBox();
 			JButton removeCheaterFlag = new JButton("Remove \"Cheater!\" flag from character.");
@@ -312,16 +299,16 @@ public class CharacterEditRibbon extends JPanel {
 		
 		return panel;
 	}
-	private JLabel addStatAdjusters(JPanel panel,String title,UpDownButton adjusters) {
-		panel.add(new JLabel(title,JLabel.RIGHT));
+	private static JLabel addStatAdjusters(JPanel panel,String title,UpDownButton adjusters) {
+		panel.add(new JLabel(title,SwingConstants.RIGHT));
 		Box line = Box.createHorizontalBox();
 		JLabel label;
-		line.add(label = new JLabel("",JLabel.RIGHT));
+		line.add(label = new JLabel("",SwingConstants.RIGHT));
 		label.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createLoweredBevelBorder(),
 				BorderFactory.createEmptyBorder(2,2,2,2)));
 		ComponentTools.lockComponentSize(label,50,25);
-		ComponentTools.lockComponentSize(adjusters,100,25);
+		ComponentTools.lockComponentSize(adjusters,80,25);
 		line.add(adjusters);
 		line.add(Box.createHorizontalGlue());
 		panel.add(line);
@@ -438,26 +425,31 @@ public class CharacterEditRibbon extends JPanel {
 		}
 	}
 	private ArrayList<String[]> getRelationshipNames() {
-		ArrayList<String[]> relationshipNames;
-		ArrayList keyVals = new ArrayList();
+		ArrayList<String[]> relationshipNames = new ArrayList<String[]>();
+		ArrayList<String> keyVals = new ArrayList<String>();
 		HostPrefWrapper	hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
 		keyVals.add(hostPrefs.getGameKeyVals());
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());
-		relationshipNames = new ArrayList<String[]>();
 		for (GameObject nativeLeader : pool.find("native,rank=HQ")) {
 			String nativeName = nativeLeader.getThisAttribute("native");
 			String relBlock = RealmUtility.getRelationshipBlockFor(nativeLeader);
-			String[] ret = new String[2];
+			String[] ret = new String[3];
 			ret[0] = relBlock;
 			ret[1] = "N" + StringUtilities.capitalize(nativeName);
+			if (nativeLeader.hasThisAttribute(Constants.ROVING_NATIVE)) {
+				ret[2] = Constants.ROVING_NATIVE;
+			}
 			relationshipNames.add(ret);
 		}
-		for (GameObject visitor : pool.find("visitor")) {
-			String visitorName = visitor.getThisAttribute("visitor");
+		for (GameObject visitor : pool.find(Constants.VISITOR)) {
+			String visitorName = visitor.getThisAttribute(Constants.VISITOR);
 			String relBlock = RealmUtility.getRelationshipBlockFor(visitor);
-			String[] ret = new String[2];
+			String[] ret = new String[3];
 			ret[0] = relBlock;
 			ret[1] = "V" + StringUtilities.capitalize(visitorName);
+			if (visitor.hasThisAttribute(Constants.ROVING_NATIVE)) {
+				ret[2] = Constants.ROVING_NATIVE;
+			}
 			relationshipNames.add(ret);
 		}
 		Collections.sort(relationshipNames, new Comparator<String[]>() {
@@ -530,7 +522,7 @@ public class CharacterEditRibbon extends JPanel {
 		public boolean isAlive(SpellWrapper spell) {
 			boolean alive = spell.isAlive();
 			if (!alive) {
-				ArrayList<GameObject> vs = character.getAllVirtualSpellsFor(spell.getGameObject());
+				ArrayList<GameObject> vs = CharacterWrapper.getAllVirtualSpellsFor(spell.getGameObject());
 				for(GameObject go:vs) {
 					SpellWrapper virt = new SpellWrapper(go);
 					if (virt.isAlive()) {

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.MRCBuilder;
 
 import java.awt.*;
@@ -266,12 +249,9 @@ public class MRCBuilder extends JFrame implements ActionListener {
 					stringbuffer.append(", ");
 				stringbuffer.append((String) vector.elementAt(i));
 			}
-
 			return stringbuffer.toString();
 		}
-		else {
-			return "";
-		}
+		return "";
 	}
 
 	public int addAdvantagesToImage(Graphics g, String s, Vector vector, int i) {
@@ -285,7 +265,7 @@ public class MRCBuilder extends JFrame implements ActionListener {
 			for (int k = 0; k < j; k++) {
 				OutlineEntry outlineentry = (OutlineEntry) vector.elementAt(k);
 				g.setFont(font);
-				String s1 = (new Integer(k + 1)).toString() + ".)";
+				String s1 = (Integer.valueOf(k + 1)).toString() + ".)";
 				g.drawString(s1, 15, i);
 				int l = g.getFontMetrics().stringWidth(s1) + 10;
 				String s2 = "<b>" + outlineentry.getHeader().toUpperCase() + ":</b>  " + outlineentry.getContent();
@@ -430,9 +410,7 @@ public class MRCBuilder extends JFrame implements ActionListener {
 			Image image = Toolkit.getDefaultToolkit().getImage(url);
 			return new ImageIcon(image);
 		}
-		else {
-			return new ImageIcon(s);
-		}
+		return new ImageIcon(s);
 	}
 
 	public void loadSymbolIcon() {

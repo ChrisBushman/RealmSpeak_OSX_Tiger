@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest.requirement;
 
 import java.util.ArrayList;
@@ -31,14 +14,14 @@ public class QuestRequirementParams {
 	public String actionName;
 	public CharacterActionType actionType = CharacterActionType.Unknown; // default
 	public String dayKey;
-
+	public ArrayList<GameObject> objectList =  new ArrayList<GameObject>();
+	public ColorMagic burnedColor;
+	
 	// Search stuff
 	public int dieResult;
 	public SearchResultType searchType = SearchResultType.Any;
 	public GameObject targetOfSearch;
-	public ArrayList<GameObject> objectList =  new ArrayList<GameObject>();
 	public boolean searchHadAnEffect;
-	public ColorMagic burnedColor;
 	
 	public QuestRequirementParams copy(GameData gameData) {
 		return valueOf(asString(),gameData);
@@ -65,7 +48,7 @@ public class QuestRequirementParams {
 		list.add(targetOfSearch==null?"null":targetOfSearch.getStringId());
 		if (objectList!=null) {
 			for(GameObject res:objectList) {
-				list.add(res.getStringId());
+				if (res!=null) list.add(res.getStringId());
 			}
 		}
 		return StringUtilities.collectionToString(list,"@");
@@ -78,7 +61,7 @@ public class QuestRequirementParams {
 			qp.actionName = list.get(1)==null?null:list.get(1);
 			qp.dayKey = list.get(2)==null?null:list.get(2);
 			qp.actionType = CharacterActionType.valueOf(list.get(3));
-			qp.dieResult = Integer.valueOf(list.get(4));
+			qp.dieResult = Integer.parseInt(list.get(4));
 			qp.searchType = SearchResultType.valueOf(list.get(5));
 			qp.searchHadAnEffect = "T".equals(list.get(6));
 			qp.targetOfSearch = readGameObject(list.get(7),gameData);

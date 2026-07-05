@@ -1,39 +1,26 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
+import javax.swing.JButton;
+import javax.swing.JPanel;
 
+import com.robin.game.objects.GameObject;
 import com.robin.general.graphics.GraphicsUtil;
 import com.robin.general.util.StringUtilities;
+import com.robin.magic_realm.components.BattleHorse;
+import com.robin.magic_realm.components.RealmComponent;
 import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
+import com.robin.magic_realm.components.wrapper.CombatWrapper;
 
-public class CombatSummarySheet extends JLabel {
+public class CombatSummarySheet extends JPanel {
 	private static final String[] COMBAT_STAGES  = {
 		"Prebattle",
 		"Luring",
@@ -48,31 +35,38 @@ public class CombatSummarySheet extends JLabel {
 		"Disengage",
 	};
 	
-	private ArrayList characters;
+	private ArrayList<CharacterWrapper> characters;
+	private BattleModel battleModel;
+	private CombatFrame combatFrame;
 	
-	public CombatSummarySheet(ArrayList characters) { // These will be CharacterWrapper objects (ultimately)
-		super("");
+	public CombatSummarySheet(CombatFrame combatFrame) {
+		super();
+		this.battleModel = combatFrame.getBattleModel();
+		this.combatFrame = combatFrame;
+		ArrayList<CharacterWrapper> characters = new ArrayList<CharacterWrapper>();
+		for (RealmComponent rc : battleModel.getAllParticipatingCharacters()) {
+			characters.add(new CharacterWrapper(rc.getGameObject()));
+		}
 		this.characters = characters;
-		Collections.sort(characters,new Comparator() {
-			public int compare(Object o1,Object o2) {
+		Collections.sort(characters,new Comparator<CharacterWrapper>() {
+			public int compare(CharacterWrapper c1,CharacterWrapper c2) {
 				int ret = 0;
-				CharacterWrapper c1 = (CharacterWrapper)o1;
-				CharacterWrapper c2 = (CharacterWrapper)o2;
 				ret = c1.getCombatPlayOrder()-c2.getCombatPlayOrder();
+				if (ret==0) {
+					ret = c1.getGameObject().getName().compareTo(c2.getGameObject().getName());
+				}
 				return ret;
 			}
 		});
-		BufferedImage bi = new BufferedImage(595,748,BufferedImage.TYPE_3BYTE_BGR); // same size as character combat
-		Graphics g = bi.getGraphics();
-		g.setColor(Color.white);
-		g.fillRect(0,0,595,748);
-		setIcon(new ImageIcon(bi));
+		this.setLayout(null);
 	}
 	private Font STAGE_FONT = new Font("Dialog",Font.BOLD,12);
 	private Color STAGE_SECTION_COLOR = new Color(200,255,200,150);
 	private Color NAME_SECTION_COLOR = new Color(200,200,255,150);
 	private Color NUMBER_BOX_COLOR = new Color(0,0,0,100);
 	private Stroke MARK_STROKE = new BasicStroke(3,BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND);
+	private int buttonWidth = 70;
+	private int buttonHeight = 20;
 	public void paintComponent(Graphics g1) {
 		super.paintComponent(g1);
 		g1.setFont(STAGE_FONT);
@@ -95,8 +89,7 @@ public class CombatSummarySheet extends JLabel {
 		g.setColor(Color.black);
 		x = 10;
 		y = 180;
-		for (Iterator i=characters.iterator();i.hasNext();) {
-			CharacterWrapper character = (CharacterWrapper)i.next();
+		for (CharacterWrapper character : characters) {
 			String name = character.getGameObject().getName();
 			g.drawString(name,x,y);
 			y += 30;
@@ -128,7 +121,7 @@ public class CombatSummarySheet extends JLabel {
 		Stroke normalStroke = g.getStroke();
 		
 		for (int r=0;r<characters.size();r++) {
-			CharacterWrapper character = (CharacterWrapper)characters.get(r);
+			CharacterWrapper character = characters.get(r);
 			boolean active = true;
 			int stage = character.getCombatStatus();
 			if (stage>Constants.COMBAT_WAIT) {
@@ -167,15 +160,12 @@ public class CombatSummarySheet extends JLabel {
 			}
 		}
 		
-		// List battling natives
+		// List battling natives for each character
 		x = 5;
 		y = listBottom;
 		g.setColor(Color.black);
-		for (Iterator i=characters.iterator();i.hasNext();) {
-			CharacterWrapper character = (CharacterWrapper)i.next();
-			for (Iterator n=character.getBattlingNativeGroups().iterator();n.hasNext();) {
-				String groupName = (String)n.next();
-				
+		for (CharacterWrapper character : characters) {
+			for (String groupName : character.getBattlingNativeGroups()) {
 				StringBuffer sb = new StringBuffer();
 				sb.append("The ");
 				sb.append(StringUtilities.capitalize(groupName));
@@ -187,8 +177,113 @@ public class CombatSummarySheet extends JLabel {
 				y += 20;
 			}
 		}
+		y += 40;
+		
+		// Battle overview
+		g.drawString("DEFENDER",x+90,y);
+		g.drawString("ATTACKERS",x+200,y);
+		y -= 45;
+		int row=0;
+		for (final RealmComponent battleParticipant : combatFrame.getAllParticipants()) {
+			CombatWrapper cr = new CombatWrapper(battleParticipant.getGameObject());
+			row+=1;
+			y += 90;
+			g.drawImage(battleParticipant.getImage(),x+80,y-40,80,80,null);		
+			JButton chartButton = new JButton("Sheet");
+			final int rcRow = row;
+			chartButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ev) {
+					combatFrame.participantTable.setRowSelectionInterval(rcRow,rcRow);
+				}
+			});
+			chartButton.setBounds(x,y-10,buttonWidth,buttonHeight);
+			add(chartButton);
+			
+			RealmComponent owner = battleParticipant.getOwner();
+			boolean isOwnedByActive = (owner!=null && owner.equals(combatFrame.getActiveParticipant()));
+			if (combatFrame.getActionState() == Constants.COMBAT_LURE && CombatFrame.isInteractiveFrame()) {
+				if (combatFrame.areDenizensToLure() && (combatFrame.getActiveParticipant() ==  battleParticipant || isOwnedByActive) && !battleParticipant.isMistLike() ) {
+					JButton lureButton = new JButton("Lure");
+					lureButton.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent ev) {
+							if (battleParticipant.isCharacter()) {
+								combatFrame.lureDenizens(battleParticipant,0,0,true);
+							} else {
+								DenizenCombatSheet denizenSheet = new DenizenCombatSheet(combatFrame,combatFrame.getBattleModel(),battleParticipant,false,null);
+								if (denizenSheet.canLureMoreDenizens()) {
+									DenizenCombatSheet.lureDenizens(combatFrame,battleParticipant);
+								}
+								else {
+									DenizenCombatSheet.showDialogOnlySingleDenizenCanBeLured(combatFrame);
+								}
+							}
+						}
+					});
+					lureButton.setBounds(x,y-35,buttonWidth,buttonHeight);
+					add(lureButton);
+				}
+				if (!battleParticipant.isCharacter() && DenizenCombatSheet.denizenCanFlip(battleParticipant)) {
+					JButton flip = new JButton("Flip");
+					flip.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent ev) {
+							battleParticipant.flip();
+							combatFrame.repaintCombatSheetPanel();
+						}
+					});
+					flip.setBounds(x,y+12,buttonWidth,12);
+					add(flip);	
+				}
+				if (!battleParticipant.isCharacter() && battleParticipant.hasHorse()) {
+					JButton flipHorse = new JButton("FlipSteed");
+					flipHorse.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent ev) {
+							BattleHorse horse = battleParticipant.getHorse();
+							horse.flip();
+						}
+					});
+					flipHorse.setBounds(x-5,y+25,76,12);
+					add(flipHorse);	
+				}
+			}
+			
+			int xAttacker = x+110;
+			int attackerCount = 0;
+			for (GameObject attacker : cr.getAttackers()) {
+				if (attackerCount != 0 && attackerCount % 4 == 0) {
+					y += 90;
+					xAttacker = x+110;
+				}
+				xAttacker += 90;
+				RealmComponent attackerRc = RealmComponent.getRealmComponent(attacker);
+				g.drawImage(attackerRc.getImage(),xAttacker,y-40,80,80,null);
+				attackerCount += 1;
+			}
+		}
+		y += 80;
+		
+		/*
+		int yUnassignedHeadline = y;
+		y += 50;
+		int xUnassigned = x;
+		int unassignedCount = 0;
+		for (RealmComponent battleParticipant : battleModel.getAllBattleParticipants(true)) {
+			if (unassignedCount != 0 && unassignedCount % 6 == 0) {
+				y += 90;
+				xUnassigned = x;
+			}
+			CombatWrapper cr = new CombatWrapper(battleParticipant.getGameObject());
+			if (!cr.isSheetOwner() && cr.getAttackerCount() == 0 && !battleParticipant.hasTarget()) {
+				g.drawImage(battleParticipant.getImage(),xUnassigned,y-40,80,80,null);
+				xUnassigned += 90;
+				unassignedCount +=1;
+			}
+		}
+		if (unassignedCount != 0) {
+			g.drawString("UNASSIGNED",x+10,yUnassignedHeadline);
+		}
+		*/
 	}
-	private Rectangle getRectangleForPosition(int row,int col) {
+	private static Rectangle getRectangleForPosition(int row,int col) {
 		int x = (col * 30) + 132;
 		int y = (row * 30) + 162;
 		return new Rectangle(x,y,24,24);

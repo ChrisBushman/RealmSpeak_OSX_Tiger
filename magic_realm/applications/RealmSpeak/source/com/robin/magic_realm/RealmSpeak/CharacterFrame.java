@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
@@ -28,6 +11,7 @@ import javax.swing.event.ChangeEvent;
 import com.robin.game.objects.GameObject;
 import com.robin.game.objects.GamePool;
 import com.robin.general.swing.*;
+import com.robin.general.util.RandomNumber;
 import com.robin.magic_realm.components.*;
 import com.robin.magic_realm.components.attribute.*;
 import com.robin.magic_realm.components.quest.*;
@@ -49,6 +33,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 
 	protected JPanel tokenPanel;
 	protected JLabel charLabel;
+	private boolean centeredOnToken = false;
 	protected MoveMarker mountainMoveIcon;
 	protected CharacterWrapper character;
 	protected HostPrefWrapper hostPrefs;
@@ -59,18 +44,23 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	
 	// These buttons are lit, and only displayed one at a time
 	protected SingleButton vpSetupButton;
+	protected SingleButton vpDeductButton;
 	protected SingleButton chooseQuestButton;
 	protected SingleButton advancementButton;
 	protected SingleButton gsPlacementButton;
+	protected SingleButton enchantButton;
+	protected SingleButton alertButton;
 	protected SingleButton restButton;
 	protected SingleButton fatigueButton;
 	protected SingleButton woundButton;
 	protected SingleButton energizeChoiceButton;
+	protected SingleButton playColorChitNowButton;
 	protected SingleButton blockNowButton;
 	protected SingleButton doneTradingButton;
 	protected SingleButton stopFollowingButton;
 	protected SingleButton approveInventoryButton;
 	protected SingleButton gsPickupButton; // This is the only optional SingleButton
+	protected SingleButton guildBenefitButton; // This is the only optional SingleButton
 	protected SingleButtonManager singleButtonManager;
 	
 	protected JButton viewChitsButton;
@@ -80,6 +70,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	protected JButton tradeButton;
 	protected JCheckBox dailyCombatCheckbox;
 	protected JCheckBox dayEndRearrangmentCheckbox;
+	protected JCheckBox keepBlockingCheckbox;
 	protected JLabel characterVulnerability;
 
 	protected JPanel characterDetailPanel;
@@ -180,16 +171,15 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		character.setActiveFamiliar(active);
 	}
 	private void updateAvailableColorMagic() {
-		Collection colors = character.getChitColorSources();
-		if (hostPrefs.hasPref(Constants.OPT_ENHANCED_ARTIFACTS)) {
+		Collection<ColorMagic> colors = character.getChitColorSources();
+		if (hostPrefs.hasPref(Constants.OPT_ENHANCED_ARTIFACTS) || character.affectedByKey(Constants.ENHANCED_ARTIFACTS)) {
 			colors.addAll(character.getEnchantedArtifactColorSources());
 		}
 		colors.addAll(character.getInfiniteColorSources());
 
 		// Update the GUI
 		availableColorMagicBox.removeAll();
-		for (Iterator i = colors.iterator(); i.hasNext();) {
-			ColorMagic cm = (ColorMagic) i.next();
+		for (ColorMagic cm : colors) {
 			JLabel label = new JLabel();
 			label.setIcon(cm.getIcon());
 			availableColorMagicBox.add(label);
@@ -209,7 +199,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	public static void updateActiveCurses(CharacterWrapper character,Box box) {
 		boolean nullified = character.isNullifiedCurses();
 		String postfix = nullified ? " (NULLIFIED)" : "";
-		Collection curses = character.getAllCurses();
+		Collection<String> curses = character.getAllCurses();
 		if (curses.contains(Constants.EYEMIST)) {
 			JLabel label = new JLabel(ImageCache.getIcon("curse/eyemist"));
 			label.setEnabled(!nullified);
@@ -246,46 +236,16 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 			label.setToolTipText("Disgust - FAME is worthless" + postfix);
 			box.add(label);
 		}
-	}
-	
-	public ArrayList<RealmComponent> getPossibleBlockees() {
-		ArrayList<RealmComponent> list = null;
-		if (blockButton.isSelected()) {
-			TileLocation current = getCharacter().getCurrentLocation();
-			if (current!=null && current.isInClearing()) {
-				list = new ArrayList<RealmComponent>();
-				boolean takingTurn = getCharacter().isPlayingTurn() && getCharacter().hasDoneActionsToday();
-				for (Iterator i=current.clearing.getClearingComponents().iterator();i.hasNext();) {
-					RealmComponent rc = (RealmComponent)i.next();
-					// Check to see that this component is not yourself, and one of:  character, hired leader, or ANY monster
-					// (Yeah, you could block unhired natives, but what's the point?)
-					if (!rc.getGameObject().equals(getCharacter().getGameObject())) {
-						if (rc.isPlayerControlledLeader()) {
-							CharacterWrapper target = new CharacterWrapper(rc.getGameObject());
-							boolean targetPlayingTurn = target.isPlayingTurn() && target.hasDoneActionsToday();
-							// Make sure that either the blocking character is taking a turn, or the target is
-							if (takingTurn || targetPlayingTurn) {
-								if (!target.isHidden() || getCharacter().foundHiddenEnemy(rc.getGameObject())) {
-									if (!target.isBlocked() && !getCharacter().hasBlockDecision(target.getGameObject())) {
-										// Jeese, ENOUGH conditions to get here!!!!!  :)
-										list.add(rc);
-									}
-								}
-							}
-						}
-						else if (rc.isMonster()) {
-							MonsterChitComponent monster = (MonsterChitComponent)rc;
-							if (!monster.isBlocked()) {
-								list.add(monster);
-							}
-						}
-					}
-				}
-			}
-			
-			
+		if (character.getGameObject().hasThisAttribute(Constants.MESMERIZE)) {
+			JLabel label = new JLabel(ImageCache.getIcon("curse/illhealth"));
+			label.setEnabled(!nullified);
+			Collection<String> list = character.getGameObject().getThisAttributeList(Constants.MESMERIZE);
+			StringBuilder effectsSb = new StringBuilder();
+			for (String s : list) { if (effectsSb.length() > 0) effectsSb.append(", "); effectsSb.append(s); }
+			String effects = effectsSb.toString();
+			label.setToolTipText("Mesmerize - "+effects + postfix);
+			box.add(label);
 		}
-		return list;
 	}
 	private void doBlockNow() {
 		if (blockees!=null && !blockees.isEmpty()) {
@@ -296,18 +256,81 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 			gameHandler.submitChanges();
 			gameHandler.updateCharacterList(); // This is necessary so that THIS client is updated
 		}
+		else if (getCharacter().getNeedsInterruptPhaseDecision()){
+			for (RealmComponent target:getCharacter().checkForBlockingState(true,null)) {
+				handleBlockCharacter(target);
+			}
+			getCharacter().setInterruptPhaseDecision(false);
+			gameHandler.submitChanges();
+			gameHandler.updateCharacterList(); // This is necessary so that THIS client is updated
+		}
 		updateControls();
 	}
+	private void doPlayColorChitNow() {
+		boolean phaseBeginning = getCharacter().getNeedsPlayColorChitInterruptPhaseBeginningDecision();
+		boolean phaseEnd = getCharacter().getNeedsPlayColorChitInterruptPhaseEndDecision();
+		if (phaseBeginning||phaseEnd) {
+			ArrayList<RealmComponent> interruptions = character.checkForColorChitInterruptionState(null,phaseBeginning,phaseEnd);
+			if (interruptions!=null && !interruptions.isEmpty()) {
+				for (RealmComponent target:interruptions) {
+					getCharacter().addColorChitInterruptPhaseBeginningDecision(target.getGameObject());
+				}
+				while(true) {
+					MagicChit playedChit = RealmUtility.burnColorChit(gameHandler.getMainFrame(),gameHandler.getGame(),getCharacter(),hostPrefs.hasPref(Constants.OPT_COLOR_CHIT_TARGETING_NO_HIDDEN_TARGETS));
+					if (playedChit!=null) {
+						int ret = JOptionPane.showConfirmDialog(this,
+								"Do you want to play another color chit?",
+								getCharacter().getGameObject().getName()+" - Playing Color Chit",
+								JOptionPane.YES_NO_OPTION,JOptionPane.PLAIN_MESSAGE);
+						if (ret != JOptionPane.YES_NO_OPTION) {
+							break;
+						}
+					} else {
+						break;
+					}
+				}
+				character.setNeedsPlayColorChitInterruptPhaseDecision(false,phaseBeginning,phaseEnd);
+				gameHandler.submitChanges();
+				gameHandler.updateCharacterList(); // This is necessary so that THIS client is updated
+			}
+			updateControls();
+		}
+	}
 	private void handleBlockCharacter(RealmComponent rc) {
+		if (getCharacter().isSleep()) {
+			JOptionPane.showMessageDialog(this,"Cannot block if sleeping (affected by Flowers of Rest).","Cannot block - Flowers of Rest",JOptionPane.ERROR_MESSAGE);
+			getCharacter().addBlockDecision(rc.getGameObject());
+			return;
+		}
+		if (((getCharacter().getTransmorph()==null && getCharacter().getGameObject().hasThisAttribute(Constants.SMALL)) || (getCharacter().getTransmorph()!=null && getCharacter().getTransmorph().hasThisAttribute(Constants.SMALL))) && hostPrefs.hasPref(Constants.HOUSE3_SMALL_MONSTERS)) {
+			JOptionPane.showMessageDialog(this,"Small individuals cannot block.","Cannot block - Small",JOptionPane.ERROR_MESSAGE);
+			getCharacter().addBlockDecision(rc.getGameObject());
+			return;
+		}
+		if (rc.getGameObject().hasThisAttribute(Constants.BLINDING_LIGHT)) {
+			JOptionPane.showMessageDialog(this,"Cannot block characters affected by Blinding Light.","Cannot block - Blinding Light",JOptionPane.ERROR_MESSAGE);
+			getCharacter().addBlockDecision(rc.getGameObject());
+			return;
+		}
+		CharacterWrapper target = new CharacterWrapper(rc.getGameObject());
+		if (getCharacter().isMistLike() || (target.isMistLike() && !getCharacter().getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE))) {
+			JOptionPane.showMessageDialog(this,"Cannot block as Melt-into-Mist character or block other Melt-into-Mist characters.","Cannot block - Melt into Mist",JOptionPane.ERROR_MESSAGE);
+			getCharacter().addBlockDecision(rc.getGameObject());
+			return;
+		}
+		if (getCharacter().getGameObject().hasThisAttribute(Constants.MEDITATE_NO_BLOCKING) || target.getGameObject().hasThisAttribute(Constants.MEDITATE_NO_BLOCKING)) {
+			JOptionPane.showMessageDialog(this,"You are affected by the Meditate effect or your target is affected by the Medidate effect.","Cannot block - Medidate effect",JOptionPane.ERROR_MESSAGE);
+			getCharacter().addBlockDecision(rc.getGameObject());
+			return;
+		}
 		int ret = JOptionPane.showConfirmDialog(
 				this,
-				"Did you want to block the "+rc.getGameObject().getName()+" ?",
+				"Do you want to block the "+rc.getGameObject().getName()+" ?",
 				getCharacter().getGameObject().getName()+" Blocking",
 				JOptionPane.YES_NO_OPTION,JOptionPane.PLAIN_MESSAGE,rc.getIcon());
 		getCharacter().addBlockDecision(rc.getGameObject());
 		if (ret == JOptionPane.YES_OPTION) {
 			if (rc.isPlayerControlledLeader()) {
-				CharacterWrapper target = new CharacterWrapper(rc.getGameObject());
 				target.setBlocked(true);
 				if (target.isHidden()) { // Getting blocked brings them out of hiding
 					target.setHidden(false);
@@ -351,6 +374,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		setTitle(character.getCharacterName() + " - Month " + character.getCurrentMonth() + ", Day " + character.getCurrentDay()+" - "+phaseName);
 		dailyCombatCheckbox.setSelected(character.getWantsCombat());
 		dayEndRearrangmentCheckbox.setSelected(character.getWantsDayEndTrades());
+		keepBlockingCheckbox.setSelected(character.keepsBlocking());
 		
 		// Update mountain move icon (might change with seasons/weather)
 		mountainMoveIcon.setCost(getCharacter().getMountainMoveCost()+(character.addsOneToMoveExceptCaves()?1:0));
@@ -422,21 +446,17 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		revalidate();
 		repaint();
 		
-		// Check for blocking state
-		blockees = null;
-		if (blockButton.isSelected()) {
-			// Look for characters in the clearing
-			blockees = getPossibleBlockees();
-		}
+		blockees = getCharacter().checkForBlockingState();
+		updateControls();
 	}
 	
 	public void toFront() {
 		super.toFront();
 		updateControls();
 		if (character.isDoRecord()) {
-			ArrayList clearingPlot = getCharacter().getClearingPlot();
+			ArrayList<TileLocation> clearingPlot = getCharacter().getClearingPlot();
 			if (clearingPlot!=null) {
-				gameHandler.getInspector().getMap().setClearingPlot(new ArrayList(clearingPlot));
+				gameHandler.getInspector().getMap().setClearingPlot(new ArrayList<TileLocation>(clearingPlot));
 			}
 			else {
 				gameHandler.getInspector().getMap().clearClearingPlot();
@@ -481,18 +501,35 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		boolean recordingActions = character.isDoRecord() && actionPanel.getActionControlManager().getCurrentlyRecordingAction() == null;
 		boolean canTrade = getCharacter().isCharacter() || getCharacter().isHiredLeader() || getCharacter().isControlledMonster();
 		viewChitsButton.setVisible(character.isHidden() && hostPrefs.hasPref(Constants.OPT_QUIET_MONSTERS));
-		blockButton.setSelected(character.isBlocking());
+		if (!character.isMinion() && character.isBlocking()) {
+			blockButton.setIcon(IconFactory.findIcon("images/interface/blockon.gif"));
+			blockButton.setToolTipText("Block/Reactions ON");
+			blockButton.setSelected(true);
+		}
+		else {
+			blockButton.setIcon(IconFactory.findIcon("images/interface/blockoff.gif"));
+			blockButton.setToolTipText("Block/Reactions OFF");
+			blockButton.setSelected(false);
+		}
 		unhideButton.setEnabled(character.isHidden());
 		tradeButton.setEnabled(active && canTrade && !partway && !character.isSleep() && !gameHandler.getGame().getCharacterPoolLock());
 		shoutButton.setEnabled(tradeButton.isEnabled());
 		singleButtonManager.updateButtonVisibility();
 		if (!gameHandler.isLocal() && singleButtonManager.hasMandatoryShowing()) SoundUtility.playAttention();
-		actionPanel.updateControls(recordingActions && gameHandler.getGame().getGameStarted() && !gameHandler.getGame().isGameOver() && !singleButtonManager.hasMandatoryShowing());
+		actionPanel.updateControls(recordingActions && gameHandler.getGame().getGameStarted() && (!gameHandler.getGame().isGameOver() && !gameHandler.game.getGameEnded()) && !singleButtonManager.hasMandatoryShowing());
 		if (chitPanel != null) {
-			chitPanel.updateControls();
+			if (turnPanel != null && hostPrefs.hasPref(Constants.OPT_DISABLE_ACTIONS_WHEN_AWAITING_REACTIONS)) {
+				chitPanel.updateControls(turnPanel.isAwaitingReactions());
+			} else {
+				chitPanel.updateControls(false);
+			}
 		}
 		if (inventoryPanel != null) {
-			inventoryPanel.updateControls(recordingActions);
+			if (turnPanel != null && hostPrefs.hasPref(Constants.OPT_DISABLE_ACTIONS_WHEN_AWAITING_REACTIONS)) {
+				inventoryPanel.updateControls(recordingActions,turnPanel.isAwaitingReactions());
+			} else {
+				inventoryPanel.updateControls(recordingActions,false);
+			}
 		}
 		if (turnPanel != null) {
 			turnPanel.updateControls();
@@ -509,10 +546,25 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	public boolean isWaitingForSingleButton() {
 		return singleButtonManager.hasMandatoryShowing();
 	}
+	
+	public void updateSingleButton() {
+		if (singleButtonManager!=null) {
+			singleButtonManager.updateButtonVisibility();
+		}
+	}
 
 	private void setupVPs() {
 		int vps = character.getNewVPRequirement();
-		CharacterVictoryConditionsDialog vpDialog = new CharacterVictoryConditionsDialog(gameHandler.getMainFrame(), character, new Integer(vps));
+		CharacterVictoryConditionsDialog vpDialog = new CharacterVictoryConditionsDialog(gameHandler.getMainFrame(), character, vps);
+		vpDialog.setLocationRelativeTo(this);
+		vpDialog.setVisible(true);
+		gameHandler.submitChanges();
+		updateControls();
+	}
+	private void deductVPs() {
+		int vps = character.getTotalAssignedVPs();
+		int deduct = character.getVPsToDeduct();
+		CharacterVictoryConditionsDialog vpDialog = new CharacterVictoryConditionsDialog(gameHandler.getMainFrame(), character, vps, deduct);
 		vpDialog.setLocationRelativeTo(this);
 		vpDialog.setVisible(true);
 		gameHandler.submitChanges();
@@ -522,9 +574,24 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	 * This is really only for the Book of Quests game play
 	 */
 	private void chooseQuest() {
-		ArrayList<Quest> quests = QuestLoader.findAvailableQuests(character,hostPrefs);
-		Quest quest = QuestChooser.chooseQuest(gameHandler.getMainFrame(),quests);
+		ArrayList<Quest> quests = new ArrayList<Quest>();
+		if (hostPrefs.isUsingGuildQuests()) {
+			String guildName = character.getCurrentLocation().clearing.getGuild().getGameObject().getThisAttribute("guild");
+			for (Quest quest : QuestLoader.findAvailableQuests(character,hostPrefs)) {
+				if (quest.getGuild().matches(guildName)) {
+					quests.add(quest);
+				}
+			}
+		}
+		else {
+			 quests = QuestLoader.findAvailableQuests(character,hostPrefs);
+		}
+		Quest quest = QuestChooser.chooseQuest(gameHandler.getMainFrame(),quests,getCharacter());
 		if (quest!=null) {
+			if (quest.isMultipleUse()) {
+				quest = quest.copyQuestToGameData(character.getGameObject().getGameData());
+			}
+			
 			// Make the quest active by default (Book of Quests)
 			quest.setState(QuestState.Active,getCharacter().getCurrentDayKey(), getCharacter());
 			
@@ -536,6 +603,9 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 			
 			// finally update the character
 			updateCharacter();
+			
+			// update map, some quests need it
+			gameHandler.getInspector().redrawMap();
 		}
 		updateControls();
 	}
@@ -563,7 +633,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 				destination.add(chit.getGameObject());
 				destination.setThisAttribute(Constants.GOLD_SPECIAL_PLACED);
 				chit.getGameObject().setThisAttribute(Constants.GOLD_SPECIAL_PLACED);
-				if (!hostPrefs.hasPref(Constants.HOUSE2_NO_MISSION_VISITOR_FLIPSIDE)) {
+				if (!hostPrefs.hasPref(Constants.HOUSE2_NO_MISSION_VISITOR_FLIPSIDE) && !hostPrefs.usesSuperRealm()) {
 					chit.getOtherSide().getGameObject().setThisAttribute(Constants.GOLD_SPECIAL_PLACED);
 				}
 				if (getCharacter().getNeedsChooseGoldSpecial() && SetupCardUtility.stillChitsToPlace(hostPrefs)) {
@@ -607,19 +677,12 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	}
 
 	private void pickupGoldSpecial() {
-		/*
-		 * Need to:
-		 * 	- allow only ONE campaign chit
-		 * 	- show gs chits in inventory (but not activateable)
-		 */
 		RealmComponent chosenGS = null;
-		RealmComponent rc = null;
-		ArrayList list = new ArrayList();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		TileLocation tl = getCharacter().getCurrentLocation();
 		if (tl.isInClearing()) {
-			for (Iterator n = tl.clearing.getClearingComponents().iterator(); n.hasNext();) {
-				rc = (RealmComponent) n.next();
-				if (rc.isGoldSpecial() && !rc.isVisitor()) {
+			for (RealmComponent rc : tl.clearing.getClearingComponents()) {
+				if (rc.isGoldSpecial() && !rc.isVisitor() && !rc.isNomad() && !rc.getGameObject().hasThisAttribute(Constants.DRAW_BACKSIDE)) {
 					list.add(rc);
 					chosenGS = rc;
 				}
@@ -639,7 +702,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 				GoldSpecialChitComponent gsrc = (GoldSpecialChitComponent) chosenGS;
 				// Chit has been chosen, now verify this is what they want!
 				JEditorPane pane = new JEditorPane("text/html", gsrc.generateHTML(character)) {
-					public boolean isFocusTraversable() {
+					public boolean isFocusable() {
 						return false;
 					}
 				};
@@ -649,22 +712,206 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 				int ret = JOptionPane.showConfirmDialog(gameHandler.getMainFrame(), pane, "Pickup " + gsrc.getGameObject().getName() + "?", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, gsrc.getIcon());
 				if (ret == JOptionPane.YES_OPTION) {
 					// Verify the character can afford it
+					if (gsrc.isCampaign() && hostPrefs.hasPref(Constants.SR_ADV_BOUNTY_HUNTER)) {
+						GamePool pool = new GamePool(character.getGameData().getGameObjects());
+						ArrayList<GameObject> nativeLeaders = pool.find("native,rank=HQ");
+						ArrayList<String> enemyClansToCharacter = new ArrayList<String>();
+						ArrayList<String> notEnemyClansToCharacter = new ArrayList<String>();
+						for (GameObject nativeLeader : nativeLeaders) {
+							if (!nativeLeader.hasThisAttribute(Constants.CLAN)) continue;
+							if (character.getRelationship(nativeLeader)<=-2) {
+								if (!enemyClansToCharacter.contains(nativeLeader.getThisAttribute(Constants.CLAN))) {
+									enemyClansToCharacter.add(nativeLeader.getThisAttribute(Constants.CLAN));
+								}
+							} else {
+								notEnemyClansToCharacter.add(nativeLeader.getThisAttribute(Constants.CLAN));
+							}
+						}
+						for (String clan : notEnemyClansToCharacter) {
+							enemyClansToCharacter.remove(clan);
+						}
+						if (enemyClansToCharacter.isEmpty()) {	
+							ArrayList<RealmComponent> foes = new ArrayList<RealmComponent>();
+							ArrayList<RealmComponent> foesToClan1 = new ArrayList<RealmComponent>();
+							ArrayList<GameObject> livingCharacters = RealmUtility.getLivingCharacters(character.getGameData());
+							for (GameObject livingCharacter : livingCharacters) {
+								if (livingCharacter.getStringId().matches(character.getGameObject().getStringId())) continue;
+								CharacterWrapper livingCharacterWrapper = new CharacterWrapper(livingCharacter);
+								if (livingCharacterWrapper.isHiredLeader() || livingCharacterWrapper.isMinion()) continue;
+								ArrayList<String> enemyClans = new ArrayList<String>();
+								ArrayList<String> notEnemyClans = new ArrayList<String>();
+								for (GameObject nativeLeader : nativeLeaders) {
+									if (!nativeLeader.hasThisAttribute(Constants.CLAN)) continue;
+									if (livingCharacterWrapper.getRelationship(nativeLeader)<=-2) {
+										if (!enemyClans.contains(nativeLeader.getThisAttribute(Constants.CLAN))) {
+											enemyClans.add(nativeLeader.getThisAttribute(Constants.CLAN));
+										}
+									} else {
+										if (!notEnemyClans.contains(nativeLeader.getThisAttribute(Constants.CLAN))) {
+											notEnemyClans.add(nativeLeader.getThisAttribute(Constants.CLAN));
+										}
+									}
+								}
+								for (String clan : notEnemyClans) {
+									enemyClans.remove(clan);
+								}
+								if (!enemyClans.isEmpty()) {
+									if (enemyClans.contains("1")) {
+										foesToClan1.add(RealmComponent.getRealmComponent(livingCharacter));
+									}
+									else {
+										foes.add(RealmComponent.getRealmComponent(livingCharacter));
+									}
+								}
+							}
+							int bountyHunterQuestion = JOptionPane.showConfirmDialog(gameHandler.getMainFrame(), "Pickup " + gsrc.getGameObject().getName() + " as Bounty Hunter?", "Pickup " + gsrc.getGameObject().getName() + " as Bounty Hunter?", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, gsrc.getIcon());
+							if (bountyHunterQuestion == JOptionPane.YES_OPTION) {
+								if (foesToClan1.isEmpty() && foes.isEmpty()) {
+									JOptionPane.showMessageDialog(gameHandler.getMainFrame(), "There are no targets for a Bounty Hunter.", "No Bounty Hunter targets", JOptionPane.ERROR_MESSAGE);
+									return;
+								}
+								RealmComponent target = null;
+								if (foesToClan1.isEmpty() && foes.size()==1) {
+									target = foes.get(0);
+								} else if (foes.isEmpty() && foesToClan1.size()==1) {
+									target = foes.get(0);
+								} else {
+									RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(gameHandler.getMainFrame(),"Which character will be the foe?",false);
+									for (RealmComponent foe : foes) {
+										chooser.addRealmComponent(foe);
+									}
+									for (RealmComponent foe : foesToClan1) {
+										chooser.addRealmComponent(foe);
+									}
+									chooser.setVisible(true);
+									target = chooser.getFirstSelectedComponent();
+								}
+								if (character.getNotoriety()<15) {
+									JOptionPane.showMessageDialog(gameHandler.getMainFrame(), "You do not have enough recorded notoriety points to collect this campaign as Bounty Hunter.", "Not enough notoriety points", JOptionPane.ERROR_MESSAGE);
+									return;
+								}
+								if (foesToClan1.contains(target) && character.getFame()<8) {
+									JOptionPane.showMessageDialog(gameHandler.getMainFrame(), "You do not have enough recorded fame points to collect this campaign as Bounty Hunter.", "Not enough fame points", JOptionPane.ERROR_MESSAGE);
+									return;
+								}
+								gsrc.getGameObject().setThisAttribute(Constants.BOUNTY_HUNTER,target.getGameObject().getStringId());
+								gsrc.getGameObject().setThisAttribute(Constants.BOUNTY_HUNTER_TARGET,target.getGameObject().getName());
+								
+								if (gsrc.getGameObject().hasThisAttribute("fame_cost")) {
+									gsrc.getGameObject().setThisAttribute(Constants.CAMPAIGN_FAME,gsrc.getGameObject().getThisAttribute("fame_cost"));
+									gsrc.getGameObject().removeThisAttribute("fame_cost");
+								}
+								if (foesToClan1.contains(target)) {
+									gsrc.getGameObject().setThisAttribute("fame_cost",8);
+								}
+								if (gsrc.getGameObject().hasThisAttribute("notoriety_cost")) {
+									gsrc.getGameObject().setThisAttribute(Constants.CAMPAIGN_NOTORIETY,gsrc.getGameObject().getThisAttribute("notoriety_cost"));
+									gsrc.getGameObject().removeThisAttribute("notoriety_cost");
+								}
+								gsrc.getGameObject().setThisAttribute("notoriety_cost",15);
+								
+								if (gsrc.getGameObject().hasThisAttribute("foe")) {
+									gsrc.getGameObject().setThisAttribute(Constants.CAMPAGIN_FOE,gsrc.getGameObject().getThisAttribute("foe"));
+									gsrc.getGameObject().removeThisAttribute("foe");
+								}
+								
+								if (gsrc.getGameObject().hasThisAttribute("partner")) {
+									gsrc.getGameObject().setThisAttribute(Constants.CAMPAGIN_PARTNER,gsrc.getGameObject().getThisAttribute("partner"));
+									gsrc.getGameObject().removeThisAttribute("partner");
+								}
+								CharacterWrapper targetedCharacter = new CharacterWrapper(target.getGameObject());
+								ArrayList<String> foeNatives = new ArrayList<String>();
+								for (GameObject nativeLeader : nativeLeaders) {
+									if (!nativeLeader.hasThisAttribute(Constants.CLAN)) continue;
+									if (targetedCharacter.getRelationship(nativeLeader)<=-2) {
+										String groupName = nativeLeader.getThisAttribute("native").toLowerCase();
+										if (groupName!=null && !foeNatives.contains(groupName)) {
+											foeNatives.add(groupName);
+										}
+									}
+								}
+								StringBuilder allGroups = new StringBuilder();
+								if (!foeNatives.isEmpty()) {
+									for (String group : foeNatives) {
+										allGroups.append(group+",");
+									}
+								}
+								allGroups.append("mercenaries");
+								gsrc.getGameObject().setThisAttribute("partner",allGroups.toString());
+								
+								gsrc.setup(getCharacter());
+								character.getGameObject().add(gsrc.getGameObject());
+								gsrc.getGameObject().removeThisAttribute("clearing");
+								QuestRequirementParams qp = new QuestRequirementParams();
+								qp.actionName = gsrc.getGameObject().getName();
+								qp.actionType = CharacterActionType.PickUpMissionCampaign;
+								qp.targetOfSearch = gsrc.getGameObject();
+								if(getCharacter().testQuestRequirements(gameHandler.getMainFrame(),qp)) {
+									gameHandler.getInspector().redrawMap();
+								}
+		
+								gameHandler.submitChanges();
+								gameHandler.updateCharacterFrames();
+								return;
+							}
+						}
+					}
 					if (hostPrefs.hasPref(Constants.HOUSE2_CAMPAIGN_DEBT) || gsrc.meetsPointRequirement(getCharacter())) {
 						if (!gsrc.isComplete(getCharacter(),getCharacter().getCurrentLocation())) {
-							// Setup campaign/mission (do this BEFORE picking up chit, so clearing count is accurate!)
-							gsrc.setup(getCharacter());
-	
-							// Pickup chit
-							getCharacter().getGameObject().add(gsrc.getGameObject());
-							gsrc.getGameObject().removeThisAttribute("clearing");
-							QuestRequirementParams qp = new QuestRequirementParams();
-							qp.actionName = gsrc.getGameObject().getName();
-							qp.actionType = CharacterActionType.PickUpMissionCampaign;
-							qp.targetOfSearch = gsrc.getGameObject();
-							getCharacter().testQuestRequirements(gameHandler.getMainFrame(),qp);
-	
-							gameHandler.submitChanges();
-							gameHandler.updateCharacterFrames();
+							boolean cannotPickUp = false;
+							if (hostPrefs.hasPref(Constants.SR_COMPLETE_GOLD_SPECIAL_ONLY_ONCE)) {
+								if (gsrc.isMission() && (character.hasMissionCompleted(gsrc.toString()) || character.hasMissionFailed(gsrc.toString()))) {
+									cannotPickUp = true;
+									JOptionPane.showMessageDialog(gameHandler.getMainFrame(), "You cannot pick up a Mission which you have already completed (or failed).", "Already completed mission", JOptionPane.ERROR_MESSAGE);
+								}
+								if (gsrc.isCampaign() && (character.hasCampaignCompleted(gsrc.toString()) || character.hasCampaignFailed(gsrc.toString()) && !hostPrefs.hasPref(Constants.SR_ADV_BOUNTY_HUNTER))) {
+									cannotPickUp = true;
+									JOptionPane.showMessageDialog(gameHandler.getMainFrame(), "You cannot pick up a Campaign which you have already completed (or failed).", "Already completed campaign", JOptionPane.ERROR_MESSAGE);
+								}
+								if (gsrc.isTask() && (character.hasTaskCompleted(gsrc.toString()) || character.hasTaskFailed(gsrc.toString()))) {
+									cannotPickUp = true;
+									JOptionPane.showMessageDialog(gameHandler.getMainFrame(), "You cannot pick up a Task which you have already completed (or failed).", "Already completed task", JOptionPane.ERROR_MESSAGE);
+								}
+							}
+							if (hostPrefs.hasPref(Constants.SR_ONE_OF_EACH_GOLD_SPECIAL)) {
+								boolean hasCampaign = false;
+								boolean hasTask = false;
+								for (GameObject item : character.getInventory()) {
+									if (item.hasThisAttribute(Constants.CAMPAIGN)) {
+										hasCampaign = true;
+									}
+									if (item.hasThisAttribute(Constants.TASK)) {
+										hasTask = true;
+									}
+								}
+								if (gsrc.isCampaign() && hasCampaign) {
+									cannotPickUp = true;
+									JOptionPane.showMessageDialog(gameHandler.getMainFrame(), "You cannot pick up a Campaign if you have already one.", "Campaign already active", JOptionPane.ERROR_MESSAGE);
+								}
+								if (gsrc.isTask() && hasTask) {
+									cannotPickUp = true;
+									JOptionPane.showMessageDialog(gameHandler.getMainFrame(), "You cannot pick up a Task if you have already one.", "Task already active", JOptionPane.ERROR_MESSAGE);
+								}
+							}
+							
+							if (!cannotPickUp) {								
+								// Setup campaign/mission (do this BEFORE picking up chit, so clearing count is accurate!)
+								gsrc.setup(getCharacter());
+		
+								// Pickup chit
+								getCharacter().getGameObject().add(gsrc.getGameObject());
+								gsrc.getGameObject().removeThisAttribute("clearing");
+								QuestRequirementParams qp = new QuestRequirementParams();
+								qp.actionName = gsrc.getGameObject().getName();
+								qp.actionType = CharacterActionType.PickUpMissionCampaign;
+								qp.targetOfSearch = gsrc.getGameObject();
+								if(getCharacter().testQuestRequirements(gameHandler.getMainFrame(),qp)) {
+									gameHandler.getInspector().redrawMap();
+								}
+		
+								gameHandler.submitChanges();
+								gameHandler.updateCharacterFrames();
+							}
 						}
 						else {
 							JOptionPane.showMessageDialog(gameHandler.getMainFrame(), "You cannot pick up a chit that is already complete.", "Invalid chit", JOptionPane.ERROR_MESSAGE);
@@ -675,6 +922,35 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					}
 				}
 			}
+		}
+	}
+	
+	private void selectGuildBenefit() {
+		character.getCurrentGuildStore().applyGuildBenefit3(gameHandler.getMainFrame(), character);
+		character.getGameObject().removeThisAttribute(Constants.GUILD_BENEFIT_SUCESSOR);
+		gameHandler.updateCharacterFrames();
+	}
+	
+	protected void enchantToContinue() {
+		int count = character.getFollowSpellActions();
+		if (count>0) {
+			
+			doSpellActionAsFollower();
+			
+			character.clearFollowSpellActions();
+			gameHandler.submitChanges();
+			gameHandler.updateCharacterFrames();
+		}
+	}
+	protected void alertToContinue() {
+		int count = character.getFollowAlerts();
+		if (count>0) {
+			
+			doAlertActionAsFollower();
+			
+			character.clearFollowAlerts();
+			gameHandler.submitChanges();
+			gameHandler.updateCharacterFrames();
 		}
 	}
 	protected void restToContinue() {
@@ -688,6 +964,67 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 				gameHandler.submitChanges();
 				gameHandler.updateCharacterFrames();
 			}
+		}
+	}
+	private void doSpellActionAsFollower() {
+		if (character.hasMesmerizeEffect(Constants.SAPPED)) {
+			return;
+		}
+		
+		TileLocation targetClearing = ActionRow.getTargetClearingForSpellAction(character, gameHandler);
+		RealmComponentOptionChooser compChooser = ActionRow.enchantChooser(character, gameHandler, targetClearing, character.getInfiniteColorSources());
+		if (compChooser.hasOptions()) {
+			compChooser.setVisible(true);
+			String text = compChooser.getSelectedText();
+			if (text!=null) {
+				ActionRow.enchantTileOrChit(character, compChooser, text, targetClearing, gameHandler);
+			}
+			else {
+				return;
+			}
+		}
+		else {
+			QuestRequirementParams params = new QuestRequirementParams();
+			params.actionType = CharacterActionType.Enchant;
+			character.testQuestRequirements(gameHandler.getMainFrame(), params);
+		}
+	}
+	private void doAlertActionAsFollower() {
+		if (character.hasMesmerizeEffect(Constants.TIRED)) {
+			return;
+		}
+		
+		RealmComponentOptionChooser chooser = ActionRow.alertChooser(character, gameHandler);
+		
+		if (chooser!=null) {
+			chooser.setVisible(true);
+			if (chooser.getSelectedText()!=null) {
+				ActionRow.alertChosenObject(character, chooser);
+								
+				QuestRequirementParams params = new QuestRequirementParams();
+				params.actionType = CharacterActionType.Alert;
+				character.testQuestRequirements(gameHandler.getMainFrame(),params);
+				
+				gameHandler.updateCharacterFrames();
+			}
+			else {
+				if (character.isFollowingCharacterPlayingTurn()) {
+					int ret = JOptionPane.showConfirmDialog(
+							gameHandler.getMainFrame(),
+							"Do you want to skip the ALERT action?",
+							"ALERT is optional for followers",
+							JOptionPane.YES_NO_OPTION);
+					if (ret==JOptionPane.YES_OPTION) {
+						return;
+					}
+				}
+				return;
+			}
+		}
+		else {
+			QuestRequirementParams params = new QuestRequirementParams();
+			params.actionType = CharacterActionType.Alert;
+			character.testQuestRequirements(gameHandler.getMainFrame(),params);
 		}
 	}
 	protected void fatigueToContinue() {
@@ -705,6 +1042,23 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 			}
 			gameHandler.submitChanges();
 			gameHandler.updateCharacterFrames();
+		}
+	}
+	protected void checkDenizenControlToContinue() {
+		for (RealmComponent hireling : character.getAllHirelings()) {
+			if (hireling.getGameObject().hasThisAttribute(Constants.CONTROLLED_DEMON)) {
+				int ret = JOptionPane.showConfirmDialog(this,"Want to fatigue a Magic Chit to keep the control?","Controlling "+hireling.getGameObject().getNameWithNumber(),JOptionPane.YES_NO_OPTION);
+				if (ret==JOptionPane.NO_OPTION) {
+					character.removeHireling(hireling.getGameObject());
+				}
+				else {
+					ChitFatigueManager fatiguer = new ChitFatigueManager(gameHandler.getMainFrame(),character,1,0,0,1);
+					fatiguer.setVisible(true);
+					character.addHireling(hireling.getGameObject(),2);
+				}
+				gameHandler.submitChanges();
+				gameHandler.updateCharacterFrames();
+			}
 		}
 	}
 	protected void woundToContinue() {
@@ -731,7 +1085,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 			SpellWrapper spell = (SpellWrapper)RealmUtility.chooseSpell(gameHandler.getMainFrame(),conflicts,false,false);
 			if (spell!=null) {
 				GameWrapper game = GameWrapper.findGame(character.getGameObject().getGameData());
-				spell.affectTargets(gameHandler.getMainFrame(),game,false);
+				spell.affectTargets(gameHandler.getMainFrame(),game,false,null);
 			}
 			character.clearSpellConflicts();
 			gameHandler.submitChanges();
@@ -740,6 +1094,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	}
 
 	public void initComponents(int iconSize) {
+		setFrameIcon(IconFactory.findIcon("images/actions/hire.gif"));
 		setSize(500, 500);
 		setMinimumSize(new Dimension(500, 500));
 		JPanel layoutPanel = new JPanel(new BorderLayout());
@@ -749,7 +1104,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 
 		// Build GUI		
 		layoutPanel.add(getCharacterDetailPanel(), "North");
-		tabs = new JTabbedPane(JTabbedPane.BOTTOM);
+		tabs = new JTabbedPane(SwingConstants.BOTTOM);
 		tabs.addTab(null, ImageCache.getIcon("tab/record"), getActionPanel(), "Record Actions");
 		if (character.isCharacter())
 			tabs.addTab(null, ImageCache.getIcon("tab/chits"), getChitPanel(), "Chits");
@@ -767,12 +1122,26 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		if (hostPrefs.getGameKeyVals().contains("rw_expansion_1")) {
 			tabs.addTab(null, ImageCache.getIcon("tab/expansionOne"), getExpansionOnePanel(),"Expansion");
 		}
-		if (hostPrefs.hasPref(Constants.QST_BOOK_OF_QUESTS)
-				|| hostPrefs.hasPref(Constants.QST_QUEST_CARDS)
-				|| hostPrefs.hasPref(Constants.QST_GUILD_QUESTS)) {
+		if (hostPrefs.isUsingQuests()) {
 			tabs.addTab(null, ImageCache.getIcon("tab/quest"), getQuestPanel(),"Quest");
 		}
 		tabs.addTab(null, ImageCache.getIcon("tab/chat"), getChatPanel(),"Chat");
+
+		final boolean[] tabChangedByThisPress = {false};
+		tabs.addChangeListener(new javax.swing.event.ChangeListener() { public void stateChanged(javax.swing.event.ChangeEvent e) { tabChangedByThisPress[0] = true; } });
+		tabs.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				int clicked = tabs.indexAtLocation(e.getX(), e.getY());
+				if (clicked >= 0 && !tabChangedByThisPress[0]) {
+					int homeIdx = 0;
+					for (int i = 0; i < tabs.getTabCount(); i++) {
+						if (RealmTurnPanel.TAB_NAME.equals(tabs.getToolTipTextAt(i))) { homeIdx = i; break; }
+					}
+					tabs.setSelectedIndex(homeIdx);
+				}
+				tabChangedByThisPress[0] = false;
+			}
+		});
 
 		layoutPanel.add(tabs, "Center");
 
@@ -782,6 +1151,17 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	public void centerOnToken() {
 		if (gameHandler.getGame().getGameStarted()) {
 			gameHandler.getInspector().getMap().centerOn(character.getCurrentLocation());
+		}
+	}
+	private void toggleCenterOnToken() {
+		if (gameHandler.getGame().getGameStarted()) {
+			CenteredMapView map = gameHandler.getInspector().getMap();
+			if (centeredOnToken) {
+				map.restoreDefaultView();
+			} else {
+				map.centerOn(character.getCurrentLocation());
+			}
+			centeredOnToken = !centeredOnToken;
 		}
 	}
 
@@ -816,13 +1196,17 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 			}
 			charLabel.setFont(new Font("Dialog", Font.BOLD, 36));
 			charLabel.setIconTextGap(10);
+			charLabel.setToolTipText("Toggle between center on character and revert.");
 			charLabel.addMouseListener(new MouseAdapter() {
 				public void mousePressed(MouseEvent ev) {
-					tokenClicked();
+					Icon icon = charLabel.getIcon();
+					if (icon != null && ev.getX() <= charLabel.getInsets().left + icon.getIconWidth()) {
+						tokenClicked();
+					}
 				}
 			});
 			tokenPanel.add(charLabel, "West");
-			JPanel sideControls = new JPanel(new GridLayout(3, 1));
+			JPanel sideControls = new JPanel(new GridLayout(4, 1));
 			showCharCardButton = new JButton("Show Card");
 			showCharCardButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
@@ -831,7 +1215,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 			});
 			showCharCardButton.setEnabled(character.isCharacter());
 			sideControls.add(showCharCardButton);
-			dailyCombatCheckbox = new JCheckBox("Daily Combat",character.getWantsCombat());
+			dailyCombatCheckbox = new JCheckBox("Daily Combat",!character.isMinion() && character.getWantsCombat());
 			dailyCombatCheckbox.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
 					character.setWantsCombat(dailyCombatCheckbox.isSelected());
@@ -858,6 +1242,16 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 				}
 			});
 			sideControls.add(dayEndRearrangmentCheckbox);
+			dayEndRearrangmentCheckbox.setEnabled(!character.isMinion() && !hostPrefs.hasPref(Constants.FE_NO_END_OF_DAY_TRADING));
+			
+			keepBlockingCheckbox = new JCheckBox("DayStart: Reactions ON");
+			keepBlockingCheckbox.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ev) {
+					character.setKeepBlocking(keepBlockingCheckbox.isSelected());
+				}
+			});
+			sideControls.add(keepBlockingCheckbox);
+			keepBlockingCheckbox.setEnabled(!character.isMinion());
 
 			tokenPanel.add(sideControls, "East");
 		}
@@ -893,7 +1287,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		box.add(Box.createHorizontalGlue());
 		attributesPanel.add(box);
 		box = group.createLabelLine("Vulnerability");
-		characterVulnerability = new JLabel("", JLabel.CENTER);
+		characterVulnerability = new JLabel("", SwingConstants.CENTER);
 		box.add(characterVulnerability);
 		box.add(Box.createHorizontalGlue());
 		attributesPanel.add(box);
@@ -979,7 +1373,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		phaseManagerLabel.setToolTipText("Phases");
 		phaseManagerLabel.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent ev) {
-				if (character.isDoRecord() || (getTurnPanel()!=null && character.canDoDaytimeRecord())) {
+				if (character.isDoRecord() || (getTurnPanel()!=null && character.canDoDaytimeRecord() && getTurnPanel().hasActionsLeft())){
 					phaseManagerIcon.handleClick(getCharacter(),ev.getPoint());
 					updateControls();
 //						phaseManagerLabel.repaint();
@@ -1011,18 +1405,30 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		ComponentTools.lockComponentSize(vpSetupButton, new Dimension(100, 25));
 		singleButtonManager.addButton(vpSetupButton);
 		box.add(vpSetupButton);
+		
+		// VP Deduct Button
+		vpDeductButton = new SingleButton("Deduct VPs",true) {
+			public boolean needsShow() {
+				return character.isActive() && character.needsToDeductVps();
+			}
+		};
+		vpDeductButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				deductVPs();
+			}
+		});
+		vpDeductButton.setBorder(BorderFactory.createLineBorder(Color.yellow, 2));
+		vpDeductButton.setVisible(false);
+		ComponentTools.lockComponentSize(vpDeductButton, new Dimension(100, 25));
+		singleButtonManager.addButton(vpDeductButton);
+		box.add(vpDeductButton);
 
 		// Quest Button
 		chooseQuestButton = new SingleButton("Choose Quest",true) {
-			public boolean needsShow() {
-				boolean quests = hostPrefs.hasPref(Constants.QST_BOOK_OF_QUESTS)
-				|| hostPrefs.hasPref(Constants.QST_QUEST_CARDS)
-				|| hostPrefs.hasPref(Constants.QST_GUILD_QUESTS);
-				
+			public boolean needsShow() {				
 				return character.isActive()
 						&& character.isCharacter()
-						&& quests
-						&& character.getQuestCount()==0
+						&& hostPrefs.isUsingBookOfQuests() && character.getAllNonEventQuests().size()==0
 						&& QuestLoader.hasQuestsToLoad(character,hostPrefs);
 			}
 		};
@@ -1070,6 +1476,40 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		ComponentTools.lockComponentSize(gsPlacementButton, new Dimension(150, 25));
 		singleButtonManager.addButton(gsPlacementButton);
 		box.add(gsPlacementButton);
+		
+		// Enchant Button
+		enchantButton = new SingleButton("Enchant to Continue",true) {
+			public boolean needsShow() {
+				return character.getFollowSpellActions()>0;
+			}
+		};
+		enchantButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				enchantToContinue();
+			}
+		});
+		enchantButton.setBorder(BorderFactory.createLineBorder(MagicRealmColor.GOLD, 2));
+		enchantButton.setVisible(false);
+		ComponentTools.lockComponentSize(enchantButton, new Dimension(150, 25));
+		singleButtonManager.addButton(enchantButton);
+		box.add(enchantButton);
+		
+		// Alert Button
+		alertButton = new SingleButton("Alert to Continue",true) {
+			public boolean needsShow() {
+				return character.getFollowAlerts()>0;
+			}
+		};
+		alertButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				alertToContinue();
+			}
+		});
+		alertButton.setBorder(BorderFactory.createLineBorder(MagicRealmColor.GOLD, 2));
+		alertButton.setVisible(false);
+		ComponentTools.lockComponentSize(alertButton, new Dimension(150, 25));
+		singleButtonManager.addButton(alertButton);
+		box.add(alertButton);
 		
 		// Rest Button
 		restButton = new SingleButton("Rest to Continue",true) {
@@ -1128,10 +1568,27 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		singleButtonManager.addButton(woundButton);
 		box.add(woundButton);
 		
-		// Block Now Button
-		blockNowButton = new SingleButton("Block Now!!",true) {
+		// Play Color Chit Now Button
+		playColorChitNowButton = new SingleButton("Play Color Chit Now?!",true) {
 			public boolean needsShow() {
-				return blockees!=null && blockees.size()>0;
+				return getCharacter().getNeedsPlayColorChitInterruptPhaseBeginningDecision() || getCharacter().getNeedsPlayColorChitInterruptPhaseEndDecision();
+			}
+		};
+		playColorChitNowButton.setBorder(BorderFactory.createLineBorder(MagicRealmColor.GOLD, 2));
+		playColorChitNowButton.setVisible(false);
+		ComponentTools.lockComponentSize(playColorChitNowButton, new Dimension(150, 25));
+		playColorChitNowButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				doPlayColorChitNow();
+			}
+		});
+		singleButtonManager.addButton(playColorChitNowButton);
+		box.add(playColorChitNowButton);
+		
+		// Block Now Button
+		blockNowButton = new SingleButton("Block Now?!",true) {
+			public boolean needsShow() {
+				return getCharacter().getNeedsBlockDecision() || getCharacter().getNeedsInterruptPhaseDecision();
 			}
 		};
 		blockNowButton.setBorder(BorderFactory.createLineBorder(MagicRealmColor.GOLD, 2));
@@ -1184,7 +1641,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 
 		stopFollowingButton = new SingleButton("Stop Following",false) {
 			public boolean needsShow() {
-				if (!character.isDoRecord() && character.getFollowStringId()!=null && !character.isStopFollowing()) {
+				if (!character.isDoRecord() && character.getFollowStringId()!=null && !character.isStopFollowing() && !hostPrefs.hasPref(Constants.SR_NO_STOPPING_FOLLOWING)) {
 					CharacterWrapper followed = character.getCharacterImFollowing();
 					String npa = followed.getNextPendingAction();
 					if (npa!=null) {
@@ -1249,6 +1706,26 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		singleButtonManager.addButton(gsPickupButton);
 		box.add(gsPickupButton);
 		
+		// Guild Benefit Button
+		guildBenefitButton = new SingleButton("Choose Guild Benefit",false) {
+			public boolean needsShow() {
+				return character.isActive()
+						&& character.isCharacter()
+						&& showingTurn()
+						&& character.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT_SUCESSOR);
+			}
+		};
+		guildBenefitButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				selectGuildBenefit();
+			}
+		});
+		guildBenefitButton.setBorder(BorderFactory.createLineBorder(MagicRealmColor.GOLD, 2));
+		guildBenefitButton.setVisible(false);
+		ComponentTools.lockComponentSize(guildBenefitButton, new Dimension(150, 25));
+		singleButtonManager.addButton(guildBenefitButton);
+		box.add(guildBenefitButton);
+		
 		box.add(Box.createHorizontalGlue());
 		
 		viewChitsButton = new JButton("Tile Chits");
@@ -1257,25 +1734,30 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 			public void actionPerformed(ActionEvent ev) {
 				// Show character chits privately instead
 				TileLocation tl = getCharacter().getCurrentLocation();
-				ClearingUtility.showTileChits(gameHandler.getMainFrame(),getCharacter(),tl.clearing,tl.tile.getTileName()+" Chits");
+				ClearingUtility.showTileChits(gameHandler.getMainFrame(),tl.clearing,tl.tile.getTileName()+" Chits");
 			}
 		});
 		box.add(viewChitsButton);
 		
 		blockButton = new JToggleButton(IconFactory.findIcon("images/interface/blockoff.gif"),false);
+		blockButton.setToolTipText("Block/Reactions OFF");
 		ComponentTools.lockComponentSize(blockButton,39,39);
-		blockButton.setToolTipText("Block OFF");
+		if (!character.isMinion() && character.isBlocking()) {
+			blockButton.setIcon(IconFactory.findIcon("images/interface/blockon.gif"));
+			blockButton.setToolTipText("Block/Reactions ON");
+			blockButton.setSelected(true);
+		}
 		blockButton.setFocusable(false);
 		blockButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				if (blockButton.isSelected()) {
 					blockButton.setIcon(IconFactory.findIcon("images/interface/blockon.gif"));
-					blockButton.setToolTipText("Block ON");
+					blockButton.setToolTipText("Block/Reactions ON");
 					character.setBlocking(true);
 				}
 				else {
 					blockButton.setIcon(IconFactory.findIcon("images/interface/blockoff.gif"));
-					blockButton.setToolTipText("Block OFF");
+					blockButton.setToolTipText("Block/Reactions OFF");
 					character.setBlocking(false);
 				}
 				gameHandler.submitChanges();
@@ -1283,6 +1765,9 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 			}
 		});
 		box.add(blockButton);
+		if (character.isMinion()) {
+			blockButton.setEnabled(false);
+		}
 		
 		unhideButton = new JButton(IconFactory.findIcon("images/interface/unhide.gif"));
 		ComponentTools.lockComponentSize(unhideButton,39,39);
@@ -1303,7 +1788,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		shoutButton.setToolTipText("Shout Out Discoveries");
 		shoutButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				doShoutOut();
+				doShoutOut(gameHandler.getMainFrame());
 			}
 		});
 		box.add(shoutButton);
@@ -1332,10 +1817,13 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	}
 
 	private void tokenClicked() {
-		centerOnToken();
 		if (DebugUtility.isCheat()) {
-			// If CHEAT is on, then clicking the token will allow you to cheat
+			// If CHEAT is on, clicking the token opens the cheat prompt instead of toggling the
+			// map view — the two features share this click and would otherwise fight over it
+			// (every cheat click also toggling/un-toggling the centered view underneath the dialog).
 			cheat();
+		} else {
+			toggleCenterOnToken();
 		}
 	}
 
@@ -1369,6 +1857,17 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 				
 				GameObject thing = character.getGameObject().getGameData().getGameObjectByName(thingName);
 				if (thing != null) {
+					if (thing.hasThisAttribute(Constants.TRAVELER_TEMPLATE)) {
+						GameObject go = character.getGameObject().getGameData().createNewObject();
+						TravelerChitComponent traveler = new TravelerChitComponent(go);
+						traveler.assignTravelerTemplate(thing);
+						traveler.getGameObject().setThisAttribute(Constants.TRAVELER);
+						traveler.getGameObject().setThisAttribute("chit");
+						traveler.getGameObject().setThisAttribute("seen");
+						traveler.getGameObject().setThisAttribute("print");
+						traveler.getGameObject().setThisAttribute("monster_die",RandomNumber.getDieRoll(6));
+						thing = go;
+					}
 					RealmComponent rc = RealmComponent.getRealmComponent(thing);
 					if (rc.isTreasure() || rc.isWeapon() || rc.isArmor() || rc.isHorse()) {
 						System.out.println("CHEAT - Steal treasure: " + thing.getName());
@@ -1391,7 +1890,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 						}
 						gameHandler.updateCharacterFrames();
 					}
-					else if (rc.isMonster() || rc.isTreasureLocation() || rc.isGoldSpecial()) {
+					else if (rc.isMonster() || rc.isTreasureLocation() || rc.isGoldSpecial() || rc.isTraveler()) {
 						System.out.println("CHEAT - Summon to clearing: " + thing.getName());
 						if (allSimilar) {
 							for (GameObject sim:character.getGameObject().getGameData().getGameObjectsByName(thingName)) {
@@ -1435,17 +1934,15 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 				}
 				else if ("heavies".equals(thingName)) {
 					GamePool pool = gameHandler.getGamePool();
-					Collection heavies = pool.find("weapon,weight=H");
-					for (Iterator i = heavies.iterator(); i.hasNext();) {
-						GameObject h = (GameObject) i.next();
+					Collection<GameObject> heavies = pool.find("weapon,weight=H");
+					for (GameObject h : heavies) {
 						character.getCurrentLocation().clearing.add(h,null);
 					}
 				}
 				else if ("n_death".equals(thingName)) {
 					TileLocation tl = getCharacter().getCurrentLocation();
-					Collection c = tl.clearing.getDeepClearingComponents();
-					for (Iterator i = c.iterator();i.hasNext();) {
-						RealmComponent rc = (RealmComponent)i.next();
+					Collection<RealmComponent> c = tl.clearing.getDeepClearingComponents();
+					for (RealmComponent rc : c) {
 						if (rc.isNative() && !rc.getGameObject().hasThisAttribute(Constants.DEAD)) {
 							RealmUtility.makeDead(rc);
 							System.out.println("Killed "+rc.getGameObject().getName());
@@ -1454,9 +1951,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 				}
 				else if ("nh_death".equals(thingName)) {
 					TileLocation tl = getCharacter().getCurrentLocation();
-					Collection c = tl.clearing.getDeepClearingComponents();
-					for (Iterator i = c.iterator();i.hasNext();) {
-						RealmComponent rc = (RealmComponent)i.next();
+					Collection<RealmComponent> c = tl.clearing.getDeepClearingComponents();
+					for (RealmComponent rc : c) {
 						if (rc.isNativeHorse() && !rc.getGameObject().hasThisAttribute(Constants.DEAD)) {
 							rc.getGameObject().setThisAttribute(Constants.DEAD);
 							System.out.println("Killed "+rc.getGameObject().getName());
@@ -1483,27 +1979,27 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					updateActiveCurses();
 				}
 				else if ("eyemist".equals(thingName)) {
-					(new Curse(gameHandler.getMainFrame())).applyOne(character);
+					(new Curse(gameHandler.getMainFrame(), character.getGameObject())).applyOne(character);
 					updateActiveCurses();
 				}
 				else if ("squeak".equals(thingName)) {
-					(new Curse(gameHandler.getMainFrame())).applyTwo(character);
+					(new Curse(gameHandler.getMainFrame(), character.getGameObject())).applyTwo(character);
 					updateActiveCurses();
 				}
 				else if ("wither".equals(thingName)) {
-					(new Curse(gameHandler.getMainFrame())).applyThree(character);
+					(new Curse(gameHandler.getMainFrame(), character.getGameObject())).applyThree(character);
 					updateActiveCurses();
 				}
 				else if ("illhealth".equals(thingName)) {
-					(new Curse(gameHandler.getMainFrame())).applyFour(character);
+					(new Curse(gameHandler.getMainFrame(), character.getGameObject())).applyFour(character);
 					updateActiveCurses();
 				}
 				else if ("ashes".equals(thingName)) {
-					(new Curse(gameHandler.getMainFrame())).applyFive(character);
+					(new Curse(gameHandler.getMainFrame(), character.getGameObject())).applyFive(character);
 					updateActiveCurses();
 				}
 				else if ("disgust".equals(thingName)) {
-					(new Curse(gameHandler.getMainFrame())).applySix(character);
+					(new Curse(gameHandler.getMainFrame(), character.getGameObject())).applySix(character);
 					updateActiveCurses();
 				}
 				else if (thingName.startsWith("findhe")) {
@@ -1558,17 +2054,28 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					character.addNotoriety(500);
 				}
 				else if (thingName.startsWith("fame")) {
-					character.setFame(Integer.valueOf(thingName.substring(4)));
+					try {
+						character.setFame(Integer.parseInt(thingName.substring(4)));
+					}
+					catch (Exception ex) {
+					}
 				}
 				else if (thingName.startsWith("notoriety")) {
-					character.setNotoriety(Integer.valueOf(thingName.substring(9)));
+					try {
+						character.setNotoriety(Integer.parseInt(thingName.substring(9)));
+					}
+					catch (Exception ex) {
+					}
 				}
 				else if (thingName.startsWith("gold")) {
-					character.setGold(Integer.valueOf(thingName.substring(4)));
+					try {
+						character.setGold(Integer.parseInt(thingName.substring(4)));
+					}
+					catch (Exception ex) {
+					}
 				}
 				else if ("oof".equals(thingName)) {
-					for (Iterator i = character.getActiveChits().iterator(); i.hasNext();) {
-						CharacterActionChitComponent chit = (CharacterActionChitComponent) i.next();
+					for (CharacterActionChitComponent chit : character.getActiveChits()) {
 						if (chit.getEffortAsterisks() > 0) {
 							chit.makeFatigued();
 						}
@@ -1577,9 +2084,17 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 						}
 					}
 				}
+				else if (thingName.startsWith("wounds")) {
+					int wounds = 0;
+					try {
+						wounds = Integer.parseInt(thingName.substring(6));
+					}
+					catch (Exception ex) {
+					}
+					character.setExtraWounds(wounds);
+				}
 				else if ("smack".equals(thingName)) {
-					for (Iterator i = character.getActiveChits().iterator(); i.hasNext();) {
-						CharacterActionChitComponent chit = (CharacterActionChitComponent) i.next();
+					for (CharacterActionChitComponent chit : character.getActiveChits()) {
 						if (chit.getEffortAsterisks() > 0) {
 							chit.makeWounded();
 						}
@@ -1601,39 +2116,66 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					}
 				}
 				else if (thingName.startsWith("summon")) {
-					int monsterdie = Integer.valueOf(thingName.substring(6)).intValue();
-					boolean ns = DebugUtility.isNoSummon();
-					DebugUtility.NO_SUMMON = false;
-					SetupCardUtility.summonMonsters(hostPrefs,new ArrayList<GameObject>(),character, monsterdie);
-					DebugUtility.NO_SUMMON = ns;
+					int monsterdie = -1;
+					try {
+						monsterdie = Integer.parseInt(thingName.substring(6));
+					}
+					catch (Exception ex) {
+					}
+					if (monsterdie!=-1) {
+						boolean ns = DebugUtility.isNoSummon();
+						DebugUtility.NO_SUMMON = false;
+						SetupCardUtility.summonMonsters(hostPrefs,new ArrayList<GameObject>(),character, monsterdie,0);
+						DebugUtility.NO_SUMMON = ns;
+					}
 				}
 				else if (thingName.startsWith("reset")) {
-					int monsterdie = Integer.valueOf(thingName.substring(5)).intValue();
-					boolean ns = DebugUtility.isNoSummon();
-					DebugUtility.NO_SUMMON = false;
-					SetupCardUtility.resetDenizens(character.getGameObject().getGameData(), monsterdie);
-					DebugUtility.NO_SUMMON = ns;
+					int monsterdie = -1;
+					try {
+						monsterdie = Integer.parseInt(thingName.substring(5));
+					}
+					catch (Exception ex) {
+					}
+					if (monsterdie!=-1) {
+						boolean ns = DebugUtility.isNoSummon();
+						DebugUtility.NO_SUMMON = false;
+						SetupCardUtility.resetDenizens(character.getGameObject().getGameData(), monsterdie, hostPrefs.hasPref(Constants.SR_HORSES_REGENERATION));
+						DebugUtility.NO_SUMMON = ns;
+					}
 				}
 				else if (thingName.startsWith("roads")) {
 					character.getGameObject().setThisAttribute(Constants.KNOWS_ROADS);
 					character.generalInitialization();
 				}
 				else if (thingName.startsWith("pop")) {
-					int roll = Integer.valueOf(thingName.substring(3)).intValue();
-					PowerOfThePit pop = new PowerOfThePit(gameHandler.getMainFrame(), character.getGameObject());
-					roller.setValue(0, roll);
-					pop.apply(character, roller);
+					int roll = -1;
+					try {
+						roll = Integer.parseInt(thingName.substring(3));
+					}
+					catch (Exception ex) {
+					}
+					if (roll!=-1) {
+						PowerOfThePit pop = new PowerOfThePit(gameHandler.getMainFrame(), character.getGameObject(), new Speed(0));
+						roller.setValue(0, roll);
+						pop.apply(character, roller);
+					}
 				}
 				else if (thingName.startsWith("magicsight")) {
-					int roll = Integer.valueOf(thingName.substring(10)).intValue();
-					MagicSight ms = new MagicSight(gameHandler.getMainFrame());
-					roller.setValue(0, roll);
-					ms.apply(character, roller);
+					int roll = -1;
+					try {
+						roll = Integer.parseInt(thingName.substring(10));
+					}
+					catch (Exception ex) {
+					}
+					if (roll!=-1) {
+						MagicSight ms = new MagicSight(gameHandler.getMainFrame());
+						roller.setValue(0, roll);
+						ms.apply(character, roller);
+					}
 				}
 				else if (thingName.equals("discoverall")) {
-					Collection c = character.getCurrentLocation().clearing.getClearingComponents();
-					for (Iterator i = c.iterator(); i.hasNext();) {
-						RealmComponent rc = (RealmComponent) i.next();
+					Collection<RealmComponent> c = character.getCurrentLocation().clearing.getClearingComponents();
+					for (RealmComponent rc : c) {
 						if (rc.isTreasureLocation() || (rc.isTreasure() && rc.getGameObject().hasThisAttribute("treasure_location"))) {
 							character.addTreasureLocationDiscovery(rc.getGameObject().getName());
 						}
@@ -1644,14 +2186,12 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 				}
 				else if (thingName.equals("seeall")) {
 					// Shows the contents of EVERY treasure site
-					Collection all = gameHandler.getGamePool().find("print");
+					Collection<GameObject> all = gameHandler.getGamePool().find("print");
 					StringBuffer sb = new StringBuffer();
-					for (Iterator i = all.iterator(); i.hasNext();) {
-						GameObject site = (GameObject) i.next();
+					for (GameObject site : all) {
 						sb.append(site.getName());
 						sb.append(" ======================\n");
-						for (Iterator n = site.getHold().iterator(); n.hasNext();) {
-							GameObject item = (GameObject) n.next();
+						for (GameObject item : site.getHold()) {
 							sb.append("  - ");
 							sb.append(item.getName());
 							sb.append("\n");
@@ -1665,13 +2205,11 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					JOptionPane.showMessageDialog(gameHandler.getMainFrame(), pane);
 				}
 				else if (thingName.equals("manifest")) {
-					Hashtable hash = new Hashtable();
-					ArrayList list = new ArrayList();
-					Collection all = gameHandler.getGamePool().find("print");
-					for (Iterator i = all.iterator(); i.hasNext();) {
-						GameObject site = (GameObject) i.next();
-						for (Iterator n = site.getHold().iterator(); n.hasNext();) {
-							GameObject item = (GameObject) n.next();
+					Hashtable<String, String> hash = new Hashtable<String, String>();
+					ArrayList<String> list = new ArrayList<String>();
+					Collection<GameObject> all = gameHandler.getGamePool().find("print");
+					for (GameObject site : all) {
+						for (GameObject item : site.getHold()) {
 							String name = item.getName();
 							if (item.hasThisAttribute("traveler")) {
 								name = "Traveler -> "+name;
@@ -1679,11 +2217,10 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 							hash.put(name, site.getName());
 						}
 					}
-					for (Iterator i = hash.keySet().iterator(); i.hasNext();) {
-						String name = (String) i.next();
+					for (String name : hash.keySet()) {
 						String at;
 						StringBuffer sb = new StringBuffer(name);
-						while ((at = (String) hash.get(name)) != null) {
+						while ((at = hash.get(name)) != null) {
 							sb.append(" -> ");
 							sb.append(at);
 							name = at;
@@ -1697,15 +2234,28 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					JOptionPane.showMessageDialog(gameHandler.getMainFrame(), pane);
 				}
 				else if (thingName.startsWith("setday")) {
-					int day = Integer.valueOf(thingName.substring(6)).intValue();
-					GameWrapper game = gameHandler.getGame();
-					game.setDay(day);
+					try {
+						int day = Integer.parseInt(thingName.substring(6));
+						GameWrapper game = gameHandler.getGame();
+						game.setDay(day);
+					}
+					catch (Exception ex){
+					}
 				}
 				else if (thingName.startsWith("weather")) {
-					int result = Integer.valueOf(thingName.substring(7)).intValue();
-					RealmCalendar cal = RealmCalendar.getCalendar(gameHandler.getClient().getGameData());
-					cal.setWeatherResult(result);
-					updateCharacter();
+					int result = -1;
+					try {
+						result = Integer.parseInt(thingName.substring(7));
+					}
+					catch (Exception ex) {
+					}
+					if (result!=-1) {
+						RealmCalendar cal = RealmCalendar.getCalendar(gameHandler.getClient().getGameData());
+						cal.setWeatherResult(result);
+						boolean freezing = cal.isFreezingWeather(character.getCurrentMonth());
+						RealmUtility.updateWaterClearings(gameHandler.getClient().getGameData(),freezing);
+						updateCharacter();
+					}
 				}
 				else if (thingName.startsWith("nice")) {
 					String group = thingName.substring(4);
@@ -1728,10 +2278,10 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					raiseDead.applySix(character);
 				}
 				else if (thingName.equals("path")) {
-					ArrayList history = character.getMoveHistory();
+					ArrayList<String> history = character.getMoveHistory();
 					StringBuilder sb = new StringBuilder();
 					for (int i=0;i<history.size();i++) {
-						String location = (String)history.get(i);
+						String location = history.get(i);
 						if (CharacterWrapper.MOVE_HISTORY_DAY.equals(location)) continue; // always ignore the days
 						if (sb.length()>0) sb.append(" ");
 						sb.append(location);
@@ -1748,7 +2298,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					ClearingUtility.markBorderlandConnectedClearings(hostPrefs,gameHandler.getClient().getGameData());
 				}
 				else if (thingName.equals("help")) {
-					ArrayList list = new ArrayList();
+					ArrayList<String> list = new ArrayList<String>();
 					list.add("manifest    - Shows where everything is hidden");
 					list.add("seeall      - Shows each site, and what it contains");
 					list.add("discoverall - Discover all treasure locations in the current clearing");
@@ -1783,7 +2333,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					list.add("block       - Block yourself");
 					list.add("doom        - Two enemy undead are raised");
 					list.add("path        - Show the entire character path (can be long)");
-					list.add("remark      - Remark all clearing connections to the Borderland");
+					list.add("remark      - Remark all clearing connections to the starting tile, default: Borderland");
 					list.add("pinkslip    - Force all your hirelings to have only 1 day left on their term");
 					list.add("niceXXXX    - Increase friendliness by one level with stated native group (lowercase)");
 					list.add("meanXXXX    - Decrease friendliness by one level with stated native group (lowercase)");
@@ -1804,8 +2354,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					sb.append("<treasurelocationname> - Bring the treasure location to the current clearing\n");
 					sb.append("\nOTHER CHEAT COMMANDS:\n");
 					sb.append("=================\n");
-					for (Iterator i = list.iterator(); i.hasNext();) {
-						String val = (String) i.next();
+					for (String val : list) {
 						sb.append(val + "\n");
 					}
 					JTextArea area = new JTextArea(sb.toString());
@@ -1827,6 +2376,10 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	}
 
 	private void showCharCard() {
+		if (FrameManager.getFrameManager().hasFrame(FrameManager.DEFAULT_FRAME_KEY)) {
+			FrameManager.getFrameManager().disposeFrame(FrameManager.DEFAULT_FRAME_KEY);
+			return;
+		}
 		CharacterSpyPanel panel = new CharacterSpyPanel(gameHandler, character);
 		FrameManager.showDefaultManagedFrame(gameHandler.getMainFrame(), panel, character.getGameObject().getName() + " Spy", null, false);
 	}
@@ -2017,7 +2570,10 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		});
 	}
 	
-	private void doShoutOut() {
+	private void doShoutOut(JFrame parent) {
+		if (hostPrefs.hasPref(Constants.SR_NO_INFORMATION_SHARING)) {
+			JOptionPane.showMessageDialog(parent, "You cannot share information about location of secret passages, hidden paths, treasure sites and TWT. This information is not transferable and can only be learned by following.", "Cannot share information", JOptionPane.ERROR_MESSAGE);
+		}
 		ArrayList<RealmComponent> chars = getTradeAvailableChars(gameHandler.getMainFrame(),showingTurn() || character.isFollowingCharacterPlayingTurn());
 		if (chars!=null) {
 			RealmObjectChooser chooser = new RealmObjectChooser("Shout discoveries out to who?",character.getGameObject().getGameData(),false);
@@ -2085,7 +2641,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		// If the character is not playing a turn, then they may only trade with the one character currently playing
 		if (!activePlayer) {
 			// Now we need to filter out those characters that are not playing their turn
-			ArrayList toKeep = new ArrayList();
+			ArrayList<RealmComponent> toKeep = new ArrayList<RealmComponent>();
 			for (RealmComponent rc:chars) {
 				CharacterWrapper trader = new CharacterWrapper(rc.getGameObject());
 				if (trader.isPlayingTurn() || trader.isFollowingCharacterPlayingTurn() || trader.isDayEndTradingActive() || character.isDayEndTradingActive()) {
@@ -2098,19 +2654,17 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		if (!chars.isEmpty()) {
 			return chars;
 		}
+		if (areChars) {
+			JOptionPane.showMessageDialog(
+					parent,
+					"None of the characters in the clearing are available for trading.",
+					"Trade/Share",JOptionPane.WARNING_MESSAGE);
+		}
 		else {
-			if (areChars) {
-				JOptionPane.showMessageDialog(
-						parent,
-						"None of the characters in the clearing are available for trading.",
-						"Trade/Share",JOptionPane.WARNING_MESSAGE);
-			}
-			else {
-				JOptionPane.showMessageDialog(
-						parent,
-						"There are no characters in the clearing to trade with.",
-						"Trade/Share",JOptionPane.WARNING_MESSAGE);
-			}
+			JOptionPane.showMessageDialog(
+					parent,
+					"There are no characters in the clearing to trade with.",
+					"Trade/Share",JOptionPane.WARNING_MESSAGE);
 		}
 		return null;
 	}
@@ -2206,7 +2760,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 			}
 			
 			if (newLevel==3 && gameHandler.getHostPrefs().hasPref(Constants.EXP_DEV_3RD_REL)) {
-				character.initRelationships(gameHandler.getHostPrefs());
+				character.initRelationships(gameHandler.getHostPrefs(),true);
 			}
 			ArrayList<String> advantages = character.getLevelAdvantages();
 			advantages.removeAll(oldAdvantages);
@@ -2292,8 +2846,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		frame.setVisible(true);
 
 		GamePool pool = new GamePool(handler.getClient().getGameData().getGameObjects());
-		Collection characters = pool.find("character");
-		GameObject character = (GameObject) characters.iterator().next();
+		Collection<GameObject> characters = pool.find("character");
+		GameObject character = characters.iterator().next();
 		CharacterWrapper charw = new CharacterWrapper(character);
 		charw.setCharacterLevel(4);
 		charw.applyCurse(Constants.ASHES);

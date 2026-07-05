@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.utility;
 
 import java.util.ArrayList;
@@ -30,9 +13,6 @@ public class RealmLogParser {
 		lines = StringUtilities.stringToCollection(detailLog,"\n");
 	}
 	public String getLogFor(int month,int day) {
-//<br><b>RealmSpeak</b> - ========================================
-//<br><b>RealmSpeak</b> - Month 1, Day 5
-//<br><b>RealmSpeak</b> - ========================================
 		return "";
 	}
 	public String getBattleLogFor(int month,int day) {
@@ -52,16 +32,6 @@ public class RealmLogParser {
 			return StringUtilities.collectionToString(lines.subList(roundStart,lines.size()-1),"\n");
 		}
 		return StringUtilities.collectionToString(lines.subList(logStart,lines.size()-1),"\n");
-//<br><font color="red"><b>RealmBattle</b></font> - =======================
-//<br><font color="red"><b>RealmBattle</b></font> - Evening of month 1, day 5, in clearing Borderland 3
-//<br><font color="red"><b>RealmBattle</b></font> - -----------------------
-//<br><font color="red"><b>RealmBattle</b></font> - --  Combat Round 1
-//<br><font color="red"><b>RealmBattle</b></font> - -----------------------
-//...........
-//<br><font color="red"><b>RealmBattle</b></font> - -----------------------
-//<br><font color="red"><b>RealmBattle</b></font> - --  Combat Round 2
-//<br><font color="red"><b>RealmBattle</b></font> - -----------------------
-//		throw new NotImplementedException();
 	}
 	private int getLineNumberFor(String pattern) {
 		return getLineNumberFor(pattern,0);

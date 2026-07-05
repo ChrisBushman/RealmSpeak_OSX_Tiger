@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest.reward;
 
 import java.util.ArrayList;
@@ -64,10 +47,9 @@ public class QuestRewardSpellFromSite extends QuestReward {
 			selected = chooser.getFirstSelectedComponent().getGameObject();
 		}
 		
-		ArrayList hold = selected.getHold();
+		ArrayList<GameObject> hold = selected.getHold();
 		ArrayList<GameObject> learnable = new ArrayList<GameObject>();
-		for(Object o:hold) {
-			GameObject spell = (GameObject)o;
+		for(GameObject spell:hold) {
 			if (character.canLearn(spell)) {
 				learnable.add(spell);
 			}
@@ -79,19 +61,19 @@ public class QuestRewardSpellFromSite extends QuestReward {
 		GameObject spell = null;
 		switch(getDrawType()) {
 			case Top:
-				spell = (GameObject)hold.get(0);
+				spell = learnable.get(0);
 				break;
 			case Bottom:
-				spell = (GameObject)hold.get(hold.size()-1);
+				spell = learnable.get(learnable.size()-1);
 				break;
 			case Random:
-				spell = (GameObject)hold.get(RandomNumber.getRandom(hold.size()));
+				spell = learnable.get(RandomNumber.getRandom(learnable.size()));
 				break;
 			case Choice:
 				RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,getTitleForDialog()+" Which spell?",false);
-				chooser.addGameObjects(hold,true);
+				chooser.addGameObjects(learnable,true);
 				chooser.setVisible(true);
-				chooser.getFirstSelectedComponent().getGameObject();
+				spell = chooser.getFirstSelectedComponent().getGameObject();
 				break;
 		}		
 		if (spell!=null) { // shouldn't ever be null

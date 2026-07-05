@@ -1,30 +1,21 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle.targeting;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Vector;
 
+import javax.swing.ListSelectionModel;
+
+import com.robin.general.swing.ListChooser;
 import com.robin.magic_realm.RealmBattle.BattleModel;
 import com.robin.magic_realm.RealmBattle.CombatFrame;
 import com.robin.magic_realm.components.RealmComponent;
+import com.robin.magic_realm.components.attribute.ColorMagic;
 import com.robin.magic_realm.components.attribute.Strength;
+import com.robin.magic_realm.components.attribute.TileLocation;
+import com.robin.magic_realm.components.utility.Constants;
+import com.robin.magic_realm.components.utility.RealmLogging;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
+import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class SpellTargetingCharacter extends SpellTargetingSingle {
@@ -37,14 +28,46 @@ public class SpellTargetingCharacter extends SpellTargetingSingle {
 	}
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
-		ArrayList allCharacters = combatFrame.findCanBeSeen(battleModel.getAllParticipatingCharacters(),true);
-		for (Iterator i=allCharacters.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+		ArrayList<RealmComponent> allCharacters = combatFrame.findCanBeSeen(battleModel.getAllParticipatingCharactersAsRc(),true);
+		for (RealmComponent rc : allCharacters) {
 			CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
-			if (!lightOnly || !character.getVulnerability().strongerThan(new Strength("L"))) {
+			if (!character.hasMagicProtection() && (!lightOnly || !character.getVulnerability().strongerThan(new Strength("L")))) {
 				gameObjects.add(rc.getGameObject());
 			}
 		}
+		return true;
+	}
+	
+	public boolean assign(HostPrefWrapper hostPrefs, CharacterWrapper activeCharacter) {
+		boolean assign = super.assign(hostPrefs,activeCharacter);
+		
+		if (!spell.getGameObject().hasThisAttribute(Constants.RESERVE)) return assign;
+		
+		TileLocation loc = activeCharacter.getCurrentLocation();
+		if (loc == null || loc.clearing == null || loc.clearing.getAllSourcesOfColor(true).isEmpty()) {
+			RealmLogging.logMessage(spell.getCaster().getCharacterName(),"Spell cancelled - no magic color of the clearing available.");
+			spell.expireSpell();
+			return true;
+		}
+		
+		ArrayList<ColorMagic> colors = loc.clearing.getAllSourcesOfColor(true);
+		ArrayList<String> colorNames = new ArrayList<String>();
+		for (ColorMagic color : colors) {
+			colorNames.add(color.getColorName());
+		}
+		ListChooser chooser = new ListChooser(combatFrame, "Select magic color", colorNames);
+		chooser.setDoubleClickEnabled(true);
+		chooser.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		chooser.setLocationRelativeTo(combatFrame);
+		chooser.setVisible(true);
+		Vector<String> v = chooser.getSelectedItems();
+		if (v == null || v.isEmpty()) {
+			spell.expireSpell();
+			RealmLogging.logMessage(spell.getCaster().getCharacterName(),"Spell cancelled - no magic color chosen or none available.");
+			return false;
+		}
+		spell.setExtraIdentifier(v.get(0));
+		RealmLogging.logMessage(spell.getCaster().getCharacterName(),"Magic Color chosen: "+v.get(0));
 		return true;
 	}
 }

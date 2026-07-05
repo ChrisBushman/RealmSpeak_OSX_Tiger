@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
 import java.awt.*;
@@ -34,23 +17,19 @@ import com.robin.magic_realm.components.wrapper.*;
 
 public class CharacterChitComponent extends RoundChitComponent implements BattleChit,Horsebackable {
 
+	public static final int DISPLAY_STYLE_CLASSIC = 0;
+	public static final int DISPLAY_STYLE_LEGENDARY_CLASSIC = 1;
+	public static final int DISPLAY_STYLE_LEGENDARY = 2;
+	public static final int DISPLAY_STYLE_ALTERNATIVE = 3;
 	public static final String HIDDEN = LIGHT_SIDE_UP;
 	public static final String UNHIDDEN = DARK_SIDE_UP;
 	
-//	private static boolean pngTest = false;
-//	private static boolean usePng = false;
-
+	public static int displayStyle = DISPLAY_STYLE_CLASSIC;
+	
+	private RealmComponent AttackChit;
+	
 	public CharacterChitComponent(GameObject obj) {
 		super(obj);
-//		if (!pngTest) {
-//			pngTest = true;
-//			if (IconFactory.findIcon("images/characters/amazon.png")!=null) {
-//				usePng = true;
-//			}
-//		}
-//		if (usePng) {
-//			imageExtension = ".png"; // this logic breaks when you absorb a monster... sigh
-//		}
 		lightColor = MagicRealmColor.FORESTGREEN;
 		darkColor = MagicRealmColor.PEACH;
 	}
@@ -72,10 +51,40 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 		return CHARACTER;
 	}
 
+	private static boolean imageExists(String iconName, String iconFolder) {
+		return ImageCache.iconExists(iconFolder+"/" + iconName);
+	}
+	
+	private boolean legendaryImageExists() {
+		String iconName = gameObject.getThisAttribute(Constants.ICON_TYPE);
+		String iconFolder = gameObject.getThisAttribute(Constants.ICON_FOLDER);
+		iconFolder = iconFolder+"_legendary";
+		if (isHidden()) {
+			iconName=iconName+"_h";
+		}
+		return imageExists(iconName, iconFolder);
+	}
+	
+	private boolean legendaryClassicImageExists() {
+		String iconName = gameObject.getThisAttribute(Constants.ICON_TYPE);
+		String iconFolder = gameObject.getThisAttribute(Constants.ICON_FOLDER);
+		iconFolder = iconFolder+"_legendary_classic";
+		if (isHidden()) {
+			iconName=iconName+"_h";
+		}
+		return imageExists(iconName, iconFolder);
+	}
+	
 	public int getChitSize() {
+		if (displayStyle == DISPLAY_STYLE_LEGENDARY && legendaryImageExists()) {
+			return T_CHIT_SIZE-ChitComponent.SHADOW_BORDER;
+		}
+		if (displayStyle == DISPLAY_STYLE_LEGENDARY_CLASSIC && legendaryClassicImageExists()) {
+			return T_CHIT_SIZE-ChitComponent.SHADOW_BORDER;
+		}
 		return T_CHIT_SIZE;
 	}
-
+	
 	public ImageIcon getSmallSymbol() {
 		String iconFolder = gameObject.getThisAttribute(Constants.ICON_FOLDER);
 		String iconType = gameObject.getThisAttribute(Constants.ICON_TYPE);
@@ -83,32 +92,69 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 	}
 
 	public void paintComponent(Graphics g1) {
-		super.paintComponent(g1);
+		if ((displayStyle == DISPLAY_STYLE_LEGENDARY || displayStyle == DISPLAY_STYLE_ALTERNATIVE) && legendaryImageExists()) {
+			super.paintComponent(g1, false);
+		}
+		else if (displayStyle == DISPLAY_STYLE_LEGENDARY_CLASSIC && legendaryClassicImageExists()) {
+			super.paintComponent(g1, false);
+		}
+		else {
+			super.paintComponent(g1, true);
+		}
+		
 		Graphics2D g = (Graphics2D)g1;
 		
 		CharacterWrapper character = new CharacterWrapper(getGameObject());
-		if (character.isFortified()) {
-			g.setColor(Color.blue);
-			Stroke old = g.getStroke();
-			g.setStroke(Constants.THICK_STROKE);
-			int m = T_CHIT_SIZE>>1;
-			g.drawLine(4,m-4,T_CHIT_SIZE-4,m-4);
-			g.drawLine(4,m+4,T_CHIT_SIZE-4,m+4);
-			g.setStroke(old);
-		}
 		GameObject transmorph = character.getTransmorph();
 		if (transmorph != null) {
 			// Draw image
-			String icon_type = (String) transmorph.getThisAttribute(Constants.ICON_TYPE);
-			if (icon_type != null) {
-				String iconDir = transmorph.getThisAttribute(Constants.ICON_FOLDER);
-				if (useColorIcons()) {
-					iconDir = iconDir+"_c";
-				}
-				drawIcon(g,iconDir, icon_type, 0.75);
+			String icon_type = null;
+			if (transmorph.hasThisAttribute(Constants.ICON_TYPE+Constants.ICON_CHARACTER)) {
+				icon_type = transmorph.getThisAttribute(Constants.ICON_TYPE+Constants.ICON_CHARACTER);
 			}
-			icon_type = (String) gameObject.getThisAttribute(Constants.ICON_TYPE);
+			else {
+				icon_type = transmorph.getThisAttribute(Constants.ICON_TYPE);
+			}
 			if (icon_type != null) {
+				boolean transformSkin = false;
+				String iconDir = null;
+				if (transmorph.hasThisAttribute(Constants.ICON_FOLDER+Constants.ICON_CHARACTER)) {
+					iconDir = transmorph.getThisAttribute(Constants.ICON_FOLDER+Constants.ICON_CHARACTER);
+				}
+				else {
+					iconDir = transmorph.getThisAttribute(Constants.ICON_FOLDER);
+				}
+				if (displayStyle == DISPLAY_STYLE_LEGENDARY || displayStyle == DISPLAY_STYLE_ALTERNATIVE) {
+					String iconDir_l = "characters_legendary";
+					String icon_type_l = icon_type;
+					if (isHidden()) {
+						icon_type_l=icon_type_l+"_h";
+					}
+					if (imageExists(icon_type_l,iconDir_l)) {
+						drawIcon(g,iconDir_l, icon_type_l, 0.26);
+						transformSkin = true;
+					}
+				}
+				else if (displayStyle == DISPLAY_STYLE_LEGENDARY_CLASSIC) {
+					String iconDir_l = "characters_legendary_classic";
+					String icon_type_l = icon_type;
+					if (isHidden()) {
+						icon_type_l=icon_type_l+"_h";
+					}
+					if (imageExists(icon_type_l,iconDir_l)) {
+						drawIcon(g,iconDir_l, icon_type_l, 0.26);
+						transformSkin = true;
+					}
+				}
+				if (!transformSkin) {
+					if (useColorIcons() && !isDisplayStyleAlternative() && !gameObject.hasThisAttribute(Constants.SUPER_REALM)) {
+						iconDir = iconDir+"_c";
+					}
+					drawIcon(g,iconDir, icon_type, 0.75);
+				}
+			}
+			icon_type = gameObject.getThisAttribute(Constants.ICON_TYPE);
+			if (icon_type != null && displayStyle == DISPLAY_STYLE_CLASSIC) {
 				String iconFolder = gameObject.getThisAttribute(Constants.ICON_FOLDER);
 				int offset = (getChitSize()>>2);
 				drawIcon(g, iconFolder, icon_type, 0.30,0,offset,BACKING);
@@ -116,13 +162,87 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 		}
 		else {
 			// Draw image
-			String iconName = gameObject.getThisAttribute(Constants.ICON_TYPE);
-			String iconFolder = gameObject.getThisAttribute(Constants.ICON_FOLDER);
-			if (iconName!=null && iconFolder!=null) {
-				drawIcon(g,iconFolder,iconName,0.75);
+			if (displayStyle == DISPLAY_STYLE_ALTERNATIVE && gameObject.hasThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE) && gameObject.hasThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE)) {
+				String iconName = gameObject.getThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE);
+				String iconFolder = gameObject.getThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE);
+				Shape shape = getShape(SHADOW_BORDER,SHADOW_BORDER,getChitSize()-SHADOW_BORDER);
+				if (isHidden()) {
+					g.setColor(Color.green);
+				} else {
+					g.setColor(Color.white);
+				}
+				double size = 1.2;
+				if (gameObject.hasThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE)) {
+					size = Double.parseDouble(gameObject.getThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE));
+				}				
+				g.fill(shape);
+				drawIcon(g,iconFolder,iconName,size);
+			}
+			else if (gameObject.hasThisAttribute(Constants.SUPER_REALM) && gameObject.hasThisAttribute(Constants.ICON_TYPE+"_sr") && gameObject.hasThisAttribute(Constants.ICON_TYPE+"_sr")) {
+				String iconName = gameObject.getThisAttribute(Constants.ICON_TYPE+"_sr");
+				String iconFolder = gameObject.getThisAttribute(Constants.ICON_FOLDER+"_sr");
+				Shape shape = getShape(SHADOW_BORDER,SHADOW_BORDER,getChitSize()-SHADOW_BORDER);
+				if (isHidden()) {
+					g.setColor(Color.green);
+				} else {
+					g.setColor(Color.white);
+				}
+				g.fill(shape);
+				drawIcon(g,iconFolder,iconName,1.2);
+			}
+			else {
+				String iconName = null;
+				if (gameObject.hasThisAttribute(Constants.ICON_TYPE+Constants.ICON_CHARACTER)) {
+					iconName = gameObject.getThisAttribute(Constants.ICON_TYPE+Constants.ICON_CHARACTER);
+				}
+				else {
+					iconName = gameObject.getThisAttribute(Constants.ICON_TYPE);
+				}
+				String iconFolder = null;
+				if (gameObject.hasThisAttribute(Constants.ICON_FOLDER+Constants.ICON_CHARACTER)) {
+					iconFolder = gameObject.getThisAttribute(Constants.ICON_FOLDER+Constants.ICON_CHARACTER);
+				}
+				else {
+					iconFolder = gameObject.getThisAttribute(Constants.ICON_FOLDER);
+				}
+				if (iconName!=null && iconFolder!=null) {
+					if ((displayStyle == DISPLAY_STYLE_LEGENDARY || displayStyle == DISPLAY_STYLE_ALTERNATIVE) && legendaryImageExists()) {
+						iconFolder = iconFolder+"_legendary";
+						if (isHidden()) {
+							iconName=iconName+"_h";
+						}
+						drawIcon(g,iconFolder,iconName,0.26);
+					}
+					else if (displayStyle == DISPLAY_STYLE_LEGENDARY_CLASSIC && legendaryClassicImageExists()) {
+						iconFolder = iconFolder+"_legendary_classic";
+						if (isHidden()) {
+							iconName=iconName+"_h";
+						}
+						drawIcon(g,iconFolder,iconName,0.26);
+					}
+					else {
+						drawIcon(g,iconFolder,iconName,0.75);
+					}
+				}
 			}
 		}
 
+		if (character.isFortified()) {
+			g.setColor(Color.blue);
+			Stroke old = g.getStroke();
+			g.setStroke(Constants.THICK_STROKE);
+			int m = T_CHIT_SIZE>>1;
+			if ((displayStyle == DISPLAY_STYLE_LEGENDARY && legendaryImageExists())
+					 || (displayStyle == DISPLAY_STYLE_LEGENDARY_CLASSIC && legendaryClassicImageExists())) {
+				g.drawOval(0,0,2*m,2*m);
+			}
+			else {
+				g.drawLine(4,m-4,T_CHIT_SIZE-4,m-4);
+				g.drawLine(4,m+4,T_CHIT_SIZE-4,m+4);
+			}
+			g.setStroke(old);
+		}
+		
 		// Show Wish Strength, if any
 		Strength wishStrength = character.getWishStrength();
 		if (wishStrength != null) {
@@ -137,33 +257,48 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 	// BattleChit Interface - by itself, a character has no stats - its all in the chits
 	public boolean targets(BattleChit chit) {
 		RealmComponent rc = getTarget();
-		return (rc != null && rc.equals(chit));
+		RealmComponent rc2 = get2ndTarget();
+		return ((rc != null && rc.equals((RealmComponent)chit)) || (rc2 != null && rc2.equals((RealmComponent)chit)));
 	}
-
+	
 	public Integer getLength() {
 		MonsterChitComponent transmorph = getTransmorphedComponent();
-		if (transmorph==null) {
-			int length = 0; // default length (dagger)
-			// Derive this from the weapon used.
-			CharacterWrapper character = new CharacterWrapper(getGameObject());
-			boolean hasWeapon = false;
-			WeaponChitComponent weapon = character.getActiveWeapon();
-			if (weapon != null) {
-				CombatWrapper wCombat = new CombatWrapper(weapon.getGameObject());
-				if (wCombat.getCombatBox()>0) {
-					hasWeapon = true;
-					length = weapon.getLength();
-				}
-			}
-			if (!hasWeapon) {
-				GameObject tw = getTreasureWeaponObject();
-				if (tw!=null) {
-					length = tw.getThisInt("length");
-				}
-			}
-			return new Integer(length);
+		if (transmorph!=null) {
+			return transmorph.getLength();
 		}
-		return transmorph.getLength();
+		int length = 0; // default length (dagger)
+		// Derive this from the weapon used.
+		CharacterWrapper character = new CharacterWrapper(getGameObject());
+		ArrayList<WeaponChitComponent> weapons = character.getActiveWeapons();
+		RealmComponent rc = getAttackChit();
+		CombatWrapper combatChit = null;
+		if (rc!=null) {
+			combatChit = new CombatWrapper(rc.getGameObject());
+		}
+		if (weapons != null) {
+			for (WeaponChitComponent weapon : weapons) {
+				if (combatChit==null || combatChit.getWeaponId().equals(weapon.getGameObject().getStringId())) {
+					CombatWrapper wCombat = new CombatWrapper(weapon.getGameObject());
+					if (wCombat.hasCombatBox()) {
+						if (length < weapon.getLength()) {
+							length = weapon.getLength();
+						}
+					}
+				}
+			}
+		}
+		for (GameObject tw : getTreasureWeaponObjects()) {
+			if (tw!=null && (combatChit==null || combatChit.getWeaponId().equals(tw.getStringId()))) {
+				CombatWrapper twCombat = new CombatWrapper(tw);
+				if (twCombat.hasCombatBox()) {
+					int twLength = TreasureUtility.getLengthForTreasure(tw);
+					if (length < twLength) {
+						length = twLength;
+					}
+				}
+			}
+		}
+		return Integer.valueOf(length);
 	}
 
 	public String getLightSideStat() {
@@ -214,9 +349,7 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 			if (rc == this) {
 				return BattleUtility.getMoveSpeed(getTransmorphedComponent());
 			}
-			else {
-				return BattleUtility.getMoveSpeed(rc);
-			}
+			return BattleUtility.getMoveSpeed(rc);
 		}
 		return new Speed();
 	}
@@ -231,21 +364,57 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 	}
 
 	public RealmComponent getAttackChit() {
-		RealmComponent rc = null;
 		CharacterWrapper character = new CharacterWrapper(getGameObject());
 		GameObject transmorph = character.getTransmorph();
-		if (transmorph == null) {
-			rc = BattleUtility.findFightComponentWithCombatBox(character.getFightSpeedOptions(new Speed(), true));
-		}
-		else {
+		if (transmorph != null) {
 			// Fight is handled in the transmorphed monster object
-			rc = RealmComponent.getRealmComponent(transmorph);
+			return RealmComponent.getRealmComponent(transmorph);
 		}
-		return rc;
+		return this.AttackChit;
+	}
+	public void setAttackChit(RealmComponent rc) {
+		this.AttackChit = rc;
 	}
 
 	public boolean hasAnAttack() {
 		return getAttackCombatBox()>0;
+	}
+	
+	public boolean hasAnParry() {
+		RealmComponent rc = getAttackChit();
+		if (rc != null) {
+			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
+			return combat.getCombatBoxDefense()>0;
+		}
+		return false;
+	}
+	
+	public WeaponChitComponent getAttackingWeapon() {
+		CharacterWrapper character = new CharacterWrapper(getGameObject());
+		RealmComponent rc = getAttackChit();
+		if (rc != null) {
+			ArrayList<WeaponChitComponent> weapons = character.getActiveWeapons();
+			if (weapons != null) {
+				CombatWrapper combatChit = new CombatWrapper(rc.getGameObject());
+				for (WeaponChitComponent weapon : weapons) {
+					if (combatChit.getWeaponId().equals(weapon.getGameObject().getStringId())) {
+						CombatWrapper combat = new CombatWrapper(weapon.getGameObject());
+						if (combat.getCombatBoxAttack() > 0) { // only if it was played!
+							return weapon;
+						}
+					}
+				}
+			}
+		}
+		for (GameObject tw : getTreasureWeaponObjects()) {
+			if (tw!=null && (rc==null || new CombatWrapper(rc.getGameObject()).getWeaponId().equals(tw.getStringId()))) {
+				CombatWrapper combat = new CombatWrapper(tw);
+				if (combat.getCombatBoxAttack() > 0) {
+					return new WeaponChitComponent(tw);
+				}
+			}
+		}
+		return null;
 	}
 	
 	/**
@@ -258,15 +427,19 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 		RealmComponent rc = getAttackChit();
 		if (rc != null) {
 			speed = BattleUtility.getFightSpeed(rc);
-
 			// Weapon speed overrides anything else
-			WeaponChitComponent weapon = character.getActiveWeapon();
-			if (weapon != null) {
-				CombatWrapper combat = new CombatWrapper(weapon.getGameObject());
-				if (combat.getCombatBox() > 0) { // only if it was played!
-					Speed weaponSpeed = weapon.getSpeed();
-					if (weaponSpeed != null) {
-						speed = weaponSpeed;
+			ArrayList<WeaponChitComponent> weapons = character.getActiveWeapons();
+			if (weapons != null) {
+				CombatWrapper combatChit = new CombatWrapper(rc.getGameObject());
+				for (WeaponChitComponent weapon : weapons) {
+					if (combatChit.getWeaponId().equals(weapon.getGameObject().getStringId())) {
+						CombatWrapper combat = new CombatWrapper(weapon.getGameObject());
+						if (combat.getCombatBoxAttack() > 0) { // only if it was played!
+							Speed weaponSpeed = weapon.getSpeed();
+							if (weaponSpeed != null) {
+								speed = weaponSpeed;
+							}
+						}
 					}
 				}
 			}
@@ -275,26 +448,34 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 	}
 	
 	/**
-	 * Returns a GameObject that is either a WeaponChitComponent, or a TreasureCardComponent with an attack attribute (Alchemists's Mixture)
+	 * Returns a GameObject that is either a WeaponChitComponent, or a TreasureCardComponent with an attack attribute
 	 */
-	public GameObject getActiveWeaponObject() {
+	public ArrayList<GameObject> getActiveWeaponsObjects() {
 		CharacterWrapper character = new CharacterWrapper(getGameObject());
-		WeaponChitComponent weapon = character.getActiveWeapon();
-		if (weapon==null) {
-			return getTreasureWeaponObject();
-		}
-		return weapon.getGameObject();
-	}
-	
-	public GameObject getTreasureWeaponObject() {
-		CharacterWrapper character = new CharacterWrapper(getGameObject());
-		for (Iterator i=character.getActiveInventory().iterator();i.hasNext();) {
-			GameObject item = (GameObject)i.next();
-			if (item.hasThisAttribute("attack")) {
-				return item;
+		ArrayList<GameObject> weaponsGameObjects = new ArrayList<GameObject>();
+		ArrayList<WeaponChitComponent> weapons = character.getActiveWeapons();
+		if (weapons != null) {
+			for (WeaponChitComponent weapon : weapons) {
+				weaponsGameObjects.add(weapon.getGameObject());
 			}
 		}
-		return null;
+		if (getTreasureWeaponObjects() != null) {
+			for (GameObject tw : getTreasureWeaponObjects()) {
+				weaponsGameObjects.add(tw);
+			}
+		}
+		return weaponsGameObjects;
+	}
+	
+	public ArrayList<GameObject> getTreasureWeaponObjects() {
+		ArrayList<GameObject> items = new ArrayList<GameObject>();
+		CharacterWrapper character = new CharacterWrapper(getGameObject());
+		for (GameObject item : character.getActiveInventory()) {
+			if (item.hasThisAttribute("attack")) {
+				items.add(item);
+			}
+		}
+		return items;
 	}
 
 	/**
@@ -309,6 +490,7 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 			return harm;
 		}
 		Strength weaponStrength = new Strength(); // negligible strength (dagger) to start
+		Strength weaponWeight = new Strength();
 		int sharpness = 1; // default of a dagger
 		sharpness += getGameObject().getThisInt(Constants.ADD_SHARPNESS); // in case poison is applied to a dagger
 		boolean ignoreArmor = getGameObject().hasThisAttribute(Constants.IGNORE_ARMOR); // false, unless penetrating grease was applied to dagger
@@ -320,45 +502,83 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 			}
 			boolean hasWeapon = false;
 			boolean missileWeapon = false;
-			Harm baseHarm = BattleUtility.getHarm(rc); // harm from the attack (ignoring the weapon)
-			WeaponChitComponent weapon = character.getActiveWeapon();
-			if (weapon != null) {
-				if (weapon.getGameObject().hasThisAttribute(Constants.IGNORE_ARMOR)) {
-					ignoreArmor = true;
-				}
-				CombatWrapper wCombat = new CombatWrapper(weapon.getGameObject());
-				if (wCombat.getCombatBox()>0) {
-					hasWeapon = true;
-					missileWeapon = weapon.isMissile();
-					weaponStrength = weapon.getStrength();
-					sharpness = weapon.getSharpness();
+			boolean enchantedWeapon = false;
+			Harm baseHarm = getHarmForRealmComponent(rc); // harm from the attack (ignoring the weapon)
+			CombatWrapper combatChit = new CombatWrapper(rc.getGameObject());
+			ArrayList<WeaponChitComponent> weapons = character.getActiveWeapons();
+			if (weapons != null) {
+				for (WeaponChitComponent weapon : weapons) {
+					if (combatChit.getWeaponId().equals(weapon.getGameObject().getStringId())) {
+						CombatWrapper wCombat = new CombatWrapper(weapon.getGameObject());
+						if (wCombat.hasCombatBox()) {
+							if (weapon.getGameObject().hasThisAttribute(Constants.IGNORE_ARMOR)) {
+								ignoreArmor = true;
+							}
+							hasWeapon = true;
+							missileWeapon = weapon.isMissile();
+							weaponStrength = weapon.getStrength();
+							weaponWeight = weapon.getWeight();
+							sharpness = weapon.getSharpness();
+							enchantedWeapon = weapon.getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON);
+						}
+					}
 				}
 			}
 			if (!hasWeapon) {
 				// Check for treasure weapons
-				GameObject tw = getTreasureWeaponObject();
-				if (tw!=null) {
-					if (tw.hasThisAttribute(Constants.IGNORE_ARMOR)) {
-						ignoreArmor = true;
+				for (GameObject tw : getTreasureWeaponObjects()) {
+					if (tw!=null && combatChit.getWeaponId().equals(tw.getStringId())) {
+						CombatWrapper twCombat = new CombatWrapper(tw);
+						if (twCombat.hasCombatBox()) {
+							if (tw.hasThisAttribute(Constants.IGNORE_ARMOR)) {
+								ignoreArmor = true;
+							}
+							hasWeapon = true;
+							missileWeapon = TreasureUtility.isTreasureMissile(tw);
+							weaponStrength = TreasureUtility.getStrengthForTreasure(tw);
+							weaponWeight = TreasureUtility.getWeightForTreasure(tw);
+							sharpness = TreasureUtility.getSharpnessForTreasure(tw);
+							enchantedWeapon = tw.hasThisAttribute(Constants.ENCHANTED_WEAPON);
+							break;
+						}
 					}
-					hasWeapon = true;
-					missileWeapon = tw.hasThisAttribute("missile");
-					weaponStrength = new Strength(tw.getThisAttribute("strength"));
-					sharpness = tw.getThisInt("sharpness");
-					sharpness += tw.getThisInt(Constants.ADD_SHARPNESS);
 				}
 			}
-			if (!hasWeapon && getGameObject().hasThisAttribute(Constants.FIGHT_NO_WEAPON)) {
+			if (!hasWeapon && (getGameObject().hasThisAttribute(Constants.FIGHT_NO_WEAPON) || character.getWeight().strongerOrEqualTo(new Strength("T"))) && baseHarm.getStrength().strongerThan(new Strength())) {
 				weaponStrength = baseHarm.getStrength();
 				sharpness = 0;
 			}
-			if (!missileWeapon && baseHarm.getStrength().strongerThan(weaponStrength)) {
+			else if (!missileWeapon && baseHarm.getStrength().strongerThan(weaponWeight) && !enchantedWeapon) {
 				weaponStrength.bumpUp();
+			}
+			if (combatChit.getGameObject().hasThisAttribute(Constants.FINAL_CHIT_HARM) && !enchantedWeapon) {
+				Strength chitStrength = new Strength(combatChit.getGameObject().getThisAttribute(Constants.FINAL_CHIT_HARM));
+				if (chitStrength.strongerThan(weaponStrength)) {
+					weaponStrength = chitStrength;
+				}
 			}
 		}
 
 		Harm totalHarm = new Harm(weaponStrength, sharpness, ignoreArmor);
 		return totalHarm;
+	}
+	
+	public static Harm getHarmForRealmComponent(RealmComponent rc) {
+		Harm harm = null;
+		if (rc.isTreasure() && rc.getGameObject().hasThisAttribute("strength")) {
+			// This wont work for weapons, but that's what I want here!  Weapons are in ADDITION to fight strength.
+			Strength strength = new Strength(rc.getGameObject().getThisAttribute("strength"));
+			if (rc.getGameObject().hasThisAttribute(Constants.ALTER_WEIGHT)) {
+				int difference = (new Strength(rc.getGameObject().getThisAttribute(Constants.ALTER_WEIGHT))).getLevels()-(new Strength((rc.getGameObject().getThisAttribute("strength")))).getLevels();
+				strength.modify(difference);
+			}
+			harm = new Harm(strength,0);
+		}
+		if (rc.isBattleChit()) { // this handles character action chits, natives, and horses
+			BattleChit bc = (BattleChit)rc;
+			harm = bc.getHarm();
+		}
+		return harm;
 	}
 
 	public boolean hasNaturalArmor() {
@@ -370,16 +590,43 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 	/**
 	 * @return The first piece of armor that would be hit by the specified box number. (chits before cards)
 	 */
-	private RealmComponent getArmor(int box,int attackOrderPos) {
-		ArrayList<RealmComponent> armors = getArmors(box,attackOrderPos);
+	private RealmComponent getArmor(Speed attackSpeed,int box,int attackOrderPos) {
+		ArrayList<RealmComponent> armors = getArmors(attackSpeed,box,attackOrderPos);
 		if (armors!=null && !armors.isEmpty()) {
 			return armors.get(0); // Simply return the first (its sorted)
 		}
 		return null;
 	}
-	private ArrayList<RealmComponent> getArmors(int box,int attackOrderPos) {
+	private ArrayList<RealmComponent> getArmors(Speed attackerSpeed,int box,int attackOrderPos) {
 		CharacterWrapper character = new CharacterWrapper(getGameObject());
 		ArrayList<RealmComponent> armors = new ArrayList<RealmComponent>();
+		
+		ArrayList<WeaponChitComponent> activeWeapons = character.getActiveWeapons();
+		ArrayList<GameObject> treasures = character.getActiveTreasureWeaponObjects();
+		for (CharacterActionChitComponent chit : character.getActiveFightChits()) {
+			CombatWrapper combatChit = new CombatWrapper(chit.getGameObject());
+			if(!combatChit.getPlacedAsParryShield()) continue;
+			if (chit.getSpeed().fasterThanOrEqual(attackerSpeed) || combatChit.getCombatBoxDefense() == box) {
+				if (combatChit.getWeaponId() == null) {
+					armors.add(chit);
+					continue;
+				}
+				if (activeWeapons!=null) {
+					for (WeaponChitComponent weapon : activeWeapons) {
+						if (combatChit.getWeaponId().equals(weapon.getGameObject().getStringId())) {
+							armors.add(weapon);
+							break;
+						}
+					}
+				}
+				for (GameObject treasure : treasures) {
+					if (combatChit.getWeaponId().equals(treasure.getStringId())) {
+						armors.add(RealmComponent.getRealmComponent(treasure));
+						break;
+					}
+				}
+			}
+		}
 		
 		ArrayList<GameObject> search = new ArrayList<GameObject>();
 		search.addAll(character.getActiveInventory());
@@ -400,7 +647,7 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 				}
 				else if (armorType!=ArmorType.None) {
 					if (armorType==ArmorType.Shield) {
-						if (combat.getCombatBox() == box) {
+						if (combat.getCombatBoxDefense() == box) {
 							armors.add(item);
 						}
 					}
@@ -421,16 +668,18 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 		}
 		if (armors.size() > 0) {
 			// Sort chits ahead of treasure cards (exception: Ointment of Steel ahead of full suit of armor), and fortification to the front
-			Collections.sort(armors, new Comparator() {
-				public int compare(Object o1, Object o2) {
+			Collections.sort(armors, new Comparator<RealmComponent>() {
+				public int compare(RealmComponent o1, RealmComponent o2) {
 					int ret = 0;
 
-					RealmComponent r1 = (RealmComponent) o1;
-					RealmComponent r2 = (RealmComponent) o2;
+					RealmComponent r1 = o1;
+					RealmComponent r2 = o2;
 
-					// Sort first by armor row (row 1 is the shield row)
+					// Sort first by armor row (row 1 is the shield row); parrying weapon is in shield row
 					int armorRow1 = r1.getGameObject().getThisInt("armor_row");
 					int armorRow2 = r2.getGameObject().getThisInt("armor_row");
+					if (r1.isWeapon() || (r1.isTreasure() && r1.getGameObject().hasThisAttribute(RealmComponent.WEAPON))) armorRow1 = 1;
+					if (r2.isWeapon() || (r2.isTreasure() && r2.getGameObject().hasThisAttribute(RealmComponent.WEAPON))) armorRow2 = 1;
 					ret = armorRow1 - armorRow2;
 					if (ret == 0) {
 						// handle Ointment of Steel + suit of armor cases (roundabout way to determine if r2 is ointment of steel) */
@@ -459,6 +708,10 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 		return null;
 	}
 	
+	public boolean hasBarkskin() {
+		return getGameObject().hasThisAttribute(Constants.BARKSKIN);
+	}
+	
 	/**
 	 * @return true if damage was applied in some way
 	 */
@@ -467,16 +720,52 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 		CombatWrapper combat = new CombatWrapper(getGameObject());
 		
 		boolean damageTaken = false;
+		boolean woundTaken = false;
 
 		// Start off with the assumption that the character was NOT killed
 		boolean characterWasKilled = false;
-
+		
+		ArrayList<SpellWrapper> doubleBody = SpellUtility.getBewitchingSpellsWithKey(getGameObject(),Constants.BODY_DOUBLE);
+		if ((doubleBody!=null&&!doubleBody.isEmpty()) || affectedByKey(Constants.BODY_DOUBLE)) {
+			Collections.shuffle(doubleBody);
+			Collections.shuffle(doubleBody);
+			for (SpellWrapper spell : doubleBody) {
+				DieRoller roller = DieRollBuilder.getDieRollBuilder(null,character).createRoller("Body Double",1);
+				int result = roller.getHighDieResult();
+				if (result>3) {
+					spell.setBoolean(SpellWrapper.SPELL_EXPIRES_AT_ROUND_END,true);
+					RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits the wrong body of the "+getGameObject().getName()+".");
+					return false;
+				}
+			}
+		}
+		
+		ArrayList<SpellWrapper> holyShields = SpellUtility.getBewitchingSpellsWithKey(getGameObject(),Constants.HOLY_SHIELD);
+		if ((holyShields!=null&&!holyShields.isEmpty()) || affectedByKey(Constants.HOLY_SHIELD) || combat.hasHolyShield(attacker.getAttackSpeed(),attacker.getLength())) {
+			for (SpellWrapper spell : holyShields) {
+				spell.expireSpell();
+			}
+			combat.setHolyShield(attacker.getAttackSpeed(), attacker.getLength());
+			RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits Holy Shield and the attack is blocked.");
+			return false;
+		}
+		
+		if (this.affectedByKey(Constants.DISENCHANT_POTION) && attacker.isMonster()) {
+			MonsterChitComponent monster = (MonsterChitComponent)attacker;
+			if (!(attacker.getAttackSpell().length() == 0) || (monster.getThisAttribute(Constants.VULNERABILITY).matches("T") && monster.hasMagicType())) {
+				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Cannot hit "+this.getName()+", as the character is affected by Disenchantment Potion.");
+				return false;
+			}
+		}
+		
 		MonsterChitComponent transmorph = getTransmorphedComponent();
 		if (transmorph != null) {
 			boolean ret = transmorph.applyHit(game,hostPrefs, attacker, box, attackerHarm,attackOrderPos);
 			CombatWrapper monCombat = new CombatWrapper(transmorph.getGameObject());
 			if (monCombat.getKilledBy() != null) {
 				combat.setKilledBy(attacker.getGameObject());
+				combat.setKilledLength(attacker.getLength());
+				combat.setKilledSpeed(attacker.getAttackSpeed());
 				ret = true;
 			}
 			return ret;
@@ -489,30 +778,46 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 		}
 		else {
 			// First thing, check to see if a Horse maneuver was played
-			SteedChitComponent horse = (SteedChitComponent) character.getActiveSteed(attackOrderPos);
+			BattleHorse horse = character.getActiveSteed(attackOrderPos);
 			if (horse != null && !combat.isTargetingRider(attacker.getGameObject())) {
 				CombatWrapper horseCombat = new CombatWrapper(horse.getGameObject());
-				if (horseCombat.getCombatBox() > 0) {
-					RealmLogging.logMessage(attacker.getGameObject().getName(),"Hits the "
-							+getGameObject().getName()+"'s "
-							+horse.getGameObject().getName());
+				if (horseCombat.getCombatBoxDefense() > 0) {
+					RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits the "
+							+getGameObject().getNameWithNumber()+"'s "
+							+horse.getGameObject().getNameWithNumber());
 					// Horse was active and played - it takes the hit!
 					return horse.applyHit(game,hostPrefs, attacker, box, harm,attackOrderPos);// INSTEAD of the character!
 				}
 			}
 
+			if (character.affectedByKey(Constants.POISON_IMMUNITY)) {
+				if (attacker.isCharacter()) {
+					WeaponChitComponent weapon = ((CharacterChitComponent)attacker).getAttackingWeapon();
+					if (weapon!=null && weapon.getGameObject().hasThisAttribute(Constants.POISON)) {
+						harm.dampenSharpness();
+						RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Character has poison immunity and additional sharpness is ignored: "+harm.toString());
+					}
+				}
+				if (attacker.getGameObject().hasThisAttribute(Constants.POISON)) {
+					harm.dampenSharpness();
+					RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Character has poison immunity and additional sharpness is ignored: "+harm.toString());
+				}
+			}
+			
 			Strength vulnerability = character.getVulnerability();
+			boolean armorPiercing = attacker.getGameObject().hasThisAttribute(Constants.ARMOR_PIERCING) || (attacker.isCharacter() && (new CharacterWrapper(attacker.getGameObject())).affectedByKey(Constants.ARMOR_PIERCING));
 
 			// Find armor (if any) at box - chits before cards...
 			RealmComponent armor = null;
+			ArrayList<RealmComponent> armorsPenetratingAttack = null;
 			boolean isDragonBreath = attacker.isMissile() && attacker.getGameObject().hasThisAttribute("dragon_missile");
 			if (harm.getAppliedStrength().strongerThan(new Strength("T")) && attacker.isMissile()) {
 				// If harm exceeds T, armor is ignored, and target is killed, regardless of armor (damn!)
 				harm.setIgnoresArmor(true);
-				RealmLogging.logMessage(attacker.getGameObject().getName(),"Harm is greater than Tremendous ("+harm+")!");
-				RealmLogging.logMessage(attacker.getGameObject().getName(),"Missile attack hits a vital unarmored spot!");
+				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Harm is greater than Tremendous ("+harm+")!");
+				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Missile attack hits a vital unarmored spot!");
 			}
-			else if (hostPrefs.hasPref(Constants.OPT_PENETRATING_ARMOR) && attacker.isMissile()) {
+			else if (attacker.isMissile() && (hostPrefs.hasPref(Constants.OPT_PENETRATING_ARMOR) || (attacker.isCharacter() && (new CharacterWrapper(attacker.getGameObject())).affectedByKey(Constants.SHARPSHOOTER)))) {
 				// When Penetrating Armor is in play, and the attack is a missile attack, then the armor is never actually "hit".
 				
 				/*
@@ -524,87 +829,190 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 				 * Multiple layers can cause multiple reductions
 				 */
 				
+				armorsPenetratingAttack = getArmors(attacker.getAttackSpeed(),box,attackOrderPos);
 				if (harm.getAppliedStrength().strongerThan(new Strength("T"))) {
 				}
 				else {
-					ArrayList<RealmComponent> armors = getArmors(box,attackOrderPos);
-					if (armors!=null && !armors.isEmpty()) {
-						harm.dampenSharpness();
-						RealmLogging.logMessage(attacker.getGameObject().getName(),"Hits armor, and reduces sharpness: "+harm.toString());
+					if (armorsPenetratingAttack!=null && !armorsPenetratingAttack.isEmpty()) {
+						if (!armorPiercing) {
+							harm.dampenSharpness();
+							RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits armor, and reduces sharpness: "+harm.toString());
+						}
 						
-						for (RealmComponent test:armors) {
+						for (RealmComponent test:armorsPenetratingAttack) {
 							if (isDragonBreath && test.getGameObject().hasThisAttribute(Constants.IMMUNE_BREATH)) {
 								harm = new Harm(new Strength(),0); // negate harm!
-								RealmLogging.logMessage(attacker.getGameObject().getName(),"Dragon breath attack is stopped by "+test.getGameObject().getName());
+								RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Dragon breath attack is stopped by "+test.getGameObject().getNameWithNumber());
 							}
 							else {
 								Strength armorVulnerability = new Strength(test.getGameObject().getThisAttribute("vulnerability"));
+								if (test.isArmor()) {
+									((ArmorChitComponent)test).getVulnerability();
+								}
+								if (test.getGameObject().hasThisAttribute(Constants.MAGIC_COLOR_BONUS_ACTIVE) && test.getGameObject().hasThisAttribute(Constants.MAGIC_COLOR_BONUS_ARMOR)) {
+									String immunity = attacker.getGameObject().getThisAttribute(Constants.MAGIC_IMMUNITY);
+									ColorMagic attackerImmunityColor = ColorMagic.makeColorMagic(immunity,true);
+									ColorMagic itemMagicColorBonus = ColorMagic.makeColorMagic(test.getGameObject().getThisAttribute(Constants.MAGIC_COLOR_BONUS),true);
+									if (immunity==null || (!immunity.matches("prism") && (attackerImmunityColor==null || !attackerImmunityColor.sameColorAs(itemMagicColorBonus)))) {
+										armorVulnerability = new Strength(test.getGameObject().getThisAttribute(Constants.MAGIC_COLOR_BONUS_ARMOR));
+									}
+									else {
+										RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Ignores magic vulnerability of armor.");
+									}
+								}
+								if (!test.isArmor()) {
+									if (test.isWeapon()) {
+										armorVulnerability = new Strength(((WeaponChitComponent)test).getWeight()); // parrying with weapon
+									}
+									else if (test.isTreasure() && test.getGameObject().hasThisAttribute(RealmComponent.WEAPON)) {
+										armorVulnerability = new Strength(TreasureUtility.getWeightForTreasure(test.getGameObject()));
+									}
+									else if (test instanceof CharacterActionChitComponent) armorVulnerability = new Strength(test.getGameObject().getThisAttribute("strength")); // parrying with FIGHT chit
+								}
 								if (armorVulnerability.strongerThan(harm.getAppliedStrength())) {
 									harm = new Harm(new Strength(),0); // negate harm!
-									RealmLogging.logMessage(attacker.getGameObject().getName(),"Missile attack is stopped by "+test.getGameObject().getName());
+									RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Missile attack is stopped by "+test.getGameObject().getNameWithNumber());
 									break;
 								}
 								else if (armorVulnerability.equals(harm.getAppliedStrength())) {
 									harm.setWound(true);
-									RealmLogging.logMessage(attacker.getGameObject().getName(),"Missile attack is stopped by "+test.getGameObject().getName()+", but causes 1 wound.");
+									RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Missile attack is stopped by "+test.getGameObject().getNameWithNumber()+", but causes 1 wound.");
 									break;
 								}
 								else { // can assume harm is greater than armor now
 									harm.dropOneLevel();
-									RealmLogging.logMessage(attacker.getGameObject().getName(),"Missile attack penetrates "+test.getGameObject().getName()+"!  Drops one level: "+harm);
+									RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Missile attack penetrates "+test.getGameObject().getNameWithNumber()+"!  Drops one level: "+harm);
 								}
 							}
+						}
+					}
+					else if (!armorPiercing && hasBarkskin()) {
+						ColorMagic attackerImmunityColor = ColorMagic.makeColorMagic(attacker.getGameObject().getThisAttribute(Constants.MAGIC_IMMUNITY),true);
+						if (attackerImmunityColor != null && (attackerImmunityColor.isPrismColor()||attackerImmunityColor.getColorNumber()==ColorMagic.GRAY)) {
+							RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Barkskin is ignored.");
+						}
+						else {
+							harm.dampenSharpness();
+							RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits barkskin, and reduces sharpness: "+harm.toString());
 						}
 					}
 				}
 			}
 			else {
-				armor = getArmor(box,attackOrderPos);
+				armor = getArmor(attacker.getAttackSpeed(),box,attackOrderPos);
 				if (armor!=null && isDragonBreath && armor.getGameObject().hasThisAttribute(Constants.IMMUNE_BREATH)) {
 					harm = new Harm(new Strength(),0); // negate harm!
-					RealmLogging.logMessage(attacker.getGameObject().getName(),"Dragon breath attack is stopped by "+armor.getGameObject().getName());
+					RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Dragon breath attack is stopped by "+armor.getGameObject().getNameWithNumber());
 				}
 			}
 
 			boolean tookSeriousWounds = false;
 			Strength minForWound = new Strength("L"); // Without armor, L is all that is required to wound
 			
-			if (armor==null && hasNaturalArmor()) { // custom character possibility
+			if (armor==null && armorsPenetratingAttack==null && !armorPiercing && hasNaturalArmor()) { // custom character possibility
 				harm.dampenSharpness();
-				RealmLogging.logMessage(attacker.getGameObject().getName(),getGameObject().getName() + " has natural armor, which reduces sharpness: "+harm.toString());
+				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),getGameObject().getNameWithNumber() + " has natural armor, which reduces sharpness: "+harm.toString());
 			}
 			
-			if (!harm.getIgnoresArmor() && armor != null) {
-				// If armor, reduce harm by one star, determine if armor is damaged/destroyed, apply wounds
-				harm.dampenSharpness();
-				if (armor.isCharacter()) {
-					RealmLogging.logMessage(attacker.getGameObject().getName(),"Hits characater fortification, and reduces sharpness: "+harm.toString());
+			if (armor==null && armorsPenetratingAttack==null && !armorPiercing && hasBarkskin()) {
+				ColorMagic attackerImmunityColor = ColorMagic.makeColorMagic(attacker.getGameObject().getThisAttribute(Constants.MAGIC_IMMUNITY),true);
+				if (attackerImmunityColor != null && (attackerImmunityColor.isPrismColor()||attackerImmunityColor.getColorNumber()==ColorMagic.GRAY)) {
+					RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Barkskin is ignored.");
 				}
 				else {
-					RealmLogging.logMessage(attacker.getGameObject().getName(),"Hits armor ("+armor.getGameObject().getName()+"), and reduces sharpness: "+harm.toString());
+					harm.dampenSharpness();
+					RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits barkskin, and reduces sharpness: "+harm.toString());
+				}
+			}
+			if (!harm.getIgnoresArmor() && armor != null) {
+				// Wound minimum is increased to M if there is armor involved
+				minForWound = new Strength("M");
+				
+				if (!armorPiercing) {
+					// If armor, reduce harm by one star, determine if armor is damaged/destroyed, apply wounds
+					harm.dampenSharpness();
+					if (armor.isCharacter()) {
+						RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits characater fortification, and reduces sharpness: "+harm.toString());
+					}
+					else if (armor.isWeapon() || armor instanceof CharacterActionChitComponent) {
+						RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hit is parried ("+armor.getGameObject().getNameWithNumber()+"), and reduces sharpness: "+harm.toString());
+					}
+					else {
+						RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits armor ("+armor.getGameObject().getNameWithNumber()+"), and reduces sharpness: "+harm.toString());
+					}
 				}
 				Strength armorVulnerability = new Strength(armor.getGameObject().getThisAttribute("vulnerability"));
+				if (armor.isArmor()) armorVulnerability = ((ArmorChitComponent)armor).getVulnerability();
+				if (armor.getGameObject().hasThisAttribute(Constants.MAGIC_COLOR_BONUS_ACTIVE) && armor.getGameObject().hasThisAttribute(Constants.MAGIC_COLOR_BONUS_ARMOR)) {
+					String immunity = attacker.getGameObject().getThisAttribute(Constants.MAGIC_IMMUNITY);
+					ColorMagic attackerImmunityColor = ColorMagic.makeColorMagic(immunity,true);
+					ColorMagic itemMagicColorBonus = ColorMagic.makeColorMagic(armor.getGameObject().getThisAttribute(Constants.MAGIC_COLOR_BONUS),true);
+					if (immunity==null || (!immunity.matches("prism") && (attackerImmunityColor==null || !attackerImmunityColor.sameColorAs(itemMagicColorBonus)))) {
+						armorVulnerability = new Strength(armor.getGameObject().getThisAttribute(Constants.MAGIC_COLOR_BONUS_ARMOR));
+					}
+					else {
+						RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Ignores magic vulnerability of armor.");
+					}
+				}
+				if (!armor.isArmor()) {
+					if (armor.isWeapon()) {
+						armorVulnerability = new Strength(((WeaponChitComponent)armor).getWeight()); // parrying with weapon
+					}
+					else if (armor.isTreasure() && armor.getGameObject().hasThisAttribute(RealmComponent.WEAPON)) {
+						armorVulnerability = new Strength(TreasureUtility.getWeightForTreasure(armor.getGameObject()));
+					}
+					else if (armor instanceof CharacterActionChitComponent) {
+						armorVulnerability = new Strength(armor.getGameObject().getThisAttribute("strength")); // parrying with FIGHT chit
+						minForWound = new Strength(armorVulnerability);
+					}
+				}
 				if (harm.getAppliedStrength().strongerOrEqualTo(armorVulnerability)) {
 					boolean destroyed = true;
 					damageTaken = true;
-					if (armor.isArmor() && !harm.getAppliedStrength().strongerThan(armorVulnerability)) {
+					if ((armor.isArmor() || armor.isCharacter()) && !harm.getAppliedStrength().strongerThan(armorVulnerability)) {
 						// damaged
 						if (armor.isCharacter()) {
 							if (!character.isFortDamaged()) {
-								RealmLogging.logMessage(attacker.getGameObject().getName(),"Damages the character fortification.");
+								RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Damages the character fortification.");
 								character.setFortDamaged(true);
 							}
 						}
 						else {
 							ArmorChitComponent armorChit = (ArmorChitComponent) armor;
 							if (!armorChit.isDamaged()) {
-								RealmLogging.logMessage(attacker.getGameObject().getName(),"Damages the "
+								if (armorChit.getGameObject().hasThisAttribute(Constants.DAMAGEABLE_NOT)) {
+									RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Cannot damage the "
 										+getGameObject().getName()+"'s "
-										+armor.getGameObject().getName());
+										+armor.getGameObject().getName()+" as it cannot be damaged at all");
+								}
+								else if (armor.getGameObject().hasThisAttribute(Constants.OINTMENT_OF_STONE)) {
+									RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Cannot damage the "
+											+getGameObject().getName()+"'s "
+											+armor.getGameObject().getName()+" as it is protected by Ointment of Stone");
+								}
+								else {
+									RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Damages the "
+											+getGameObject().getName()+"'s "
+											+armor.getGameObject().getName());
+									destroyed = false;
+									armorChit.setIntact(false); // NOW its damaged
+								}
+							}
+							else if (armorChit.getGameObject().hasThisAttribute(Constants.DAMAGEABLE_NOT)) {
+								RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Cannot destroy the "
+										+getGameObject().getName()+"'s "
+										+armor.getGameObject().getName()+" as it cannot be damaged at all");
 								destroyed = false;
-								armorChit.setIntact(false); // NOW its damaged
+								}
+							else if (armor.getGameObject().hasThisAttribute(Constants.OINTMENT_OF_STONE)) {
+								RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Cannot destroy the "
+										+getGameObject().getName()+"'s "
+										+armor.getGameObject().getName()+" as it is protected by Ointment of Stone");
+								destroyed = false;
 							}
 						}
+					} else if ((armor.isWeapon() && !harm.getAppliedStrength().strongerThan(armorVulnerability)) || armor instanceof CharacterActionChitComponent) {
+						destroyed = false;
 					}
 					if (destroyed) {
 						if (armor.isCharacter()) {
@@ -618,7 +1026,7 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 							if (!combatArmor.isDead()) {
 								combatArmor.setKilledBy(attacker.getGameObject());
 								combatArmor.setHitByOrderNumber(attackOrderPos);
-								RealmLogging.logMessage(attacker.getGameObject().getName(),"Destroys the "
+								RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Destroys the "
 										+getGameObject().getName()+"'s "
 										+armor.getGameObject().getName());
 								
@@ -634,51 +1042,72 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 								}
 							}
 						}
-
 						// Armor cards are simply removed (not relocated anywhere)
 					}
 				}
 				// else armor is unharmed
-
-				// Wound minimum is increased to M if there is armor involved
-				minForWound = new Strength("M");
 			}
 			else if (harm.getAppliedStrength().strongerOrEqualTo(vulnerability)) {
 				// Direct hit (no armor)
-				if (hostPrefs.hasPref(Constants.ADV_SERIOUS_WOUNDS) && harm.getAppliedStrength().equalTo(vulnerability)) {
+				if ((hostPrefs.hasPref(Constants.ADV_SERIOUS_WOUNDS) || hostPrefs.hasPref(Constants.SR_ADV_SERVERE_WOUNDS) || character.affectedByKey(Constants.TOUGHNESS)) && harm.getAppliedStrength().equalTo(vulnerability)) {
+					boolean severeWounds = hostPrefs.hasPref(Constants.SR_ADV_SERVERE_WOUNDS);
 					// Serious wounds
-					Collection c = character.getNonWoundedChits();
+					Collection<CharacterActionChitComponent> c = character.getNonWoundedChits();
 					DieRoller roller = DieRollBuilder.getDieRollBuilder(null,character).createRoller("wounds");
 					int seriousWounds = roller.getHighDieResult();
+					if (severeWounds) {
+						seriousWounds = seriousWounds*2;
+					}
 					int currentWounds = combat.getNewWounds();
 					
-					RealmLogging.logMessage(getGameObject().getName(),"Takes a serious wound!");
-					RealmLogging.logMessage(getGameObject().getName(),roller.getDescription());
-					RealmLogging.logMessage(getGameObject().getName(),"Serious wound = "+seriousWounds+" wound"+(seriousWounds==1?"":"s")+")");
+					String woundType = "Serious";
+					if (hostPrefs.hasPref(Constants.SR_ADV_SERVERE_WOUNDS)) {
+						woundType = "Severe";
+					}
+					RealmLogging.logMessage(getGameObject().getName(),"Takes a "+woundType+" wound!");
+					StringBuffer rollerDescription = new StringBuffer();
+					rollerDescription.append(roller.getDescription());
+					StringBuffer rollerResult = new StringBuffer();
+					rollerResult.append(roller.getStringResult());
+					if (severeWounds) {
+						rollerDescription.append(" *2");
+						rollerResult.append(" *2");
+					}
+					RealmLogging.logMessage(getGameObject().getName(),rollerDescription.toString());
+					RealmLogging.logMessage(getGameObject().getName(),woundType+" wound = "+seriousWounds+" wound"+(seriousWounds==1?"":"s")+")");
 					if (c != null && c.size() > (currentWounds + seriousWounds)) {
 						combat.addNewWounds(seriousWounds);
-						combat.addSeriousWoundRoll(roller.getStringResult());
+						combat.addSeriousWoundRoll(rollerResult.toString());
 						tookSeriousWounds = true;
 						damageTaken = true;
+						woundTaken = true;
 					}
 					else {
 						// Dead character!
 						characterWasKilled = true;
+						if (hostPrefs.hasPref(Constants.OPT_END_OF_ROUND_WOUNDING)) {
+							combat.setKilledByWounds(true);
+						}
 					}
 				}
 				else {
 					// Dead character!
 					characterWasKilled = true;
+					combat.setKilledByWounds(false);
 				}
 			}
 			else if (harm.isWound()) {
-				Collection c = character.getNonWoundedChits();
+				Collection<CharacterActionChitComponent> c = character.getNonWoundedChits();
 				if (c.size() > 1) {
 					combat.addNewWounds(1);
+					woundTaken = true;
 				}
 				else {
 					// Dead character!
 					characterWasKilled = true;
+					if (hostPrefs.hasPref(Constants.OPT_END_OF_ROUND_WOUNDING)) {
+						combat.setKilledByWounds(true);
+					}
 				}
 			}
 
@@ -686,16 +1115,20 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 			if (!characterWasKilled && !tookSeriousWounds && harm.getAppliedStrength().strongerOrEqualTo(minForWound)) {
 				// Wound character here, unless character is immune...
 				if (armor==null || !character.hasActiveInventoryThisKey(Constants.STOP_WOUNDS)) {
-					Collection c = character.getActiveChits();
+					Collection<CharacterActionChitComponent> c = character.getActiveChits();
 					int currentWounds = combat.getNewWounds();
 					if (c != null && c.size() > currentWounds) {
 						// Can't do the selection here! (this is called from the host, not the client)
 						combat.addNewWounds(1);
 						damageTaken = true;
+						woundTaken = true;
 					}
 					else {
 						// Dead character!
 						characterWasKilled = true;
+						if (hostPrefs.hasPref(Constants.OPT_END_OF_ROUND_WOUNDING)) {
+							combat.setKilledByWounds(true);
+						}
 					}
 				}
 				else {
@@ -705,7 +1138,25 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 		}
 		if (characterWasKilled) {
 			combat.setKilledBy(attacker.getGameObject());
+			combat.setKilledSpeed(attacker.getAttackSpeed());
+			combat.setKilledLength(attacker.getLength());
 			damageTaken = true;
+			BattleHorse horse = character.getActiveSteed();
+			if (horse!=null && (attacker.getGameObject().hasThisAttribute(Constants.KILLS_HORSE) || (attacker instanceof ChitComponent && ((ChitComponent)attacker).hasFaceAttribute(Constants.KILLS_HORSE)))) {
+				horse.applyHit(game,hostPrefs, attacker, box, harm,attackOrderPos);				
+			}
+			if (attacker.getGameObject().hasThisAttribute(Constants.DESTROYS_ARMOR) || (attacker instanceof ChitComponent && ((ChitComponent)attacker).hasFaceAttribute(Constants.DESTROYS_ARMOR))) {
+				RealmComponent armor = getArmor(attacker.getAttackSpeed(),box,attackOrderPos);
+				if (armor!=null) {
+					CombatWrapper combatArmor = new CombatWrapper(armor.getGameObject());
+					combatArmor.setKilledBy(attacker.getGameObject());
+					combatArmor.setHitByOrderNumber(attackOrderPos);
+					RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Destroys the "+getGameObject().getName()+"'s "+armor.getGameObject().getName());
+				}
+			}
+		}
+		if (hostPrefs.hasPref(Constants.SR_ENDING_COMBAT)) {
+			return characterWasKilled || woundTaken;
 		}
 		return damageTaken;
 	}
@@ -717,6 +1168,14 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 		}
 		return null;
 	}
+	
+	public String getAttackSpell() {
+		RealmComponent rc = getAttackChit();
+		if (rc.isMonster()) {
+			return ((MonsterChitComponent)rc).getAttackSpell();
+		}
+		return null;
+	}
 
 	public int getManeuverCombatBox() {
 		return getManeuverCombatBox(true);
@@ -725,16 +1184,15 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 		RealmComponent rc = getManeuverChit(includeHorse);
 		if (rc != null) {
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
-			return combat.getCombatBox();
+			return combat.getCombatBoxDefense();
 		}
 		return 0;
 	}
-
 	public int getAttackCombatBox() {
 		RealmComponent rc = getAttackChit();
 		if (rc != null) {
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
-			return combat.getCombatBox();
+			return combat.getCombatBoxAttack();
 		}
 		return 0;
 	}
@@ -743,14 +1201,22 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 		CharacterWrapper character = new CharacterWrapper(getGameObject());
 		GameObject transmorph = character.getTransmorph();
 		if (transmorph == null) { // Character must not be transmorphed!
-			WeaponChitComponent weapon = character.getActiveWeapon();
-			if (weapon != null) {
-				return weapon.isMissile();
+			ArrayList<WeaponChitComponent> weapons = character.getActiveWeapons();
+			RealmComponent attackChit = getAttackChit();
+			CombatWrapper combatChit = null;
+			if (attackChit != null) {
+				combatChit = new CombatWrapper(attackChit.getGameObject());
 			}
-			else {
-				GameObject tw = getTreasureWeaponObject();
-				if (tw!=null) {
-					return tw.hasThisAttribute("missile");
+			if (weapons != null) {
+				for (WeaponChitComponent weapon : weapons) {
+					if (weapon != null && (attackChit == null || combatChit.getWeaponId().equals(weapon.getGameObject().getStringId()))) {
+						if (weapon.isMissile()) return true;
+					}
+				}
+			}
+			for (GameObject tw : getTreasureWeaponObjects()) {
+				if (tw!=null && (attackChit == null || combatChit.getWeaponId().equals(tw.getStringId()))) {
+					if (tw.hasThisAttribute("missile") && !tw.hasThisAttribute(Constants.ENCHANTED_WEAPON)) return true;
 				}
 			}
 		}
@@ -761,10 +1227,16 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 		CharacterWrapper character = new CharacterWrapper(getGameObject());
 		GameObject transmorph = character.getTransmorph();
 		if (transmorph == null) { // Character must not be transmorphed!
-			WeaponChitComponent weapon = character.getActiveWeapon();
-			if (weapon == null) {
-				GameObject tw = getTreasureWeaponObject();
-				if (tw!=null) {
+			ArrayList<WeaponChitComponent> weapons = character.getActiveWeapons();
+			RealmComponent rc = getAttackChit();
+			CombatWrapper combatChit = new CombatWrapper(rc.getGameObject());
+			for (WeaponChitComponent weapon : weapons) {
+				if (weapon != null && combatChit.getWeaponId().equals(weapon.getGameObject().getStringId())) {
+					return weapon.getGameObject().getThisAttribute("missile");
+				}
+			}
+			for (GameObject tw : getTreasureWeaponObjects()) {
+				if (tw!=null && combatChit.getWeaponId().equals(tw.getStringId())) {
 					return tw.getThisAttribute("missile");
 				}
 			}
@@ -772,9 +1244,7 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 		return "";
 	}
 	
-	private boolean testEffectIsOnActiveWeapon(GameObject effector) {
-		CharacterWrapper character = new CharacterWrapper(getGameObject());
-		WeaponChitComponent weapon = character.getActiveWeapon();
+	private static boolean testEffectIsOnActiveWeapon(GameObject effector, WeaponChitComponent weapon) {	
 		if (weapon != null) {
 			String affectedWeaponId = effector.getThisAttribute(Constants.AFFECTED_WEAPON_ID);
 			if (affectedWeaponId != null && affectedWeaponId.equals(weapon.getGameObject().getStringId())) {
@@ -783,32 +1253,84 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 		}
 		return false;
 	}
-	public boolean activeWeaponStaysAlerted() {
+	public boolean activeWeaponStaysAlerted(WeaponChitComponent weapon) {
 		CharacterWrapper character = new CharacterWrapper(getGameObject());
 		GameObject dust = character.getActiveInventoryThisKey(Constants.ALERTED_WEAPON);
-		return dust!=null && testEffectIsOnActiveWeapon(dust);
+		GameObject enchantedWeapon = character.getActiveInventoryThisKey(Constants.ENCHANTED_ALERTED_WEAPON);
+		return (dust!=null && testEffectIsOnActiveWeapon(dust, weapon)) || (enchantedWeapon!=null && testEffectIsOnActiveWeapon(enchantedWeapon, weapon));
 	}
 	public boolean hitsOnTie() {
 		boolean hitsOnTie = getGameObject().hasThisAttribute(Constants.HIT_TIE); // In case Ointment of Bite was applied to dagger
-		GameObject weapon = getActiveWeaponObject();
-		return hitsOnTie || (weapon!=null && weapon.hasThisAttribute(Constants.HIT_TIE));
-	}
-	public void changeWeaponState(boolean hit) {
-		CharacterWrapper character = new CharacterWrapper(getGameObject());
-
-		WeaponChitComponent weapon = character.getActiveWeapon();
-		if (weapon != null) {
-			// make sure weapon was played in combat this round (otherwise it doesn't change)
-			int box = (new CombatWrapper(weapon.getGameObject())).getCombatBox();
-			if (box > 0) {
-				if (activeWeaponStaysAlerted() || weapon.getGameObject().hasThisAttribute(Constants.ALERTED_WEAPON)) {
-					// Treat like the character just missed - keeps weapon alerted
-					hit = false;
+		boolean weaponHitsOnTie = false;
+		ArrayList<GameObject> weapons = getActiveWeaponsObjects();
+		RealmComponent rc = getAttackChit();
+		CombatWrapper combatChit = new CombatWrapper(rc.getGameObject());
+		boolean hasWeapon = false;
+		if (weapons != null) {
+			for (GameObject weapon : weapons) {
+				if (combatChit.getWeaponId().equals(weapon.getStringId())) {
+					CombatWrapper wCombat = new CombatWrapper(weapon);
+					if (wCombat.hasCombatBox()) {
+						hasWeapon = true;
+						if (weapon.hasThisAttribute(Constants.HIT_TIE)) {
+							weaponHitsOnTie = true;
+						}
+					}
 				}
-
-				// hits should unalert weapons, misses should alert them
-				weapon.setAlerted(!hit);
 			}
+		}
+		if (!hasWeapon) {
+			for (GameObject tw : getTreasureWeaponObjects()) {
+				if(!tw.hasThisAttribute("attack")) continue;
+				if (combatChit.getWeaponId().equals(tw.getStringId())) {
+					CombatWrapper twCombat = new CombatWrapper(tw);
+					if (twCombat.hasCombatBox()) {
+						if (tw.hasThisAttribute(Constants.HIT_TIE)) {
+							weaponHitsOnTie = true;
+						}
+					}
+				}
+			}
+		}
+		return hitsOnTie || weaponHitsOnTie;
+	}
+	public void changeWeaponState(HostPrefWrapper hostPrefs) {
+		CharacterWrapper character = new CharacterWrapper(getGameObject());
+		ArrayList<WeaponChitComponent> weapons = character.getActiveWeapons();
+		if (hostPrefs.hasPref(Constants.SR_NO_ALERTING_WITHOUT_TARGET) && !this.hasTarget()) {
+			return;
+		}
+		if (weapons != null && !weapons.isEmpty()) {
+			CombatWrapper charCombat = new CombatWrapper(getGameObject());
+			boolean hit = false;
+			for (WeaponChitComponent weapon : weapons) {
+				if (charCombat.weaponHasHit(weapon.getGameObject().getStringId())) {
+					hit = true;
+				}
+				if (hostPrefs.hasPref(Constants.SR_ADV_SURVIVAL_TACTICS_PARRY_NOT_ALERTING)) {
+					CombatWrapper weaponCombat = new CombatWrapper(getGameObject());
+					if (!weaponCombat.getPlacedAsParry()) {
+						alertWeapon(weapon, hit);
+					}
+				}
+				else {
+					alertWeapon(weapon, hit);
+				}
+			}
+		}
+	}
+	private void alertWeapon(WeaponChitComponent weapon, boolean hit) {
+		// make sure weapon was played in combat this round (otherwise it doesn't change)
+		int box = (new CombatWrapper(weapon.getGameObject())).getCombatBoxAttack();
+		if (box > 0) {
+			if (activeWeaponStaysAlerted(weapon)
+					|| weapon.getGameObject().hasThisAttribute(Constants.ALERTED_WEAPON)
+					|| weapon.getGameObject().hasThisAttribute(Constants.ENCHANTED_ALERTED_WEAPON)) {
+				// Treat like the character just missed - keeps weapon alerted
+				hit = false;
+			}
+			// hits should unalert weapons, misses should alert them
+			weapon.setAlerted(!hit);
 		}
 	}
 	public void setTarget(RealmComponent comp) {
@@ -818,12 +1340,39 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 			monster.setTarget(comp);
 		}
 	}
+	public void set2ndTarget(RealmComponent comp) {
+		super.set2ndTarget(comp);
+		MonsterChitComponent monster = getTransmorphedComponent();
+		if (monster!=null) {
+			monster.set2ndTarget(comp);
+		}
+	}
 	public void clearTarget() {
 		super.clearTarget();
 		MonsterChitComponent monster = getTransmorphedComponent();
 		if (monster!=null) {
 			monster.clearTarget();
 		}
+	}
+	public void clear2ndTarget() {
+		super.clear2ndTarget();
+		MonsterChitComponent monster = getTransmorphedComponent();
+		if (monster!=null) {
+			monster.clear2ndTarget();
+		}
+	}
+	public void clearTargets() {
+		super.clearTargets();
+		MonsterChitComponent monster = getTransmorphedComponent();
+		if (monster!=null) {
+			monster.clearTargets();
+		}
+	}
+	public void setTargetAttacked() {
+		super.setTargetAttacked();
+	}
+	public boolean getTargetAttacked() {
+		return super.getTargetAttacked();
 	}
 	public boolean isMistLike() {
 		RealmComponent rc = getTransmorphedComponent();

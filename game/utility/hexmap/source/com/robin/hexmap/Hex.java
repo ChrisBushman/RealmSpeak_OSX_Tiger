@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.hexmap;
 
 import java.awt.Color;
@@ -56,7 +39,7 @@ public class Hex {
 	private int cwTurns = 0;
 	private Color idColor = Color.white;
 	
-	private ArrayList keywords;
+	private ArrayList<String> keywords;
 	
 	public Hex(String id,String name) {
 		this(id,name,false);
@@ -68,10 +51,10 @@ public class Hex {
 		this.icon = ImageCache.getIcon(name);
 		this.suppressID = suppressID;
 		this.label = null;
-		keywords = new ArrayList();
+		keywords = new ArrayList<String>();
 		resetWalls();
 	}
-	private long _newHexId() {
+	private static long _newHexId() {
 		return (unique_hex_id_sequence++);
 	}
 	public void setName(String name) {
@@ -112,7 +95,7 @@ public class Hex {
 	public boolean hasKeyword(String val) {
 		String check = val.toUpperCase();
 		for (int i=0;i<keywords.size();i++) {
-			String keyword = (String)keywords.get(i);
+			String keyword = keywords.get(i);
 			if (keyword.equals(check)) {
 				return true;
 			}
@@ -122,9 +105,8 @@ public class Hex {
 	public boolean hasKeywordStartWith(String val) {
 		String check = val.toUpperCase();
 		for (int i=0;i<keywords.size();i++) {
-			String keyword = (String)keywords.get(i);
+			String keyword = keywords.get(i);
 			if (keyword.toUpperCase().startsWith(check)) {
-//System.out.println(keyword+" startswith "+check);
 				return true;
 			}
 		}
@@ -133,9 +115,8 @@ public class Hex {
 	public boolean hasKeywordContains(String val) {
 		String check = val.toUpperCase();
 		for (int i=0;i<keywords.size();i++) {
-			String keyword = (String)keywords.get(i);
+			String keyword = keywords.get(i);
 			if (keyword.toUpperCase().indexOf(check)>=0) {
-//System.out.println(keyword+" startswith "+check);
 				return true;
 			}
 		}
@@ -160,17 +141,17 @@ public class Hex {
 	 * would indicate no walls.
 	 */
 	public int[] getWallPositions() {
-		ArrayList walls = new ArrayList();
+		ArrayList<Integer> walls = new ArrayList<Integer>();
 		
 		for (int i=0;i<wallPosition.length;i++) {
 			if (wallPosition[i]==true) {
-				walls.add(new Integer(i));
+				walls.add(Integer.valueOf(i));
 			}
 		}
 		
 		int[] ret = new int[walls.size()];
 		for (int i=0;i<ret.length;i++) {
-			Integer index = (Integer)walls.get(i);
+			Integer index = walls.get(i);
 			ret[i] = index.intValue();
 		}
 		return ret;

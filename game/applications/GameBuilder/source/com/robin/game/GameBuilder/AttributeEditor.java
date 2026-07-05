@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.GameBuilder;
 
 import java.awt.BorderLayout;
@@ -166,13 +149,13 @@ public class AttributeEditor extends AggressiveDialog {
 		updateEditFields();
 	}
 
-	private JTextField createNewEditBox() {
+	private static JTextField createNewEditBox() {
 		JTextField field = new JTextField();
 		ComponentTools.lockComponentSize(field, 300, 23);
 		return field;
 	}
 
-	private JTextField[] createEditBoxes(JTextField[] current, int newLength) {
+	private static JTextField[] createEditBoxes(JTextField[] current, int newLength) {
 		JTextField[] newField = new JTextField[newLength];
 		for (int i = 0; i < newLength; i++) {
 			if (i < current.length) {
@@ -184,7 +167,7 @@ public class AttributeEditor extends AggressiveDialog {
 
 	private void updateEditFields() {
 		editTypeButton.setText(editType == EditType.String ? "-> ArrayList" : "-> String");
-		ArrayList current = readCurrentFields();
+		ArrayList<String> current = readCurrentFields();
 		editPanel.removeAll();
 		buttonPanel.removeAll();
 		editPanel.setLayout(new GridLayout(editBox.length, 1));
@@ -212,8 +195,8 @@ public class AttributeEditor extends AggressiveDialog {
 		subButton.setEnabled(editBox.length > 1);
 	}
 
-	private ArrayList readCurrentFields() {
-		ArrayList list = new ArrayList();
+	private ArrayList<String> readCurrentFields() {
+		ArrayList<String> list = new ArrayList<String>();
 		if (editBox != null) {
 			for (int i = 0; i < editBox.length; i++) {
 				if (editBox[i] != null) {
@@ -260,7 +243,7 @@ public class AttributeEditor extends AggressiveDialog {
 		JFrame frame = new JFrame();
 		String key = "test";
 		OrderedHashtable block = new OrderedHashtable();
-		ArrayList list = new ArrayList();
+		ArrayList<String> list = new ArrayList<String>();
 		list.add("this is a really really long string that you want to see the beginning of");
 		list.add("is");
 		list.add("a");

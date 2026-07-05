@@ -1,26 +1,8 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.swing;
 
 import java.awt.BorderLayout;
 import java.awt.event.*;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import javax.swing.*;
 
@@ -33,17 +15,17 @@ public class FrameManager {
 	public static String DEFAULT_FRAME_KEY = "default";
 	
 	private ManagedFrame mostRecentFrame;
-	private HashMap frameHash;
+	private HashMap<String,ManagedFrame> frameHash;
 	
 	private FrameManager() {
-		frameHash = new HashMap();
+		frameHash = new HashMap<String,ManagedFrame>();
 	}
-	private void _dispose(ManagedFrame frame) {
+	private static void _dispose(ManagedFrame frame) {
 		frame.setVisible(false);
 		frame.dispose();
 		frame.cleanup();
 	}
-	private void _show(ManagedFrame frame) {
+	private static void _show(ManagedFrame frame) {
 		frame.setVisible(true);
 		frame.toFront();
 	}
@@ -64,23 +46,25 @@ public class FrameManager {
 	 * Forces a frame registered to the frameKey to display.  Returns false if there is not.
 	 */
 	public boolean showFrame(String frameKey) {
-		ManagedFrame cached = (ManagedFrame)frameHash.get(frameKey);
+		ManagedFrame cached = frameHash.get(frameKey);
 		if (cached!=null) {
 			_show(cached);
 			return true;
 		}
 		return false;
 	}
+	public boolean hasFrame(String frameKey) {
+		return frameHash.containsKey(frameKey);
+	}
 	public void disposeFrame(String frameKey) {
-		ManagedFrame cached = (ManagedFrame)frameHash.get(frameKey);
+		ManagedFrame cached = frameHash.get(frameKey);
 		if (cached!=null) {
 			_dispose(cached);
 			frameHash.remove(frameKey);
 		}
 	}
 	public void refresh() {
-		for(Iterator i=frameHash.values().iterator();i.hasNext();) {
-			ManagedFrame frame = (ManagedFrame)i.next();
+		for(ManagedFrame frame : frameHash.values()) {
 			frame.toFront();
 		}
 	}
@@ -96,19 +80,25 @@ public class FrameManager {
 		fm.refresh();
 	}
 	public static void showDefaultManagedFrame(JFrame parent,String message,String title,Icon icon,boolean modalLike) {
+		showDefaultManagedFrame(parent,message,title,icon,modalLike,null);
+	}
+	public static void showDefaultManagedFrame(JFrame parent,String message,String title,Icon icon,boolean modalLike,ImageIcon frameIcon) {
 		JTextArea cm = new JTextArea(message);
 		cm.setEditable(false);
 		cm.setOpaque(false);
 		cm.setFont(UIManager.getFont("Label.font"));
 //		cm.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-		showDefaultManagedFrame(parent,cm,title,icon,modalLike);
+		showDefaultManagedFrame(parent,cm,title,icon,modalLike,frameIcon);
 	}
 	public static void showDefaultManagedFrame(JFrame parent,JComponent message,String title,Icon icon,boolean modalLike) {
-		ManagedFrame mf = getDefaultManagedFrame(parent,message,title,icon,modalLike);
+		showDefaultManagedFrame(parent,message,title,icon,modalLike,null);
+	}
+	public static void showDefaultManagedFrame(JFrame parent,JComponent message,String title,Icon icon,boolean modalLike,ImageIcon frameIcon) {
+		ManagedFrame mf = getDefaultManagedFrame(parent,message,title,icon,modalLike,frameIcon);
 		getFrameManager().addFrame(mf);
 	}
-	private static ManagedFrame getDefaultManagedFrame(JFrame parent,JComponent message,String title,Icon icon,boolean modalLike) {
-		DefaultManagedFrame mf = new DefaultManagedFrame(parent,message,title,icon,modalLike);
+	private static ManagedFrame getDefaultManagedFrame(JFrame parent,JComponent message,String title,Icon icon,boolean modalLike,ImageIcon frameIcon) {
+		DefaultManagedFrame mf = new DefaultManagedFrame(parent,message,title,icon,modalLike,frameIcon);
 		return mf;
 	}
 	/**
@@ -121,12 +111,15 @@ public class FrameManager {
 		private JFrame parent;
 		private JButton okButton;
 		
-		public DefaultManagedFrame(JFrame parent,JComponent message,String title,Icon icon,boolean modalLike) {
+		public DefaultManagedFrame(JFrame parent,JComponent message,String title,Icon icon,boolean modalLike,ImageIcon frameIcon) {
 			super(title);
 			if (parent!=null && modalLike) {
 				parent.addWindowListener(this);
 			}
 			this.parent = parent;
+			if (frameIcon != null) {
+				this.setIconImage(frameIcon.getImage());
+			}
 			setLayout(new BorderLayout());
 			JPanel panel = new JPanel(new BorderLayout(10,10));
 			panel.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.table;
 
 import java.awt.event.WindowAdapter;
@@ -37,6 +20,7 @@ import com.robin.magic_realm.components.wrapper.*;
 public class Wish extends RealmTable {
 	
 	public static final String KEY = "Wish";
+	private int spellSpeed = 0;
 	private WindowAdapter visionListener = new WindowAdapter() {
 		public void windowClosed(WindowEvent ev) {
 			RealmComponentOptionChooser source = (RealmComponentOptionChooser)ev.getSource();
@@ -58,6 +42,11 @@ public class Wish extends RealmTable {
 	
 	public Wish(JFrame frame) {
 		super(frame,null);
+		this.spellSpeed = 0;
+	}
+	public Wish(JFrame frame,int spellSpeed) {
+		super(frame,null);
+		this.spellSpeed = spellSpeed;
 	}
 	public String getTableName(boolean longDescription) {
 		return "Wish";
@@ -66,10 +55,6 @@ public class Wish extends RealmTable {
 		return KEY;
 	}
 	public String apply(CharacterWrapper character,DieRoller roller) {
-//System.out.println("Wish:  REMOVE THESE LINES!!!!!!!!!");
-//roller.setValue(0,1);
-//roller.setValue(1,1);
-//return applyFive(character);
 		if (!character.isMistLike() && !character.hasMagicProtection()) {
 			WishRunner wr = new WishRunner(this,character,roller);
 			SwingUtilities.invokeLater(wr);
@@ -93,13 +78,13 @@ public class Wish extends RealmTable {
 			wish.superApply(character,roller);
 		}
 	}
-	private String getWishTitle(CharacterWrapper character) {
+	private static String getWishTitle(CharacterWrapper character) {
 		return character.getGameObject().getName()+"'s Wish";
 	}
 	public String applyOne(CharacterWrapper character) {
 		JOptionPane.showMessageDialog(getParentFrame(),"\"I wish I were elsewhere\"",getWishTitle(character),JOptionPane.INFORMATION_MESSAGE,getRollerImage());
 		// You teleport to any clearing of your choice.
-		SpellUtility.doTeleport(getParentFrame(),"\"I wish I were elsewhere\"",character,TeleportType.ChooseAny);
+		SpellUtility.doTeleport(getParentFrame(),"\"I wish I were elsewhere\"",character,TeleportType.ChooseAny,this.spellSpeed);
 		return RESULT[0];
 	}
 
@@ -114,9 +99,8 @@ public class Wish extends RealmTable {
 		// Okay, first locate all possible targets in the clearing
 		TileLocation here = character.getCurrentLocation();
 		if (here.isInClearing()) {
-			ArrayList livingThings = new ArrayList();
-			for (Iterator i=here.clearing.getClearingComponents().iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
+			ArrayList<RealmComponent> livingThings = new ArrayList<RealmComponent>();
+			for (RealmComponent rc : here.clearing.getClearingComponents()) {
 				if (rc.isPlayerControlledLeader()) {
 					livingThings.add(rc);
 					CharacterWrapper aChar = new CharacterWrapper(rc.getGameObject());
@@ -144,7 +128,7 @@ public class Wish extends RealmTable {
 				}
 				
 				// Make sure it has no targets!
-				rc.clearTarget();
+				rc.clearTargets();
 				
 				if (rc.isCharacter()) {
 					// Special handling
@@ -152,7 +136,7 @@ public class Wish extends RealmTable {
 					// First, check and see if target character is owned by the current player
 //					if (character.getPlayerName().equals(victim.getPlayerName())) {
 					// For now, ignore letting other player do it.
-						SpellUtility.doTeleport(getParentFrame(),"\"I wish you were elsewhere\"",victim,TeleportType.ChooseAny);
+						SpellUtility.doTeleport(getParentFrame(),"\"I wish you were elsewhere\"",victim,TeleportType.ChooseAny,this.spellSpeed);
 //					}
 //					else {
 //						// This is harder!
@@ -206,7 +190,7 @@ public class Wish extends RealmTable {
 		return RESULT[1];
 	}
 
-	private Hashtable placeHash;
+	private Hashtable<String,GameObject> placeHash;
 	private CharacterWrapper visionCharacter;
 	public String applyThree(CharacterWrapper character) {
 		JOptionPane.showMessageDialog(getParentFrame(),"\"I wish for a vision\"",getWishTitle(character),JOptionPane.INFORMATION_MESSAGE,getRollerImage());
@@ -219,15 +203,14 @@ public class Wish extends RealmTable {
 		pool.addAll(data.getGameObjects());
 		String gameKeyVals = hostPref.getGameKeyVals();
 		
-		placeHash = new Hashtable();
+		placeHash = new Hashtable<String,GameObject>();
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(getParentFrame(),"Vision - Select one box to examine treasure:",false);
-		ArrayList examine = new ArrayList();
+		ArrayList<GameObject> examine = new ArrayList<GameObject>();
 		examine.addAll(pool.find(gameKeyVals+",dwelling"));
 		examine.addAll(pool.find(gameKeyVals+",treasure_location"));
 		examine.addAll(pool.find(gameKeyVals+",visitor"));
 		int keyN = 0;
-		for (Iterator i=examine.iterator();i.hasNext();) {
-			GameObject place = (GameObject)i.next();
+		for (GameObject place : examine) {
 			int count = TreasureUtility.getTreasureCardCount(place);
 			if (count>0) {
 				String key = "N"+(keyN++);
@@ -247,13 +230,12 @@ public class Wish extends RealmTable {
 		return RESULT[2];
 	}
 	private void showVision(String target) {
-		GameObject place = (GameObject)placeHash.get(target);
+		GameObject place = placeHash.get(target);
 		RealmComponentDisplayDialog viewPanel = new RealmComponentDisplayDialog(getParentFrame(),"I wish for a vision","Vision of the "+place.getName());
-		Hashtable old = new Hashtable();
-		Collection c = TreasureUtility.getTreasureCards(place);
+		Hashtable<GameObject, String> old = new Hashtable<GameObject, String>();
+		Collection<GameObject> c = TreasureUtility.getTreasureCards(place);
 		StringBufferedList list = new StringBufferedList();
-		for (Iterator n=c.iterator();n.hasNext();) {
-			GameObject treasure = (GameObject)n.next();
+		for (GameObject treasure : c) {
 			list.append(treasure.getName());
 			TreasureCardComponent rc = (TreasureCardComponent)RealmComponent.getRealmComponent(treasure);
 			String facing = rc.getFacing();
@@ -264,20 +246,14 @@ public class Wish extends RealmTable {
 		}
 		viewPanel.setVisible(true);
 		visionCharacter.addNote(place,"Vision",list.toString());
-		for (Iterator n=c.iterator();n.hasNext();) {
-			GameObject treasure = (GameObject)n.next();
-			String facing = (String)old.get(treasure);
+		for (GameObject treasure : c) {
+			String facing = old.get(treasure);
 			// This next line allows me to change facing without saving the change
 			treasure.getThisAttributeBlock().put(Constants.FACING_KEY,facing);
 		}
 	}
 
 	public String applyFour(CharacterWrapper character) {
-//		sendMessage(character.getGameObject().getGameData(),
-//				getDestClientName(character.getGameObject()),
-//				getWishTitle(character),
-//				"\"I wish for peace\"");
-		
 		JOptionPane.showMessageDialog(getParentFrame(),"\"I wish for peace\"",getWishTitle(character),JOptionPane.INFORMATION_MESSAGE,getRollerImage());
 		// Combat ends in clearing for the day.  All spells not yet in effect are canceled.
 		
@@ -294,13 +270,12 @@ public class Wish extends RealmTable {
 	public String applyFive(CharacterWrapper character) {
 		JOptionPane.showMessageDialog(getParentFrame(),"\"I wish for health\"",getWishTitle(character),JOptionPane.INFORMATION_MESSAGE,getRollerImage());
 		// Heal all fatigued and wounded chits
-		ArrayList toHeal = new ArrayList();
+		ArrayList<CharacterActionChitComponent> toHeal = new ArrayList<CharacterActionChitComponent>();
 		toHeal.addAll(character.getFatiguedChits());
 		toHeal.addAll(character.getWoundedChits());
 		CombatWrapper combat = new CombatWrapper(character.getGameObject());
 		ArrayList<GameObject> used = combat.getUsedChits();
-		for (Iterator i=toHeal.iterator();i.hasNext();) {
-			CharacterActionChitComponent chit = (CharacterActionChitComponent)i.next();
+		for (CharacterActionChitComponent chit : toHeal) {
 			if (!used.contains(chit.getGameObject())) {
 				chit.makeActive();
 			}

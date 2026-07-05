@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest;
 
 import java.util.ArrayList;
@@ -25,9 +8,11 @@ public enum SearchResultType {
 	Clues,
 	Counters,
 	Curse,
+	Mesmerize,
 	DiscoverChits,
 	HiddenEnemies,
 	LearnAndAwaken,
+	LearnSpell,
 	Passages,
 	Paths,
 	PerceiveSpell,
@@ -40,17 +25,24 @@ public enum SearchResultType {
 	TreasureCards,
 	
 	CaveTeleport,
+	MountainTeleport,
+	WoodsTeleport,
+	RuinsTeleport,
 	PeerEnchantAnyClearing,
 	PowerOfThePit,
 	
 	Gold,
+	Notoriety,
 	
 	Wish,
 	Heal,
+	SummonDemon,
+	ReadRunesAnySite,
 	
 	Rest,
 	RemoveCurse,
 	Wound,
+	Unhide,
 	;
 	public boolean canGetTreasure() {
 		switch(this) {
@@ -63,17 +55,18 @@ public enum SearchResultType {
 			case TreasureCards:
 			case Counters:
 				return true;
+			default: return false;
 		}
-		return false;
 	}
 	public boolean canGetSpell() {
 		switch(this) {
 			case LearnAndAwaken:
 			case Awaken:
 			case PerceiveSpell:
+			case LearnSpell:
 				return true;
+			default: return false;
 		}
-		return false;
 	}
 	public static String[] optionalValues() {
 		ArrayList<String> list = new ArrayList<String>();
@@ -159,6 +152,44 @@ public enum SearchResultType {
 				list.add(SearchResultType.Clues);
 				list.add(SearchResultType.Gold);
 				list.add(SearchResultType.Wound);
+				break;
+			case CircleOfStones:
+				list.add(SearchResultType.Counters);
+				list.add(SearchResultType.TreasureCards);
+				list.add(SearchResultType.MountainTeleport);
+				list.add(SearchResultType.RuinsTeleport);
+				list.add(SearchResultType.Curse);
+				break;
+			case EtherealAbbey:
+				list.add(SearchResultType.Counters);
+				list.add(SearchResultType.TreasureCards);
+				list.add(SearchResultType.LearnSpell);
+				list.add(SearchResultType.Mesmerize);
+				break;
+			case FairyGrove:
+				list.add(SearchResultType.Counters);
+				list.add(SearchResultType.TreasureCards);
+				list.add(SearchResultType.LearnSpell);
+				list.add(SearchResultType.WoodsTeleport);
+				list.add(SearchResultType.Mesmerize);
+				list.add(SearchResultType.Gold);
+				break;
+			case HauntedGrave:
+				list.add(SearchResultType.Counters);
+				list.add(SearchResultType.TreasureCards);
+				list.add(SearchResultType.Notoriety);
+				list.add(SearchResultType.LearnSpell);
+				list.add(SearchResultType.SummonDemon);
+				list.add(SearchResultType.Unhide);
+				break;
+			case MageLibrary:
+				list.add(SearchResultType.Counters);
+				list.add(SearchResultType.TreasureCards);
+				list.add(SearchResultType.LearnSpell);
+				list.add(SearchResultType.Mesmerize);
+				list.add(SearchResultType.LearnAndAwaken);
+				list.add(SearchResultType.Awaken);
+				list.add(SearchResultType.Curse);
 				break;
 		}
 		

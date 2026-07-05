@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.utility;
 
 import java.awt.*;
@@ -28,12 +11,17 @@ import com.robin.game.objects.*;
 import com.robin.general.graphics.TextType;
 import com.robin.general.io.PreferenceManager;
 import com.robin.general.io.ResourceFinder;
+import com.robin.general.swing.ButtonOptionDialog;
 import com.robin.general.swing.DieRoller;
 import com.robin.general.swing.IconFactory;
 import com.robin.general.util.*;
 import com.robin.magic_realm.components.*;
 import com.robin.magic_realm.components.attribute.*;
+import com.robin.magic_realm.components.quest.Quest;
+import com.robin.magic_realm.components.quest.QuestBookEvents;
 import com.robin.magic_realm.components.quest.QuestDeck;
+import com.robin.magic_realm.components.store.FightersGuild;
+import com.robin.magic_realm.components.store.GuildStore;
 import com.robin.magic_realm.components.swing.*;
 import com.robin.magic_realm.components.wrapper.*;
 
@@ -53,6 +41,7 @@ public class RealmUtility {
 		SpellMasterWrapper.MASTER_ID = null;
 		SummaryEventWrapper.SEW_ID = null;
 		QuestDeck.DECK_ID = null;
+		QuestBookEvents.BOOK_ID = null;
 		DieRollBuilder.reset();
 		RealmComponent.reset();
 		SetupCardUtility.reset();
@@ -63,8 +52,12 @@ public class RealmUtility {
 		TextType.addType("TITLE",new Font("Dialog",Font.BOLD,11),Color.blue);
 		TextType.addType("TITLE_RED",new Font("Dialog",Font.BOLD,11),Color.red);
 		TextType.addType("MINI_RED",new Font("Dialog",Font.PLAIN,9),Color.red);
+		TextType.addType("MINI_BLUE",new Font("Dialog",Font.PLAIN,9),Color.blue);
+		TextType.addType("MINI_ORANGE",new Font("Dialog",Font.PLAIN,9),Color.orange);
 		TextType.addType("NOTREADY",new Font("Dialog",Font.BOLD,13),MagicRealmColor.FORESTGREEN);
 		TextType.addType("CLOSED_RED",new Font("Dialog",Font.BOLD,16),Color.red);
+		TextType.addType("CLOSED_BLUE",new Font("Dialog",Font.BOLD,16),Color.blue);
+		TextType.addType("CLOSED_ORANGE",new Font("Dialog",Font.BOLD,16),Color.orange);
 		TextType.addType("YELLOW_BOLD",new Font("Dialog",Font.BOLD,11),Color.yellow);
 		TextType.addType("CLEARING_FONT",new Font("Dialog",Font.BOLD,18),MagicRealmColor.YELLOW);
 		TextType.addType("NORMAL",new Font("Dialog",Font.PLAIN,10),Color.black);
@@ -73,8 +66,11 @@ public class RealmUtility {
 		TextType.addType("BOLD_BLUE",new Font("Dialog",Font.BOLD,11),Color.blue);
 		TextType.addType("BIG_BOLD",new Font("Dialog",Font.BOLD,22),Color.black);
 		TextType.addType("BIG_BOLD_BLUE",new Font("Dialog",Font.BOLD,22),Color.blue);
+		TextType.addType("BIG_BOLD_RED",new Font("Dialog",Font.BOLD,22),Color.red);
 		TextType.addType("ITALIC",new Font("Dialog",Font.ITALIC,11),Color.black);
 		TextType.addType("TITLE_GRAY",new Font("Dialog",Font.BOLD,11),Color.gray);
+		TextType.addType("STAT_BLUE",new Font("Dialog",Font.BOLD,14),Color.blue);
+		TextType.addType("STAT_RED",new Font("Dialog",Font.BOLD,14),Color.red);
 		TextType.addType("STAT_BLACK",new Font("Dialog",Font.BOLD,14),Color.black);
 		TextType.addType("STAT_WHITE",new Font("Dialog",Font.BOLD,14),Color.white);
 		TextType.addType("STAT_BRIGHT_ORANGE",new Font("Dialog",Font.BOLD,14),Color.orange);
@@ -125,7 +121,7 @@ public class RealmUtility {
 	}
 	public static void revealAll(GameData data,HostPrefWrapper hostPrefs) {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList query = new ArrayList();
+		ArrayList<String> query = new ArrayList<String>();
 		query.addAll(GamePool.makeKeyVals(hostPrefs.getGameKeyVals()));
 		query.add(RealmComponent.TREASURE);
 		ArrayList<GameObject> treasureCards = pool.find(query);
@@ -154,7 +150,7 @@ public class RealmUtility {
 //		}
 		
 		// Need to refresh map
-		query = new ArrayList();
+		query = new ArrayList<String>();
 		query.addAll(GamePool.makeKeyVals(hostPrefs.getGameKeyVals()));
 		query.add(RealmComponent.TILE);
 		ArrayList<GameObject> tiles = pool.find(query);
@@ -194,10 +190,20 @@ public class RealmUtility {
 			// Test for pacification
 			Integer pacifyType = trader.getPacifyTypeFor(character);
 			if (pacifyType!=null) {
-				relationship = pacifyType;
+				relationship = pacifyType.intValue();
+				if (character.isNegativeAuraInClearing()) {
+					relationship--;
+				}
+				if (character.isProfaneIdolInClearing()) {
+					relationship--;
+				}
 			}
 			else {
 				relationship = character.getRelationship(trader.getGameObject());
+			}
+			
+			if (character.affectedByKey(Constants.DOPPLEGANGER)) {
+				relationship = Math.max(relationship,RelationshipType.FRIENDLY);
 			}
 		}
 		return relationship;
@@ -215,10 +221,9 @@ public class RealmUtility {
 	/**
 	 * @param c			A Collection of GameObjects that have already been identified as natives
 	 */
-	public static HashLists hashNativesByGroupName(Collection c) {
-		HashLists hash = new HashLists();
-		for (Iterator i=c.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+	public static HashLists<String, RealmComponent> hashNativesByGroupName(Collection<RealmComponent> c) {
+		HashLists<String, RealmComponent> hash = new HashLists<String, RealmComponent>();
+		for (RealmComponent rc : c) {
 			hash.put(getGroupName(rc),rc);
 		}
 		return hash;
@@ -233,12 +238,12 @@ public class RealmUtility {
 	public static String getRelationshipGroupName(GameObject denizen) {
 		RealmComponent rc = RealmComponent.getRealmComponent(denizen);
 		if (rc.isNative()) {
-			return denizen.getThisAttribute("native");
+			return denizen.getThisAttribute(RealmComponent.NATIVE);
 		}
 		else if (rc.isGuild()) {
 			return StringUtilities.capitalize(denizen.getThisAttribute("guild"))+" Guild";
 		}
-		return denizen.getThisAttribute("visitor");
+		return denizen.getThisAttribute(Constants.VISITOR);
 	}
 	public static TileComponent findTileForCode(GameData data,String code) {
 		GamePool pool = new GamePool(RealmObjectMaster.getRealmObjectMaster(data).getTileObjects());
@@ -252,16 +257,15 @@ public class RealmUtility {
 			code = code.substring(0,bracket);
 		}
 		
-		ArrayList keyVals = new ArrayList();
+		ArrayList<String> keyVals = new ArrayList<String>();
 		keyVals.add("tile");
 		keyVals.add("code="+code);
 		if (boardNumber!=null) {
 			keyVals.add(Constants.BOARD_NUMBER+"="+boardNumber);
 		}
 		
-		GameObject tileObject = (GameObject)pool.find(keyVals).iterator().next(); // hacky!!
-		TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(tileObject);
-		return tile;
+		GameObject tileObject = pool.find(keyVals).iterator().next(); // hacky!!
+		return (TileComponent)RealmComponent.getRealmComponent(tileObject);
 	}
 	public static String getLevelChangeString(int change) {
 		StringBuffer sb = new StringBuffer();
@@ -282,8 +286,7 @@ public class RealmUtility {
 		}
 		return sb.toString();
 	}
-	public static void fetchStartingSpells(JFrame parent,CharacterWrapper character,GameData data,boolean enchantOption) {
-		
+	public static void fetchStartingSpells(JFrame parent,CharacterWrapper character,GameData data,boolean enchantOption) {	
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
 		String hostKeyVals = hostPrefs.getGameKeyVals();
 		
@@ -294,13 +297,12 @@ public class RealmUtility {
             startingSpellLevel = 4;
         }
 		String levelKey = "level_"+startingSpellLevel;
-		Collection types = character.getGameObject().getAttributeList(levelKey,"spelltypes"); // like [I,VII] (for example)
-		if (types!=null && !types.isEmpty()) {
+		Collection<String> types = character.getGameObject().getAttributeList(levelKey,"spelltypes"); // like [I,VII] (for example)
+		if (types!=null && types.size() > 0) {
 			int spellCount = character.getGameObject().getAttributeInt(levelKey,"spellcount");
 			ArrayList<GameObject> choiceSpells = new ArrayList<GameObject>();
-			for (Iterator i=types.iterator();i.hasNext();) {
-				String type = (String)i.next();
-				ArrayList keyVals = new ArrayList();
+			for (String type : types) {
+				ArrayList<String> keyVals = new ArrayList<String>();
 				keyVals.add(hostKeyVals);
 				keyVals.add("spell="+type);
 				keyVals.add("!"+Constants.BOARD_NUMBER); // no need to show duplicate spells
@@ -312,14 +314,13 @@ public class RealmUtility {
 			chooser.setChits(character);
 			chooser.setVisible(true);
 			
-			for (Iterator i=chooser.getSpellSelection().iterator();i.hasNext();) {
-				GameObject spell = (GameObject)i.next();
+			for (GameObject spell : chooser.getSpellSelection()) {
 				character.startingSpell(spell);
 			}
 		}
 //		if (enchantOption) {
 //			Collection magicChits = character.getEnchantableChits();
-//			if (!magicChits.isEmpty()) {
+//			if (magicChits.length() > 0) {
 //				ChitChooser chooser = new ChitChooser(new JFrame(),"Enchant chits?",character.getEnchantableChits(),character.getRecordedSpells(data)) {
 //					protected boolean canPressOkay() {
 //						return true;
@@ -345,10 +346,9 @@ public class RealmUtility {
 	 * 
 	 * @return		Returns a HashLists object, where RealmComponent lists are keyed by groupName (lowercase)
 	 */
-	public static HashLists getUnhiredNatives(Collection denizens) {
-		HashLists hash = new HashLists();
-		for (Iterator i=denizens.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+	public static HashLists<String, RealmComponent> getUnhiredNatives(Collection<RealmComponent> denizens) {
+		HashLists<String, RealmComponent> hash = new HashLists<String, RealmComponent>();
+		for (RealmComponent rc : denizens) {
 			if (rc.isNative() && rc.getOwner()==null) {
 				String groupName = rc.getGameObject().getThisAttribute("native").toLowerCase();
 				hash.put(groupName,rc);
@@ -360,21 +360,27 @@ public class RealmUtility {
 	 * A method for making dead any RealmComoponent that lives
 	 */
 	public static void makeDead(RealmComponent rc) {
-		if (rc==null || rc.getGameObject().hasThisAttribute(Constants.DEAD)) {
+		makeDead(rc,-1);
+	}
+	public static void makeDead(RealmComponent rc, int attackSpeed) {
+		if (rc==null || (rc.getGameObject().hasThisAttribute(Constants.DEAD) && rc.getCurrentLocation()==null)) {
 			// No point making something DEAD twice!!
 			return;
 		}
 		
+		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(rc.getGameObject().getGameData());
 		TileLocation rcLocation = ClearingUtility.getTileLocation(rc);
 		CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 		GameObject killer = combat.getKilledBy();
 		RealmComponent killerRc = null;
+		boolean killerIsASpell = false;
 		if (killer!=null) {
 			killerRc = RealmComponent.getRealmComponent(killer);
-			if (killerRc!=null && killerRc.isSpell()) { // as in the case of attack spells
+			if (killerRc!=null && killerRc.isSpell() && !(killerRc instanceof EventSpellCardComponent)) { // as in the case of attack spells
 				SpellWrapper spell = new SpellWrapper(killer);
 				killer = spell.getCaster().getGameObject();
 				killerRc = RealmComponent.getRealmComponent(killer);
+				killerIsASpell = true;
 			}
 		}
 //		CombatWrapper.clearAllCombatInfo(rc.getGameObject()); // <-- Can't do this, because it removes getKilledBy, and breaks BattleModel.doDisengagement
@@ -395,15 +401,45 @@ public class RealmUtility {
 			rc.getGameObject().removeThisAttribute(Constants.SPOILS_INVENTORY_SETUP);
 		}
 		else {
-			// This is the default
-			if (!rcLocation.isFlying()) { // Had to add this for when wasps die because the queen is killed!
-				moveInventory(rc.getGameObject(),rcLocation.tile.getGameObject(),rcLocation.clearing.getNum(),true);
-				rc.getGameObject().removeThisAttribute(Constants.SPOILS_INVENTORY_DROP);
+			if (hostPrefs.hasPref(Constants.SR_ADV_PROTECTED_LEADERS_CACHING) && rc.isNativeLeader()) {
+				CacheChitComponent cache;
+				int num = (new CharacterWrapper(rc.getGameObject())).getNextCacheNumber();
+				GameObject go = rc.getGameObject().getGameData().createNewObject();
+				go.setName(rc.getGameObject().getName()+Constants.CACHE_NAME+num);
+				go.setThisAttribute(RealmComponent.CACHE_CHIT);
+				go.setThisAttribute("clearing",rcLocation.clearing.getNumString());
+				go.setThisAttribute(RealmComponent.TREASURE_LOCATION,rc.getGameObject().getName());
+				go.setThisAttribute("cache_number",num);
+				go.setThisAttribute("discovery");
+				go.setThisAttribute("chit");
+				go.setThisAttribute("ts_section","zcache"); // z so that it sorts to the end
+				go.setThisAttribute("ts_color","gold");
+				go.setThisKeyVals(hostPrefs.getGameKeyVals());
+				if (rc.getGameObject().hasThisAttribute(Constants.BOARD_NUMBER)) {
+					// Might as well put the B character caches on the B setup card, and so on.
+					go.setThisAttribute(Constants.BOARD_NUMBER,rc.getGameObject().getThisAttribute(Constants.BOARD_NUMBER));
+				}
+				rc.getGameObject().setThisAttribute(Constants.NATIVE_CACHE,go.getStringId());
+				cache = (CacheChitComponent)RealmComponent.getRealmComponent(go);
+				cache.setOwner(RealmComponent.getRealmComponent(rc.getGameObject()));
+				cache.setFaceUp();
+				rcLocation.clearing.add(go,null);
+				moveInventoryIncludingSpells(rc.getGameObject(),cache.getGameObject());
+				GameObject holder = SetupCardUtility.getDenizenHolder(rc.getGameObject());
+				moveInventoryIncludingSpells(holder,cache.getGameObject());
+				RealmUtility.sortGameObjectsHold(cache.getGameObject(), false);
+			}
+			else {
+				// This is the default
+				if (rcLocation != null && !rcLocation.isFlying()) { // Had to add this for when wasps die because the queen is killed!
+					moveInventory(rc.getGameObject(),rcLocation.tile.getGameObject(),rcLocation.clearing.getNum(),true);
+					rc.getGameObject().removeThisAttribute(Constants.SPOILS_INVENTORY_DROP);
+				}
 			}
 		}
 		
 		// Deal with group belongings (if relevant)
-		if (rc.getGameObject().hasThisAttribute(Constants.SPOILS_GROUP_INV_DROP)) {
+		if (rc.getGameObject().hasThisAttribute(Constants.SPOILS_GROUP_INV_DROP) && !rc.getGameObject().hasThisAttribute(Constants.CLONED) && !rc.getGameObject().hasThisAttribute(Constants.COMPANION) && !rc.getGameObject().hasThisAttribute(Constants.SUMMONED)) {
 			GameObject holder = SetupCardUtility.getDenizenHolder(rc.getGameObject());
 			moveInventory(holder,rcLocation.tile.getGameObject(),rcLocation.clearing.getNum(),true);
 			rc.getGameObject().removeThisAttribute(Constants.SPOILS_GROUP_INV_DROP);
@@ -415,7 +451,7 @@ public class RealmUtility {
 			String reason = killer==null?"Killed":("Killed by "+killer.getName());
 			character.makeDead(reason);
 		}
-		else if (rc.isNative() || rc.isHorse() || rc.isMonster() || rc.isTraveler()) {
+		else if (rc.isNative() || rc.isNativeHorse() || rc.isHorse() || rc.isMonster() || rc.isTraveler()) {
 			// Everything else is generic
 			GameObject dead = rc.getGameObject();
 			RealmComponent owner = rc.getOwner();
@@ -424,6 +460,54 @@ public class RealmUtility {
 				CharacterWrapper character = new CharacterWrapper(owner.getGameObject());
 				character.removeHireling(dead);
 			}
+			if (rc.isPlayerControlledLeader()) {
+				CharacterWrapper controlledDenizen = new CharacterWrapper(rc.getGameObject());
+			
+				for (GameObject minorCharacterGo : controlledDenizen.getMinorCharacters()) {
+					rc.getGameObject().remove(minorCharacterGo);
+				}
+				Collection<GameObject> minions = controlledDenizen.getMinions();
+				if (minions!=null) {
+					for (GameObject min : minions) {
+						ClearingUtility.moveToLocation(min,null);
+						CharacterWrapper minion = new CharacterWrapper(min);
+						minion.clearPlayerAttributes();
+					}
+				}
+				for (RealmComponent rcHireling : controlledDenizen.getAllHirelings()) {
+					GameObject hireling = rcHireling.getGameObject();
+					controlledDenizen.removeHireling(hireling);
+				}
+				controlledDenizen.clearPlayerAttributes(!rc.isMonster() && hostPrefs.hasPref(Constants.HOUSE2_NATIVES_REMEMBER_DISCOVERIES));
+			}
+			
+			if (hostPrefs.hasPref(Constants.SR_ADV_SCATTERED_HORSES) && rcLocation.tile!=null) {
+				if (rc.isNative() || rc.isMonster()) {
+					BattleHorse horse = rc.getHorse();
+					if (horse!=null) {
+						rcLocation.addScatteredHorse(horse.getGameObject());
+					}
+				}
+				else if (rc.isCharacter()) {
+					for (GameObject item : rc.getGameObject().getHold()) {
+						if (item.hasThisAttribute(RealmComponent.HORSE) || item.hasThisAttribute(RealmComponent.MONSTER_STEED)) {
+							rcLocation.addScatteredHorse(item);
+						}
+					}
+				}
+			}
+			
+			if (hostPrefs.hasPref(Constants.SR_REVEAL_TRAVELERS) && rcLocation != null && rcLocation.hasClearing()) {
+				String nativeName = rc.getGameObject().getThisAttribute(RealmComponent.NATIVE);
+				if (nativeName!=null && nativeName.length() > 0) {
+					GamePool pool = new GamePool(rc.getGameObject().getGameData().getGameObjects());
+					ArrayList<GameObject> boxes = pool.find("summon_n="+nativeName.toLowerCase());
+					for (GameObject box : boxes) {
+						ClearingUtility.dumpTravelersToTileFaceUp(rcLocation.tile.getGameObject(),box,rcLocation.clearing.getNum());
+					}
+				}
+			}
+			
 			ClearingUtility.moveToLocation(dead,null);
 			dead.setThisAttribute(Constants.DEAD);
 			
@@ -436,9 +520,8 @@ public class RealmUtility {
 			}
 			
 			// Check to see if there were any hirelings following this guide
-			ArrayList stuff = new ArrayList(rc.getGameObject().getHold());
-			for (Iterator i=stuff.iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
+			ArrayList<GameObject> stuff = new ArrayList<GameObject>(rc.getGameObject().getHold());
+			for (GameObject go : stuff) {
 				RealmComponent test = RealmComponent.getRealmComponent(go);
 				if (test.isNative() || test.isMonster()) {
 					ClearingUtility.moveToLocation(go,rcLocation);
@@ -447,11 +530,59 @@ public class RealmUtility {
 		}
 		
 		// Last thing to do is clear target and owner
-		rc.clearTarget();
+		rc.clearTargets();
 		rc.clearOwner();
+		
+		// Clear attacking spells
+		for (SpellWrapper spell : smw.getAffectingSpells(rc.getGameObject())) {
+			if (attackSpeed == -1 || (spell.isActive() && !spell.hasAffectedTargets() && spell.getAttackSpeed().getNum() > attackSpeed)) {
+				spell.removeTarget(rc.getGameObject());
+				if (spell.getTargetCount() == 0 && !spell.noTargeting()) {
+					spell.cancelSpell();
+					RealmLogging.logMessage(rc.getName(),"Targeting spell "+spell.getName() + " canceled, as "+rc.getName()+" was killed.");
+				}
+			}
+		}
+		
+		if (rc.getGameObject().hasThisAttribute(Constants.DESTROY_TREASURE_WHEN_KILLED)) {
+			String id = rc.getGameObject().getThisAttribute(Constants.DESTROY_TREASURE_WHEN_KILLED);
+			if (id!=null) {
+				GameData data = rc.getGameObject().getGameData();
+				GameObject treasure = data.getGameObject(Long.valueOf(id));
+				if (treasure!=null) {
+					treasure.detach();
+				}
+				rc.getGameObject().removeThisAttribute(Constants.DESTROY_TREASURE_WHEN_KILLED);
+			}
+		}
+		if (rc.getGameObject().hasThisAttribute(Constants.ABSORBED_CHITS)) {
+			Collection<String> chitIds = rc.getGameObject().getThisAttributeList(Constants.ABSORBED_CHITS);
+			CharacterWrapper character = new CharacterWrapper(rc.getOwner().getGameObject());
+			for (String chitId : chitIds) {
+				GameObject chit = rc.getGameObject().getGameData().getGameObject(chitId);
+				character.getGameObject().add(chit);
+			}
+			character.updateChitEffects();
+			rc.getGameObject().removeThisAttribute(Constants.ABSORBED_CHITS);
+			ClearingUtility.moveToLocation(rc.getGameObject(),null);
+		}
 		
 		// Make sure it is light side up for the next regeneration!
 		normalizeParticipant(rc);
+		
+		if (rc.isCharacter()) {
+			passOnFinalGuildBenefit(new CharacterWrapper(rc.getGameObject()));
+		}
+		
+		if (killerRc!=null && killerRc.isCharacter()) {
+			CharacterWrapper character = new CharacterWrapper(killerRc.getGameObject());
+			GuildStore currentGuild = character.getCurrentGuildStore(false);
+			if (character.hasGuildJoinRequirement() && currentGuild!=null && currentGuild instanceof FightersGuild) {
+				if (((FightersGuild)currentGuild).validateRequirementAndJoin(character,rc,killerIsASpell)) {
+					RealmLogging.logMessage(killerRc.getName(),FightersGuild.JOIN_GUILD_LOG_MESSAGE);
+				}
+			}
+		}
 	}
 	public static void normalizeParticipant(RealmComponent rc) {
 		if (rc.isMonster()) {
@@ -461,21 +592,55 @@ public class RealmUtility {
 			if (weapon!=null) {
 				weapon.setLightSideUp();
 			}
+			NativeSteedChitComponent horse = (NativeSteedChitComponent)monster.getHorse();
+			if (horse!=null) {
+				horse.setLightSideUp();
+			}
 		}
 		else if (rc.isNative()) {
-			NativeChitComponent nativ = (NativeChitComponent)rc;
-			nativ.setLightSideUp();
-			NativeSteedChitComponent horse = (NativeSteedChitComponent)nativ.getHorse();
+			NativeChitComponent nativeChit = (NativeChitComponent)rc;
+			nativeChit.setLightSideUp();
+			NativeSteedChitComponent horse = (NativeSteedChitComponent)nativeChit.getHorse();
 			if (horse!=null) {
 				horse.setLightSideUp();
 			}
 		}
 	}
-	public static Collection findInventory(RealmComponent victim) {
-		ArrayList list = new ArrayList();
-		Collection holderHold = new ArrayList(victim.getGameObject().getHold()); // to avoid concurrent mods
-		for (Iterator n=holderHold.iterator();n.hasNext();) {
-			GameObject go = (GameObject)n.next();
+	public static void passOnFinalGuildBenefit(CharacterWrapper character) {
+		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
+		if (hostPrefs.hasPref(Constants.GUILDS_FINAL_BENEFIT)) {
+			if (character.getCurrentGuild()!=null && (character.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT+"_3") || character.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT_SUCESSOR))) {
+				character.getGameObject().removeThisAttribute(Constants.GUILD_BENEFIT_SUCESSOR);
+				String guild = character.getCurrentGuild();
+				HashLists<CharacterWrapper,Integer> possibleSuccessors = new HashLists<CharacterWrapper,Integer>();
+				int maxLevel = 0;
+				for (GameObject livingChar : getLivingCharacters(character.getGameObject().getGameData())) {
+					CharacterWrapper livingCharacter = new CharacterWrapper(livingChar);
+					if (livingCharacter.getGameObject().getId()!=character.getGameObject().getId() && livingCharacter.getCurrentGuild().matches(guild) && livingCharacter.getCurrentGuildLevel()>=3) {
+						if (livingCharacter.getCurrentGuildLevel()>maxLevel) {
+							maxLevel = livingCharacter.getCurrentGuildLevel();
+						}
+						possibleSuccessors.put(livingCharacter, livingCharacter.getCurrentGuildLevel());
+					}
+				}
+				if (!possibleSuccessors.isEmpty()) {
+					ArrayList<CharacterWrapper> charactersWithMaxLevel = new ArrayList<CharacterWrapper>();
+					for (CharacterWrapper livingCharacter : possibleSuccessors.keySet()) {
+						if (livingCharacter.getCurrentGuildLevel()==maxLevel) {
+							charactersWithMaxLevel.add(livingCharacter);
+						}
+					}
+					if (charactersWithMaxLevel.size()==1) {
+						charactersWithMaxLevel.get(0).getGameObject().setThisAttribute(Constants.GUILD_BENEFIT_SUCESSOR,guild);
+					}
+				}
+			}
+		}
+	}
+	public static Collection<GameObject> findInventory(RealmComponent victim) {
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
+		Collection<GameObject> holderHold = new ArrayList<GameObject>(victim.getGameObject().getHold()); // to avoid concurrent mods
+		for (GameObject go : holderHold) {
 			RealmComponent thing = RealmComponent.getRealmComponent(go);
 			if (thing.isItem()) {
 				if (!go.hasThisAttribute(Constants.ACTIVATED) || !go.hasThisAttribute("potion")) {
@@ -520,12 +685,17 @@ public class RealmUtility {
 	private static void moveInventory(GameObject inventoryHolder,GameObject destination) {
 		moveInventory(inventoryHolder,destination,0,false);
 	}
+	private static void moveInventoryIncludingSpells(GameObject inventoryHolder,GameObject destination) {
+		moveInventory(inventoryHolder,destination,0,false,true);
+	}
 	private static void moveInventory(GameObject inventoryHolder,GameObject destination,int clearing,boolean faceDown) {
+		moveInventory(inventoryHolder,destination,clearing,faceDown,false);
+	}
+	private static void moveInventory(GameObject inventoryHolder,GameObject destination,int clearing,boolean faceDown,boolean includeSpells) {
 		if (inventoryHolder!=null && destination!=null) {
-			ArrayList holderHold = new ArrayList();
+			ArrayList<GameObject> holderHold = new ArrayList<GameObject>();
 			holderHold.addAll(inventoryHolder.getHold()); // to avoid concurrent mods
-			for (Iterator n=holderHold.iterator();n.hasNext();) {
-				GameObject go = (GameObject)n.next();
+			for (GameObject go : holderHold) {
 				RealmComponent thing = RealmComponent.getRealmComponent(go);
 				if (thing.isItem() && !thing.isNativeHorse()) { // native horses don't get dropped!
 					RealmComponent item = thing;
@@ -552,6 +722,10 @@ public class RealmUtility {
 						}
 					}
 				}
+			}
+			
+			if (clearing!=0 || destination.hasThisAttribute(RealmComponent.TREASURE_LOCATION) || destination.hasThisAttribute(RealmComponent.DWELLING)) {
+				sortGameObjectsHold(destination,false);
 			}
 		}
 	}
@@ -609,32 +783,40 @@ public class RealmUtility {
 			System.exit(0);
 		}
 	}
-	public static MagicChit burnColorChit(JFrame parent,GameWrapper game,CharacterWrapper character) {
-		ArrayList<MagicChit> colorChits = character.getColorMagicChits();
-		if (!colorChits.isEmpty()) {
-			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(parent,"Choose Color Chit to Fatigue:",true);
-			chooser.addRealmComponents(colorChits,false);
-			chooser.setVisible(true);
-			if (chooser.getSelectedText()!=null) {
-				MagicChit colorChit = (MagicChit)chooser.getFirstSelectedComponent();
-				burnColorChit(parent,game,character,colorChit);
-				return colorChit;
-			}
+	public static MagicChit burnColorChit(JFrame parent,GameWrapper game,CharacterWrapper character,boolean filterSpellsAimingAtHiddenTargets) {
+		MagicChit colorChit = selectColorMagicChitToFatigue(parent, character);
+		if (colorChit != null) {
+			burnColorChit(parent,game,character,colorChit,filterSpellsAimingAtHiddenTargets);
+			return colorChit;
 		}
 		return null;
 	}
-	public static void burnColorChit(JFrame parent,GameWrapper game,CharacterWrapper character,MagicChit colorChit) {
+	public static void burnColorChit(JFrame parent,GameWrapper game,CharacterWrapper character,MagicChit colorChit,boolean filterSpellsAimingAtHiddenTargets) {
 		// See if we can energize a permanent spell
 		ColorMagic chitColor = colorChit.getColorMagic();
 		ArrayList<SpellWrapper> possSpells = new ArrayList<SpellWrapper>();
 		TileLocation loc = character.getCurrentLocation();
 		SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(character.getGameObject().getGameData());
-		for (Iterator i=sm.getAllSpellsInClearing(loc,false).iterator();i.hasNext();) {
-			SpellWrapper spell = (SpellWrapper)i.next();
+		for (SpellWrapper spell : sm.getAllSpellsInClearing(loc,false)) {
 			if (spell.isInert()) { // only inert spells can be reenergized
 				ColorMagic spellColor = spell.getRequiredColorMagic();
 				if (spellColor==null || spellColor.sameColorAs(chitColor)) {
-					possSpells.add(spell);
+					if (filterSpellsAimingAtHiddenTargets) {
+						boolean canTarget = false;
+						if (spell.getTargets()!=null) {
+							for (RealmComponent target : spell.getTargets()) {
+								if (!target.isHidden() || character.foundHiddenEnemy(target.getGameObject())) {
+									canTarget = true;
+									break;
+								}
+							}
+						}
+						if (spell.getTargets()==null || canTarget) {
+							possSpells.add(spell);
+						}
+					} else {
+						possSpells.add(spell);
+					}
 				}
 			}
 		}
@@ -667,7 +849,7 @@ public class RealmUtility {
 					}
 					
 					RealmLogging.logMessage(character.getGameObject().getName(),"Burns a "+chitColor.getColorName()+" chit to energize "+spellToEnergize.getName());
-					spellToEnergize.affectTargets(parent,game,false);
+					spellToEnergize.affectTargets(parent,game,false,null);
 				}
 				else {
 					RealmLogging.logMessage(character.getGameObject().getName(),"Burns a "+chitColor.getColorName()+" chit.");
@@ -692,6 +874,51 @@ public class RealmUtility {
 		colorChit.makeFatigued();
 		RealmUtility.reportChitFatigue(character,colorChit,"Fatigued color chit: ");
 	}
+	public static void enchantChit(JFrame frame, MagicChit chit) {
+		ArrayList<Integer> list = chit.getEnchantableNumbers();
+		int enchantNumber;
+		if (list.size()>1) {
+			ButtonOptionDialog colorChooser = new ButtonOptionDialog(frame,chit.getIcon(),"What color?","Enchant "+chit.getGameObject().getName(),false);
+			for(int mn:list) {
+				ColorMagic cm = new ColorMagic(mn,false);
+				colorChooser.addSelectionObject(cm.getColorName());
+			}
+			colorChooser.setVisible(true);
+			String colorName = (String)colorChooser.getSelectedObject();
+			enchantNumber = ColorMagic.makeColorMagic(colorName,false).getColorNumber();
+		}
+		else {
+			enchantNumber = list.get(0);
+		}
+		
+		chit.enchant(enchantNumber);
+	}
+	public static CharacterActionChitComponent selectMoveChitToBoost(JFrame parent,CharacterWrapper character) {
+		Collection<CharacterActionChitComponent> moveChits = character.getActiveMoveChits();
+		if (!moveChits.isEmpty()) {
+			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(parent,"Choose Move Chit to boost:",true);
+			chooser.addRealmComponents(moveChits,false);
+			chooser.setVisible(true);
+			if (chooser.getSelectedText()!=null) {
+				CharacterActionChitComponent CharacterActionChitComponent = (CharacterActionChitComponent)chooser.getFirstSelectedComponent();
+				return CharacterActionChitComponent;
+			}
+		}
+		return null;
+	}
+	public static MagicChit selectColorMagicChitToFatigue(JFrame parent,CharacterWrapper character) {
+		ArrayList<MagicChit> colorChits = character.getColorMagicChits();
+		if (!colorChits.isEmpty()) {
+			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(parent,"Choose Color Chit to Fatigue:",true);
+			chooser.addRealmComponents(colorChits,false);
+			chooser.setVisible(true);
+			if (chooser.getSelectedText()!=null) {
+				MagicChit colorChit = (MagicChit)chooser.getFirstSelectedComponent();
+				return colorChit;
+			}
+		}
+		return null;		
+	}
 	public static Object chooseSpell(JFrame parent,ArrayList<SpellWrapper> possSpells,boolean allowNone,boolean allowCancel) {
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(
 				parent,
@@ -704,14 +931,14 @@ public class RealmUtility {
 			String casterName = (caster!=null && caster.getGameObject().hasThisAttribute("character"))?caster.getGameObject().getName():"";
 			chooser.addOption(key,casterName);
 			chooser.addRealmComponentToOption(key,RealmComponent.getRealmComponent(spell.getGameObject()));
-			ArrayList targets = spell.getTargets();
+			ArrayList<RealmComponent> targets = spell.getTargets();
 			if (targets.size()>0) {
-				chooser.addRealmComponentToOption(key,(RealmComponent)targets.get(0));
+				chooser.addRealmComponentToOption(key,targets.get(0));
 				if (targets.size()>1) {
 					// TODO Would be nice to indicate there are other targets...
 				}
 			}
-			GameObject animal = spell.getTransformAnimal();
+			GameObject animal = spell.getTransformAnimalOrStatue();
 			if (animal!=null) {
 				chooser.addRealmComponentToOption(key,RealmComponent.getRealmComponent(animal));
 			}
@@ -725,20 +952,18 @@ public class RealmUtility {
 			if (!"None".equals(selText)) {
 				return new SpellWrapper(chooser.getFirstSelectedComponent().getGameObject());
 			}
-			else {
-				return "None";
-			}
+			return "None";
 		}
 		return null;
 	}
 	/**
 	 * A recursive method for extracting a tree of game objects
 	 */
-	public static Collection getAllGameObjectsIn(GameObject go,boolean excludeUnseenTreasures) {
-		ArrayList ret = new ArrayList();
-		for (Iterator i=go.getHold().iterator();i.hasNext();) {
-			GameObject ingo = (GameObject)i.next();
+	public static Collection<GameObject> getAllGameObjectsIn(GameObject go,boolean excludeUnseenTreasures) {
+		ArrayList<GameObject> ret = new ArrayList<GameObject>();
+		for (GameObject ingo : go.getHold()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(ingo);
+			if (ingo.hasThisAttribute(Constants.QUEST) || ingo.hasThisAttribute(Quest.QUEST_STEP)) continue;
 			if (!excludeUnseenTreasures || !rc.isTreasure() || ingo.hasThisAttribute(Constants.TREASURE_SEEN)) {
 				ret.add(ingo);
 				ret.addAll(getAllGameObjectsIn(ingo,excludeUnseenTreasures));
@@ -759,10 +984,10 @@ public class RealmUtility {
 //		System.out.println("Started "+DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime()));
 //	}
 	public static void popupMessage(JFrame parent,RealmDirectInfoHolder info) {
-		ArrayList strings = info.getStrings();
-		String title = (String)strings.get(0);
-		String message = (String)strings.get(1);
-		String rollerStringResult = (String)strings.get(2);
+		ArrayList<String> strings = info.getStrings();
+		String title = strings.get(0);
+		String message = strings.get(1);
+		String rollerStringResult = strings.get(2);
 		DieRoller roller = null;
 		if (rollerStringResult.length()>0) {
 			roller = new DieRoller(rollerStringResult,25,6);
@@ -837,16 +1062,16 @@ public class RealmUtility {
 	}
 	public static void doMatchGoldSpecials(GameData data) {
 		RealmObjectMaster rom = RealmObjectMaster.getRealmObjectMaster(data);
-		GamePool gsPool = new GamePool(rom.findObjects("gold_special",false));
+		GamePool gsPool = new GamePool(rom.findObjects("gold_special"));
 		GameObject[] chit = new GameObject[2];
-		while(!gsPool.isEmpty()) {
-			GameObject first = (GameObject)gsPool.get(0);
+		while(gsPool.size() > 0) {
+			GameObject first = gsPool.get(0);
 			String pair = first.getThisAttribute("pair");
-			ArrayList list = gsPool.extract("pair="+pair); // should always be 2
+			ArrayList<GameObject> list = gsPool.extract("pair="+pair); // should always be 2
 			if ((list.size()%2)!=0) throw new IllegalStateException("Gold Special size is not divisible by 2? -> "+list.size());
 			while(!list.isEmpty()) {
-				chit[0] = (GameObject)list.remove(0);
-				chit[1] = (GameObject)list.remove(0);
+				chit[0] = list.remove(0);
+				chit[1] = list.remove(0);
 				chit[0].setThisAttribute("pairid",chit[1].getStringId());
 				chit[1].setThisAttribute("pairid",chit[0].getStringId());
 			}
@@ -882,30 +1107,99 @@ public class RealmUtility {
 			tile.flip();
 		}
 	}
+	
+	public static void updateWaterClearings(GameData data,boolean frozen) {
+		GamePool pool = new GamePool(data.getGameObjects());
+		for (GameObject go : pool.find("tile")) {
+			RealmComponent rc = RealmComponent.getRealmComponent(go);
+			if (rc instanceof TileComponent) {
+				TileComponent tile = (TileComponent) rc;
+				if (frozen) tile.freezeWaterClearings();
+				if (!frozen) tile.meltFrozenWaterClearings();
+			}
+		}
+	}
+	
+	public static ArrayList<RealmComponent> willBeBlockedByNatives(CharacterWrapper character,boolean isFollowing) {
+		return willBeBlockedByRealmComponent(character,isFollowing,false,false,true,false);
+	}
+	
 	public static boolean willBeBlocked(CharacterWrapper character,boolean isFollowing,boolean blockMonsters) {
+		ArrayList<RealmComponent> blockers = willBeBlockedByRealmComponent(character,isFollowing,blockMonsters,true,false,true);
+		if (blockers!=null && !blockers.isEmpty()) {
+			return true;
+		}
+		return false;
+	}
+	
+	private static ArrayList<RealmComponent> willBeBlockedByRealmComponent(CharacterWrapper character,boolean isFollowing,boolean blockMonsters, boolean monsters, boolean natives, boolean magic) {
+		if (character.getGameObject().hasThisAttribute(Constants.MEDITATE_NO_BLOCKING)) return null;
 		// Player's current clearing is checked for monsters, and blocked if needed
-		boolean blocked = false;
-		if (!character.isMinion() && !character.isHidden() && !isFollowing && !character.isMistLike()) {
+		ArrayList<RealmComponent> blockers = new ArrayList<RealmComponent>();
+		if (!character.isMinion() && !isFollowing) {
 			TileLocation tl = character.getCurrentLocation();
 			if (tl!=null && tl.hasClearing() && !tl.isBetweenClearings()) {
 				ClearingDetail currentClearing = tl.clearing;
-				Collection components = currentClearing.getClearingComponents();
-				for (Iterator i = components.iterator(); i.hasNext();) {
-					RealmComponent rc = (RealmComponent) i.next();
-					if (rc instanceof MonsterChitComponent) {
-						MonsterChitComponent monster = (MonsterChitComponent)rc;
-						// don't block if monster has an owner (until I can get to that piece of code!)
-						if (monster.getOwner()==null) {
-							// Monsters with Melt-into-Mist affecting them don't block
-							if (!monster.isMistLike()) {
-								// pacified monsters don't block
-								if (!monster.isPacifiedBy(character)) {
-									// don't block character if they have immunity to this monster
-									RealmComponent charRc = RealmComponent.getRealmComponent(character.getGameObject());
-									if (!charRc.isImmuneTo(monster)) {
-										blocked = true;
-										if (blockMonsters) {
-											monster.setBlocked(true); // so monster will stop prowling
+				Collection<RealmComponent> components = currentClearing.getClearingComponents();
+				HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
+				boolean mistLike = character.isMistLike();
+				if (!character.isHidden()) {
+					for (RealmComponent rc : components) {
+						if (mistLike && !rc.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE)) continue;
+						if ((monsters && rc instanceof MonsterChitComponent) || (natives && rc instanceof NativeChitComponent)) {
+							// don't block if monster has an owner (until I can get to that piece of code!)
+							if (rc.getOwner()==null) {
+								// Monsters with Melt-into-Mist affecting them don't block
+								if (!rc.isMistLike()) {
+									if (rc.isMonster()) {
+										MonsterChitComponent monster = (MonsterChitComponent)rc;
+										// pacified and small monsters don't block
+										if (!monster.isSmall() || !hostPrefs.hasPref(Constants.HOUSE3_SMALL_MONSTERS)) {
+											if (!rc.isPacifiedBy(character)) {
+												// don't block character if they have immunity to this monster
+												RealmComponent charRc = RealmComponent.getRealmComponent(character.getGameObject());
+												String magicImmunity = monster.getGameObject().getThisAttribute(Constants.MAGIC_IMMUNITY);
+												if (!charRc.isImmuneTo(monster) && (!character.getGameObject().hasThisAttribute(Constants.BLINDING_LIGHT) || (magicImmunity!=null && (magicImmunity.matches("prism") || magicImmunity.matches("purple"))))) {
+													if ((!monster.getGameObject().hasThisAttribute(Constants.GHOST) && !monster.getGameObject().hasThisAttribute(Constants.WRAITH)) || !character.affectedByKey(Constants.SPIRIT_CHARM)) {
+														if (blockMonsters) {
+															monster.setBlocked(true); // so monster will stop prowling
+														}
+														blockers.add(monster);
+													}
+												}
+											}
+										}
+									}
+									else if (rc.isNative()) {
+										NativeChitComponent nativeChit = (NativeChitComponent)rc;
+										if (!nativeChit.isSmall() || !hostPrefs.hasPref(Constants.HOUSE3_SMALL_MONSTERS)) {
+											blockers.add(rc);
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				if (magic) {
+					ArrayList<ColorMagic> colors = tl.clearing.getAllSourcesOfColor(true);
+					if (character.getGameObject().hasThisAttribute(Constants.BLOCKED_BY_MAGIC_COLOR)) {
+						for (String blockingColor : character.getGameObject().getThisAttributeList(Constants.BLOCKED_BY_MAGIC_COLOR)) {
+							for (ColorMagic availableColors : colors) {
+								if (availableColors.getColorName().toLowerCase().matches(blockingColor.toLowerCase())) {
+									blockers.add(RealmComponent.getRealmComponent(character.getGameObject()));
+								}
+							}
+						}
+					}
+					else {
+						ArrayList<GameObject> items = character.getAllActiveInventoryThisKeyAndValue(Constants.BLOCKED_BY_MAGIC_COLOR, null);
+						if (items!=null && !items.isEmpty()) {
+							for (GameObject item : items) {
+								for (String blockingColor : item.getThisAttributeList(Constants.BLOCKED_BY_MAGIC_COLOR)) {
+									for (ColorMagic availableColors : colors) {
+										if (availableColors.getColorName().toLowerCase().matches(blockingColor.toLowerCase())) {
+											blockers.add(RealmComponent.getRealmComponent(item));
 										}
 									}
 								}
@@ -915,7 +1209,7 @@ public class RealmUtility {
 				}
 			}
 		}
-		return blocked;
+		return blockers;
 	}
 	public static DieRollerLog getDieRollerLog(GameData gameData) {
 		GamePool pool = new GamePool(gameData.getGameObjects());
@@ -978,5 +1272,151 @@ public class RealmUtility {
 			}
 		}
 		return sb.toString();
+	}
+	public static void prepMonsterNumbers(GameData data) {
+		GamePool pool = new GamePool(data.getGameObjects());
+		ArrayList<GameObject> monsters = pool.find("monster");
+		
+		// First, count each type
+		HashLists<String, GameObject> hl = new HashLists<String, GameObject>();
+		for (GameObject go:monsters) {
+			hl.put(go.getName(),go);
+		}
+		
+		// Only number those where there is more than one
+		for (String name : hl.keySet()) {
+			ArrayList<GameObject> list = hl.getList(name);
+			if (list.size()>1) {
+				for (int n=0;n<list.size();n++) {
+					GameObject go = list.get(n);
+					go.setThisAttribute(Constants.NUMBER,n+1);
+				}
+			}
+		}
+	}
+	public static Strength getGlovesStrength(GameObject gloves) {
+		return getAlteredStrength(gloves);
+	}
+	public static Strength getBootsStrength(GameObject boots) {
+		return getAlteredStrength(boots);
+	}
+	private static Strength getAlteredStrength(GameObject boots) {
+		if (boots.hasThisAttribute(Constants.ALTER_WEIGHT)) return new Strength(boots.getThisAttribute(Constants.ALTER_WEIGHT));
+		return new Strength(boots.getThisAttribute("strength"));
+	}
+	
+	public static void sortGameObjectsHold(GameObject go, boolean shuffle) {
+		ArrayList<GameObject> hold = new ArrayList<GameObject>();
+		hold.addAll(go.getHold());
+		if (hold==null || hold.isEmpty()) return;
+		
+		go.clearHold();
+		if (shuffle) {
+			Collections.shuffle(hold);
+			Collections.shuffle(hold);
+		}
+		Collections.sort(hold,new Comparator<GameObject>() {
+			public int compare(GameObject g1,GameObject g2) {
+				return getOrderNumber(g1)-getOrderNumber(g2);
+			}
+		});
+		
+		for (GameObject obj : hold) {
+			go.add(obj);
+		}
+	}
+	private static int getOrderNumber(GameObject go) {
+		if (go.hasThisAttribute("treasure")) {
+			if (go.getThisAttribute("treasure").matches("small")) return 1;
+			if (go.getThisAttribute("treasure").matches("large")) return 2;
+		}
+		if (go.hasThisAttribute("spell")) {
+			String type = go.getThisAttribute("spell");
+			if (type.matches("I")) return 3;
+			if (type.matches("II")) return 4;
+			if (type.matches("III")) return 5;
+			if (type.matches("IV")) return 6;
+			if (type.matches("V")) return 7;
+			if (type.matches("VI")) return 8;
+			if (type.matches("VII")) return 9;
+			if (type.matches("VIII")) return 10;
+		}
+		if (go.hasThisAttribute("item")) {
+			if (go.hasThisAttribute("horse")) return 11;
+			if (go.hasThisAttribute("armor") && go.hasThisAttribute("armor_thrust") && go.hasThisAttribute("armor_swing") && go.hasThisAttribute("armor_smash")) return 12;
+			if (go.hasThisAttribute("weapon")) return 13;
+			if (go.hasThisAttribute("armor") && go.hasThisAttribute("armor_smash")) return 14;
+			if (go.hasThisAttribute("armor") && (go.hasThisAttribute("shield") || go.hasThisAttribute("armor_choice"))) return 15;
+			if (go.hasThisAttribute("armor") && go.hasThisAttribute("armor_thrust") && go.hasThisAttribute("armor_swing")) return 16;
+		}
+		if (go.hasThisAttribute("denizen")) return 17;
+		
+		return 0;
+	}
+	public static String getNameForAttackBox(int box) {
+		switch(box) {
+			case 1:
+				return "THRUST";
+			case 2:
+				return "SWING";
+			case 3:
+				return "SMASH";
+			default: return "";
+		}
+	}
+	public static String getNameForDefensekBox(int box) {
+		switch(box) {
+		case 1:
+			return "CHARGE";
+		case 2:
+			return "DODGE";
+		case 3:
+			return "DUCK";
+		default: return "";
+		}
+	}
+	public static int revisedMissileTable(int dieResult) {
+		if (dieResult<-1) {
+			return 3;
+		}
+		if (dieResult<0) {
+			return 2;
+		}
+		if (dieResult<2) {
+			return 1;
+		}
+		if (dieResult<5) {
+			return 0;
+		}
+		if (dieResult<7) {
+			return -1;
+		}
+		if (dieResult<8) {
+			return -2;
+		}
+		return -3;
+	}
+	public static Point getTilePositionFromGameObject(GameObject obj) {
+		String pos = obj.getAttribute("mapGrid","mapPosition");
+		StringTokenizer st = new StringTokenizer(pos,",");
+		int px = Integer.parseInt(st.nextToken());
+		int py = Integer.parseInt(st.nextToken());
+		return new Point(px,py);
+	}
+	public static ArrayList<GameObject> getLivingCharacters(GameData data) {
+		GamePool pool = new GamePool(RealmObjectMaster.getRealmObjectMaster(data).getPlayerCharacterObjects());
+		ArrayList<GameObject> list = pool.find(CharacterWrapper.NAME_KEY);
+		ArrayList<GameObject> active = new ArrayList<GameObject>();
+		for (GameObject characterGo : list) {
+			CharacterWrapper character = new CharacterWrapper(characterGo);
+			if (!character.isDead()) {
+				active.add(character.getGameObject());
+				ArrayList<GameObject> minions = character.getMinions();
+				if (minions!=null) {
+					active.addAll(minions);
+				}
+			}
+		}
+		return active;
 	}
 }

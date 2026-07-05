@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmQuestBuilder;
 
 import java.awt.*;
@@ -26,6 +9,7 @@ import java.util.logging.Formatter;
 
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.filechooser.FileFilter;
 
 import com.robin.game.objects.*;
 import com.robin.general.io.*;
@@ -34,9 +18,10 @@ import com.robin.general.util.StringUtilities;
 import com.robin.magic_realm.components.EmptyCardComponent;
 import com.robin.magic_realm.components.RealmComponent;
 import com.robin.magic_realm.components.quest.*;
+import com.robin.magic_realm.components.utility.Constants;
+import com.robin.magic_realm.components.utility.GameFileFilters;
 import com.robin.magic_realm.components.utility.RealmLoader;
 import com.robin.magic_realm.components.utility.RealmUtility;
-import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class QuestBuilderFrame extends JFrame {
 	public static final String LAST_DIR = "last_dir";
@@ -67,6 +52,9 @@ public class QuestBuilderFrame extends JFrame {
 
 	private JTable minorCharacterTable;
 	private QuestTableEditorPanel minorCharacterPanel;
+	
+	private JTable counterTable;
+	private QuestTableEditorPanel counterPanel;
 
 	// private QuestView questView;
 	private QuestStepView questStepView;
@@ -82,6 +70,8 @@ public class QuestBuilderFrame extends JFrame {
 	private PreferenceManager prefs;
 
 	private JCheckBox bookOfQuests;
+	private JCheckBox bookOfQuestsEvent;
+	private JCheckBox superRealm;
 	private JCheckBox questingTheRealm;
 	private JCheckBox allPlayQuestOption;
 	private JCheckBox secretQuestOption;
@@ -95,6 +85,7 @@ public class QuestBuilderFrame extends JFrame {
 	private JCheckBox originalVariant;
 	private JCheckBox pruittsMonstersVariant;
 	private JCheckBox expansionOneVariant;
+	private JCheckBox superRealmVariant;
 
 	private JCheckBox singleBoard;
 	private JCheckBox doubleBoard;
@@ -107,6 +98,9 @@ public class QuestBuilderFrame extends JFrame {
 	private JCheckBox specificCharacterListOption;
 	private JTextField specificCharacterListField;
 	private JButton specificCharacterHelperButton;
+	private JCheckBox multipleUseOption;
+	private JCheckBox discardNeverOption;
+	private JCheckBox discardAlwaysOption;
 
 	private JTable ruleLimitationTable;
 
@@ -125,10 +119,9 @@ public class QuestBuilderFrame extends JFrame {
 	};
 
 	public QuestBuilderFrame() {
+		setIconImage(IconFactory.findIcon("images/tab/record.gif").getImage());
 		RealmLoader loader = new RealmLoader();
 		realmSpeakData = loader.getData();
-		HostPrefWrapper hostPrefs = HostPrefWrapper.createDefaultHostPrefs(realmSpeakData);
-		hostPrefs.setGameKeyVals("rw_expansion_1");
 		initComponents();
 		initNewQuest();
 		updateControls();
@@ -145,8 +138,7 @@ public class QuestBuilderFrame extends JFrame {
 	}
 
 	public void exitApp() {
-		// Should check all GameData windows, and verify that changes have been
-		// saved
+		// Should check all GameData windows, and verify that changes have been saved
 		prefs.set(LAST_DIR, lastQuestFilePath.getPath());
 		prefs.savePreferences();
 		setVisible(false);
@@ -154,6 +146,17 @@ public class QuestBuilderFrame extends JFrame {
 		System.exit(0);
 	}
 
+	private boolean setGameDataFile() {
+		JFileChooser chooser = new JFileChooser(new File("./"));
+		chooser.setAcceptAllFileFilterUsed(false);
+		chooser.setFileFilter(GameFileFilters.createGameDataFileFilter());
+		if (chooser.showOpenDialog(this)==JFileChooser.APPROVE_OPTION) {
+			RealmLoader.DATA_PATH = chooser.getSelectedFile().getAbsolutePath();
+			return true;
+		}
+		return false;
+	}
+	
 	private void initNewQuest() {
 		GameData gameData = new GameData(Quest.GAME_DATA_NAME);
 		quest = new Quest(gameData.createNewObject());
@@ -171,17 +174,21 @@ public class QuestBuilderFrame extends JFrame {
 		questDescription.setFont(QuestGuiConstants.QuestDescriptionFont);
 		rebuildSteps();
 
-		minorCharacterTable.clearSelection();
-		((MinorCharacterTableModel) minorCharacterTable.getModel()).setQuest(quest);
-		minorCharacterTable.revalidate();
-
-		locationTable.clearSelection();
-		((LocationTableModel) locationTable.getModel()).setQuest(quest);
-		locationTable.revalidate();
-
 		ruleLimitationTable.clearSelection();
 		((RuleLimitationTableModel) ruleLimitationTable.getModel()).setQuest(quest);
 		ruleLimitationTable.revalidate();
+		
+		locationTable.clearSelection();
+		((LocationTableModel) locationTable.getModel()).setQuest(quest);
+		locationTable.revalidate();
+		
+		minorCharacterTable.clearSelection();
+		((MinorCharacterTableModel) minorCharacterTable.getModel()).setQuest(quest);
+		minorCharacterTable.revalidate();
+		
+		counterTable.clearSelection();
+		((CounterTableModel) counterTable.getModel()).setQuest(quest);
+		counterTable.revalidate();
 
 		readOtherOptions();
 
@@ -200,7 +207,9 @@ public class QuestBuilderFrame extends JFrame {
 		brokenFlag.setSelected(quest.getBoolean(QuestConstants.FLAG_BROKEN));
 
 		bookOfQuests.setSelected(quest.getBoolean(QuestConstants.WORKS_WITH_BOQ));
+		bookOfQuestsEvent.setSelected(quest.getBoolean(QuestConstants.BOQ_EVENT));
 		questingTheRealm.setSelected(quest.getBoolean(QuestConstants.WORKS_WITH_QTR));
+		superRealm.setSelected(quest.getBoolean(QuestConstants.WORKS_WITH_SR));
 		cardCount.setText(quest.getString(QuestConstants.CARD_COUNT));
 		vpReward.setText(quest.getString(QuestConstants.VP_REWARD));
 		allPlayQuestOption.setSelected(quest.getBoolean(QuestConstants.QTR_ALL_PLAY));
@@ -223,6 +232,10 @@ public class QuestBuilderFrame extends JFrame {
 		magicUserCharacterOption.setSelected(quest.getBoolean(QuestConstants.CHARACTER_MAGIC));
 		maleCharacterOption.setSelected(quest.getBoolean(QuestConstants.CHARACTER_MALE));
 		femaleCharacterOption.setSelected(quest.getBoolean(QuestConstants.CHARACTER_FEMALE));
+		
+		multipleUseOption.setSelected(quest.getBoolean(QuestConstants.QUEST_MULTIPLE_USE));
+		discardNeverOption.setSelected(quest.getBoolean(QuestConstants.DISCARD_NEVER));
+		discardAlwaysOption.setSelected(quest.getBoolean(QuestConstants.DISCARD_ALWAYS));
 
 		specificCharacterListOption.setSelected(quest.getBoolean(QuestConstants.CHARACTER_SPEC_REGEX));
 		specificCharacterListField.setText(specificCharacterListOption.isSelected() ? quest.getString(QuestConstants.CHARACTER_SPEC_REGEX) : "");
@@ -236,6 +249,8 @@ public class QuestBuilderFrame extends JFrame {
 
 		quest.setBoolean(QuestConstants.WORKS_WITH_BOQ, bookOfQuests.isSelected());
 		quest.setBoolean(QuestConstants.WORKS_WITH_QTR, questingTheRealm.isSelected());
+		quest.setBoolean(QuestConstants.WORKS_WITH_SR, superRealm.isSelected());
+		quest.setBoolean(QuestConstants.BOQ_EVENT, bookOfQuestsEvent.isSelected());
 		quest.setBoolean(QuestConstants.QTR_ALL_PLAY, allPlayQuestOption.isSelected());
 		quest.setBoolean(QuestConstants.QTR_SECRET_QUEST, secretQuestOption.isSelected());
 		quest.setInt(QuestConstants.CARD_COUNT, cardCount.getInt());
@@ -258,6 +273,10 @@ public class QuestBuilderFrame extends JFrame {
 		quest.setBoolean(QuestConstants.CHARACTER_MALE, maleCharacterOption.isSelected());
 		quest.setBoolean(QuestConstants.CHARACTER_FEMALE, femaleCharacterOption.isSelected());
 		quest.setString(QuestConstants.CHARACTER_SPEC_REGEX, specificCharacterListOption.isSelected() ? specificCharacterListField.getText() : null);
+		
+		quest.setBoolean(QuestConstants.QUEST_MULTIPLE_USE, multipleUseOption.isSelected());
+		quest.setBoolean(QuestConstants.DISCARD_NEVER, discardNeverOption.isSelected());
+		quest.setBoolean(QuestConstants.DISCARD_ALWAYS, discardAlwaysOption.isSelected());
 	}
 
 	private void rebuildSteps() {
@@ -271,13 +290,15 @@ public class QuestBuilderFrame extends JFrame {
 
 	private void loadQuest() {
 		JFileChooser chooser = new JFileChooser(lastQuestFilePath);
+		chooser.setAcceptAllFileFilterUsed(false);
+		chooser.setFileFilter(questGameFileFilter);
 		if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
 			File file = chooser.getSelectedFile();
 			if (file != null) {
 				GameData data = new GameData();
 				data.ignoreRandomSeed = true;
 				if (data.zipFromFile(file)) {
-					quest = new Quest((GameObject) data.getGameObjects().iterator().next());
+					quest = new Quest(data.getGameObjects().iterator().next());
 					quest.autoRepair(); // Just in case
 					readQuest();
 					setFile(file);
@@ -286,6 +307,16 @@ public class QuestBuilderFrame extends JFrame {
 		}
 	}
 
+	protected FileFilter questGameFileFilter = new FileFilter() {
+		public boolean accept(File f) {
+			return f.isDirectory() || (f.isFile() && f.getPath().endsWith("rsqst"));
+		}
+
+		public String getDescription() {
+			return "RealmSpeak Quest Files (*.rsqst)";
+		}
+	};
+	
 	private void saveAsQuest() {
 		saveQuest(lastQuestFile, false);
 	}
@@ -312,6 +343,8 @@ public class QuestBuilderFrame extends JFrame {
 					super.approveSelection();
 				}
 			};
+			chooser.setAcceptAllFileFilterUsed(false);
+			chooser.setFileFilter(questGameFileFilter);
 			if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
 				selectedFile = FileUtilities.fixFileExtension(chooser.getSelectedFile(), QuestConstants.DEFAULT_EXTENSION);
 			}
@@ -350,6 +383,9 @@ public class QuestBuilderFrame extends JFrame {
 	}
 
 	private void updateControls() {
+		counterPanel.getEditAction().setEnabled(counterTable.getSelectedRowCount() == 1);
+		counterPanel.getDeleteAction().setEnabled(counterTable.getSelectedRowCount() == 1);
+		
 		minorCharacterPanel.getEditAction().setEnabled(minorCharacterTable.getSelectedRowCount() == 1);
 		minorCharacterPanel.getDeleteAction().setEnabled(minorCharacterTable.getSelectedRowCount() == 1);
 
@@ -364,11 +400,9 @@ public class QuestBuilderFrame extends JFrame {
 		moveStepDown.setEnabled(quest.getSteps().size() > 1);
 
 		questStepView.updateSteps(quest.getSteps());
-		// questView.updatePanel(quest);
 
 		QuestStepPanel stepPanel = (QuestStepPanel) questSteps.getSelectedComponent();
 		questStepView.setSelectedStep(stepPanel.getStep());
-		// questView.setSelectedStep(stepPanel.getStep());
 
 		fightersGuildQuestOption.setEnabled(guildQuestOption.isSelected());
 		magicGuildQuestOption.setEnabled(guildQuestOption.isSelected());
@@ -377,7 +411,7 @@ public class QuestBuilderFrame extends JFrame {
 
 	public void updateCard() {
 		saveOtherOptions();
-		cardPanel.setVisible(quest.getBoolean(QuestConstants.WORKS_WITH_QTR));
+		cardPanel.setVisible(quest.getBoolean(QuestConstants.WORKS_WITH_QTR) || quest.getBoolean(QuestConstants.WORKS_WITH_SR));
 		cardPanel.repaint();
 	}
 
@@ -406,6 +440,7 @@ public class QuestBuilderFrame extends JFrame {
 			public void actionPerformed(ActionEvent ev) {
 				if (canOverwriteQuest("New Quest")) {
 					initNewQuest();
+					lastQuestFile = null;
 				}
 			}
 		});
@@ -439,6 +474,21 @@ public class QuestBuilderFrame extends JFrame {
 		});
 		fileMenu.add(saveAsQuestItem);
 		fileMenu.add(new JSeparator());
+		JMenuItem loadGameDataFile = new JMenuItem("Load GameData file");
+		loadGameDataFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				if (canOverwriteQuest("Load new game data?")) {
+					boolean gameLoaded = setGameDataFile();
+					if (!gameLoaded) return;
+					RealmLoader loader = new RealmLoader();
+					realmSpeakData = loader.getData();
+					initNewQuest();
+					updateControls();
+				}
+			}
+		});
+		fileMenu.add(loadGameDataFile);
+		fileMenu.add(new JSeparator());
 		JMenuItem exitItem = new JMenuItem("Exit");
 		exitItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
@@ -451,15 +501,43 @@ public class QuestBuilderFrame extends JFrame {
 		menuBar.add(fileMenu);
 
 		JMenu toolsMenu = new JMenu("Tools");
-		JMenuItem viewDeckItem = new JMenuItem("View Quest Cards Deck");
-		viewDeckItem.addActionListener(new ActionListener() {
+		JMenuItem viewDeckItemQtR = new JMenuItem("View Quest Cards Deck for QtR");
+		viewDeckItemQtR.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				viewDeck();
+				viewDeck(Constants.QuestDeckMode.QtR);
 			}
 		});
-		viewDeckItem.setMnemonic(KeyEvent.VK_V);
-		viewDeckItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
-		toolsMenu.add(viewDeckItem);
+		viewDeckItemQtR.setMnemonic(KeyEvent.VK_V);
+		viewDeckItemQtR.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+		toolsMenu.add(viewDeckItemQtR);
+		JMenuItem viewDeckItemBoQ = new JMenuItem("View Quest Cards Deck for BoQ");
+		viewDeckItemBoQ.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				viewDeck(Constants.QuestDeckMode.BoQ);
+			}
+		});
+		viewDeckItemBoQ.setMnemonic(KeyEvent.VK_B);
+		viewDeckItemBoQ.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+		toolsMenu.add(viewDeckItemBoQ);
+		JMenuItem viewDeckItemGQ = new JMenuItem("View Quest Cards Deck for Guild Quests");
+		viewDeckItemGQ.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				viewDeck(Constants.QuestDeckMode.GQ);
+			}
+		});
+		viewDeckItemGQ.setMnemonic(KeyEvent.VK_G);
+		viewDeckItemGQ.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+		toolsMenu.add(viewDeckItemGQ);
+		JMenuItem viewDeckItemSR = new JMenuItem("View Quest Cards Deck for Super Realm Quests");
+		viewDeckItemSR.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				viewDeck(Constants.QuestDeckMode.SR);
+			}
+		});
+		viewDeckItemSR.setMnemonic(KeyEvent.VK_R);
+		viewDeckItemSR.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+		toolsMenu.add(viewDeckItemSR);
+		
 		toolsMenu.add(new JSeparator());
 		JMenuItem launchQuestTesterItem = new JMenuItem("Test Quest");
 		launchQuestTesterItem.addActionListener(new ActionListener() {
@@ -489,16 +567,41 @@ public class QuestBuilderFrame extends JFrame {
 		}
 	}
 
-	private void viewDeck() {
+	private void viewDeck(Constants.QuestDeckMode mode) {
 		System.setProperty("questFolder", lastQuestFilePath.getAbsolutePath());
 		ArrayList<Quest> quests = QuestLoader.loadAllQuestsFromQuestFolder();
 		ArrayList<Quest> questCards = new ArrayList<Quest>();
-		for (Quest quest : quests) {
-			if (quest.getBoolean(QuestConstants.WORKS_WITH_QTR)) {
-				questCards.add(quest);
+		switch (mode) {
+		case QtR:
+			for (Quest quest : quests) {
+				if (quest.getBoolean(QuestConstants.WORKS_WITH_QTR)) {
+					questCards.add(quest);
+				}
 			}
+			break;
+		case BoQ:
+			for (Quest quest : quests) {
+				if (quest.getBoolean(QuestConstants.WORKS_WITH_BOQ)) {
+					questCards.add(quest);
+				}
+			}
+			break;
+		case GQ:
+			for (Quest quest : quests) {
+				if (quest.getGuild()!=null) {
+					questCards.add(quest);
+				}
+			}
+			break;
+		case SR:
+			for (Quest quest : quests) {
+				if (quest.getBoolean(QuestConstants.WORKS_WITH_SR)) {
+					questCards.add(quest);
+				}
+			}
+			break;
 		}
-		QuestDeckViewer viewer = new QuestDeckViewer(this, questCards);
+		QuestDeckViewer viewer = new QuestDeckViewer(this, questCards, mode);
 		viewer.setLocationRelativeTo(this);
 		viewer.setVisible(true);
 		
@@ -538,6 +641,7 @@ public class QuestBuilderFrame extends JFrame {
 		form.add(Box.createVerticalStrut(10));
 
 		line = group.createLabelLine("Quest Description");
+		line.setToolTipText("Placeholder "+Constants.CHARACTERS_NAME_PLACEHOLDER+" will be replaced with the characters name.");
 		line.add(Box.createHorizontalGlue());
 		form.add(line);
 
@@ -611,61 +715,62 @@ public class QuestBuilderFrame extends JFrame {
 		//		optionsPane.addTab("Quest Rules", buildQuestRulesPanel());
 		buildQuestRulesPanel(); // just so there are no NPEs
 		optionsPane.addTab("Locations", buildLocationPanel());
-		optionsPane.addTab("Minor Characters", buildMinorCharacterPanel());
+		optionsPane.addTab("Minor Characters (+ability)", buildMinorCharacterPanel());
+		optionsPane.addTab("Counters", buildCounterPanel());
 		return optionsPane;
 	}
 
 	private JPanel buildLimitationCheckOptions() {
-
-		/*
-		 * TODO Add the following:
-		 * 
-		 * Game Variants (Original, Pruitts, Expansion One, Extra Crispy) (Extra Crispy?!?)
-		 * 
-		 * Seasons and/or weather (specific season?) Number of boards...? (Extra Crispy?!!!???!!?)
-		 */
-
 		JPanel panel = new JPanel(new GridLayout(1, 3));
 
-		JPanel reallyLeft = new JPanel(new GridLayout(10, 1));
+		JPanel reallyLeft = new JPanel(new GridLayout(12, 1));
 		reallyLeft.setBorder(BorderFactory.createTitledBorder("Quest Type"));
 		bookOfQuests = new JCheckBox("Book of Quests");
 		bookOfQuests.addActionListener(cardUpdateListener);
 		reallyLeft.add(bookOfQuests);
+		
+		UniformLabelGroup groupBoQ = new UniformLabelGroup(31);
+		Box lineBoQ = groupBoQ.createLine();
+		bookOfQuestsEvent = new JCheckBox("Event");
+		lineBoQ.add(bookOfQuestsEvent);
+		reallyLeft.add(lineBoQ);
+		
+		superRealm = new JCheckBox("Super Realm");
+		superRealm.addActionListener(cardUpdateListener);
+		reallyLeft.add(superRealm);
 		questingTheRealm = new JCheckBox("Questing the Realm");
 		questingTheRealm.addActionListener(cardUpdateListener);
 		reallyLeft.add(questingTheRealm);
 
-		UniformLabelGroup group = new UniformLabelGroup();
-		Box line = group.createLine();
+		UniformLabelGroup groupQtR = new UniformLabelGroup();
+		Box lineQtR = groupQtR.createLine();
 		allPlayQuestOption = new JCheckBox("All Play");
 		allPlayQuestOption.addActionListener(cardUpdateListener);
-		line.add(allPlayQuestOption);
-		line.add(Box.createHorizontalGlue());
-		reallyLeft.add(line);
+		lineQtR.add(allPlayQuestOption);
+		lineQtR.add(Box.createHorizontalGlue());
+		reallyLeft.add(lineQtR);
 
-		line = group.createLine();
+		lineQtR = groupQtR.createLine();
 		secretQuestOption = new JCheckBox("Secret Quest");
-		line.add(secretQuestOption);
-		line.add(Box.createHorizontalGlue());
-		reallyLeft.add(line);
+		lineQtR.add(secretQuestOption);
+		lineQtR.add(Box.createHorizontalGlue());
+		reallyLeft.add(lineQtR);
 
-		line = group.createLabelLine("# of Cards");
+		lineQtR = groupQtR.createLabelLine("# of Cards");
 		cardCount = new IntegerField("1");
 		ComponentTools.lockComponentSize(cardCount, 50, 22);
-		line.add(cardCount);
-		line.add(Box.createHorizontalGlue());
-		reallyLeft.add(line);
-		line = group.createLabelLine("VP Value");
+		lineQtR.add(cardCount);
+		lineQtR.add(Box.createHorizontalGlue());
+		reallyLeft.add(lineQtR);
+		lineQtR = groupQtR.createLabelLine("VP Value");
 		vpReward = new IntegerField("1");
 		vpReward.addCaretListener(cardUpdateCaretListener);
 		ComponentTools.lockComponentSize(vpReward, 50, 22);
-		line.add(vpReward);
-		line.add(Box.createHorizontalGlue());
-		reallyLeft.add(line);
+		lineQtR.add(vpReward);
+		lineQtR.add(Box.createHorizontalGlue());
+		reallyLeft.add(lineQtR);
 
 		guildQuestOption = new JCheckBox("Guild Quest:");
-		guildQuestOption.setEnabled(false); // TODO Until this is implemented...
 		guildQuestOption.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				updateControls();
@@ -673,25 +778,25 @@ public class QuestBuilderFrame extends JFrame {
 		});
 		reallyLeft.add(guildQuestOption);
 		ButtonGroup guildGroup = new ButtonGroup();
-		Box box = Box.createHorizontalBox();
+		Box boxGuilds = Box.createHorizontalBox();
 		fightersGuildQuestOption = new JRadioButton("Fighters Guild", true);
-		box.add(Box.createHorizontalStrut(25));
-		box.add(fightersGuildQuestOption);
-		reallyLeft.add(box);
+		boxGuilds.add(Box.createHorizontalStrut(25));
+		boxGuilds.add(fightersGuildQuestOption);
+		reallyLeft.add(boxGuilds);
 		guildGroup.add(fightersGuildQuestOption);
 
-		box = Box.createHorizontalBox();
+		boxGuilds = Box.createHorizontalBox();
 		magicGuildQuestOption = new JRadioButton("Magic Guild");
-		box.add(Box.createHorizontalStrut(25));
-		box.add(magicGuildQuestOption);
-		reallyLeft.add(box);
+		boxGuilds.add(Box.createHorizontalStrut(25));
+		boxGuilds.add(magicGuildQuestOption);
+		reallyLeft.add(boxGuilds);
 		guildGroup.add(magicGuildQuestOption);
 
-		box = Box.createHorizontalBox();
+		boxGuilds = Box.createHorizontalBox();
 		thievesGuildQuestOption = new JRadioButton("Thieves Guild");
-		box.add(Box.createHorizontalStrut(25));
-		box.add(thievesGuildQuestOption);
-		reallyLeft.add(box);
+		boxGuilds.add(Box.createHorizontalStrut(25));
+		boxGuilds.add(thievesGuildQuestOption);
+		reallyLeft.add(boxGuilds);
 		guildGroup.add(thievesGuildQuestOption);
 
 		panel.add(reallyLeft);
@@ -705,6 +810,8 @@ public class QuestBuilderFrame extends JFrame {
 		variantBox.add(pruittsMonstersVariant);
 		expansionOneVariant = new JCheckBox("Expansion One");
 		variantBox.add(expansionOneVariant);
+		superRealmVariant = new JCheckBox("Super Realm");
+		variantBox.add(superRealmVariant);
 		left.add(variantBox);
 
 		Box boardSize = Box.createVerticalBox();
@@ -734,12 +841,11 @@ public class QuestBuilderFrame extends JFrame {
 		femaleCharacterOption = new JCheckBox("Female Characters");
 		charLim.add(femaleCharacterOption);
 
-		// Box line = Box.createHorizontalBox();
 		specificCharacterListOption = new JCheckBox("Specific Characters");
 		charLim.add(specificCharacterListOption);
-		line = Box.createHorizontalBox();
+		Box lineCharacters = Box.createHorizontalBox();
 		specificCharacterListField = new JTextField();
-		line.add(specificCharacterListField);
+		lineCharacters.add(specificCharacterListField);
 		specificCharacterHelperButton = new JButton("...");
 		specificCharacterHelperButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
@@ -755,12 +861,34 @@ public class QuestBuilderFrame extends JFrame {
 				specificCharacterListField.setText(helper.getText());
 			}
 		});
-		line.add(specificCharacterHelperButton);
-		charLim.add(line);
+		lineCharacters.add(specificCharacterHelperButton);
+		charLim.add(lineCharacters);
 
 		right.add(charLim);
 		right.add(Box.createVerticalGlue());
-
+		
+		JPanel clonedQuestsFrame = new JPanel(new GridLayout(1, 1));
+		clonedQuestsFrame.setMaximumSize(new Dimension(1000, 100));
+		clonedQuestsFrame.setBorder(BorderFactory.createTitledBorder("Multiple Use Quests"));
+		JPanel clonedQuests = new JPanel(new GridLayout(1, 1));
+		clonedQuests.setMaximumSize(new Dimension(1000, 100));
+		clonedQuests.setBorder(BorderFactory.createTitledBorder("(BOQ, All-Play, Events)"));
+		multipleUseOption = new JCheckBox("Multiple Use");
+		clonedQuests.add(multipleUseOption);
+		clonedQuestsFrame.add(clonedQuests);
+		right.add(clonedQuestsFrame);
+		right.add(Box.createVerticalGlue());
+		
+		JPanel discardOptionFrame = new JPanel(new GridLayout(1, 2));
+		discardOptionFrame.setMaximumSize(new Dimension(1000, 100));
+		discardOptionFrame.setBorder(BorderFactory.createTitledBorder("Discard Allowed Option"));
+		discardNeverOption = new JCheckBox("Never");
+		discardAlwaysOption = new JCheckBox("Always");
+		discardOptionFrame.add(discardNeverOption);
+		discardOptionFrame.add(discardAlwaysOption);
+		right.add(discardOptionFrame);
+		right.add(Box.createVerticalGlue());
+		
 		panel.add(right);
 
 		return panel;
@@ -784,8 +912,6 @@ public class QuestBuilderFrame extends JFrame {
 
 	private JPanel buildQuestRulesPanel() {
 		questRulesTable = new JTable(new QuestRulesTableModel(quest));
-		// ComponentTools.lockColumnWidth(locationTable,0,100);
-		// ComponentTools.lockColumnWidth(locationTable,1,60);
 		questRulesTable.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent ev) {
 				if (ev.getClickCount() == 2) {
@@ -804,11 +930,11 @@ public class QuestBuilderFrame extends JFrame {
 			}
 
 			public void edit() {
-				// TODO Do my dirty work
+				JOptionPane.showMessageDialog(this, "Not implemented yet");
 			}
 
 			public void delete() {
-				// TODO Do my dirty work
+				JOptionPane.showMessageDialog(this, "Not implemented yet");
 			}
 		};
 		return questRulesPanel;
@@ -849,7 +975,7 @@ public class QuestBuilderFrame extends JFrame {
 				QuestLocationEditor editor = new QuestLocationEditor(QuestBuilderFrame.this, realmSpeakData, quest, loc);
 				editor.setVisible(true);
 				if (!editor.canceledEdit && oldTag != loc.getTagName()) {
-					updateLocationName(oldTag, loc.getTagName());
+					updateTagName(oldTag, loc.getTagName());
 				}
 				locationTable.clearSelection();
 				locationTable.revalidate();
@@ -860,7 +986,7 @@ public class QuestBuilderFrame extends JFrame {
 				int selRow = locationTable.getSelectedRow();
 				QuestLocation loc = quest.getLocations().get(selRow);
 				if (quest.usesLocationTag(loc.getTagName())) {
-					JOptionPane.showMessageDialog(QuestBuilderFrame.this, "Cannot delete a location that is in use.  Remove from description and/or steps before deleting.", "Location cannot be deleted", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(QuestBuilderFrame.this, "Cannot delete a location that is in use.  Remove from description and/or steps before deleting.", "Location cannot be deleted.", JOptionPane.ERROR_MESSAGE);
 				}
 				else {
 					quest.deleteQuestLocation(loc);
@@ -871,25 +997,6 @@ public class QuestBuilderFrame extends JFrame {
 			}
 		};
 		return locationPanel;
-	}
-
-	private void updateLocationName(String oldTagName, String newTagName) {
-		if (oldTagName.equals(newTagName))
-			return;
-		String desc = quest.getDescription();
-		if (desc != null) {
-			desc = StringUtilities.findAndReplace(desc, oldTagName, newTagName);
-			quest.setDescription(desc);
-			questDescription.setText(desc);
-		}
-		for (QuestStep step : quest.getSteps()) {
-			desc = step.getDescription();
-			if (desc != null) {
-				desc = StringUtilities.findAndReplace(desc, oldTagName, newTagName);
-				step.setDescription(desc);
-			}
-		}
-		rebuildSteps();
 	}
 
 	private JPanel buildMinorCharacterPanel() {
@@ -934,7 +1041,7 @@ public class QuestBuilderFrame extends JFrame {
 				int selRow = minorCharacterTable.getSelectedRow();
 				QuestMinorCharacter mc = quest.getMinorCharacters().get(selRow);
 				if (quest.usesMinorCharacter(mc)) {
-					JOptionPane.showMessageDialog(QuestBuilderFrame.this, "Cannot delete a minor character that is in use.  Remove from rewards before deleting.", "Minor Character cannot be deleted", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(QuestBuilderFrame.this, "Cannot delete a minor character that is in use.  Remove from rewards before deleting.", "Minor Character cannot be deleted.", JOptionPane.ERROR_MESSAGE);
 				}
 				else {
 					quest.deleteMinorCharacter(mc);
@@ -947,6 +1054,84 @@ public class QuestBuilderFrame extends JFrame {
 		return minorCharacterPanel;
 	}
 
+	private JPanel buildCounterPanel() {
+		counterTable = new JTable(new CounterTableModel(quest));
+		ComponentTools.lockColumnWidth(counterTable, 0, 100);
+		counterTable.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent ev) {
+				if (ev.getClickCount() == 2) {
+					counterPanel.edit();
+				}
+			}
+		});
+		counterTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent ev) {
+				updateControls();
+			}
+		});
+		counterPanel = new QuestTableEditorPanel("Counters", counterTable) {
+			public void add() {
+				QuestCounter counter = quest.createQuestCounter();
+				QuestCounterEditor editor = new QuestCounterEditor(QuestBuilderFrame.this, realmSpeakData, quest, counter);
+				editor.setVisible(true);
+				if (editor.getCanceledEdit()) {
+					quest.deleteQuestCounter(counter);
+				}
+				counterTable.clearSelection();
+				counterTable.revalidate();
+				updateControls();
+			}
+
+			public void edit() {
+				int selRow = counterTable.getSelectedRow();
+				QuestCounter counter = quest.getCounters().get(selRow);
+				String oldTag = counter.getTagName();
+				QuestCounterEditor editor = new QuestCounterEditor(QuestBuilderFrame.this, realmSpeakData, quest, counter);
+				editor.setVisible(true);
+				if (!editor.canceledEdit && oldTag != counter.getTagName()) {
+					updateTagName(oldTag, counter.getTagName());
+				}
+				counterTable.clearSelection();
+				counterTable.revalidate();
+				updateControls();
+			}
+
+			public void delete() {
+				int selRow = counterTable.getSelectedRow();
+				QuestCounter counter = quest.getCounters().get(selRow);
+				if (quest.usesCounterTag(counter.getTagName())) {
+					JOptionPane.showMessageDialog(QuestBuilderFrame.this, "Cannot delete a counter that is in use.  Remove from description and/or steps before deleting.", "Counter cannot be deleted.", JOptionPane.ERROR_MESSAGE);
+				}
+				else {
+					quest.deleteQuestCounter(counter);
+					counterTable.clearSelection();
+					counterTable.revalidate();
+					updateControls();
+				}
+			}
+		};
+		return counterPanel;
+	}
+	
+	private void updateTagName(String oldTagName, String newTagName) {
+		if (oldTagName.equals(newTagName))
+			return;
+		String desc = quest.getDescription();
+		if (desc != null) {
+			desc = StringUtilities.findAndReplace(desc, oldTagName, newTagName);
+			quest.setDescription(desc);
+			questDescription.setText(desc);
+		}
+		for (QuestStep step : quest.getSteps()) {
+			desc = step.getDescription();
+			if (desc != null) {
+				desc = StringUtilities.findAndReplace(desc, oldTagName, newTagName);
+				step.setDescription(desc);
+			}
+		}
+		rebuildSteps();
+	}
+	
 	private JPanel buildQuestDiagramPanel() {
 		questStepView = new QuestStepView();
 		questStepView.addChangeListener(new ChangeListener() {
@@ -969,7 +1154,7 @@ public class QuestBuilderFrame extends JFrame {
 	private JPanel buildQuestStepPanel() {
 		JPanel questStepPanel = new JPanel(new BorderLayout());
 		questStepPanel.add(createHeaderLabelWithToolbar("Quest Steps:", buildStepToolBar()), BorderLayout.NORTH);
-		questSteps = new JTabbedPane(JTabbedPane.LEFT);
+		questSteps = new JTabbedPane(SwingConstants.LEFT);
 		questSteps.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				QuestStepPanel panel = (QuestStepPanel) questSteps.getSelectedComponent();
@@ -1044,14 +1229,14 @@ public class QuestBuilderFrame extends JFrame {
 		return stepToolbar;
 	}
 
-	private JPanel createHeaderLabelWithToolbar(String value, JToolBar toolBar) {
+	private static JPanel createHeaderLabelWithToolbar(String value, JToolBar toolBar) {
 		JPanel panel = new JPanel(new GridLayout(2, 1));
 		panel.add(createHeaderLabel(value));
 		panel.add(toolBar);
 		return panel;
 	}
 
-	private JLabel createHeaderLabel(String value) {
+	private static JLabel createHeaderLabel(String value) {
 		JLabel header = new JLabel(value);
 		header.setFont(HeaderFont);
 		header.setOpaque(true);

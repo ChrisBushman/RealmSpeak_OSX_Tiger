@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
@@ -55,6 +38,11 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 	protected JLabel nextStageLabel;
 	protected JLabel nextLevelLabel;
 	
+	protected JLabel treasuresVpsLabel;
+	protected JLabel missionsVpsLabel;
+	protected JLabel campaignsVpsLabel;
+	protected JLabel questsVpsLabel;
+	
 	public CharacterVictoryPanel(CharacterFrame parent) {
 		super(parent);
 		calcColumns = new ArrayList<Integer>();
@@ -72,11 +60,11 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 		for (int i=1;i<victoryTable.getColumnCount();i++) {
 			victoryTable.getColumnModel().getColumn(i).setMaxWidth(50);
 		}
-		victoryTable.setDefaultRenderer(String.class,new ScoreCellRenderer(getHostPrefs().hasPref(Constants.QST_QUEST_CARDS)));
+		victoryTable.setDefaultRenderer(String.class,new ScoreCellRenderer());
 		victoryTable.setCellSelectionEnabled(true);
 		victoryTable.getTableHeader().setDefaultRenderer(new ScoreHeaderRenderer());
 		JScrollPane sp1 = new JScrollPane(victoryTable);
-		ComponentTools.lockComponentSize(sp1,100,130);
+		ComponentTools.lockComponentSize(sp1,100,150);
 		topPanel.add(sp1,"Center");
 		add(topPanel,"North");
 		
@@ -86,8 +74,28 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 		add(sp2,"Center");
 		
 		earnedVpsLabel = null;
+		
+		JPanel optionalPanel = new JPanel(new BorderLayout());
+		if (getGameHandler().getHostPrefs().hasPref(Constants.SR_DEDUCT_VPS)) {
+			JPanel vpDeductionPanel = new JPanel(new GridLayout(2,4));
+			vpDeductionPanel.setBorder(BorderFactory.createTitledBorder("Deducting Victory Points"));
+			vpDeductionPanel.add(getTitleLabel("<html><center>Treasures (sites and TWT) (1VP):</center></html>",MagicRealmColor.PALEYELLOW));
+			treasuresVpsLabel = getTitleLabel("",MagicRealmColor.PALEYELLOW);
+			vpDeductionPanel.add(treasuresVpsLabel);
+			vpDeductionPanel.add(getTitleLabel("<html><center>Quests:</center></html>",MagicRealmColor.LIGHTGREEN));
+			questsVpsLabel = getTitleLabel("",MagicRealmColor.LIGHTGREEN);
+			vpDeductionPanel.add(questsVpsLabel);
+			vpDeductionPanel.add(getTitleLabel("<html><center>Missions (1VP):</center></html>",MagicRealmColor.LIGHTBLUE));
+			missionsVpsLabel = getTitleLabel("",MagicRealmColor.LIGHTBLUE);
+			vpDeductionPanel.add(missionsVpsLabel);
+			vpDeductionPanel.add(getTitleLabel("<html><center>Campaigns (2VP):</center></html>",MagicRealmColor.LIGHTBLUE));
+			campaignsVpsLabel = getTitleLabel("",MagicRealmColor.LIGHTBLUE);
+			vpDeductionPanel.add(campaignsVpsLabel);
+			optionalPanel.add(vpDeductionPanel,"North");
+		}
 		if (getGameHandler().getHostPrefs().hasPref(Constants.EXP_DEVELOPMENT)) {
 			JPanel vpProgressPanel = new JPanel(new GridLayout(1,6));
+			vpProgressPanel.setBorder(BorderFactory.createTitledBorder("Character Development"));
 			vpProgressPanel.add(getTitleLabel("<html><center>Current VPs:</center></html>",MagicRealmColor.PALEYELLOW));
 			earnedVpsLabel = getTitleLabel("",MagicRealmColor.PALEYELLOW);
 			vpProgressPanel.add(earnedVpsLabel);
@@ -97,11 +105,12 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 			vpProgressPanel.add(getTitleLabel("<html><center>VPs to next level:</center></html>",MagicRealmColor.LIGHTGREEN));
 			nextLevelLabel = getTitleLabel("",MagicRealmColor.LIGHTGREEN);
 			vpProgressPanel.add(nextLevelLabel);
-			topPanel.add(vpProgressPanel,"South");
+			optionalPanel.add(vpProgressPanel,"South");
 		}
+		topPanel.add(optionalPanel,"South");
 	}
 	protected JLabel getTitleLabel(String title,Color background) {
-		JLabel label = new JLabel(title,JLabel.CENTER);
+		JLabel label = new JLabel(title,SwingConstants.CENTER);
 		label.setFont(TITLE_FONT);
 		label.setOpaque(true);
 		label.setBackground(background);
@@ -115,17 +124,29 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 		}
 	}
 	private boolean isRestrictAssigned() {
-		return !getHostPrefs().getRequiredVPsOff() && !getHostPrefs().hasPref(Constants.QST_QUEST_CARDS);
+		return !getHostPrefs().getRequiredVPsOff() && !getHostPrefs().hasPref(Constants.QST_QUEST_CARDS) && !getHostPrefs().hasPref(Constants.QST_SR_QUESTS);
 	}
 	
 	private void updateProgress() {
+		if (earnedVpsLabel==null && treasuresVpsLabel==null && missionsVpsLabel==null && campaignsVpsLabel==null && questsVpsLabel==null) return;
+		DevelopmentProgress dp = DevelopmentProgress.createDevelopmentProgress(getGameHandler().getHostPrefs(),getCharacter());
 		if (earnedVpsLabel!=null) {
-			DevelopmentProgress dp = DevelopmentProgress.createDevelopmentProgress(getGameHandler().getHostPrefs(),getCharacter());
 			earnedVpsLabel.setText(String.valueOf(dp.getCurrentVps()));
 			dp.updateStage();
-			
 			nextStageLabel.setText(String.valueOf(dp.getVpsToNextStage()));
 			nextLevelLabel.setText(String.valueOf(dp.getVpsToNextLevel()));
+		}
+		if (treasuresVpsLabel!=null) {	
+			treasuresVpsLabel.setText(String.valueOf(dp.getNumberOfDiscoveredTreasures()));
+		}
+		if (missionsVpsLabel!=null) {	
+			missionsVpsLabel.setText(String.valueOf(dp.getNumberOfCompletedMissions()));
+		}
+		if (campaignsVpsLabel!=null) {	
+			campaignsVpsLabel.setText(String.valueOf(dp.getNumberOfCompletedCampaigns()));
+		}
+		if (questsVpsLabel!=null) {	
+			questsVpsLabel.setText(String.valueOf(dp.getVpsOfQuests()));
 		}
 	}
 	private void updateView() {
@@ -162,6 +183,8 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
  						case Gold:
  							boolean ashes = getCharacter().hasCurse(Constants.ASHES);
  							viewPanel.add(getDescriptorBlock(ashes?"ASHES":"GOLD",score.getRecordedPoints()));
+ 							break;
+ 						default:
  							break;
 					}
 					break;
@@ -252,50 +275,50 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 			viewPanel.add(Box.createHorizontalGlue());
 		}
 	}
-	private int getValueFromInventory(VictoryRowType rowType,GameObject go) {
+	private static int getValueFromInventory(VictoryRowType rowType,GameObject go) {
 		switch(rowType) {
 			case GreatTreasures:	return 1;
 			case Fame:				return go.getThisInt("fame");
 			case Notoriety:			return go.getThisInt("notoriety");
 			case QuestPoints:		return go.getInt(Quest.QUEST_BLOCK,QuestConstants.VP_REWARD);
+			default:				return 0;
 		}
-		return 0;
 	}
-	private JPanel getDescriptorBlock(String text,int val) {
+	private static JPanel getDescriptorBlock(String text,int val) {
 		return getDescriptorBlock(text,String.valueOf(val));
 	}
-	private JPanel getDescriptorBlock(String text,String val) {
+	private static JPanel getDescriptorBlock(String text,String val) {
 		JPanel panel = getDescriptorBlock(text.length()>0);
 		panel.add(getDescriptorLabel(text,TITLE_FONT));
 		panel.add(getDescriptorLabel(val,VALUE_FONT));
 		return panel;
 	}
-	private JPanel getDescriptorBlockLongText(String text,int val) {
+	private static JPanel getDescriptorBlockLongText(String text,int val) {
 		JPanel panel = getDescriptorBlock(text.length()>0);
 		panel.add(getDescriptorArea(text,TITLE_FONT));
 		panel.add(getDescriptorLabel(String.valueOf(val),VALUE_FONT));
 		return panel;
 	}
-	private JPanel getDescriptorBlock(ImageIcon icon,int val) {
+	private static JPanel getDescriptorBlock(ImageIcon icon,int val) {
 		return getDescriptorBlock(icon,String.valueOf(val));
 	}
-	private JPanel getDescriptorBlock(ImageIcon icon,String val) {
+	private static JPanel getDescriptorBlock(ImageIcon icon,String val) {
 		JPanel panel = getDescriptorBlock(true);
 		panel.add(new JLabel(icon));
 		panel.add(getDescriptorLabel(val,VALUE_FONT));
 		return panel;
 	}
-	private JPanel getDescriptorBlock(boolean wide) {
+	private static JPanel getDescriptorBlock(boolean wide) {
 		JPanel panel = new JPanel(new GridLayout(2,1));
 		ComponentTools.lockComponentSize(panel,wide?CardComponent.CARD_WIDTH:40,CardComponent.CARD_HEIGHT<<1);
 		return panel;
 	}
-	private JLabel getDescriptorLabel(String text,Font font) {
-		JLabel label = new JLabel(text,JLabel.CENTER);
+	private static JLabel getDescriptorLabel(String text,Font font) {
+		JLabel label = new JLabel(text,SwingConstants.CENTER);
 		label.setFont(font);
 		return label;
 	}
-	private JTextPane getDescriptorArea(String text,Font font) {
+	private static JTextPane getDescriptorArea(String text,Font font) {
 		JTextPane area = new JTextPane();
 		area.setText(text);
 		area.setEditable(false);
@@ -323,7 +346,7 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 		QuestPoints,
 		Totals,
 		;
-	};
+	}
 	
 	private static final int COL_CATEGORY = 0;
 	private static final int COL_POINTS = 1;
@@ -340,7 +363,7 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 	
 	private ArrayList<VictoryTableRow> tableRows;
 	private void initializeTableRows(HostPrefWrapper hostPrefs) {
-		boolean showQuestPoints = hostPrefs.hasPref(Constants.QST_QUEST_CARDS);
+		boolean showQuestPoints = hostPrefs.hasPref(Constants.QST_QUEST_CARDS) || hostPrefs.hasPref(Constants.QST_SR_QUESTS);
 		tableRows = new ArrayList<VictoryTableRow>();
 		if (showQuestPoints) {
 			tableRows.add(new ScoreRow(hostPrefs,"Quest Pts",VictoryRowType.QuestPoints) {
@@ -383,11 +406,11 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 		protected String[] columnNameQuestPoints = {
 			"Category","Points"," ","Need","Recrd","Own","Total","Earned"
 		};
-		private boolean showQuestPoints;
+		private boolean usesBookOfQuests;
 		private HostPrefWrapper hostPrefs;
 		public VictoryTableModel(HostPrefWrapper hostPrefs) {
 			this.hostPrefs = hostPrefs;
-			this.showQuestPoints = hostPrefs.hasPref(Constants.QST_QUEST_CARDS);
+			this.usesBookOfQuests = hostPrefs.hasPref(Constants.QST_BOOK_OF_QUESTS);
 		}
 		public HostPrefWrapper getHostPrefs() {
 			return hostPrefs;
@@ -396,10 +419,10 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 			return tableRows==null?0:tableRows.size();
 		}
 		public int getColumnCount() {
-			return showQuestPoints?columnNameQuestPoints.length:columnNameNormal.length;
+			return usesBookOfQuests?columnNameQuestPoints.length:columnNameNormal.length;
 		}
 		public String getColumnName(int column) {
-			return showQuestPoints?columnNameQuestPoints[column]:columnNameNormal[column];
+			return usesBookOfQuests?columnNameQuestPoints[column]:columnNameNormal[column];
 		}
 		public Class getColumnClass(int column) {
 			return String.class;
@@ -417,7 +440,7 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 		}
 	}
 	private class ScoreHeaderRenderer extends DefaultTableCellRenderer {
-		private Border border = UIManager.getBorder("TableHeader.cellBorder");
+		private Border border = UIManager.getBorder("TitledBorder.border");
 		public ScoreHeaderRenderer() {
 			setFont(UIManager.getFont("TableHeader.font"));
 		}
@@ -437,7 +460,7 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 		private final Border SELECTED_BORDER = BorderFactory.createLineBorder(Color.blue,2);
 		private final Border CALC_BORDER = BorderFactory.createLineBorder(Color.green,2);
 
-		public ScoreCellRenderer(boolean showQuestPoints) {
+		public ScoreCellRenderer() {
 			setOpaque(true);
 		}
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSel, boolean hasFocus, int row, int column) {
@@ -529,11 +552,9 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 		}
 		public boolean usesColumn(int col) {
 			if (col==COL_EARNED) {
-				if (rowType==VictoryRowType.QuestPoints) return false;
 				return (!isRestrictAssigned() || getScore().getAssignedVictoryPoints()>0);
 			}
-			if (rowType!=VictoryRowType.QuestPoints
-					&& hostPrefs.hasPref(Constants.QST_QUEST_CARDS)
+			if (rowType!=VictoryRowType.QuestPoints && hostPrefs.hasPref(Constants.QST_BOOK_OF_QUESTS)
 					&& (col==COL_SCORE || col==COL_BASIC || col==COL_BONUS || col==COL_FINAL)) {
 				return false;
 			}
@@ -547,8 +568,9 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 					return col!=COL_RECORDED;
 				case Spells:
 					return col!=COL_OWNED;
+				default:
+					return true;
 			}
-			return true;
 		}
 		public Object getValue(int column) {
 			Score score = getScore();

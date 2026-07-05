@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.attribute;
 
 import java.awt.Color;
@@ -30,6 +13,12 @@ public class ColorMagic implements Comparable {
 	public static final int GOLD = 3;
 	public static final int PURPLE = 4;
 	public static final int BLACK = 5;
+	
+	public static final String White = "White";
+	public static final String Grey = "Grey";
+	public static final String Gold = "Gold";
+	public static final String Purple = "Purple";
+	public static final String Black = "Black";
 	
 	private int color;
 	private boolean infinite;
@@ -66,11 +55,11 @@ public class ColorMagic implements Comparable {
 //	}
 	public String getColorName() {
 		switch(color) {
-			case WHITE:			return "White";
-			case GRAY:			return "Grey";
-			case GOLD:			return "Gold";
-			case PURPLE:		return "Purple";
-			case BLACK:			return "Black";
+			case WHITE:			return White;
+			case GRAY:			return Grey;
+			case GOLD:			return Gold;
+			case PURPLE:		return Purple;
+			case BLACK:			return Black;
 		}
 		return null; // this shouldn't happen
 	}
@@ -95,7 +84,7 @@ public class ColorMagic implements Comparable {
 			case WHITE:			return infinite?ImageCache.getIcon("colormagic/white"):ImageCache.getIcon("colormagic/whitechit");
 			case GRAY:			return infinite?ImageCache.getIcon("colormagic/gray"):ImageCache.getIcon("colormagic/graychit");
 			case GOLD:			return infinite?ImageCache.getIcon("colormagic/gold"):ImageCache.getIcon("colormagic/goldchit");
-			case PURPLE:			return infinite?ImageCache.getIcon("colormagic/purple"):ImageCache.getIcon("colormagic/purplechit");
+			case PURPLE:		return infinite?ImageCache.getIcon("colormagic/purple"):ImageCache.getIcon("colormagic/purplechit");
 			case BLACK:			return infinite?ImageCache.getIcon("colormagic/black"):ImageCache.getIcon("colormagic/blackchit");
 		}
 		return null; // this shouldn't happen
@@ -105,7 +94,7 @@ public class ColorMagic implements Comparable {
 			case WHITE:			return Color.white;
 			case GRAY:			return Color.gray;
 			case GOLD:			return Color.yellow;
-			case PURPLE:			return Color.magenta;
+			case PURPLE:		return Color.magenta;
 			case BLACK:			return Color.black;
 		}
 		return null;
@@ -142,4 +131,33 @@ public class ColorMagic implements Comparable {
 		}
 		return colorName; // no conversion
 	}
+	
+	public boolean isPrismColor() {
+		return color == GRAY || color == GOLD || color == PURPLE;
+	}
+	
+	public static String getColorNumber(int number) {
+		switch(number) {
+			case 1: return "I";
+			case 2: return "II";
+			case 3: return "III";
+			case 4: return "IV";
+			case 5: return "V";
+			case 6: return "VI";
+			case 7: return "VII";
+			case 8: return "VIII";
+			default:
+				return null;
+		}
+	}
+	
+	public static ColorMagic getMagicColorFromMagicType(String type) {
+		if ("I".equals(type)) return new ColorMagic(WHITE,true);
+		if ("II".equals(type)) return new ColorMagic(GRAY,true);
+		if ("III".equals(type)) return new ColorMagic(GOLD,true);
+		if ("IV".equals(type)) return new ColorMagic(PURPLE,true);
+		if ("V".equals(type)) return new ColorMagic(BLACK,true);
+		return null;
+	}
+	
 }

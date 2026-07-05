@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.objects;
 
 import java.io.*;
@@ -29,6 +12,8 @@ public abstract class GameCommand extends ModifyableObject implements Serializab
 	protected String from=GameSetup.ALL;
 	protected String to=GameSetup.ALL;
 	protected GameObject targetObject;
+	protected String attribute;
+	protected String value;
 	protected int count=0;
 	protected int transferType=GamePool.RANDOM;
 	protected ArrayList<String> keyVals = new ArrayList<String>();
@@ -36,7 +21,7 @@ public abstract class GameCommand extends ModifyableObject implements Serializab
 	protected GameSetup parent;
 	
 	public abstract String getTypeName();
-	protected abstract String process(ArrayList allGameObjects);
+	protected abstract String process(ArrayList<GameObject> allGameObjects);
 	
 	public GameCommand(GameSetup setup) {
 		parent = setup;
@@ -55,6 +40,12 @@ public abstract class GameCommand extends ModifyableObject implements Serializab
 		return false;
 	}
 	public boolean usesTargetObject() {
+		return false;
+	}
+	public boolean usesAttribute() {
+		return false;
+	}
+	public boolean usesValue() {
 		return false;
 	}
 	public boolean usesCount() {
@@ -89,6 +80,12 @@ public abstract class GameCommand extends ModifyableObject implements Serializab
 		else if (GameCommandMove.NAME.equals(val)) {
 			command = new GameCommandMove(gameSetup);
 		}
+		else if (GameCommandAlter.NAME.equals(val)) {
+			command = new GameCommandAlter(gameSetup);
+		}
+		else if (GameCommandOrderSetup.NAME.equals(val)) {
+			command = new GameCommandOrderSetup(gameSetup);
+		}
 		else {
 			throw new IllegalArgumentException("Invalid command type");
 		}
@@ -117,6 +114,18 @@ public abstract class GameCommand extends ModifyableObject implements Serializab
 	}
 	public GameObject getTargetObject() {
 		return targetObject;
+	}
+	public void setAttribute(String att) {
+		attribute = att;
+	}
+	public String getAttribute() {
+		return attribute;
+	}
+	public void setValue(String val) {
+		value = val;
+	}
+	public String getValue() {
+		return value;
 	}
 	public void setCount(int val) {
 		count = val;
@@ -167,7 +176,7 @@ public abstract class GameCommand extends ModifyableObject implements Serializab
 	/**
 	 * Processes the command, and returns a result string (for debugging setups)
 	 */
-	public String doCommand(ArrayList allGameObjects) {
+	public String doCommand(ArrayList<GameObject> allGameObjects) {
 		StringBuffer result = new StringBuffer();
 		result.append("---> "+toString()+"\n");
 		result.append(process(allGameObjects));
@@ -178,6 +187,8 @@ public abstract class GameCommand extends ModifyableObject implements Serializab
 		setFrom(command.getFrom());
 		setTo(command.getTo());
 		setTargetObject(command.getTargetObject());
+		setAttribute(command.getAttribute());
+		setValue(command.getValue());
 		setCount(command.getCount());
 		setTransferType(command.getTransferType());
 		setKeyVals(new ArrayList<String>(command.getKeyVals()));
@@ -191,6 +202,12 @@ public abstract class GameCommand extends ModifyableObject implements Serializab
 			if (targetObject!=null) {
 				element.setAttribute(new Attribute("targetObjectID",""+targetObject.getId()));
 			}
+		}
+		if (usesAttribute()) {
+			element.setAttribute(new Attribute("attribute",""+attribute));
+		}
+		if (usesValue()) {
+			element.setAttribute(new Attribute("value",""+value));
 		}
 		if (usesCount()) {
 			element.setAttribute(new Attribute("count",""+count));
@@ -224,6 +241,14 @@ public abstract class GameCommand extends ModifyableObject implements Serializab
 				}
 			}
 		}
+		if (usesAttribute()) {
+			String string = element.getAttribute("attribute").getValue();
+			attribute = string;
+		}
+		if (usesValue()) {
+			String string = element.getAttribute("value").getValue();
+			value = string;
+		}
 		if (usesKeyVals()) {
 			String keyValsString = element.getAttribute("keyVals").getValue();
 			StringTokenizer tokens = new StringTokenizer(keyValsString,",");
@@ -237,8 +262,8 @@ public abstract class GameCommand extends ModifyableObject implements Serializab
 			if (countAtt!=null) { // allows backward compatibility
 				String countString = element.getAttribute("count").getValue();
 				try {
-					Integer n = Integer.valueOf(countString);
-					count = n.intValue();
+					int n = Integer.parseInt(countString);
+					count = n;
 				}
 				catch(NumberFormatException ex) {
 				}
@@ -258,17 +283,19 @@ public abstract class GameCommand extends ModifyableObject implements Serializab
 		if (usesNewPool()) sb.append(newPool);
 		if (usesFrom()) sb.append("from "+from+" ");
 		if (usesTo()) sb.append("to "+to+" ");
-		if (usesTargetObject()) sb.append("to "+(targetObject==null?"NULL":targetObject.toString()));
+		if (usesAttribute()) sb.append(" sets "+(attribute==null?"NULL":attribute));
+		if (usesTargetObject()) sb.append(" to "+(targetObject==null?"NULL":targetObject.toString()));
+		if (usesValue()) sb.append(" with value "+(value==null?"NULL":value));
 		if (usesCount()) sb.append(", "+count+" ");
 		if (usesTransferType()) sb.append(GamePool.getTransferName(transferType));
 		if (usesKeyVals()) sb.append("using ["+getKeyValString()+"]");
 		return sb.toString();
 	}
 	// Serializable interface
-	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+	private static void writeObject(java.io.ObjectOutputStream out) throws IOException {
 		out.defaultWriteObject();
 	}
-	private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+	private static void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();
 	}
 }

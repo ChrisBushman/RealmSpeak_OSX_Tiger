@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
 import java.awt.*;
@@ -47,6 +30,8 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 	public static final String ACTION_CHIT_STATE_COLOR_GOLD = "CG";
 	public static final String ACTION_CHIT_STATE_COLOR_PURPLE = "CP";
 	public static final String ACTION_CHIT_STATE_OUT_OF_PLAY = "X";
+	public static final String ACTION_CHIT_STATE_BERSERK = "B";
+	public static final String ACTION_CHIT_STATE_INACTIVE = "IA";
 
 	// FACE UP
 	public static final int ALERT_ID = 0;
@@ -54,6 +39,7 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 	public static final int FATIGUED_ID = 2;
 	public static final int COMMITTED_ID = 3;
 	public static final int WOUNDED_ID = 4; // this goes against the rules to be face up, but makes more sense here
+	public static final int BERSERK_ID = 5;
 
 	// FACE DOWN
 	public static final int COLOR_WHITE_ID = 6;
@@ -64,6 +50,11 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 	public static final int OUT_OF_PLAY_ID = 11;
 
 	private boolean usingAlteredAttributes; // a local variable ONLY (no need to persist this value)
+	private boolean changedMagicType = false;
+	private boolean heavierStrength = false;
+	private boolean weakerStrength = false;
+	private boolean slowerSpeed = false;
+	private boolean fasterSpeed = false;
 	
 	public CharacterActionChitComponent(GameObject obj) {
 		super(obj);
@@ -141,7 +132,7 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 		else if ("MOVE".equals(action)) {
 			return 2;
 		}
-		else if (isFightAlert()) {
+		else if (isFightAlert() || isReflex()) {
 			return 3;
 		}
 		else if (isFightLock()) {
@@ -152,6 +143,9 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 		}
 		else if ("MAGIC".equals(action)) {
 			return 6;
+		}
+		else if ("HITPOINT".equals(action)) {
+			return 7;
 		}
 		return 999;
 	}
@@ -172,13 +166,11 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 		if ("M/F".equals(action)) {
 			return null;
 		}
-		else {
-			if (isMove()) {
-				return Color.blue;
-			}
-			else if (isFight() || isFightAlert()) {
-				return Color.red;
-			}
+		if (isMove()) {
+			return Color.blue;
+		}
+		else if (isFight() || isFightAlert() || isReflex()) {
+			return Color.red;
 		}
 		return null;
 	}
@@ -198,6 +190,21 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 		return "FIGHT".equals(action)
 				|| isFightLock()
 				|| "M/F".equals(action);
+	}
+	
+	public boolean isReflex() {
+		String action = getAction().toUpperCase();
+		return "REFLEX".equals(action);
+	}
+	
+	public boolean isHitpoint() {
+		String action = getAction().toUpperCase();
+		return "HITPOINT".equals(action);
+	}
+		
+	public boolean isColorOnlyChit() {
+		String action = getAction().toUpperCase();
+		return "COLOR".equals(action);
 	}
 	
 	public boolean isAnyEffort() {
@@ -235,26 +242,71 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 	}
 
 	public boolean isEnchantable() {
-		return isMagic() && getMagicNumber() < 6;
+		return (isMagic() || isColorOnlyChit()) && getMagicNumber() < 6;
 	}
 
 	public Strength getStrength() {
 		Strength strength;
+		GameObject owner = getGameObject().getHeldBy();
+		CharacterWrapper character = null;
+		if (owner!=null) { // Might be null in the character builder app
+			character = new CharacterWrapper(getGameObject().getHeldBy());
+		}
 		if (gameObject.hasThisAttribute("action_change_str") && !gameObject.hasAttribute(ALTERNATE_ATTRIBUTES, "strength")) {
 			usingAlteredAttributes = true;
 			strength = new Strength(gameObject.getThisAttribute("action_change_str"));
 		}
 		else {
-			String val = getChitAttribute("strength");
-			strength = new Strength(val);
+			if (getChitAttribute("strength")!=null && getChitAttribute("strength").matches(Constants.WEIGHT) && character!=null) {
+				strength = new Strength(character.getWeight());
+			}
+			else {
+				String val = getChitAttribute("strength");
+				strength = new Strength(val);
+			}
 		}
-		if (isMove() || isFight()) {
-			GameObject owner = getGameObject().getHeldBy();
-			if (owner!=null) { // Might be null in the character builder app
-				CharacterWrapper character = new CharacterWrapper(getGameObject().getHeldBy());
-				if (strength.getChar()!="T" && character.getGameObject().hasThisAttribute(Constants.STRONG_MF)) {
-					strength.modify(1);
+		if (isMove() || isFight() || isFly()) {
+			if (character!=null) { // Might be null in the character builder app
+				int mod = 0;
+				if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT)) {
+					int difference = (new Strength(gameObject.getThisAttribute(Constants.ALTER_WEIGHT))).getLevels()-(new Strength((getChitAttribute("strength")))).getLevels();
+					mod = mod+difference;
 				}
+				
+				if (character.getGameObject().hasThisAttribute(Constants.SHRINK)) {
+					mod--;
+				}
+				if (character.getGameObject().hasThisAttribute(Constants.STRONG_MF)) {
+					mod++;
+				}
+				if (character.getGameObject().hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT)) {
+					mod--;
+				}
+				if (character.getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) {
+					mod++;
+				}
+				if (isFight() && character.getGameObject().hasThisAttribute(Constants.FIT)) {
+					CombatWrapper cw = new CombatWrapper(getGameObject());
+					for (String attackBox : character.getGameObject().getThisAttributeList(Constants.FIT)) {
+						if (cw.getCombatBoxAttack()==Integer.parseInt(attackBox)) {
+							mod++;
+							break;
+						}
+					}
+				}
+				if (mod!=0) {
+					usingAlteredAttributes = true;
+					if (RealmComponent.displayColoredStats) {
+						if (mod>0) {
+							heavierStrength = true;
+							weakerStrength = false;
+						} else {
+							weakerStrength = true;
+							heavierStrength = false;
+						}
+					}
+				}
+				strength.modify(mod);
 			}
 		}
 		return strength;
@@ -373,8 +425,17 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 				g.setColor(Color.lightGray);
 				g.fill(shape);
 				break;
+			case BERSERK_ID:
+				g.setColor(MagicRealmColor.CHIT_BERSERK);
+				g.draw(shape);
+				break;
+		}
+		if (getGameObject().hasThisAttribute("chit_color")) {
+			textTypeName = getGameObject().getThisAttribute("chit_color");
 		}
 
+		String defaultTextTypeName = textTypeName;
+		
 		// Draw Information
 		int y = 12;
 		String action = getAction();
@@ -402,7 +463,10 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 		}
 
 		Speed chitSpeed = getSpeed();
-		String speed = String.valueOf(chitSpeed.getNum());
+		String speed = "";
+		if (!action.equals("COLOR")) {
+			speed = String.valueOf(chitSpeed.getNum());
+		}
 		if (chitSpeed.getNum() == 0) {
 			speed = getChitAttribute("speed") + "(0)"; // to indicate its actual speed
 		}
@@ -411,17 +475,47 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 		if (action.equals("MAGIC")) {
 			mod = getMagicType();
 		}
+		else if (action.equals("COLOR")) {
+			mod = ColorMagic.getMagicColorFromMagicType(getMagicType()).getColorName();
+		}
 		else {
 			mod = getStrength().toString();
 		}
-		//  Need to look at usingAlteredAttributes to determine what color to show the attributes
+		// Need to look at usingAlteredAttributes to determine what color to show the attributes
 		// I'd like them to be blue, or red, or something that indicates they are "modified"
-		if (usingAlteredAttributes) {
+		if (usingAlteredAttributes && !RealmComponent.displayColoredStats) {
 			textTypeName = "BOLD_BLUE"; // indicates an altered state
 		}
 		if (!"neg".equals(mod)) {
-			tt = new TextType(mod + speed + effort, getChitSize() - 4, textTypeName);
-			tt.draw(g, 2, y, Alignment.Center);
+			if (RealmComponent.displayColoredStats) {
+				String textTypeNameMod = defaultTextTypeName;
+				if (changedMagicType || heavierStrength) {
+					textTypeNameMod = "BOLD_BLUE";
+				}
+				else if (weakerStrength) {
+					textTypeNameMod = "BOLD_RED";
+				}
+				String textTypeNameSpeed = defaultTextTypeName;
+				if (fasterSpeed) {
+					textTypeNameSpeed = "BOLD_BLUE";
+				}
+				else if (slowerSpeed) {
+					textTypeNameSpeed = "BOLD_RED";
+				}
+				TextType ttMod = new TextType(mod, getChitSize() - 4, textTypeNameMod);
+				TextType ttSpeed = new TextType(speed, getChitSize() - 4, textTypeNameSpeed);
+				TextType ttEffort = new TextType(effort, getChitSize() - 4, defaultTextTypeName);
+				
+				int x = 21-(ttMod.getWidth(g)+ttSpeed.getWidth(g)+ttEffort.getWidth(g))/4;
+				ttMod.draw(g, x, y, Alignment.Left);
+				x += ttMod.getWidth(g);
+				ttSpeed.draw(g, x, y, Alignment.Left);
+				x += ttSpeed.getWidth(g);
+				ttEffort.draw(g, x, y, Alignment.Left);
+			} else {
+				tt = new TextType(mod + speed + effort, getChitSize() - 4, textTypeName);
+				tt.draw(g, 2, y, Alignment.Center);
+			}
 		}
 		else {
 			tt = new TextType(effort, getChitSize() - 4, textTypeName);
@@ -440,7 +534,7 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 	private String getChitAttribute(String key) {
 		String ret = gameObject.getAttribute(ALTERNATE_ATTRIBUTES, key);
 		if (ret == null) {
-			ret = getAttribute("this", key);
+			ret = getThisAttribute(key);
 		}
 		else {
 			usingAlteredAttributes = true;
@@ -501,15 +595,64 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 
 	public Speed getMoveSpeed() {
 		if (isMove()) {
+			GameObject owner = getGameObject().getHeldBy();
+			CharacterWrapper character = null;
+			if (owner!=null) {
+				character = new CharacterWrapper(getGameObject().getHeldBy());
+			}
+			int mod = 0;
+			if (character!=null) {
+				if (character.hasMesmerizeEffect(Constants.WEAKENED)) {
+					mod++;
+				}
+				if (new CombatWrapper(character.getGameObject()).isFreezed()) {
+					mod++;
+				}
+				if (character.getGameObject().hasThisAttribute(Constants.SLOWED)) {
+					mod++;
+				}
+				if (character.getGameObject().hasThisAttribute(Constants.SHRINK)) {
+					mod--;
+				}
+				if (character.getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT) && !getChitAttribute("speed").matches(Constants.WEIGHT) && !this.isMagicMove()) {
+					mod++;
+				}
+				if (character.getGameObject().hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT) && !getChitAttribute("speed").matches(Constants.WEIGHT) && !this.isMagicMove()) {
+					mod--;
+				}
+			}
+			
+			if (this.isMagicMove()) return new Speed(0,mod);
+
+			if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT) && !getChitAttribute("speed").matches(Constants.WEIGHT)) {
+				int difference = (new Strength(gameObject.getThisAttribute(Constants.ALTER_WEIGHT))).getLevels()-(new Strength((getChitAttribute("strength")))).getLevels();
+				mod = mod+difference;
+			}
 			if (!gameObject.hasAttribute(ALTERNATE_ATTRIBUTES, "speed")) {
 				// speedChange is ignored if speed is already altered by a treasure
 				int speedChange = getGameObject().getThisInt("move_speed_change");
 				if (speedChange>0) {
 					usingAlteredAttributes = true;
-					return new Speed(speedChange);
+					return new Speed(speedChange,mod);
 				}
 			}
-			return new Speed(getChitAttribute("speed"));
+			if (mod!=0) {
+				usingAlteredAttributes = true;
+				if (RealmComponent.displayColoredStats) {
+					if (mod>0) {
+						slowerSpeed = true;
+						fasterSpeed = false;
+					} else {
+						fasterSpeed = true;
+						slowerSpeed = false;
+					}
+				}
+			}
+			if (getChitAttribute("speed").matches(Constants.WEIGHT)) {
+				if (owner==null) return new Speed(8,mod);
+				return new Speed(character.getWeight().getLevels()+1,mod);
+			}
+			return new Speed(getChitAttribute("speed"),mod);
 		}
 		else if (isFly()) {
 			return getFlySpeed();
@@ -518,7 +661,53 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 	}
 	
 	public Speed getFlySpeed() {
-		return new Speed(getChitAttribute("speed"));
+		GameObject owner = getGameObject().getHeldBy();
+		CharacterWrapper character = null;
+		if (owner!=null) {
+			character = new CharacterWrapper(getGameObject().getHeldBy());
+		}
+		int mod = 0;
+		if (character!=null) {
+			if (character.hasMesmerizeEffect(Constants.WEAKENED)) {
+				mod++;
+			}
+			if (new CombatWrapper(character.getGameObject()).isFreezed()) {
+				mod++;
+			}
+			if (character.getCurrentLocation()!=null && character.getCurrentLocation().clearing!=null && character.getCurrentLocation().clearing.isAffectedByViolentWinds()) {
+				mod++;
+			}
+			if (character.getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT) && !getChitAttribute("speed").matches(Constants.WEIGHT) && !this.isMagicMove()) {
+				mod++;
+			}
+			if (character.getGameObject().hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT) && !getChitAttribute("speed").matches(Constants.WEIGHT) && !this.isMagicMove()) {
+				mod--;
+			}
+		}
+		
+		if (this.isMagicMove()) return new Speed(0,mod);
+		
+		if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT) && !getChitAttribute("speed").matches(Constants.WEIGHT)) {
+			int difference = (new Strength(gameObject.getThisAttribute(Constants.ALTER_WEIGHT))).getLevels()-(new Strength((getChitAttribute("strength")))).getLevels();
+			mod = mod+difference;
+		}
+		if (mod!=0) {
+			usingAlteredAttributes = true;
+			if (RealmComponent.displayColoredStats) {
+				if (mod>0) {
+					slowerSpeed = true;
+					fasterSpeed = false;
+				} else {
+					fasterSpeed = true;
+					slowerSpeed = false;
+				}
+			}
+		}
+		if (getChitAttribute("speed").matches(Constants.WEIGHT)) {
+			if (owner==null) return new Speed(8,mod);
+			return new Speed(character.getWeight().getLevels()+1,mod);
+		}
+		return new Speed(getChitAttribute("speed"),mod);
 	}
 
 	public boolean hasAnAttack() {
@@ -526,35 +715,115 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 	}
 	
 	public Speed getAttackSpeed() {
+		GameObject owner = getGameObject().getHeldBy();
+		CharacterWrapper character = null;
+		if (owner!=null) {
+			character = new CharacterWrapper(getGameObject().getHeldBy());
+		}
 		if (isFight()) {
-			return new Speed(getChitAttribute("speed"));
+			int mod = 0;
+			if (character!=null && character.hasMesmerizeEffect(Constants.CALMED)) {
+				mod++;
+			}
+			if (character!=null &&  new CombatWrapper(character.getGameObject()).isFreezed()) {
+				mod++;
+			}
+			if (character!=null && character.getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT) && !getChitAttribute("speed").matches(Constants.WEIGHT)) {
+				mod++;
+			}
+			if (character!=null && character.getGameObject().hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT) && !getChitAttribute("speed").matches(Constants.WEIGHT)) {
+				mod--;
+			}
+			if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT) && !getChitAttribute("speed").matches(Constants.WEIGHT)) {
+				int difference = (new Strength(gameObject.getThisAttribute(Constants.ALTER_WEIGHT))).getLevels()-(new Strength((getChitAttribute("strength")))).getLevels();
+				mod = mod+difference;
+			}
+			if (mod!=0) {
+				usingAlteredAttributes = true;
+				if (RealmComponent.displayColoredStats) {
+					if (mod>0) {
+						slowerSpeed = true;
+						fasterSpeed = false;
+					} else {
+						fasterSpeed = true;
+						slowerSpeed = false;
+					}
+				}
+			}
+			if (getChitAttribute("speed").matches(Constants.WEIGHT)) {
+				if (owner==null) return new Speed(8,mod);
+				return new Speed(character.getWeight().getLevels()+1,mod);
+			}
+			return new Speed(getChitAttribute("speed"),mod);
 		}
 		return null;
 	}
 
 	public Speed getMagicSpeed() {
 		String action = getChitAttribute("action").toUpperCase();
+		GameObject owner = getGameObject().getHeldBy();
+		if (owner.hasThisAttribute("spell") ) {
+			owner = owner.getHeldBy();
+		}
 		if ("MAGIC".equals(action)) {
+			int mod = 0;
 			// alerted magic is always speed zero
 			if (isAlerted()) {
-				return new Speed(0); // wheee!
+				return new Speed(0,mod); // wheee!
 			}
-			return new Speed(getChitAttribute("speed"));
+			if (new CombatWrapper(owner).isFreezed()) {
+				mod++;
+			}
+			if ((new CharacterWrapper(owner)).hasMesmerizeEffect(Constants.INTOXICATED)) {
+				mod++;
+			}			
+			if (mod!=0) {
+				usingAlteredAttributes = true;
+				if (RealmComponent.displayColoredStats) {
+					if (mod>0) {
+						slowerSpeed = true;
+						fasterSpeed = false;
+					} else {
+						fasterSpeed = true;
+						slowerSpeed = false;
+					}
+				}
+			}
+			return new Speed(getChitAttribute("speed"),mod);
 		}
 		return null;
 	}
 
 	public String getMagicType() {
 		String changeType = getGameObject().getThisAttribute(Constants.MAGIC_CHANGE);
-		if (changeType==null) {
+		String changeType2 = getGameObject().getThisAttribute(Constants.MAGIC_CHANGE_BY_FREE_SPELL);
+		if (changeType==null && changeType2==null) {
 			return getChitAttribute("magic");
 		}
 		usingAlteredAttributes = true;
+		changedMagicType = true;
+		if (changeType2!=null) return changeType2;
 		return changeType;
 	}
 	
+	public String getAttackSpell() {
+		return null;
+	}
+	
 	public boolean compatibleWith(ColorMagic cm) {
-		return getMagicNumber()==cm.getColorNumber();
+		if (cm==null) return false;
+		int magicNumber = getMagicNumber();
+		if (magicNumber==cm.getColorNumber()) return true;
+		if ((magicNumber==2||magicNumber==3||magicNumber==4) && cm.isPrismColor()) {
+			GameObject owner = getGameObject().getHeldBy();
+			if (owner!=null) { // Might be null in the character builder app
+				CharacterWrapper character = new CharacterWrapper(getGameObject().getHeldBy());
+				if (character.affectedByKey(Constants.CHITS_PRISM_COLOR)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	
 	public int getMagicNumber() {
@@ -625,21 +894,36 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 	}
 
 	public void makeFatigued() {
-		if (getEffortAsterisks()>0) { // CANNOT fatigue non-effort chits
+		if (isColorOnlyChit()) {
+			setState(ACTION_CHIT_STATE_INACTIVE);
+		}
+		else if (getEffortAsterisks()>0) { // CANNOT fatigue non-effort chits
 			setState(ACTION_CHIT_STATE_FATIGUED);
+		}
+		if (getGameObject().hasThisAttribute(Constants.BREAK_WHEN_USED)) {
+			expireSourceSpell();
 		}
 	}
 
 	public void makeWounded() {
-		setState(ACTION_CHIT_STATE_WOUNDED);
+		if (!isColorOnlyChit()) {
+			setState(ACTION_CHIT_STATE_WOUNDED);
+		}
+		if (getGameObject().hasThisAttribute(Constants.BREAK_WHEN_USED)) {
+			expireSourceSpell();
+		}
 	}
 
 	public void makeAlerted() {
 		setState(ACTION_CHIT_STATE_ALERT);
 	}
+	
+	public void makeBerserk() {
+		setState(ACTION_CHIT_STATE_BERSERK);
+	}
 
 	public boolean isActive() {
-		return getStateId() == ACTIVE_ID;
+		return getStateId() == ACTIVE_ID || isBerserk();
 	}
 
 	public boolean isFatigued() {
@@ -653,11 +937,20 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 	public boolean isAlerted() {
 		return getStateId() == ALERT_ID;
 	}
+	
+	public boolean isBerserk() {
+		return getStateId() == BERSERK_ID;
+	}
 
 	private void setState(String stateName) {
 		gameObject.setThisAttribute(ACTION_CHIT_STATE_KEY, stateName);
 	}
-
+	
+	public void setStateById(int stateId) {
+		String stateName = getStateNameById(stateId);
+		gameObject.setThisAttribute(ACTION_CHIT_STATE_KEY, stateName);
+	}
+	
 	public int getStateId() {
 		String val = gameObject.getThisAttribute(ACTION_CHIT_STATE_KEY);
 		if (ACTION_CHIT_STATE_ALERT.equals(val)) {
@@ -690,7 +983,40 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 		else if (ACTION_CHIT_STATE_OUT_OF_PLAY.equals(val)) {
 			return OUT_OF_PLAY_ID;
 		}
+		else if (ACTION_CHIT_STATE_BERSERK.equals(val)) {
+			return BERSERK_ID;
+		}
 		return ACTIVE_ID;
+	}
+	
+	private static String getStateNameById(int id) {
+		switch (id) {
+			case ACTIVE_ID:
+				return ACTION_CHIT_STATE_ACTIVE;
+			case ALERT_ID:
+				return ACTION_CHIT_STATE_ALERT;
+			case FATIGUED_ID:
+				return ACTION_CHIT_STATE_FATIGUED;
+			case WOUNDED_ID:
+				return ACTION_CHIT_STATE_WOUNDED;
+			case COMMITTED_ID:
+				return ACTION_CHIT_STATE_COMMITTED;
+			case COLOR_WHITE_ID:
+				return ACTION_CHIT_STATE_COLOR_WHITE;
+			case COLOR_BLACK_ID:
+				return ACTION_CHIT_STATE_COLOR_BLACK;
+			case COLOR_GRAY_ID:
+				return ACTION_CHIT_STATE_COLOR_GRAY;
+			case COLOR_GOLD_ID:
+				return ACTION_CHIT_STATE_COLOR_GOLD;
+			case COLOR_PURPLE_ID:
+				return ACTION_CHIT_STATE_COLOR_PURPLE;
+			case OUT_OF_PLAY_ID:
+				return ACTION_CHIT_STATE_ALERT;
+			case BERSERK_ID:
+				return ACTION_CHIT_STATE_ALERT;
+		}
+		return null;
 	}
 
 	public void setAlternateStrength(Strength alt) {
@@ -720,11 +1046,23 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 			gameObject.removeAttribute(ALTERNATE_ATTRIBUTES, "speed");
 		}
 	}
+	
+	public void setMagicMove(boolean value) {
+		if (value) {
+			gameObject.setThisAttribute(Constants.CHIT_SPEED_MAGIC_BOOST);
+		} else {
+			gameObject.removeThisAttribute(Constants.CHIT_SPEED_MAGIC_BOOST);
+		}
+	}
+	
+	public boolean isMagicMove() {
+		return gameObject.hasThisAttribute(Constants.CHIT_SPEED_MAGIC_BOOST);
+	}
 
 	public int getManeuverCombatBox() {
 		if (isMove()) {
 			CombatWrapper combat = new CombatWrapper(getGameObject());
-			return combat.getCombatBox();
+			return combat.getCombatBoxDefense();
 		}
 		return 0;
 	}
@@ -732,7 +1070,7 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 	public int getAttackCombatBox() {
 		if (isFight()) {
 			CombatWrapper combat = new CombatWrapper(getGameObject());
-			return combat.getCombatBox();
+			return combat.getCombatBoxAttack();
 		}
 		return 0;
 	}
@@ -749,7 +1087,7 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 		return null;
 	}
 
-	public void changeWeaponState(boolean hit) {
+	public void changeWeaponState(HostPrefWrapper hostPrefs) {
 		// Do nothing
 	}
 
@@ -775,6 +1113,9 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 		if (isMagic()) {
 			sb.append(getMagicType());
 		}
+		else if (isColorOnlyChit()){
+			sb.append(ColorMagic.getMagicColorFromMagicType(getMagicType()).getColorName());
+		}
 		else {
 			sb.append(getStrength().getChar());
 		}
@@ -783,5 +1124,13 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 			sb.append("*");
 		}
 		return sb.toString();
+	}
+	public void expireSourceSpell() {
+		if (getGameObject().hasThisAttribute(Constants.SPELL_ID)) {
+			String stringId = getGameObject().getThisAttribute(Constants.SPELL_ID);
+			GameObject sourceSpell = getGameObject().getGameData().getGameObject(Long.valueOf(stringId));
+			SpellWrapper spell = new SpellWrapper(sourceSpell);
+			spell.expireSpell();
+		}
 	}
 }

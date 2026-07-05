@@ -1,24 +1,6 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.store;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.swing.JFrame;
 
@@ -39,6 +21,37 @@ public abstract class GuildStore extends Store {
 	
 	protected abstract void setupGuildSpecific();
 	protected abstract String doGuildService(JFrame frame,int level);
+	public void applyGuildBenefit(JFrame frame, CharacterWrapper character, int level) {
+		switch (level) {
+			case 1: applyGuildBenefit1(frame,character);
+				break;
+			case 2: applyGuildBenefit2(frame,character);
+				break;
+			case 3: applyGuildBenefit3(frame,character);
+				break;
+		}
+	}
+	public void unapplyAllGuildBenefits(JFrame frame, CharacterWrapper character) {
+		for (int i = 1; i <= 3; i++) {
+			unapplyGuildBenefit(frame,character,i);
+		}
+	}
+	public void unapplyGuildBenefit(JFrame frame, CharacterWrapper character, int level) {
+		switch (level) {
+			case 1: unapplyGuildBenefit1(frame,character);
+				break;
+			case 2: unapplyGuildBenefit2(frame,character);
+				break;
+			case 3: unapplyGuildBenefit3(frame,character);
+				break;
+		}
+	}
+	public abstract void applyGuildBenefit1(JFrame frame, CharacterWrapper character);
+	public abstract void unapplyGuildBenefit1(JFrame frame, CharacterWrapper character);
+	public abstract void applyGuildBenefit2(JFrame frame, CharacterWrapper character);
+	public abstract void unapplyGuildBenefit2(JFrame frame, CharacterWrapper character);
+	public abstract void applyGuildBenefit3(JFrame frame, CharacterWrapper character);
+	public abstract void unapplyGuildBenefit3(JFrame frame, CharacterWrapper character);
 
 	public GuildStore(GuildChitComponent guild,CharacterWrapper character) {
 		super(guild);
@@ -93,12 +106,11 @@ public abstract class GuildStore extends Store {
 	}
 	
 	protected void chooseFriendlinessGain(JFrame frame) {
-		ArrayList list = trader.getGameObject().getThisAttributeList("allies");
+		ArrayList<String> list = trader.getGameObject().getThisAttributeList("allies");
 		
 		GamePool pool = new GamePool(trader.getGameObject().getGameData().getGameObjects());
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,"The guild advancement includes one friendliness level for one of the following groups:",false);
-		for (Iterator i=list.iterator();i.hasNext();) {
-			String groupName = i.next().toString();
+		for (String groupName : list) {
 			GameObject leader = pool.findFirst("rank=HQ,native="+groupName);
 			int rel = character.getRelationship(leader);
 			String oldR = RealmUtility.getRelationshipNameFor(rel);

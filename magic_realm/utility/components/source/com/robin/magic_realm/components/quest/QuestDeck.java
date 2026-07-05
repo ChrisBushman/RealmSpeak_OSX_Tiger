@@ -1,30 +1,15 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 import com.robin.game.objects.*;
 import com.robin.general.util.RandomNumber;
+import com.robin.magic_realm.components.attribute.TileLocation;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
+import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class QuestDeck extends GameObjectWrapper {
 	
@@ -60,9 +45,9 @@ public class QuestDeck extends GameObjectWrapper {
 		for(int i=0;i<3;i++) doShuffle(); // shuffle 3 times to make Steve S happy... :-)
 	}
 	private void doShuffle() {
-		ArrayList list = getList(QUEST_CARD_LIST);
+		ArrayList<String> list = getList(QUEST_CARD_LIST);
 		if (list==null) return;
-		ArrayList shuffled = new ArrayList();
+		ArrayList<String> shuffled = new ArrayList<String>();
 		while(list.size()>0) {
 			int r = RandomNumber.getRandom(list.size());
 			shuffled.add(list.remove(r));
@@ -84,7 +69,7 @@ public class QuestDeck extends GameObjectWrapper {
 
 	public void setupAllPlayCards(JFrame frame,CharacterWrapper character) {
 		for(Quest card:getAllPlayCards()) {
-			if (card.getState()!=QuestState.New) continue; // skip all play cards that are no longer new (completed or failed)
+			if (card.getState()!=QuestState.New && !card.isMultipleUse()) continue; // skip all play cards that are no longer new (completed or failed)
 			Quest quest = card.copyQuestToGameData(getGameData());
 			quest.setState(QuestState.Assigned, character.getCurrentDayKey(), character); // indicates when the quest was first assigned
 			character.addQuest(frame,quest);
@@ -92,17 +77,16 @@ public class QuestDeck extends GameObjectWrapper {
 	}
 	private ArrayList<GameObject> getAllPlayCardsAsObjects() {
 		ArrayList<GameObject> allPlay = new ArrayList<GameObject>();
-		ArrayList list = getList(QUEST_ALL_PLAY_LIST);
+		ArrayList<String> list = getList(QUEST_ALL_PLAY_LIST);
 		if (list!=null && list.size()>0) {
-			for(Iterator i=list.iterator();i.hasNext();) {
-				String questId = (String)i.next();
+			for(String questId : list) {
 				GameObject go = getGameData().getGameObject(Long.valueOf(questId));
 				allPlay.add(go);
 			}
 		}
 		return allPlay;
 	}
-	public ArrayList<Quest> getAllPlayCards() {
+	private ArrayList<Quest> getAllPlayCards() {
 		ArrayList<Quest> allPlay = new ArrayList<Quest>();
 		for(GameObject go:getAllPlayCardsAsObjects()) {
 			Quest quest = new Quest(go);
@@ -112,22 +96,44 @@ public class QuestDeck extends GameObjectWrapper {
 	}
 	
 	private void reshuffle() {
-		ArrayList discards = getList(QUEST_DISCARDS);
+		ArrayList<String> discards = getList(QUEST_DISCARDS);
 		if (discards==null || discards.size()==0) return; // if there are no discards, then there are more player quest slots than the deck can handle, and nothing happens.
-		setList(QUEST_CARD_LIST,new ArrayList(discards));
+		setList(QUEST_CARD_LIST,new ArrayList<String>(discards));
 		clear(QUEST_DISCARDS);
 		shuffle();
+	}
+	
+	public void reshuffleIncudingDiscard() {
+		for (String quest : getList(QUEST_DISCARDS)) {
+			addListItem(QUEST_CARD_LIST,quest);
+		}
+		clear(QUEST_DISCARDS);
+		shuffle();
+	}
+	
+	public ArrayList<String> getAllQuestNames() {
+		ArrayList<String> quests = getList(QUEST_CARD_LIST);
+		quests.addAll(getList(QUEST_DISCARDS));
+		ArrayList<String> names = new ArrayList<String>();
+		GameData gameData = getGameData();
+		if (quests!=null && quests.size()>0) {
+			for (String questId : quests) {
+				GameObject go = gameData.getGameObject(Long.valueOf(questId));
+				names.add(go.getName());
+			}
+		}
+		return names;
 	}
 	
 	/**
 	 * This will select a random quest card, remove it from the "deck", and add it to the current GameData collection.
 	 */
-	public Quest drawCard() {
-		ArrayList list = getList(QUEST_CARD_LIST);
+	public Quest drawCard(GameObject gameObject) {
+		ArrayList<String> list = getList(QUEST_CARD_LIST);
 		if (list!=null && list.size()>0) {
 			//int r = RandomNumber.getRandom(list.size());
 			int r = 0; // just take the top card - the deck is "shuffled" after all!
-			String questId = (String)list.get(r);
+			String questId = list.get(r);
 			GameObject go = getGameData().getGameObject(Long.valueOf(questId));
 			Quest card = new Quest(go);
 			
@@ -136,6 +142,20 @@ public class QuestDeck extends GameObjectWrapper {
 			
 			// If this is the last card, then "reshuffle" with discards
 			if (getListCount(QUEST_CARD_LIST)==0) reshuffle();
+			
+			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(gameObject.getGameData());
+			if (hostPrefs.isUsingGuildQuests() && gameObject.hasThisAttribute("character")) {
+				CharacterWrapper character = new CharacterWrapper(gameObject);
+				String guildName = null;
+				TileLocation loc = character.getCurrentLocation();
+				if (loc!=null && loc.hasClearing()) {
+					guildName = loc.clearing.getGuild().getGameObject().getThisAttribute("guild");
+				}
+				if (guildName==null || !card.getGuild().matches(guildName)) {
+					discardCard(card);
+					return null;
+				}
+			}
 			
 			if (card.getBoolean(QUEST_CARD_TEMPLATE)) {
 				// Since this is just a card template, need to make a physical copy
@@ -147,16 +167,32 @@ public class QuestDeck extends GameObjectWrapper {
 	}
 	public int drawCards(JFrame frame,CharacterWrapper character) {
 		int cardsDrawn = 0;
-		int n = character.getQuestSlotCount() - character.getUnfinishedQuestCount();
+		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
+		int n = character.getQuestSlotCount(hostPrefs) - character.getUnfinishedNotAllPlayQuestCount();
+		if (getListCount(QUEST_CARD_LIST)==0) reshuffle();
+		if (getListCount(QUEST_CARD_LIST)==0) JOptionPane.showMessageDialog(frame,"There are no available quests to draw.","No available quests",JOptionPane.INFORMATION_MESSAGE);
+		boolean reshuffled = false;
 		while(n>0 && getCardCount()>0) {
-			Quest quest = drawCard();
-			if (quest==null) break; // shouldn't happen, but just in case!
-			quest.setState(QuestState.Assigned, character.getCurrentDayKey(), character); // indicates when the quest was first assigned
+			Quest quest = drawCard(character.getGameObject());
+			if (quest==null) {
+				if (reshuffled) {
+					JOptionPane.showMessageDialog(frame,"There are not enough available quests to draw.","Not enough available quests",JOptionPane.INFORMATION_MESSAGE);
+					break;
+				}
+				reshuffle();
+				reshuffled = true;
+				continue;
+			}
+			quest.setState(QuestState.Assigned, character.getCurrentDayKey(), character);
 			character.addQuest(frame,quest);
 			cardsDrawn++;
 			n--;
 		}
 		return cardsDrawn;
+	}
+	public void drawCardForDenizen(GameObject denizen) {
+		if (getListCount(QUEST_CARD_LIST)==0) reshuffle();
+		if (getListCount(QUEST_CARD_LIST)==0) return;
 	}
 	
 	///////////////////////////////////////////////
@@ -180,7 +216,7 @@ public class QuestDeck extends GameObjectWrapper {
 		go.setThisAttribute(QUEST_DECK_KEY);
 		
 		QuestDeck deck = new QuestDeck(go);
-		DECK_ID = new Long(go.getId());
+		DECK_ID = Long.valueOf(go.getId());
 		
 		return deck;
 	}

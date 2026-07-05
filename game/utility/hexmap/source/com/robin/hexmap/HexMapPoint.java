@@ -1,26 +1,8 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.hexmap;
 
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.StringTokenizer;
 
 public class HexMapPoint {
@@ -153,26 +135,24 @@ public class HexMapPoint {
 		return "HexMapPoint("+x+","+y+")";
 	}
 	
-	public static ArrayList getKeyCollection(Collection hexMapPoints) {
-		ArrayList keys = new ArrayList();
-		for (Iterator i=hexMapPoints.iterator();i.hasNext();) {
-			HexMapPoint pos = (HexMapPoint)i.next();
+	public static ArrayList<String> getKeyCollection(Collection<HexMapPoint> hexMapPoints) {
+		ArrayList<String> keys = new ArrayList<String>();
+		for (HexMapPoint pos : hexMapPoints) {
 			keys.add(pos.getKey());
 		}
 		return keys;
 	}
-	public static Collection getHexMapPoints(Collection keys) {
-		ArrayList hexMapPoints = new ArrayList();
-		for (Iterator i=keys.iterator();i.hasNext();) {
-			String key = (String)i.next();
+	public static Collection<HexMapPoint> getHexMapPoints(Collection<String> keys) {
+		ArrayList<HexMapPoint> hexMapPoints = new ArrayList<HexMapPoint>();
+		for (String key : keys) {
 			hexMapPoints.add(readKey(key));
 		}
 		return hexMapPoints;
 	}
 	public static HexMapPoint readKey(String key) {
 		StringTokenizer st = new StringTokenizer(key,",");
-		int x = Integer.valueOf(st.nextToken()).intValue();
-		int y = Integer.valueOf(st.nextToken()).intValue();
+		int x = Integer.parseInt(st.nextToken());
+		int y = Integer.parseInt(st.nextToken());
 		return new HexMapPoint(x,y);
 	}
 }

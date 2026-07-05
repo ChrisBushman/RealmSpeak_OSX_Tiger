@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest.reward;
 
 import java.util.ArrayList;
@@ -64,12 +47,12 @@ public class QuestRewardTreasureFromSite extends QuestReward {
 			selected = chooser.getFirstSelectedComponent().getGameObject();
 		}
 		
-		ArrayList hold = selected.getHold();
+		ArrayList<GameObject> hold = selected.getHold();
 		ArrayList<GameObject> treasures = new ArrayList<GameObject>();
-		for(Object o:hold) {
-			RealmComponent rc = RealmComponent.getRealmComponent((GameObject)o);
+		for(GameObject o:hold) {
+			RealmComponent rc = RealmComponent.getRealmComponent(o);
 			if (rc.isTreasure()) {
-				treasures.add((GameObject)o);
+				treasures.add(o);
 			}
 		}
 		if (treasures.isEmpty()) {
@@ -79,23 +62,24 @@ public class QuestRewardTreasureFromSite extends QuestReward {
 		GameObject treasure = null;
 		switch(getDrawType()) {
 			case Top:
-				treasure = (GameObject)hold.get(0);
+				treasure = treasures.get(0);
 				break;
 			case Bottom:
-				treasure = (GameObject)hold.get(hold.size()-1);
+				treasure = treasures.get(treasures.size()-1);
 				break;
 			case Random:
-				treasure = (GameObject)hold.get(RandomNumber.getRandom(hold.size()));
+				treasure = treasures.get(RandomNumber.getRandom(treasures.size()));
 				break;
 			case Choice:
 				RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,getTitleForDialog()+" Which treasure?",false);
-				chooser.addGameObjects(hold,true);
+				chooser.addGameObjects(treasures,true);
 				chooser.setVisible(true);
-				chooser.getFirstSelectedComponent().getGameObject();
+				treasure = chooser.getFirstSelectedComponent().getGameObject();
 				break;
 		}		
 		if (treasure!=null) { // shouldn't ever be null
-			Loot.addItemToCharacter(frame,null,character,treasure);
+			Loot loot = new Loot(frame, character, selected, null);
+			loot.characterFindsItem(character, treasure);
 		}
 	}
 	

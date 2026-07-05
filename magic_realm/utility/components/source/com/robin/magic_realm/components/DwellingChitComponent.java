@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
 import java.awt.*;
@@ -63,14 +46,34 @@ public class DwellingChitComponent extends SquareChitComponent {
 		boolean useColor = useColorIcons();
 		
 		// Draw image
-		String icon_type = (String)gameObject.getThisAttribute(Constants.ICON_TYPE);
-		if (icon_type!=null) {
-			drawIcon(g,"dwellings"+(useColor?"_c":""),icon_type,0.9);
-		}
-		
-		if (useColor) {
+		if (isDisplayStyleAlternative() && gameObject.hasThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE) && gameObject.hasThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE)) {
+			double size = 1.1;
+			int yOffset = 20;
+			String folder = gameObject.getThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE);
+			String icon = gameObject.getThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE);
+			if (gameObject.hasThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE)) {
+				size = Double.parseDouble(gameObject.getThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE));
+			}
+			if (gameObject.hasThisAttribute(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE)) {
+				yOffset = getThisInt(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE);
+			}
+			drawIcon(g,folder,icon,size,0,yOffset,null);
 			TextType tt = new TextType(getGameObject().getName(),T_CHIT_SIZE,"BOLD");
 			tt.draw(g1,5,2,Alignment.Left);
+		}
+		else {
+			String icon_type = gameObject.getThisAttribute(Constants.ICON_TYPE);
+			if (icon_type!=null) {
+				if (gameObject.hasThisAttribute(Constants.SUPER_REALM)) {
+					drawIcon(g,gameObject.getThisAttribute(Constants.ICON_FOLDER),icon_type,1.1,0,20,null);
+				} else {
+					drawIcon(g,"dwellings"+(useColor?"_c":""),icon_type,0.9);
+				}
+			}
+			if (useColor || isDisplayStyleLegendary() || isDisplayStyleAlternative()) {
+				TextType tt = new TextType(getGameObject().getName(),T_CHIT_SIZE,"BOLD");
+				tt.draw(g1,5,2,Alignment.Left);
+			}
 		}
 	}
 }

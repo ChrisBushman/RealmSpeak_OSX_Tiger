@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.swing;
 
 import java.awt.*;
@@ -128,7 +111,7 @@ public class ApproveInventoryDialog extends AggressiveDialog {
 		leftTableModel.updateRowHeights(leftTable);
 		rightTableModel.updateRowHeights(rightTable);
 	}
-	private Box getTitleLabel(String title) {
+	private static Box getTitleLabel(String title) {
 		Box box = Box.createHorizontalBox();
 		box.add(Box.createHorizontalGlue());
 		JLabel titleLabel = new JLabel(title);
@@ -164,7 +147,7 @@ public class ApproveInventoryDialog extends AggressiveDialog {
 			return inventory;
 		}
 		public GameObject removeInventory(int index) {
-			GameObject go = (GameObject)inventory.remove(index);
+			GameObject go = inventory.remove(index);
 			fireTableDataChanged();
 			return go;
 		}
@@ -186,7 +169,7 @@ public class ApproveInventoryDialog extends AggressiveDialog {
 		}
 		public Object getValueAt(int row, int col) {
 			if (row<inventory.size()) {
-				GameObject go = (GameObject)inventory.get(row);
+				GameObject go = inventory.get(row);
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				switch(col) {
 					case 0:
@@ -204,7 +187,7 @@ public class ApproveInventoryDialog extends AggressiveDialog {
 		public void updateRowHeights(JTable table) {
 			int maxIconColWidth = 0;
 			for (int i=0;i<inventory.size();i++) {
-				GameObject go = (GameObject)inventory.get(i);
+				GameObject go = inventory.get(i);
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				
 				ImageIcon icon = rc.getIcon();

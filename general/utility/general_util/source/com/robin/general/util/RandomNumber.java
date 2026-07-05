@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.util;
 
 import java.util.Random;
@@ -50,8 +33,8 @@ public class RandomNumber {
 		switch(currentRandomNumberType) {
 			case R250_521:			return new R250_521(seed);
 			case MersenneTwister:	return new MersenneTwister(seed);
+			default: 				return new JavaRandom(seed);
 		}
-		return new JavaRandom(seed);
 	}
 	
 	// STATIC METHODS
@@ -66,6 +49,18 @@ public class RandomNumber {
 	public static RandomNumberType getRandomNumberGenerator() {
 		return currentRandomNumberType;
 	}
+	private static boolean useRandomNumberGeneratorForSetup = false;
+	public static void setUseRandomNumberGeneratorForSetup(boolean val) {
+		if (val) {
+			useRandomNumberGeneratorForSetup = true;
+		}
+		else {
+			useRandomNumberGeneratorForSetup = false;
+		}
+	}
+	public static boolean getUseRandomNumberGeneratorForSetup() {
+		return useRandomNumberGeneratorForSetup;
+	}
 	
 	public static RandomNumber soleInstance = null;
 	public static RandomNumber getSoleInstance() {
@@ -79,6 +74,9 @@ public class RandomNumber {
 	}
 
 	public static int getRandom(int val) {
+		if(currentRandomNumberType == RandomNumberType.RandomOnTheFly) {
+			return (int) ((Math.random()*val));
+		}
 		return getSoleInstance().rand(val);
 	}
 
@@ -112,7 +110,7 @@ public class RandomNumber {
 	 * @return true if percent was successful
 	 */
 	public static boolean percentRollSuccess(int percent) {
-		return getRandom(100) < percent;
+		return getRandom(100) + 1 < percent;
 	}
 
 	/**
@@ -123,10 +121,10 @@ public class RandomNumber {
 		count = count.toUpperCase();
 		if (count.indexOf('D') >= 0) {
 			StringTokenizer st = new StringTokenizer(count, "D+");
-			int dice = Integer.valueOf(st.nextToken());
+			int dice = Integer.parseInt(st.nextToken());
 			int mod = 0;
 			if (st.hasMoreTokens()) {
-				mod = Integer.valueOf(st.nextToken());
+				mod = Integer.parseInt(st.nextToken());
 			}
 			int total = 0;
 			for (int i = 0; i < dice; i++) {
@@ -136,7 +134,7 @@ public class RandomNumber {
 			ret = total;
 		}
 		else {
-			ret = Integer.valueOf(count).intValue();
+			ret = Integer.parseInt(count);
 		}
 		return ret;
 	}

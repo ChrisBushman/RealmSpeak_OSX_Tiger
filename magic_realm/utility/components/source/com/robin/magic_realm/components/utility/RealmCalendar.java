@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.utility;
 
 import java.util.*;
@@ -33,8 +16,9 @@ import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class RealmCalendar {
 	
-	public static final int DAYS_IN_A_MONTH = 28; //28
-	public static final int WEEKS_IN_A_MONTH = 4; //4
+	public static final int DAYS_IN_A_MONTH = 28;
+	public static final int WEEKS_IN_A_MONTH = 4;
+	public static final int NUMBER_OF_SEASONS = 13;
 	private static final ColorMagic DAY_14_COLOR = new ColorMagic(ColorMagic.GRAY,true);
 	private static final ColorMagic DAY_21_COLOR = new ColorMagic(ColorMagic.PURPLE,true);
 	private static final ColorMagic DAY_28_COLOR = new ColorMagic(ColorMagic.GOLD,true);
@@ -45,9 +29,10 @@ public class RealmCalendar {
 	 * FINISHED - note1 = Fatigue 1 asterisk if outside (!cave && !dwelling) during Birdsong
 	 * FINISHED - note2 = Fatigue 1 asterisk/phase outside (even if you are blocked!)
 	 * FINISHED - note3 = Hide table cannot be used
-	 * FINISHED - note4 = Fatigue 1 asterisk if in the heat (!cave && !mountain) during Birdsong
+	 * FINISHED - note4 = Fatigue 1 asterisk if in the heat (!cave && !mountain && !water) during Birdsong
 	 * FINISHED - note5 = Fatigue 1 asterisk/phase in mountains (even if you are blocked!)
 	 * FINISHED - note6 = Peer table cannot be used (enhanced peer is okay)
+	 * FINISHED - note7 = Fatigue 1 asterisk if in (non-frozen) water
 	 */
 	
 	private static final int FATIGUE_1_OUTSIDE = 1;
@@ -56,11 +41,16 @@ public class RealmCalendar {
 	private static final int FATIGUE_1_HEAT = 4;
 	private static final int FATIGUE_PHASES_MOUNTAIN = 5;
 	private static final int PEER_DISABLED = 6;
+	private static final int FATIGUE_1_WATER = 7;
 	
 	public static final String WEATHER_CLEAR = "clear";
 	public static final String WEATHER_SHOWERS = "showers";
 	public static final String WEATHER_STORM = "storm";
 	public static final String WEATHER_SPECIAL = "special";
+	
+	public static final String RANDOM_SEASON = "Random Season";
+	public static final String UNPREDICTABLE_SEASON = "Unpredictable";
+	public static final String UNPREDICTABLE_WEATHER = "Unpredictable weather";
 	
 	private static RealmCalendar currentCalendar = null;
 	
@@ -76,6 +66,8 @@ public class RealmCalendar {
 	private int sunlight;
 	private int sheltered;
 	private int mountainMoveCost;
+	private boolean frozenWater;
+	private boolean flood;
 	private int victoryPoints;
 	private int specialNotes; // 0 if none in play
 	private String seasonDescription;
@@ -87,10 +79,15 @@ public class RealmCalendar {
 	private String foodAleSecondaryTarget;
 	private String escortPartyPrimaryTarget;
 	private String escortPartySecondaryTarget;
+	private String booksArtPrimaryTarget;
+	private String booksArtSecondaryTarget;
+	private String tourGuidePrimaryTarget;
+	private String tourGuideSecondaryTarget;
 	private ImageIcon seasonIcon;
 	private ImageIcon fullSeasonIcon;
 	private ArrayList<ColorMagic> seventhDayColors;
 	private boolean usingWeather;
+	private boolean unpredictableWeather = false;
 	
 	private RealmCalendar(GameData data,GameWrapper game,HostPrefWrapper hostPrefs) {
 		this.gameData = data;
@@ -102,41 +99,53 @@ public class RealmCalendar {
 			seasonOffset = game.getSeasonOffset();
 		}
 		else {
-			String val = hostPrefs.getStartingSeason();
-			if (val==null) { // This happens when loading an old savegame, and IGNORE_VERSION is on
-				seasonOffset = -1;
-				System.err.println("RealmCalendar:  Loading old game");
-				// May not work anyway, but at least this wont stop it
+			seasonOffset = -1;
+			if (!hostPrefs.getStartingSeason().matches(UNPREDICTABLE_SEASON)) {
+				setSeason(hostPrefs);
 			}
 			else {
-				if (val.toLowerCase().indexOf("random")>=0) {
-					seasonOffset = RandomNumber.getRandom(13);
-					// set the starting season to 
-				}
-				else {
-					seasonOffset = getIndexOf(val)-1;
-				}
+				game.setSeasonOffset(seasonOffset);
+				unpredictableWeather = true;
 			}
-			game.setSeasonOffset(seasonOffset);
 		}
 	}
 	public boolean isUsingWeather() {
 		return usingWeather;
 	}
+	private void setSeason(HostPrefWrapper hostPrefs) {
+		String val = hostPrefs.getStartingSeason();
+		if (val==null) { // This happens when loading an old savegame and IGNORE_VERSION is on
+			System.err.println("RealmCalendar: Loading old game");
+			// May not work anyway, but at least this wont stop it
+		}
+		else {
+			if (val.matches(RANDOM_SEASON) || val.matches(UNPREDICTABLE_SEASON)) {
+				seasonOffset = RandomNumber.getRandom(NUMBER_OF_SEASONS);
+			}
+			else {
+				seasonOffset = getIndexOf(val)-1;
+			}
+		}
+		game.setSeasonOffset(seasonOffset);
+		unpredictableWeather = false;
+	}
 	private void updateSeason(int month) {
+		updateSeason(month, false);
+	}
+	public void updateSeason(int month, boolean forceUpdate) {
 		boolean changes = false;
 		if (currentWeather==null || !currentWeather.equals(game.getWeather())) {
 			currentWeather = game.getWeather();
 			changes = true;
 		}
-		if (currentMonth!=month || currentSeason==null) {
+		if (currentMonth!=month || currentSeason==null || forceUpdate) {
 			currentMonth = month;
 			if (seasonOffset==-1) {
-				currentSeason = seasonsHash.get(new Integer(0));
+				currentSeason = seasonsHash.get(0);
 			}
 			else {
-				int n = ((currentMonth+seasonOffset-1)%13)+1;
-				currentSeason = seasonsHash.get(new Integer(n));
+				int n = ((currentMonth+seasonOffset-1)%NUMBER_OF_SEASONS)+1;
+				currentSeason = seasonsHash.get(n);
 			}
 			changes = true;
 		}
@@ -167,52 +176,103 @@ public class RealmCalendar {
 		sunlight = currentSeason.getInt(currentWeather,"sunlight");
 		sheltered = currentSeason.getInt(currentWeather,"sheltered");
 		mountainMoveCost = currentSeason.getInt("this","mountain_cost");
+		frozenWater = currentSeason.hasAttribute(currentWeather,"frozen_water");
+		flood = currentSeason.hasThisAttribute("flood");
 		weatherName = currentSeason.getAttribute(currentWeather,"name");
 		weatherTypeName = StringUtilities.capitalize(currentWeather);
 		specialNotes = 0;
-		seasonDescription = "";
+		seasonDescription = "---";
 		if (currentSeason.hasAttribute(currentWeather,"special")) {
 			String note = currentSeason.getAttribute(currentWeather,"special"); // note = "note3" (for example)
-			specialNotes = Integer.valueOf(note.substring(4)).intValue();
+			specialNotes = Integer.parseInt(note.substring(4));
 			seasonDescription = currentSeason.getAttribute(currentWeather,"description");
 		}
 		
 		// Mission targets and rewards
-		String foodAle = currentSeason.getThisAttribute("food_ale");
-		StringTokenizer tokens = new StringTokenizer(foodAle,",");
-		foodAlePrimaryTarget = tokens.nextToken();
-		foodAleSecondaryTarget = tokens.nextToken();
-		
-		String escortParty = currentSeason.getThisAttribute("escort_party");
-		tokens = new StringTokenizer(escortParty,",");
-		escortPartyPrimaryTarget = tokens.nextToken();
-		escortPartySecondaryTarget = tokens.nextToken();
+		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(gameData);
+		if (!hostPrefs.usesSuperRealm()) {
+			String foodAle = currentSeason.getThisAttribute("food_ale");
+			StringTokenizer tokens = new StringTokenizer(foodAle,",");
+			foodAlePrimaryTarget = tokens.nextToken();
+			foodAleSecondaryTarget = tokens.nextToken();
+			
+			String escortParty = currentSeason.getThisAttribute("escort_party");
+			tokens = new StringTokenizer(escortParty,",");
+			escortPartyPrimaryTarget = tokens.nextToken();
+			escortPartySecondaryTarget = tokens.nextToken();
+		}
+		else {
+			String foodAle = currentSeason.getThisAttribute("food_ale_sr");
+			StringTokenizer tokens = new StringTokenizer(foodAle,",");
+			foodAlePrimaryTarget = tokens.nextToken();
+			foodAleSecondaryTarget = tokens.nextToken();
+			
+			String escortParty = currentSeason.getThisAttribute("escort_party_sr");
+			tokens = new StringTokenizer(escortParty,",");
+			escortPartyPrimaryTarget = tokens.nextToken();
+			escortPartySecondaryTarget = tokens.nextToken();
+			
+			String booksArt = currentSeason.getThisAttribute("books_art");
+			tokens = new StringTokenizer(booksArt,",");
+			booksArtPrimaryTarget = tokens.nextToken();
+			booksArtSecondaryTarget = tokens.nextToken();
+			
+			String tourGuide = currentSeason.getThisAttribute("tour_guide");
+			tokens = new StringTokenizer(tourGuide,",");
+			tourGuidePrimaryTarget = tokens.nextToken();
+			tourGuideSecondaryTarget = tokens.nextToken();
+		}
 		
 		missionRewards = currentSeason.getThisInt("reward");
 		
 		// Magic is a bit more involved
 		String magic = currentSeason.getThisAttribute("magic");
-		tokens = new StringTokenizer(magic,",");
+		StringTokenizer tokens = new StringTokenizer(magic,",");
 		seventhDayColors = new ArrayList<ColorMagic>();
-		while(tokens.hasMoreTokens()) {
-			String val = tokens.nextToken();
-			seventhDayColors.add(ColorMagic.makeColorMagic(val,true));
+		if (hostPrefs.hasPref(Constants.SR_ALTERNATING_7TH_DAY_MAGIC) && currentSeason.getThisInt("season")==0) {
+			String color = null;
+			if(tokens.hasMoreTokens()) {
+				color = tokens.nextToken();
+			}
+			if (currentMonth%2==0) {
+				if (tokens.hasMoreTokens()) {
+					color = tokens.nextToken();
+				}
+				else {
+					color = null;
+				}
+			}
+			if (color!=null) {
+				seventhDayColors.add(ColorMagic.makeColorMagic(color,true));
+			}
+		}
+		else {
+			while(tokens.hasMoreTokens()) {
+				String val = tokens.nextToken();
+				seventhDayColors.add(ColorMagic.makeColorMagic(val,true));
+			}
+		}
+		
+		if (unpredictableWeather) {
+			seasonName = UNPREDICTABLE_WEATHER;
+			weatherName = "";
+			seasonIcon = ImageCache.getIcon("tab/turn");
+			fullSeasonIcon = ImageCache.getIcon("tab/turn",150);
 		}
 	}
 	private void loadSeasonsHash() {
 		seasonsHash = new Hashtable<Integer,GameObject>();
 		GamePool pool = new GamePool(gameData.getGameObjects());
-		ArrayList list = pool.find("season");
-		for (Iterator i=list.iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		ArrayList<GameObject> list = pool.find("season");
+		for (GameObject go : list) {
 			Integer n = go.getInteger("this","season");
 			seasonsHash.put(n,go);
 		}
 	}
 	private int getIndexOf(String seasonName) {
-		ArrayList list = getAllSeasons();
+		ArrayList<GameObject> list = getAllSeasons();
 		for (int i=0;i<list.size();i++) {
-			GameObject go = (GameObject)list.get(i);
+			GameObject go = list.get(i);
 			if (go.getName().equals(seasonName)) {
 				return i;
 			}
@@ -289,7 +349,7 @@ public class RealmCalendar {
 		return specialNotes == FATIGUE_1_HEAT;
 	}
 	public boolean isFatiguePhasesType(int month) {
-		return isFatiguePhasesMountain(month) || isFatiguePhasesOutside(month);
+		return isFatiguePhasesMountain(month) || isFatiguePhasesOutside(month) || isFatiguePhasesWater(month);
 	}
 	public boolean isFatiguePhasesMountain(int month) {
 		updateSeason(month);
@@ -298,6 +358,10 @@ public class RealmCalendar {
 	public boolean isPeerDisabled(int month) {
 		updateSeason(month);
 		return specialNotes == PEER_DISABLED;
+	}
+	public boolean isFatiguePhasesWater(int month) {
+		updateSeason(month);
+		return specialNotes == FATIGUE_1_WATER;
 	}
 	public boolean hasSpecial(int month) {
 		updateSeason(month);
@@ -311,19 +375,29 @@ public class RealmCalendar {
 		updateSeason(month);
 		return missionRewards;
 	}
+	public boolean isFreezingWeather(int month) {
+		updateSeason(month);
+		return frozenWater;
+	}
+	public boolean isFlood(int month) {
+		updateSeason(month);
+		return flood;
+	}
 	public String getMissionPrimaryTarget(int month,String type) {
 		updateSeason(month);
-		if ("food_ale".equals(type)) {
-			return foodAlePrimaryTarget;
-		}
-		return escortPartyPrimaryTarget;
+		if ("food_ale".equals(type) || "food_ale_sr".equals(type)) return foodAlePrimaryTarget;
+		if ("escort_party".equals(type) || "escort_party_sr".equals(type)) return escortPartyPrimaryTarget;
+		if ("books_art".equals(type)) return booksArtPrimaryTarget;
+		if ("tour_guide".equals(type)) return tourGuidePrimaryTarget;
+		return "";
 	}
 	public String getMissionSecondaryTarget(int month,String type) {
 		updateSeason(month);
-		if ("food_ale".equals(type)) {
-			return foodAleSecondaryTarget;
-		}
-		return escortPartySecondaryTarget;
+		if ("food_ale".equals(type) || "food_ale_sr".equals(type)) return foodAleSecondaryTarget;
+		if ("escort_party".equals(type) || "escort_party_sr".equals(type)) return escortPartySecondaryTarget;
+		if ("books_art".equals(type)) return booksArtSecondaryTarget;
+		if ("tour_guide".equals(type)) return tourGuideSecondaryTarget;
+		return "";
 	}
 	public String getWeatherAttribute(int month,String key) {
 		updateSeason(month);
@@ -349,9 +423,9 @@ public class RealmCalendar {
 		return colors;
 	}
 	public String getColorMagicName(int month,int day) {
-		Collection c = getColorMagic(month,day);
+		Collection<ColorMagic> c = getColorMagic(month,day);
 		if (c.size()==1) {
-			ColorMagic cm = (ColorMagic)c.iterator().next();
+			ColorMagic cm = c.iterator().next();
 			return cm.getColorName();
 		}
 		else if (c.size()==2) {
@@ -368,6 +442,7 @@ public class RealmCalendar {
 	public void setWeatherResult(int result) {
 		switch(result) {
 			default:
+			case 3:
 				game.setWeather(RealmCalendar.WEATHER_SPECIAL);
 				break;
 			case 4:
@@ -381,26 +456,43 @@ public class RealmCalendar {
 				break;
 		}
 	}
-	
+	public static int getWeatherInt(String weather) {
+		if (WEATHER_SPECIAL.equals(weather)) return 3;
+		if (WEATHER_STORM.equals(weather)) return 4;
+		if (WEATHER_SHOWERS.equals(weather)) return 5;
+		return 6;
+	}
 	public static boolean isSeventhDay(int day) {
 		return day==7 || day==14 || day==21 || day==28;
 	}
+	public boolean isFirstDayOfAWeek(int day) {
+		return day==7-days+1 || day==7-days+8 || day==7-days+15 || day==7-days+22;
+	}
+	public static boolean isLastDayOfMonth(int day) {
+		return day==DAYS_IN_A_MONTH;
+	}
 	public static RealmCalendar getCalendar(GameData data) {
+		GameWrapper game = GameWrapper.findGame(data);
+		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
+		if (hostPrefs == null) {
+			hostPrefs = HostPrefWrapper.createDefaultHostPrefs(data);
+		}
 		if (currentCalendar==null) {
-			GameWrapper game = GameWrapper.findGame(data);
-			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
-			if (hostPrefs!=null) {
-				currentCalendar = new RealmCalendar(data,game,hostPrefs);
-			}
+			currentCalendar = new RealmCalendar(data,game,hostPrefs);
+		}
+		if (hostPrefs.getStartingSeason().matches(UNPREDICTABLE_SEASON) && currentCalendar.unpredictableWeather == true && game.getGameStarted() == true) {
+			currentCalendar.setSeason(hostPrefs);
+			currentCalendar.updateSeason(currentCalendar.currentMonth);
+			currentCalendar.updateSeasonAttributes();
 		}
 		return currentCalendar;
 	}
 	public static void reset() {
 		currentCalendar = null;
 	}
-	public static ArrayList findSeasons(GameData data) {
+	public static ArrayList<GameObject> findSeasons(GameData data) {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList list = pool.find("season");
+		ArrayList<GameObject> list = pool.find("season");
 		Collections.sort(list,seasonComparator);
 		return list;
 	}

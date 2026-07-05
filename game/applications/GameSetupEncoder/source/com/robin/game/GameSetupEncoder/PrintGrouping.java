@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.GameSetupEncoder;
 
 import java.util.*;
@@ -32,8 +15,8 @@ public class PrintGrouping extends Properties {
 	public String getName() {
 		return groupName;
 	}
-	public Collection getKeyVals() {
-		ArrayList keyVals = new ArrayList();
+	public Collection<String> getKeyVals() {
+		ArrayList<String> keyVals = new ArrayList<String>();
 		for (Enumeration e=keys();e.hasMoreElements();) {
 			String key = (String)e.nextElement();
 			String val = getProperty(key);
@@ -53,16 +36,12 @@ public class PrintGrouping extends Properties {
 		sb.append(StringUtilities.getRepeatString("-",79));
 		sb.append(Encoder.LINE_END);
 		
-		ArrayList toPrint = pool.find(getKeyVals());
-//		System.out.println(toPrint.size()+" objects to print.");
-		
+		ArrayList<GameObject> toPrint = pool.find(getKeyVals());
 		// Print objects
-		for (Iterator i=toPrint.iterator();i.hasNext();) {
-			GameObject obj = (GameObject)i.next();
+		for (GameObject obj : toPrint) {
 			sb.append(obj+":  ");
 			// Print hold codes
-			for (Iterator c=obj.getHold().iterator();c.hasNext();) {
-				GameObject held = (GameObject)c.next();
+			for (GameObject held : obj.getHold()) {
 				sb.append(Coding.getCode(held));
 			}
 			sb.append(Encoder.LINE_END);

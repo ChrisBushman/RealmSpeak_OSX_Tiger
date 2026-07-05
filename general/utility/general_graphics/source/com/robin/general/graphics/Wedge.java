@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.graphics;
 
 import java.awt.Point;
@@ -56,14 +39,14 @@ public class Wedge {
 		return pos;
 	}
 
-	public ArrayList makeWedges(int divisions) {
+	public ArrayList<Wedge> makeWedges(int divisions) {
 		return makeWedges(divisions, false);
 	}
 
-	public ArrayList makeWedges(int divisions, boolean moveCenter) {
+	public ArrayList<Wedge> makeWedges(int divisions, boolean moveCenter) {
 		if (divisions <= 0)
 			throw new IllegalArgumentException("Wedge divisions must be greater than zero.");
-		ArrayList wedges = new ArrayList();
+		ArrayList<Wedge> wedges = new ArrayList<Wedge>();
 		Point newCenter = center;
 		double st = start;
 		double fin = finish;
@@ -86,7 +69,7 @@ public class Wedge {
 				divisions++;
 		}
 		double range = fin - st;
-		double d = range / (double) divisions;
+		double d = range / divisions;
 		for (int i = 0; i < divisions; i++) {
 			wedges.add(new Wedge(newCenter, r, (int) st, (int) (st + d)));
 			st += d;
@@ -104,10 +87,10 @@ public class Wedge {
 	}
 
 	public boolean isLike(Wedge wedge) {
-		if (wedge != null)
+		if (wedge != null) {
 			return wedge.center.x == center.x && wedge.center.y == center.y && wedge.radius == radius && wedge.start == start && wedge.finish == finish;
-		else
-			return false;
+		}
+		return false;
 	}
 
 	private AveragePoint center;

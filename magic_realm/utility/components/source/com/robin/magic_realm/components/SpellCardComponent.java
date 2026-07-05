@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
 import java.awt.Color;
@@ -23,7 +6,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.swing.ImageIcon;
 
@@ -99,9 +81,11 @@ public class SpellCardComponent extends CardComponent {
 			
 			// Spell target
 			String target = gameObject.getThisAttribute("target");
-			tt = new TextType(target,PRINT_WIDTH,"NORMAL");
-			tt.draw(g,PRINT_MARGIN,pos,Alignment.Center);
-			pos += tt.getHeight(g);
+			if (target!=null) {
+				tt = new TextType(target,PRINT_WIDTH,"NORMAL");
+				tt.draw(g,PRINT_MARGIN,pos,Alignment.Center);
+				pos += tt.getHeight(g);
+			}
 			
 			// Draw the title
 			tt = new TextType(gameObject.getName(),PRINT_WIDTH,"TITLE");
@@ -109,7 +93,7 @@ public class SpellCardComponent extends CardComponent {
 			pos += tt.getHeight(g);
 			
 			// Draw the description
-			String desc = (String)gameObject.getAttribute("this","text");
+			String desc = gameObject.getThisAttribute("text");
 			if (desc!=null) {
 				tt = new TextType(desc,PRINT_WIDTH,"NORMAL");
 				tt.draw(g,PRINT_MARGIN,pos,Alignment.Center);
@@ -141,16 +125,17 @@ public class SpellCardComponent extends CardComponent {
 			pos = CARD_HEIGHT - 18;
 			
 			// Spell Type
-			String spell = gameObject.getAttribute("this","spell");
-			String magic_color = ColorMagic.getColorName(gameObject.getAttribute("this","magic_color"));
-			tt = new TextType("("+spell+","+magic_color.toUpperCase()+")",PRINT_WIDTH,"TITLE");
-			tt.draw(g,PRINT_MARGIN,pos,Alignment.Center);
+			String spell = gameObject.getThisAttribute("spell");
+			String magic_color = ColorMagic.getColorName(gameObject.getThisAttribute("magic_color"));
+			if (magic_color!=null) {
+				tt = new TextType("("+spell+","+magic_color.toUpperCase()+")",PRINT_WIDTH,"TITLE");
+				tt.draw(g,PRINT_MARGIN,pos,Alignment.Center);
+			}
 			
 			// If the spell is alive, and a chit was used, the chit will be shown here
 			if (includeEmbellishments) {
-				ArrayList list = getGameObject().getHold();
-				for (Iterator i=list.iterator();i.hasNext();) {
-					GameObject held = (GameObject)i.next();
+				ArrayList<GameObject> list = getGameObject().getHold();
+				for (GameObject held : list) {
 					RealmComponent rc = RealmComponent.getRealmComponent(held);
 					if (rc.isActionChit()) {
 						rc.paint(g.create(20,(CARD_HEIGHT>>1)-13,ChitComponent.M_CHIT_SIZE,ChitComponent.M_CHIT_SIZE));

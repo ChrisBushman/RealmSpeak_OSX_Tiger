@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.store;
 
 import java.util.ArrayList;
@@ -28,6 +11,7 @@ import com.robin.magic_realm.components.attribute.Strength;
 import com.robin.magic_realm.components.swing.RealmComponentOptionChooser;
 import com.robin.magic_realm.components.utility.*;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
+import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class ThievesGuild extends GuildStore {
 	
@@ -37,6 +21,8 @@ public class ThievesGuild extends GuildStore {
 	private static String MAP_SERVICE_2 = "Learn all secret passages on a tile (both sides) for 10 gold.";
 	private static String UNLOCK_SERVICE = "Unlock the Chest for 50 gold.";
 	private static String ADVANCEMENT_SERVICE = "Pay "+GOLD_PRICE+" gold to advance to next level.";
+	public static String JOIN_GUILD_TEXT = "You have fulfilled the join requirement for the Thieves Guild. You are now a member of the Thieves Guild.";
+	public static String JOIN_GUILD_TITLE = "Joining Thieves Guild";
 	
 	private ArrayList<TileComponent> tilesWithUnknownPaths;
 	private ArrayList<TileComponent> tilesWithUnknownPassages;
@@ -119,9 +105,12 @@ public class ThievesGuild extends GuildStore {
 	}
 	protected String doGuildService(JFrame frame,int level) {
 		int gold = (int)character.getGold();
+		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
 		ButtonOptionDialog chooser = new ButtonOptionDialog(frame,trader.getIcon(),"Which service?",getTraderName()+" Services",true);
-		if (level<3) chooser.addSelectionObject(ADVANCEMENT_SERVICE,gold>=GOLD_PRICE);
-		updateButtonChooser(chooser,level);
+		if (!hostPrefs.hasPref(Constants.GUILDS_NO_ADVANCEMENT_SERVICE)) {
+			if (level<3) chooser.addSelectionObject(ADVANCEMENT_SERVICE,gold>=GOLD_PRICE);
+			updateButtonChooser(chooser,level);
+		}
 		if (level>=1) chooser.addSelectionObject(MAP_SERVICE_1,(gold>=5) && !tilesWithUnknownPaths.isEmpty());
 		if (level>=2) chooser.addSelectionObject(MAP_SERVICE_2,(gold>=10) && !tilesWithUnknownPassages.isEmpty());
 		if (level==3) chooser.addSelectionObject(UNLOCK_SERVICE,(gold>=50) && !openable.isEmpty());
@@ -154,22 +143,93 @@ public class ThievesGuild extends GuildStore {
 				int newLevel = character.getCurrentGuildLevel()+1;
 				character.setCurrentGuildLevel(newLevel);
 				chooseFriendlinessGain(frame);
+				if (newLevel!=3 && hostPrefs.hasPref(Constants.GUILDS_BENEFITS)) {
+					applyGuildBenefit(frame,character,newLevel);
+				}
 				if (newLevel==3) {
-					GameObject go = getNewCharacterChit();
-					Strength vul = new Strength(character.getGameObject().getThisAttribute("vulnerability"));
-					if (!vul.isTremendous()) {
-						vul = vul.addStrength(1);
-					}
-					go.setThisAttribute("action","move");
-					go.setThisAttribute("speed","2");
-					go.setThisAttribute("strength",vul.toString());
-					go.setThisAttribute("effort","2");
-					go.setName(character.getCharacterLevelName(4)+" MOVE "+vul.toString()+"2**");
-					RealmLogging.logMessage(character.getGameObject().getName(),"Gained a "+go.getName()+" chit.");
+					applyGuildBenefit3(frame,character);
 				}
 				return "Advanced to "+character.getCurrentGuildLevelName()+"!";
 			}
 		}
 		return null;
+	}
+	public void applyGuildBenefit1(JFrame frame, CharacterWrapper character) {
+		if (!character.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT+"_1")) {
+			character.getGameObject().addThisAttributeListItem(Constants.EXTRA_ACTIONS,"H");
+			character.getGameObject().setThisAttribute(Constants.GUILD_BENEFIT+"_1");
+		}
+	}
+	public void unapplyGuildBenefit1(JFrame frame, CharacterWrapper character) {
+		if (character.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT+"_1")) {
+			character.getGameObject().removeThisAttributeListItem(Constants.EXTRA_ACTIONS,"H");
+			character.getGameObject().removeThisAttribute(Constants.GUILD_BENEFIT+"_1");
+		}
+	}
+	public void applyGuildBenefit2(JFrame frame, CharacterWrapper character) {
+		if (!character.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT+"_2")) {
+			character.getGameObject().addThisAttributeListItem(Constants.DIEMOD,"-1:loot:all");
+			character.getGameObject().setThisAttribute(Constants.GUILD_BENEFIT+"_2");
+		}
+	}
+	public void unapplyGuildBenefit2(JFrame frame, CharacterWrapper character) {
+		if (character.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT+"_2")) {
+			character.getGameObject().removeThisAttribute(Constants.GUILD_BENEFIT+"_2");
+		}
+	}
+	public void applyGuildBenefit3(JFrame frame, CharacterWrapper character) {
+		if (!character.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT+"_3")) {
+			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
+			if (hostPrefs.hasPref(Constants.GUILDS_FINAL_BENEFIT)) {
+				for (GameObject livingCharacter : RealmUtility.getLivingCharacters(character.getGameData())) {
+					String guildLivingCharacter = new CharacterWrapper(livingCharacter).getCurrentGuild();
+					if (guildLivingCharacter!=null && guildLivingCharacter.matches(THIEVES_GUILD)) {
+						if (livingCharacter.getId()!=character.getGameObject().getId() &&  (livingCharacter.hasThisAttribute(Constants.GUILD_BENEFIT+"_3") || livingCharacter.hasThisAttribute(Constants.GUILD_BENEFIT_SUCESSOR))) {
+							return;
+						}
+					}
+				}
+			}
+			character.getGameObject().setThisAttribute(Constants.GUILD_BENEFIT+"_3");
+			GameObject go = getNewCharacterChit();
+			Strength vul = new Strength(character.getGameObject().getThisAttribute("vulnerability"));
+			if (!vul.isTremendous()) {
+				vul = vul.addStrength(1);
+			}
+			go.setThisAttribute("action","move");
+			go.setThisAttribute("speed","2");
+			go.setThisAttribute("strength",vul.toString());
+			go.setThisAttribute("effort","2");
+			go.setName(character.getCharacterLevelName(4)+" MOVE "+vul.toString()+"2**");
+			go.setThisAttribute(Constants.GUILD_BENEFIT+"_3");
+			RealmLogging.logMessage(character.getGameObject().getName(),"Gained a "+go.getName()+" chit.");
+		}
+	}
+	public void unapplyGuildBenefit3(JFrame frame, CharacterWrapper character) {
+		character.getGameObject().removeThisAttribute(Constants.GUILD_BENEFIT+"_3");
+		for (CharacterActionChitComponent chit : character.getAllChits()) {
+			if (chit.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT+"_3")) {
+				character.getGameObject().remove(chit.getGameObject());
+				chit.getGameObject().clearAllAttributes();
+			}
+		}
+	}
+	
+	public boolean validateRequirementAndJoin(CharacterWrapper character, GameObject loot) {
+		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
+		if (character.hasGuildJoinRequirement() && RealmComponent.getRealmComponent(loot).isTreasure()) {
+			character.setGuildJoinRequirement(false);
+			if (hostPrefs.hasPref(Constants.GUILDS_START_LEVEL)) {
+				character.setCurrentGuildLevel(0);
+			}
+			else {
+				character.setCurrentGuildLevel(1);
+				if (hostPrefs.hasPref(Constants.GUILDS_BENEFITS)) {
+					character.getCurrentGuildStore().applyGuildBenefit1(null, character);
+				}
+			}
+			return true;
+		}
+		return false;
 	}
 }

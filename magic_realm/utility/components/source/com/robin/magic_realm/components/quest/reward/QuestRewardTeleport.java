@@ -1,32 +1,20 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest.reward;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 import javax.swing.JFrame;
 
 import com.robin.game.objects.GameObject;
+import com.robin.general.util.RandomNumber;
+import com.robin.magic_realm.components.attribute.TileLocation;
 import com.robin.magic_realm.components.quest.QuestLocation;
+import com.robin.magic_realm.components.quest.QuestStep;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class QuestRewardTeleport extends QuestReward {
-	
+	private static Logger logger = Logger.getLogger(QuestStep.class.getName());
 	public static final String LOCATION = "_l";
 	
 	public QuestRewardTeleport(GameObject go) {
@@ -34,6 +22,16 @@ public class QuestRewardTeleport extends QuestReward {
 	}
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
+		QuestLocation loc = getQuestLocation();		
+		ArrayList<TileLocation> validLocations = new ArrayList<TileLocation>();
+		validLocations = loc.fetchAllLocations(frame, character, getGameData());
+		if(validLocations.isEmpty()) {
+			logger.fine("QuestLocation "+loc.getName()+" doesn't have any valid locations!");
+			return;
+		}
+		int random = RandomNumber.getRandom(validLocations.size());
+		TileLocation tileLocation = validLocations.get(random);
+		character.moveToLocation(frame, tileLocation);
 	}
 	
 	public boolean usesLocationTag(String tag) {
@@ -42,7 +40,7 @@ public class QuestRewardTeleport extends QuestReward {
 	}
 	
 	public String getDescription() {
-		return "Teleport to "+getQuestLocation().getName();
+		return "Teleport to "+getQuestLocation().getName()+".";
 	}
 
 	public RewardType getRewardType() {
@@ -63,7 +61,7 @@ public class QuestRewardTeleport extends QuestReward {
 		}
 		return null;
 	}
-	
+
 	public void updateIds(Hashtable<Long, GameObject> lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}

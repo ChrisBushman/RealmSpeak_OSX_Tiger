@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmCharacterBuilder;
 
 import java.awt.*;
@@ -31,6 +14,7 @@ import com.robin.general.io.FileManager;
 import com.robin.general.swing.*;
 import com.robin.general.util.OrderedHashtable;
 import com.robin.magic_realm.RealmCharacterBuilder.EditPanel.*;
+import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class AdvantageEditDialog extends AggressiveDialog {
@@ -79,12 +63,12 @@ public class AdvantageEditDialog extends AggressiveDialog {
 	}
 	private void initComponents() {
 		setLayout(new BorderLayout());
-		setSize(900,650);
+		setSize(1200,1200);
 		
 		mainPanel = new JPanel(new BorderLayout());
 			Box box = Box.createHorizontalBox();
 			Box iconBox = Box.createVerticalBox();
-			iconLabel = new JLabel("",JLabel.CENTER);
+			iconLabel = new JLabel("",SwingConstants.CENTER);
 			ComponentTools.lockComponentSize(iconLabel,38,38);
 			iconLabel.setBorder(BorderFactory.createEtchedBorder());
 			iconBox.add(iconLabel);
@@ -135,7 +119,7 @@ public class AdvantageEditDialog extends AggressiveDialog {
 				line.add(Box.createHorizontalGlue());
 			infoPanel.add(line);
 				line = group.createLabelLine("Description");
-				descriptionField = new JTextArea();
+				descriptionField = new JTextArea(3,70);
 				descriptionField.addFocusListener(new FocusAdapter() {
 					public void focusGained(FocusEvent ev) {
 						descriptionField.selectAll();
@@ -245,9 +229,8 @@ public class AdvantageEditDialog extends AggressiveDialog {
 	private void clearLevelAdvantages() {
 		// Clears out all current advantages
 		OrderedHashtable attributeBlock = model.getCharacter().getGameObject().getAttributeBlock(levelKey);
-		ArrayList keys = new ArrayList(attributeBlock.keySet());
-		for (Iterator i=keys.iterator();i.hasNext();) {
-			String key = (String)i.next();
+		ArrayList<String> keys = new ArrayList<String>(attributeBlock.keySet());
+		for (String key : keys) {
 			if (!saveAttributes.contains(key)) {
 				model.getCharacter().getGameObject().removeAttribute(levelKey,key);
 			}
@@ -276,7 +259,7 @@ public class AdvantageEditDialog extends AggressiveDialog {
 		clearButton.setEnabled(advantage!=null);
 	}
 	public Advantage createAdvantage() {
-		int n = Integer.valueOf(levelKey.substring(levelKey.length()-1));
+		int n = Integer.valueOf(levelKey.split("_")[1]);
 		String name = null;
 		switch(n) {
 			case 1:		name = "one"; break;
@@ -302,6 +285,7 @@ public class AdvantageEditDialog extends AggressiveDialog {
 		panelList = new ArrayList<AdvantageEditPanel>();
 		panelList.add(defaultEditPanel = new BlankEditPanel(model.getCharacter(),levelKey));
 		panelList.add(new ColorSourceEditPanel(model.getCharacter(),levelKey));
+		panelList.add(new ColorBlockingEditPanel(model.getCharacter(),levelKey));
 		panelList.add(new CompanionEditPanel(model.getCharacter(),levelKey));
 		panelList.add(new DieModEditPanel(model.getCharacter(),levelKey));
 		panelList.add(new ExtraActionEditPanel(model.getCharacter(),levelKey));
@@ -309,7 +293,11 @@ public class AdvantageEditDialog extends AggressiveDialog {
 		panelList.add(new GoldAdjustmentEditPanel(model.getCharacter(),levelKey));
 		panelList.add(new ItemRestrictionsEditPanel(model.getCharacter(),levelKey));
 		panelList.add(new MiscellaneousEditPanel(model.getCharacter(),levelKey));
-		panelList.add(new MonsterInteractionEditPanel(model.getCharacter(),levelKey));
+		panelList.add(new MonsterInteractionEditPanel(model.getCharacter(),levelKey, Constants.MONSTER_IMMUNITY));
+		panelList.add(new MonsterInteractionEditPanel(model.getCharacter(),levelKey, Constants.MONSTER_CONTROL));
+		panelList.add(new MonsterInteractionEditPanel(model.getCharacter(),levelKey, Constants.MONSTER_FEAR));
+		panelList.add(new MonsterInteractionEditPanel(model.getCharacter(),levelKey, Constants.MONSTER_FRIENDLINESS));
+		panelList.add(new TreasureLocationEditPanel(model.getCharacter(),levelKey));
 		panelList.add(new SpecialActionEditPanel(model.getCharacter(),levelKey));
 		panelList.add(new StartingInventoryEditPanel(model.getCharacter(),levelKey,magicRealmData));
 		panelList.add(new TacticsChangeEditPanel(model.getCharacter(),levelKey));

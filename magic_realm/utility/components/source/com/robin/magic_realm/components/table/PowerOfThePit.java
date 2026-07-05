@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.table;
 
 import java.util.*;
@@ -24,6 +7,7 @@ import javax.swing.JFrame;
 import com.robin.game.objects.GameObject;
 import com.robin.general.swing.DieRoller;
 import com.robin.magic_realm.components.*;
+import com.robin.magic_realm.components.attribute.Speed;
 import com.robin.magic_realm.components.attribute.Strength;
 import com.robin.magic_realm.components.attribute.TileLocation;
 import com.robin.magic_realm.components.utility.*;
@@ -47,10 +31,12 @@ public class PowerOfThePit extends RealmTable {
 	
 	private ArrayList<GameObject> kills;
 	private boolean harm;
+	private Speed speed;
 	
-	public PowerOfThePit(JFrame frame,GameObject caster) {
+	public PowerOfThePit(JFrame frame,GameObject caster,Speed attackSpeed) {
 		super(frame,null);
 		this.caster = caster;
+		this.speed = attackSpeed;
 		kills = new ArrayList<GameObject>();
 	}
 	public boolean harmWasApplied() {
@@ -65,22 +51,8 @@ public class PowerOfThePit extends RealmTable {
 	public void setMakeDeadWhenKilled(boolean makeDeadWhenKilled) {
 		this.makeDeadWhenKilled = makeDeadWhenKilled;
 	}
-	public String getDestClientName(GameObject attacker,GameObject target) {
-		RealmComponent attackerRc = RealmComponent.getRealmComponent(attacker);
-		RealmComponent targetRc = RealmComponent.getRealmComponent(target);
-		// Determine the destination client
-		RealmComponent destOwner = attackerRc.getOwner();
-		if (destOwner==null) {
-			destOwner = targetRc.getOwner();
-		}
-		// destOwner should NOT be null at this point!  One or the other HAS to be owned
-		CharacterWrapper destCharacter = new CharacterWrapper(destOwner.getGameObject());
-		return destCharacter.getPlayerName();
-	}
 	public String apply(CharacterWrapper character,DieRoller roller) {
 		harm = false;
-//System.out.println("PowerOfThePit:  REMOVE THIS CODE");
-//roller.setValue(0,3);if (roller.getNumberOfDice()>1) roller.setValue(1,3);
 		if (character.isMistLike()) {
 			return "Unaffected - Mist";
 		}
@@ -97,29 +69,17 @@ public class PowerOfThePit extends RealmTable {
 		}
 		return super.apply(character,roller);
 	}
-	private String getKilledString(ArrayList<RealmComponent> killed) {
-		StringBuffer string = new StringBuffer();
-		if (!killed.isEmpty()) {
-			string.append("\n\n");
-			for (RealmComponent rc:killed) {
-				string.append("    ");
-				string.append(rc.getGameObject().getName());
-				string.append(" was killed.\n");
-			}
-		}
-		return string.toString();
-	}
 	public String applyOne(CharacterWrapper character) {
 		// All unhidden characters, natives, and monsters in the clearing are killed.  Visitors, and hidden
 		// characters, natives, and monsters are unaffected.
-		String destClientName = getDestClientName(caster,character.getGameObject()); // Get this before killing anybody!
-		ArrayList<RealmComponent> killed = killEverythingInClearing(character,new Strength("RED"),true,false);
+		String destClientName = DemonsEffects.getDestClientName(caster,character.getGameObject()); // Get this before killing anybody!
+		ArrayList<RealmComponent> killed = DemonsEffects.killEverythingInClearing(character,new Strength("RED"),true,false,speed,caster,makeDeadWhenKilled,kills);
 		
 		StringBuffer message = new StringBuffer();
 		message.append("Fiery Chasm Opens\n\n");
 		message.append("All unhidden characters, natives, and monsters in the clearing are killed.\n");
 		message.append("Visitors, and hidden characters, natives, and monsters are unaffected");
-		message.append(getKilledString(killed));
+		message.append(DemonsEffects.getKilledString(killed));
 		
 		sendMessage(character.getGameObject().getGameData(),
 				destClientName,
@@ -131,20 +91,20 @@ public class PowerOfThePit extends RealmTable {
 
 	public String applyTwo(CharacterWrapper character) {
 		sendMessage(character.getGameObject().getGameData(),
-				getDestClientName(caster,character.getGameObject()),
+				DemonsEffects.getDestClientName(caster,character.getGameObject()),
 				"Power of the Pit",
 				"Carried Away\n\n"
 				+"The target is instantly killed.\n\n     "+character.getGameObject().getName()+" was killed.");
 		// The target is instantly killed.
-		kill(character.getGameObject());
+		DemonsEffects.kill(character.getGameObject(),speed,caster,makeDeadWhenKilled,kills);
 		return RESULT[1];
 	}
 
 	public String applyThree(CharacterWrapper character) {
-		String destClientName = getDestClientName(caster,character.getGameObject()); // Get this before killing anybody!
+		String destClientName = DemonsEffects.getDestClientName(caster,character.getGameObject()); // Get this before killing anybody!
 		
 		// All Light and Medium Monsters, Natives, and Horses in the clearing are killed.
-		ArrayList<RealmComponent> killed = killEverythingInClearing(character,new Strength("H"),false,true);
+		ArrayList<RealmComponent> killed = DemonsEffects.killEverythingInClearing(character,new Strength("H"),false,true,speed,caster,makeDeadWhenKilled,kills);
 		
 		// Each character in the clearing must wound all Light and Medium MOVE/FIGHT chits.
 		TileLocation tl = character.getCurrentLocation();
@@ -168,7 +128,7 @@ public class PowerOfThePit extends RealmTable {
 						}
 					}
 					if (!hasAtLeastOneGoodChit) {
-						kill(rc.getGameObject());
+						DemonsEffects.kill(rc.getGameObject(),speed,caster,makeDeadWhenKilled,kills);
 						killed.add(rc);
 					}
 				}
@@ -179,7 +139,7 @@ public class PowerOfThePit extends RealmTable {
 		message.append("Terror\n\n");
 		message.append("Each character in the clearing must wound all Light and Medium MOVE/FIGHT chits.\n");
 		message.append("All Light and Medium Monsters, Natives, and Horses in the clearing are killed.");
-		message.append(getKilledString(killed));
+		message.append(DemonsEffects.getKilledString(killed));
 		
 		sendMessage(character.getGameObject().getGameData(),
 				destClientName,
@@ -190,7 +150,7 @@ public class PowerOfThePit extends RealmTable {
 	}
 
 	public String applyFour(CharacterWrapper character) {
-		String destClientName = getDestClientName(caster,character.getGameObject()); // Get this before killing anybody!
+		String destClientName = DemonsEffects.getDestClientName(caster,character.getGameObject()); // Get this before killing anybody!
 		boolean hasChits = character.isCharacter() && !character.isTransmorphed();
 		boolean hasAtLeastOneGoodChit = false;
 		for (CharacterActionChitComponent chit:character.getAllChits()) {
@@ -204,13 +164,13 @@ public class PowerOfThePit extends RealmTable {
 		}
 		StringBuffer message = new StringBuffer();
 		message.append("Blight\n\n");
-		message.append("All of the target�s active chits that show effort asterisks become wounded.\n");
+		message.append("All of the target's active chits that show effort asterisks become wounded.\n");
 		message.append("Chits that are already fatigued or that show no asterisks are not affected.");
 		if (hasChits && !hasAtLeastOneGoodChit) {
-			kill(character.getGameObject());
+			DemonsEffects.kill(character.getGameObject(),speed,caster,makeDeadWhenKilled,kills);
 			ArrayList<RealmComponent> killed = new ArrayList<RealmComponent>();
 			killed.add(RealmComponent.getRealmComponent(character.getGameObject()));
-			message.append(getKilledString(killed));
+			message.append(DemonsEffects.getKilledString(killed));
 		}
 		sendMessage(character.getGameObject().getGameData(),
 				destClientName,
@@ -221,14 +181,13 @@ public class PowerOfThePit extends RealmTable {
 
 	public String applyFive(CharacterWrapper character) {
 		sendMessage(character.getGameObject().getGameData(),
-				getDestClientName(caster,character.getGameObject()),
+				DemonsEffects.getDestClientName(caster,character.getGameObject()),
 				"Power of the Pit",
 				"Forget\n\n"
 				+"All of the target's active MAGIC chits become fatigued.");
 		
 		// All of the target's active MAGIC chits become fatigued
-		for (Iterator i=character.getActiveMagicChits().iterator();i.hasNext();) {
-			CharacterActionChitComponent chit = (CharacterActionChitComponent)i.next();
+		for (CharacterActionChitComponent chit : character.getActiveMagicChits()) {
 			if (!chit.isFatigued()) {
 				chit.makeFatigued();
 				harm = true;
@@ -239,17 +198,17 @@ public class PowerOfThePit extends RealmTable {
 
 	public String applySix(CharacterWrapper character) {
 		sendMessage(character.getGameObject().getGameData(),
-				getDestClientName(caster,character.getGameObject()),
+				DemonsEffects.getDestClientName(caster,character.getGameObject()),
 				"Power of the Pit",
 				"Rust\n\n"
-				+"All of the target�s active armor counters suffer damage. Intact armor counters\n"
+				+"All of the target's active armor counters suffer damage. Intact armor counters\n"
 				+"become damaged, damaged armor counters are destroyed. Armor cards and inactive\n"
 				+"counters are not affected.");
 		// The target's active armor counters are damaged.  Armor cards and inactive counters are NOT affected.
 		ArrayList<GameObject> destroyed = new ArrayList<GameObject>();
 		for (GameObject inv:character.getActiveInventory()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(inv);
-			if (rc.isArmor()) {
+			if (rc.isArmor() && !rc.getGameObject().hasThisAttribute(Constants.OINTMENT_OF_STONE)) {
 				ArmorChitComponent armor = (ArmorChitComponent)rc;
 				if (armor.isDamaged()) {
 					if (makeDeadWhenKilled) {
@@ -258,6 +217,8 @@ public class PowerOfThePit extends RealmTable {
 					else {
 						CombatWrapper combat = new CombatWrapper(inv);
 						combat.setKilledBy(caster);
+						combat.setKilledLength(17);
+						combat.setKilledSpeed(speed);
 					}
 				}
 				else {
@@ -271,68 +232,11 @@ public class PowerOfThePit extends RealmTable {
 		}
 		return RESULT[5];
 	}
-	private ArrayList<RealmComponent> killEverythingInClearing(CharacterWrapper character,Strength power,boolean hiddenAreSafe,boolean charactersAreSafe) {
-		ArrayList<RealmComponent> killed = new ArrayList<RealmComponent>();
-		TileLocation tl = character.getCurrentLocation();
-		if (tl.isInClearing()) {
-//System.out.println("killEverythingInClearing="+tl);
-			HashSet<RealmComponent> livingThings = new HashSet<RealmComponent>();
-			for (RealmComponent rc:tl.clearing.getClearingComponents()) {
-				if (rc.isPlayerControlledLeader()) {
-					livingThings.add(rc);
-					CharacterWrapper aChar = new CharacterWrapper(rc.getGameObject());
-					livingThings.addAll(aChar.getFollowingHirelings());
-				}
-				if (rc.isNative() || rc.isHorse() || rc.isMonster()) {
-					livingThings.add(rc);
-				}
-			}
-			for (RealmComponent rc:livingThings) {
-				if (!rc.isMistLike()) {
-					if (!hiddenAreSafe || !rc.isHidden()) {
-						Strength strength = new Strength(rc.getGameObject().getThisAttribute("vulnerability"));
-						if (rc.isCharacter()) {
-							CharacterChitComponent achar = (CharacterChitComponent)rc;
-							MonsterChitComponent transform = achar.getTransmorphedComponent();
-							if (transform!=null) {
-								strength = new Strength(transform.getGameObject().getThisAttribute("vulnerability"));
-							}
-							else if (charactersAreSafe) {
-								strength = new Strength("X");
-							}
-						}
-						if (power.strongerThan(strength)) {
-							kill(rc.getGameObject());
-							killed.add(rc);
-						}
-					}
-				}
-			}
-		}
-		return killed;
-	}
-	private void kill(GameObject go) {
-		RealmComponent attacker =RealmComponent.getRealmComponent(caster); 
-		RealmComponent victim = RealmComponent.getRealmComponent(go);
-		BattleUtility.handleSpoilsOfWar(attacker,victim);
-		
-		kills.add(go);
-		
-		if (makeDeadWhenKilled) {
-			RealmUtility.makeDead(RealmComponent.getRealmComponent(go));
-		}
-		else {
-			CombatWrapper combat = new CombatWrapper(go);
-			combat.setKilledBy(caster);
-			CombatWrapper tile = new CombatWrapper(victim.getCurrentLocation().tile.getGameObject());
-			tile.addHitResult();
-		}
-	}
 	public ArrayList<GameObject> getKills() {
 		return kills;
 	}
-	public static PowerOfThePit doNow(JFrame parent,GameObject attacker,GameObject target,boolean casterRolls,int redDie) {
-		PowerOfThePit pop = new PowerOfThePit(parent,attacker);
+	public static PowerOfThePit doNow(JFrame parent,GameObject attacker,GameObject target,boolean casterRolls,int redDie,Speed attackSpeed) {
+		PowerOfThePit pop = new PowerOfThePit(parent,attacker,attackSpeed);
 		pop.setMakeDeadWhenKilled(false);
 		CharacterWrapper caster = new CharacterWrapper(attacker);
 		CharacterWrapper victim = new CharacterWrapper(target);

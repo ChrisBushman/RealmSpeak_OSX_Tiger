@@ -1,31 +1,21 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import javax.swing.SwingUtilities;
 
+import com.robin.game.objects.GameObject;
 import com.robin.general.io.PreferenceManager;
 import com.robin.general.sound.SoundCache;
 import com.robin.general.swing.ComponentTools;
-import com.robin.magic_realm.components.MonsterChitComponent;
+import com.robin.magic_realm.components.CardComponent;
+import com.robin.magic_realm.components.CharacterChitComponent;
+import com.robin.magic_realm.components.ChitComponent;
 import com.robin.magic_realm.components.RealmComponent;
+import com.robin.magic_realm.components.TileComponent;
+import com.robin.magic_realm.RealmBattle.CombatFrame;
 import com.robin.magic_realm.components.attribute.ChatLine;
 import com.robin.magic_realm.components.attribute.ChatLine.HeaderMode;
+import com.robin.magic_realm.components.swing.CenteredMapView;
+import com.robin.magic_realm.components.utility.CustomUiUtility;
 import com.robin.magic_realm.components.utility.RealmUtility;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
@@ -39,20 +29,36 @@ public class RealmSpeakOptions {
 	public static final String LAST_EXPORT_LOCATION = "lastExportLocation";
 	
 	public static final String METAL_LNF = "metalLnf";
+	public static final String NIMBUS_LNF = "nimbusLnf";
 	public static final String ACTION_ICONS = "actionIcons";
 	public static final String CHIT_DISPLAY_STYLE = "chitDisplayStyle";
+	public static final String CHIT_DISPLAY_COLORED_STATS = "chitDisplayColoredStats";
+	public static final String CHIT_DISPLAY_ARMOR = "chitDisplayArmor";
+	public static final String CHIT_DISPLAY_SUBLINE = "chitDisplaySubline";
+	public static final String CHARACTER_CHIT_DISPLAY_STYLE = "characterChitDisplayStyle";
+	public static final String TILES_DISPLAY_STYLE = "tilesDisplayStyle";
 	public static final String MAP_SLIDER = "mapSlider";
 	public static final String HIGHLIGHT_CLEARING_NUMBERS = "hClearN";
 	public static final String SHOW_SEASON_ICON = "sSeasI";
+	public static final String MAP_FOLLOW_CHARACTER = "mapFollowCharacter";
+	public static final String MAP_CENTER_ON_CHARACTER = "mapCenterOnCharacter";
+	public static final String COMBAT_CONTROLS_PLACEMENT_2 = "combatControlsPlacement2";
 	public static final String NUMBER_OF_CHAT_LINES = "nlChat";
 	public static final String HEADER_CHAT_LINES = "hChatL";
 	public static final String DAILY_COMBAT = "dailyCombat";
+	public static final String DENIZEN_VULNERABILITIES = "denizenVulnerabilities";
 	public static final String MONSTER_NUMBERS = "monsterNumbers";
+	public static final String CHIT_KILLED_BY = "killedBy";
+	public static final String SETUP_CARD_LAYOUT = "setupCardLayout";
+	public static final String SHOW_CONNECTION_INFO = "showConnectionInfo";
 	public static final String HEAVY_INV_WARNING = "heavyInvWarning";
 	public static final String INCOMPLETE_PHASE_WARNING = "incompletePhaseWarning";
+	public static final String INVALID_PHASE_WARNING = "invalidPhaseWarning";
 	public static final String MOVE_AFTER_HIRE_WARNING = "moveAfterHireWarning";
 	public static final String UNASSIGNED_HIRELINGS_WARNING = "unassignedHirelingsWarning";
 	public static final String TURN_END_RESULTS = "turnEndResultsOption";
+	public static final String COMBAT_NEXT_PHASE_WARNING = "combatNextPhaseWarning";
+	public static final String AUTO_POSITIONING_ATTACKERS = "autoPositioningAttackers";
 	public static final String ENABLE_SOUND = "enableSound";
 	
 	PreferenceManager options;
@@ -75,11 +81,52 @@ public class RealmSpeakOptions {
 			case RealmComponent.DISPLAY_STYLE_FRENZEL:
 				RealmComponent.displayStyle = RealmComponent.DISPLAY_STYLE_FRENZEL;
 				break;
+			case RealmComponent.DISPLAY_STYLE_LEGENDARY:
+				RealmComponent.displayStyle = RealmComponent.DISPLAY_STYLE_LEGENDARY;
+				break;
+			case RealmComponent.DISPLAY_STYLE_ALTERNATIVE:
+				RealmComponent.displayStyle = RealmComponent.DISPLAY_STYLE_ALTERNATIVE;
+				break;
 			default:
 				RealmComponent.displayStyle = RealmComponent.DISPLAY_STYLE_CLASSIC;
 				break;
 		}
-		MonsterChitComponent.showMonsterNumbers = options.getBoolean(MONSTER_NUMBERS);
+		RealmComponent.displayColoredStats = options.getBoolean(RealmSpeakOptions.CHIT_DISPLAY_COLORED_STATS);
+		RealmComponent.displayArmor = options.getBoolean(RealmSpeakOptions.CHIT_DISPLAY_ARMOR);
+		RealmComponent.displaySubline = options.getBoolean(RealmSpeakOptions.CHIT_DISPLAY_SUBLINE);
+		
+		switch(options.getInt(RealmSpeakOptions.CHARACTER_CHIT_DISPLAY_STYLE)) {
+			case CharacterChitComponent.DISPLAY_STYLE_CLASSIC:
+				CharacterChitComponent.displayStyle = CharacterChitComponent.DISPLAY_STYLE_CLASSIC;
+				break;
+			case CharacterChitComponent.DISPLAY_STYLE_LEGENDARY_CLASSIC:
+				CharacterChitComponent.displayStyle = CharacterChitComponent.DISPLAY_STYLE_LEGENDARY_CLASSIC;
+				break;
+			case CharacterChitComponent.DISPLAY_STYLE_LEGENDARY:
+				CharacterChitComponent.displayStyle = CharacterChitComponent.DISPLAY_STYLE_LEGENDARY;
+				break;
+			case CharacterChitComponent.DISPLAY_STYLE_ALTERNATIVE:
+				CharacterChitComponent.displayStyle = CharacterChitComponent.DISPLAY_STYLE_ALTERNATIVE;
+				break;
+			default:
+				CharacterChitComponent.displayStyle = CharacterChitComponent.DISPLAY_STYLE_CLASSIC;
+				break;
+		}
+		switch(options.getInt(RealmSpeakOptions.TILES_DISPLAY_STYLE)) {
+			case TileComponent.DISPLAY_TILES_STYLE_LEGENDARY:
+				TileComponent.displayTilesStyle = TileComponent.DISPLAY_TILES_STYLE_LEGENDARY;
+				break;
+			case TileComponent.DISPLAY_TILES_STYLE_LEGENDARY_WITH_ICONS:
+				TileComponent.displayTilesStyle = TileComponent.DISPLAY_TILES_STYLE_LEGENDARY_WITH_ICONS;
+				break;
+			default:
+				TileComponent.displayTilesStyle = TileComponent.DISPLAY_TILES_STYLE_CLASSIC;
+				break;
+		}
+		GameObject.showVul = options.getBoolean(DENIZEN_VULNERABILITIES);
+		GameObject.showNumbers = options.getBoolean(MONSTER_NUMBERS);
+		ChitComponent.killedByOption = options.getBoolean(CHIT_KILLED_BY);
+		CardComponent.killedByOption = options.getBoolean(CHIT_KILLED_BY);
 		if (gameHandler!=null) {
 			gameHandler.updateToolbarOptions(getActionIconState());
 			gameHandler.getInspector().setZoomSlider(options.isPref(MAP_SLIDER));
@@ -93,14 +140,22 @@ public class RealmSpeakOptions {
 		if (headerMode!=null) {
 			ChatLine.setHeaderMode(HeaderMode.valueOf(headerMode));
 		}
+		CenteredMapView.setFollowEnabled(options.getBoolean(MAP_FOLLOW_CHARACTER));
+		CombatFrame.setAutoPositioningAttackers(options.getBoolean(AUTO_POSITIONING_ATTACKERS));
+		CombatFrame.setControlsPlacement2(options.getBoolean(COMBAT_CONTROLS_PLACEMENT_2));
 		SoundCache.setSoundEnabled(options.getBoolean(ENABLE_SOUND,true));
 		if (options.getBoolean(RealmSpeakOptions.METAL_LNF)) {
 			ComponentTools.setMetalLookAndFeel();
 		}
+		else if (options.getBoolean(RealmSpeakOptions.NIMBUS_LNF)) {
+			ComponentTools.setNimbusLookAndFeel();
+		}
 		else {
 			ComponentTools.setSystemLookAndFeel();
 		}
+		CustomUiUtility.initColors();
 		SwingUtilities.updateComponentTreeUI(frame);
+		frame.updateConnectionTitle();
 	}
 	private void readFramePreferences() {
 		options = RealmUtility.getRealmSpeakPrefs();
@@ -108,14 +163,25 @@ public class RealmSpeakOptions {
 			options.loadPreferences();
 		}
 		else {
-			// setup defaults TODO Might need more defaults here
+			// setup defaults. Might need more defaults here
 			options.set(METAL_LNF,true);
+			options.set(CustomUiUtility.BACKGROUND_COLOR, CustomUiUtility.BACKGROUND_COLOR_0);
 			options.set(ACTION_ICONS,ActionIcon.ACTION_ICON_NORMAL);
 			options.set(MAP_SLIDER,false);
 			options.set(DAILY_COMBAT,"ON");
 			options.set(HEAVY_INV_WARNING,true);
 			options.set(INCOMPLETE_PHASE_WARNING,true);
+			options.set(INVALID_PHASE_WARNING,true);
 			options.set(MOVE_AFTER_HIRE_WARNING,true);
+			options.set(UNASSIGNED_HIRELINGS_WARNING,true);
+			options.set(CHIT_DISPLAY_STYLE,RealmComponent.DISPLAY_STYLE_LEGENDARY);
+			options.set(CHARACTER_CHIT_DISPLAY_STYLE,CharacterChitComponent.DISPLAY_STYLE_LEGENDARY);
+			options.set(TILES_DISPLAY_STYLE,TileComponent.DISPLAY_TILES_STYLE_LEGENDARY_WITH_ICONS);
+			options.set(CHIT_KILLED_BY,true);
+			options.set(SETUP_CARD_LAYOUT,true);
+			options.set(MAP_FOLLOW_CHARACTER,true);
+			options.set(MAP_CENTER_ON_CHARACTER,true);
+			options.set(COMBAT_CONTROLS_PLACEMENT_2,false);
 		}
 	}
 	public void save() {

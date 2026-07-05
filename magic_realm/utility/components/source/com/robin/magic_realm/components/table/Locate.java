@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.table;
 
 import java.util.ArrayList;
@@ -23,10 +6,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
 import com.robin.magic_realm.components.*;
-import com.robin.magic_realm.components.quest.CharacterActionType;
-import com.robin.magic_realm.components.quest.SearchResultType;
-import com.robin.magic_realm.components.quest.requirement.QuestRequirementParams;
 import com.robin.magic_realm.components.swing.PathIcon;
+import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class Locate extends Search {
@@ -42,10 +23,6 @@ public class Locate extends Search {
 	public String getTableKey() {
 		return "Locate";
 	}
-//public String apply(CharacterWrapper character,DieRoller roller) {
-//System.err.println("Locate.java DEBUGGO");
-//return applyFour(character);
-//}
 	public String applyOne(CharacterWrapper character) {
 		// Choice
 		return doChoice(character);
@@ -72,6 +49,12 @@ public class Locate extends Search {
 	}
 
 	public String applyFive(CharacterWrapper character) {
+		if (character.affectedByKey(Constants.ADVENTURE_GUIDE)) {
+			doPassages(character);
+		}
+		if (character.affectedByKey(Constants.TRAVELERS_GUIDE)) {
+			doPaths(character);
+		}
 		// Nothing
 		return "Nothing";
 	}
@@ -91,25 +74,5 @@ public class Locate extends Search {
 			list.add(getIconForSearch(rc));
 		}
 		return list;
-	}
-	
-	protected String doPassages(CharacterWrapper character) {
-		ArrayList<PathDetail> list = getAllUndiscoveredPassages(character);
-		for (PathDetail path:list) {
-			character.addSecretPassageDiscovery(path.getFullPathKey());
-		}
-		
-		QuestRequirementParams qp = new QuestRequirementParams();
-		qp.actionName = getTableKey();
-		qp.actionType = CharacterActionType.SearchTable;
-		qp.searchType = SearchResultType.Passages;
-		
-		String ret = "Passage(s)";
-		if (list.size()>0) {
-			ret = "Found "+list.size()+" passage(s)";
-			qp.searchHadAnEffect = true;
-		}
-		character.testQuestRequirements(getParentFrame(),qp);
-		return ret;
 	}
 }

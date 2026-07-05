@@ -1,27 +1,9 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.swing;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.swing.*;
 
@@ -96,19 +78,24 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 	}
 	private void initData() {
 		RealmObjectMaster rom = RealmObjectMaster.getRealmObjectMaster(gameData);
-		ArrayList query = new ArrayList();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add("!"+Constants.GOLD_SPECIAL_PLACED);
 		if (hostPrefs.hasPref(Constants.HOUSE2_IGNORE_CAMPAIGNS)) {
 			query.add("!campaign");
 		}
-		ArrayList<GameObject> gs = new ArrayList<GameObject>(rom.findObjects("gold_special",query, false));
-		destinations = new ArrayList<GameObject>(rom.findObjects("gold_special_target", false));
+		ArrayList<GameObject> gs = new ArrayList<GameObject>(rom.findObjects("gold_special",query));
+		destinations = new ArrayList<GameObject>(rom.findObjects("gold_special_target"));
 		chits = new ArrayList<GameObject[]>();
 		while (!gs.isEmpty()) {
 			GameObject[] chit = new GameObject[2];
-			chit[0] = (GameObject) gs.remove(0);
-			chit[1] = (GameObject) gameData.getGameObject(Long.valueOf(chit[0].getThisAttribute("pairid")));
-			gs.remove(chit[1]);
+			chit[0] = gs.remove(0);
+			if (chit[0].hasThisAttribute("pairid")) {
+				chit[1] = gameData.getGameObject(Long.valueOf(chit[0].getThisAttribute("pairid")));
+				gs.remove(chit[1]);
+			}
+			else {
+				chit[1] = chit[0];
+			}
 			chits.add(chit);
 		}
 	}
@@ -116,12 +103,12 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 		setSize(800,600);
 		getContentPane().removeAll();
 		getContentPane().setLayout(new BorderLayout());
-		JLabel titleBar = new JLabel("Choose a chit face on the left, and select a destination at the bottom",JLabel.CENTER);
+		JLabel titleBar = new JLabel("Choose a chit face on the left, and select a destination at the bottom",SwingConstants.CENTER);
 		titleBar.setOpaque(true);
 		titleBar.setBackground(MagicRealmColor.PALEYELLOW);
 		titleBar.setFont(HEADER_FONT);
 		getContentPane().add(titleBar,"North");
-		JTabbedPane chitTabs = new JTabbedPane(JTabbedPane.LEFT);
+		JTabbedPane chitTabs = new JTabbedPane(SwingConstants.LEFT);
 		chitTabs.setFont(BIG_FONT);
 		chitTabs.setBorder(BorderFactory.createEtchedBorder());
 		JPanel buttonGrid = null;
@@ -131,17 +118,26 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 		chitButtons = new ArrayList<JToggleButton>();
 		boolean ignoreCampaigns = hostPrefs.hasPref(Constants.HOUSE2_IGNORE_CAMPAIGNS);
 		for (GameObject[] chit:chits) {
-			if (count%6==0) {
+			if ((!hostPrefs.usesSuperRealm() && count%6==0) || (hostPrefs.usesSuperRealm() && count%12==0)) {
 				if (buttonGrid!=null) {
 					chitTabs.addTab(String.valueOf(++pageCount),buttonGrid);
 				}
-				buttonGrid = new JPanel(new GridLayout(6,1));
+				if (hostPrefs.usesSuperRealm()) {
+					buttonGrid = new JPanel(new GridLayout(6,2));
+				} else {
+					buttonGrid = new JPanel(new GridLayout(6,1));
+				}
 			}
-			JPanel subGrid = new JPanel(new GridLayout(1,2));
+			JPanel subGrid = null;
+			if (hostPrefs.usesSuperRealm()) {
+				subGrid = new JPanel(new GridLayout(1,1));
+			} else {
+				subGrid = new JPanel(new GridLayout(1,2));
+			}
 			subGrid.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
 			for (int i=0;i<2;i++) {
 				JToggleButton button;
-				boolean isCampaign = chit[i].hasThisAttribute("campaign");
+				boolean isCampaign = chit[i].hasThisAttribute(Constants.CAMPAIGN);
 				if (chit[i].hasThisAttribute(Constants.GOLD_SPECIAL_PLACED) || (isCampaign && ignoreCampaigns)) {
 					button = new JToggleButton();
 					button.setEnabled(false);
@@ -152,6 +148,7 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 				chitButtons.add(button);
 				subGrid.add(button);
 				group.add(button);
+				if (hostPrefs.usesSuperRealm()) break;
 			}
 			buttonGrid.add(subGrid);
 			count++;
@@ -170,9 +167,9 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 		
 		JPanel infoPanel = new JPanel(new GridLayout(2,1));
 		chitIcon = new JLabel();
-		chitIcon.setHorizontalAlignment(JLabel.CENTER);
+		chitIcon.setHorizontalAlignment(SwingConstants.CENTER);
 		infoPanel.add(chitIcon);
-		JLabel infoLabel = new JLabel(getCharacterInfo(),JLabel.CENTER);
+		JLabel infoLabel = new JLabel(getCharacterInfo(),SwingConstants.CENTER);
 		infoLabel.setFont(HEADER_FONT);
 		infoLabel.setOpaque(true);
 		infoLabel.setBorder(BorderFactory.createEtchedBorder());
@@ -188,7 +185,7 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 		mainPanel.add(topPanel);
 		
 		// Build destination panel
-		JTabbedPane destTabs = new JTabbedPane(JTabbedPane.LEFT);
+		JTabbedPane destTabs = new JTabbedPane(SwingConstants.LEFT);
 		destTabs.setFont(BIG_FONT);
 		DestinationPanel dPanel = null;
 		count = 0;
@@ -204,21 +201,21 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 			JPanel destRow = new JPanel(new GridLayout(1,DEST_HEADER.length));
 			destRow.setBorder(BorderFactory.createEtchedBorder());
 			
-			destRow.add(new JLabel(go.getName(),JLabel.CENTER));
+			destRow.add(new JLabel(go.getName(),SwingConstants.CENTER));
 			String summon = go.getThisAttribute("summon");
 			if (summon.indexOf(',')<0) {
 				String relBlock = RealmUtility.getRelationshipBlockFor(go);
 				int rel = character.getRelationship(relBlock,summon);
 				String relationship = RealmUtility.getRelationshipNameFor(rel);
-				destRow.add(new JLabel(relationship,JLabel.CENTER));
+				destRow.add(new JLabel(relationship,SwingConstants.CENTER));
 			}
 			else {
 				destRow.add(new JLabel(""));
 			}
 			
 			if (go.getHoldCount()>0) {
-				GameObject hold = (GameObject)go.getHold().get(0);
-				destRow.add(new JLabel(hold.getName(),JLabel.CENTER));
+				GameObject hold = go.getHold().get(0);
+				destRow.add(new JLabel(hold.getName(),SwingConstants.CENTER));
 			}
 			else {
 				PlaceButton button = new PlaceButton(go);
@@ -267,15 +264,14 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 	}
 	private String getCharacterInfo() {
 		String levelKey = "level_"+character.getCharacterLevel();
-		ArrayList types = character.getGameObject().getAttributeList(levelKey,"spelltypes"); // like [I,VII] (for example)
+		ArrayList<String> types = character.getGameObject().getAttributeList(levelKey,"spelltypes"); // like [I,VII] (for example)
 		String info;
 		if (types==null) {
 			info = character.getGameObject().getName()+" has no spell types.";
 		}
 		else {
 			StringBufferedList list = new StringBufferedList();
-			for (Iterator i=types.iterator();i.hasNext();) {
-				String val = (String)i.next();
+			for (String val : types) {
 				list.append(val);
 			}
 			info = character.getGameObject().getName()+" can learn<br>spells of type "+list.toString();
@@ -317,7 +313,7 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 			super(new BorderLayout());
 			destHeader = new JPanel(new GridLayout(1,DEST_HEADER.length));
 			for (int i=0;i<DEST_HEADER.length;i++) {
-				JLabel label = new JLabel(DEST_HEADER[i],JLabel.CENTER);
+				JLabel label = new JLabel(DEST_HEADER[i],SwingConstants.CENTER);
 				label.setFont(HEADER_FONT);
 				label.setBorder(BorderFactory.createEtchedBorder());
 				destHeader.add(label);
@@ -344,8 +340,7 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 		for (String appendName:appendNames) {
 			long start = data.getMaxId()+1;
 			doubleLoader.getData().renumberObjectsStartingWith(start);
-			for (Iterator i=doubleLoader.getData().getGameObjects().iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
+			for (GameObject go : doubleLoader.getData().getGameObjects()) {
 				if (!go.hasThisAttribute("season")) { // The one exception
 					GameObject dub = data.createNewObject(go.getId());
 					dub.copyFrom(go);
@@ -356,8 +351,7 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 		}
 		
 		// Resolve objects (holds can't be calculated until all are loaded!)
-		for (Iterator i=data.getGameObjects().iterator();i.hasNext();) {
-			GameObject obj = (GameObject)i.next();
+		for (GameObject obj : data.getGameObjects()) {
 			obj.resolveHold(data.getGameObjectIDHash());
 		}
 		
@@ -395,7 +389,7 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 			destination.add(chit.getGameObject());
 			destination.setThisAttribute(Constants.GOLD_SPECIAL_PLACED);
 			chit.getGameObject().setThisAttribute(Constants.GOLD_SPECIAL_PLACED);
-			if (!hostPrefs.hasPref(Constants.HOUSE2_NO_MISSION_VISITOR_FLIPSIDE)) {
+			if (!hostPrefs.hasPref(Constants.HOUSE2_NO_MISSION_VISITOR_FLIPSIDE)&&!hostPrefs.usesSuperRealm()) {
 				chit.getOtherSide().getGameObject().setThisAttribute(Constants.GOLD_SPECIAL_PLACED);
 			}
 		

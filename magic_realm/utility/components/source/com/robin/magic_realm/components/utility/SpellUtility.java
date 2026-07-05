@@ -1,25 +1,7 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.utility;
 
 import java.io.*;
 import java.util.*;
-
 import javax.swing.*;
 
 import com.robin.game.objects.*;
@@ -30,6 +12,8 @@ import com.robin.general.util.StringUtilities;
 import com.robin.magic_realm.components.*;
 import com.robin.magic_realm.components.attribute.*;
 import com.robin.magic_realm.components.effect.SpellEffectContext;
+import com.robin.magic_realm.components.quest.CharacterActionType;
+import com.robin.magic_realm.components.quest.requirement.QuestRequirementParams;
 import com.robin.magic_realm.components.swing.CenteredMapView;
 import com.robin.magic_realm.components.swing.TileLocationChooser;
 import com.robin.magic_realm.components.table.*;
@@ -41,6 +25,8 @@ public class SpellUtility {
 		ChooseTileTwo,
 		RandomClearing,
 		KnownGate,
+		ClearingInSameTile,
+		Location,
 	}
 	
 	public static void heal(CharacterWrapper character) {
@@ -59,7 +45,9 @@ public class SpellUtility {
 			RealmComponent rc = RealmComponent.getRealmComponent(obj);
 			if (rc.isArmor()) {
 				ArmorChitComponent armor = (ArmorChitComponent) rc;
-				if (armor.isDamaged()) armor.setIntact(true);
+				if (armor.isDamaged()) {
+					armor.setIntact(true);
+				}
 			}
 		}
 	}
@@ -71,20 +59,18 @@ public class SpellUtility {
 	
 	public static ArrayList<SpellWrapper>getBewitchingSpellsWithKey(GameObject target, String key){
 		ArrayList<SpellWrapper>result = new ArrayList<SpellWrapper>();
-		
 		for(SpellWrapper spell:getBewitchingSpells(target)){
 			if(spell.isActive() && spell.getGameObject().hasThisAttribute(key)){
 				result.add(spell);
 			}
 		}
-		
 		return result;
 	}
 	
 	public static boolean affectedByBewitchingSpellKey(GameObject go,String key) {
 		GameData gameData = go.getGameData();
 		if (gameData!=null) { // can be null in the character builder tool
-			SpellMasterWrapper spellMaster = SpellMasterWrapper.getSpellMaster(go.getGameData());
+			SpellMasterWrapper spellMaster = SpellMasterWrapper.getSpellMaster(gameData);
 			for (SpellWrapper spell:spellMaster.getAffectingSpells(go)) {
 				if (spell.isActive() && spell.getGameObject().hasThisAttribute(key)) {
 					return true;
@@ -94,7 +80,15 @@ public class SpellUtility {
 		return false;
 	}
 	
-	public static void doTeleport(JFrame frame,String reason,CharacterWrapper character,TeleportType teleportType) {
+	public static void doTeleport(JFrame frame,String reason,CharacterWrapper character,TeleportType teleportType,int teleportSpeed) {
+		doTeleport(frame,reason,character,teleportType,teleportSpeed,null);
+	}
+	
+	public static void doTeleport(JFrame frame,String reason,CharacterWrapper character,TeleportType teleportType,int teleportSpeed,String location) {
+		if (character.getGameData().getDataName().matches(Constants.DATA_NAME_COMBAT_FRAME)) {
+			JOptionPane.showMessageDialog(frame,"There is no way to escape this combat!",reason,JOptionPane.INFORMATION_MESSAGE);
+			return;
+		}
 		// Get the map to pop to the forefront, centered on the clearing, and the move possibilities marked
 		TileLocation chosen;
 		TileLocation planned = character.getPlannedLocation();
@@ -105,8 +99,23 @@ public class SpellUtility {
 			chosen = clearings.get(r).getTileLocation();
 			JOptionPane.showMessageDialog(frame,"The "+character.getGameObject().getName()+" teleports to "+chosen,reason,JOptionPane.INFORMATION_MESSAGE);
 		}
+		else if (teleportType==TeleportType.Location) {
+			ArrayList<ClearingDetail> clearings = new ArrayList<ClearingDetail>();
+			GamePool pool = new GamePool(character.getGameData().getGameObjects());
+			ArrayList<GameObject> destinations = pool.find("name="+location);
+			for (GameObject destination : destinations) {
+				TileLocation loc = ClearingUtility.getTileLocation(destination);
+				if (loc!=null && loc.clearing!=null) {
+					clearings.add(loc.clearing);
+				}
+			}
+			int r = RandomNumber.getRandom(clearings.size());
+			chosen = clearings.get(r).getTileLocation();
+			JOptionPane.showMessageDialog(frame,"The "+character.getGameObject().getName()+" teleports to "+chosen,reason,JOptionPane.INFORMATION_MESSAGE);
+		}
 		else {
 			switch(teleportType) {
+				default:
 				case ChooseAny:
 					CenteredMapView.getSingleton().setMarkClearingAlertText("Teleport "+character.getGameObject().getName()+" to which clearing?");
 					CenteredMapView.getSingleton().markAllClearings(true);
@@ -132,6 +141,13 @@ public class SpellUtility {
 						return;
 					}
 					break;
+				case ClearingInSameTile:
+					CenteredMapView.getSingleton().setMarkClearingAlertText("Teleport "+character.getGameObject().getName()+" to which clearing?");
+					CenteredMapView.getSingleton().markAllClearings(false);
+					for (ClearingDetail clearing : planned.tile.getClearings()) {
+						clearing.setMarked(true);
+					}
+					break;
 			}
 			TileLocationChooser chooser = new TileLocationChooser(frame,CenteredMapView.getSingleton(),planned);
 			chooser.setVisible(true);
@@ -141,43 +157,78 @@ public class SpellUtility {
 		character.jumpMoveHistory(); // because we didn't walk here
 		character.moveToLocation(null,chosen);
 		RealmLogging.logMessage(character.getGameObject().getName(),"Teleported to "+chosen);
-		if (teleportType!=TeleportType.RandomClearing) {
+		if (teleportType!=TeleportType.RandomClearing && teleportType!=TeleportType.Location) {
 			CenteredMapView.getSingleton().markAllClearings(false);
 			CenteredMapView.getSingleton().markAllTiles(false);
 		}
-		CenteredMapView.getSingleton().centerOn(chosen);
-		
+		if (CenteredMapView.isFollowEnabled()) {
+			CenteredMapView.getSingleton().centerOn(chosen);
+		}
+
 		// Followers should stay behind!
-		for (Iterator i=character.getFollowingHirelings().iterator();i.hasNext();) {
-			RealmComponent hireling = (RealmComponent)i.next();
-			ClearingUtility.moveToLocation(hireling.getGameObject(),planned);
-			if (hireling.getGameObject().hasThisAttribute(Constants.CAPTURE)) {
-				// A captured traveler is immediately freed!
-				character.removeHireling(hireling.getGameObject());
-				RealmLogging.logMessage(character.getGameObject().getName(),"The "+hireling.getGameObject().getName()+" escaped!");
+		for (RealmComponent h : character.getFollowingHirelings()) {
+			ClearingUtility.moveToLocation(h.getGameObject(), planned);
+			if (h.getGameObject().hasThisAttribute(Constants.CAPTURE)) {
+				character.removeHireling(h.getGameObject());
+				RealmLogging.logMessage(character.getGameObject().getName(),"The "+h.getGameObject().getName()+" escaped!");
 			}
 		}
+		
+		//CJM -- leaving this for a moment in case I break something 
+//		for (Iterator i=character.getFollowingHirelings().iterator();i.hasNext();) {
+//			RealmComponent hireling = (RealmComponent)i.next();
+//			ClearingUtility.moveToLocation(hireling.getGameObject(),planned);
+//			if (hireling.getGameObject().hasThisAttribute(Constants.CAPTURE)) {
+//				// A captured traveler is immediately freed!
+//				character.removeHireling(hireling.getGameObject());
+//				RealmLogging.logMessage(character.getGameObject().getName(),"The "+hireling.getGameObject().getName()+" escaped!");
+//			}
+//		}
 		
 		// Be sure to clear out combat...
 		character.clearCombat();
 		CombatWrapper.clearAllCombatInfo(character.getGameObject());
+		SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(character.getGameData());
+		for (SpellWrapper spell : sm.getAffectingSpells(character.getGameObject())) {
+			if (spell.isActive() && !spell.hasAffectedTargets() && spell.getAttackSpeed().getNum() > teleportSpeed) {
+				spell.removeTarget(character.getGameObject());
+				if (spell.getTargetCount() == 0) {
+					spell.cancelSpell();
+					RealmLogging.logMessage(character.getName(), "Targeted spell "+spell.getName() + " canceled, as "+character.getName()+" teleported.");
+				}
+			}
+		}
+		
+		QuestRequirementParams params = new QuestRequirementParams();
+		params.actionType = CharacterActionType.Teleport;
+		params.actionName = teleportType.toString();
+		character.testQuestRequirements(frame,params);
 	}
 	
 	private static ArrayList<GateChitComponent> findKnownGatesForCharacter(CharacterWrapper character) {
 		GameData gameData = character.getGameObject().getGameData();
 		ArrayList<GateChitComponent> knownGates = new ArrayList<GateChitComponent>();
 		
-		ArrayList list = character.getOtherChitDiscoveries();
-		if (list!=null) {
-			for (Iterator i=list.iterator();i.hasNext();) {
-				String discovery = (String)i.next();
-				GameObject go = gameData.getGameObjectByName(discovery);
-				RealmComponent rc = RealmComponent.getRealmComponent(go);
-				if (rc.isGate()) {
-					knownGates.add((GateChitComponent)rc);
-				}
+		for (String d : character.getOtherChitDiscoveries()) {
+			RealmComponent rc = RealmComponent.getRealmComponent(gameData.getGameObjectByName(d));
+			if (rc.isGate()) {
+				knownGates.add((GateChitComponent) rc);
 			}
 		}
+
+		//CJM -- leaving this for a moment in case I break something 
+//		ArrayList list = character.getOtherChitDiscoveries();
+//		
+//		if (list!=null) {
+//			for (Iterator i=character.getOtherChitDiscoveries().iterator();i.hasNext();) {
+//				String discovery = (String)i.next();
+//				GameObject go = gameData.getGameObjectByName(discovery);
+//				RealmComponent rc = RealmComponent.getRealmComponent(go);
+//				if (rc.isGate()) {
+//					knownGates.add((GateChitComponent)rc);
+//				}
+//			}
+//		}
 		return knownGates;
 	}
 	
@@ -192,10 +243,11 @@ started the game, and any other monster or native goes to its box
 on the Appearance Chart. Note: If a hired native is teleported to
 the Appearance Chart, he instantly becomes unhired.
 	 */
-	private static enum SummonType {
+	public static enum SummonType {
 		undead,
 		animal,
 		elemental,
+		demon,
 	}
 	private static MonsterTable getMonsterTableFor(JFrame parent,String summonType) {
 		MonsterTable monsterTable = null;
@@ -209,19 +261,34 @@ the Appearance Chart, he instantly becomes unhired.
 			case animal:
 				monsterTable = new SummonAnimal(parent);
 				break;
+			case demon:
+				monsterTable = new SummonDemon(parent);
+				break;
 		}
 		return monsterTable;
 	}
-	public static void summonRandomCompanions(JFrame parent,GameObject caster,CharacterWrapper character,SpellWrapper spell,String summonType) {
+	public static void summonRandomCompanion(JFrame parent,GameObject caster,CharacterWrapper character,SpellWrapper spell,String summonType) {
+		summonCompanion(parent,caster,character,spell,summonType,0);
+	}
+	
+	public static void summonCompanion(JFrame parent,GameObject caster,CharacterWrapper character,SpellWrapper spell,String summonType,int dieRoll) {
 		MonsterTable monsterTable = getMonsterTableFor(parent,summonType);
+		if (summonType.matches(SummonType.demon.toString())) {
+			character = new CharacterWrapper(caster);
+		}
 		DieRoller roller = DieRollBuilder.getDieRollBuilder(parent,character).createRoller(monsterTable);
-		roller.rollDice(summonType);
+		if (dieRoll>0&&dieRoll<7) {
+			roller.setDice(dieRoll);
+		}
+		else {
+			roller.rollDice(summonType);
+		}
 		String result = monsterTable.apply(character,roller);
 		RealmLogging.logMessage(caster.getName(),monsterTable.getTableName(true)+" roll: "+roller.getDescription());
 		RealmLogging.logMessage(caster.getName(),monsterTable.getTableName(true)+" result: "+result);
-		ArrayList list = spell.getGameObject().getThisAttributeList("created");
+		ArrayList<String> list = spell.getGameObject().getThisAttributeList("created");
 		if (list==null) {
-			list = new ArrayList();
+			list = new ArrayList<String>();
 		}
 		for(GameObject go:monsterTable.getMonsterCreator().getMonstersCreated()) {
 			list.add(go.getStringId());
@@ -232,10 +299,9 @@ the Appearance Chart, he instantly becomes unhired.
 	public static ArrayList<GameObject> getCreatedCompanions(SpellWrapper spell) {
 		GameData gameData = spell.getGameObject().getGameData();
 		ArrayList<GameObject> created = new ArrayList<GameObject>();
-		ArrayList list = spell.getGameObject().getThisAttributeList("created");
+		ArrayList<String> list = spell.getGameObject().getThisAttributeList("created");
 		if (list!=null) {
-			for(Iterator i=list.iterator();i.hasNext();) {
-				String id = (String)i.next();
+			for(String id : list) {
 				GameObject go = gameData.getGameObject(Long.valueOf(id));
 				created.add(go);
 			}
@@ -263,8 +329,7 @@ the Appearance Chart, he instantly becomes unhired.
 		
 		RealmComponent sl = RealmComponent.getRealmComponent(spellLocation);
 		if (ignoreEnchanted || !sl.isEnchanted()) { // enchanted artifacts/books cannot have active spells!
-			for (Iterator i=spellLocation.getHold().iterator();i.hasNext();) {
-				GameObject obj = (GameObject)i.next();
+			for (GameObject obj : spellLocation.getHold()) {
 				RealmComponent rc = RealmComponent.getRealmComponent(obj);
 				if (rc.isSpell()) {
 					String spellType = obj.getThisAttribute("spell");
@@ -294,13 +359,17 @@ the Appearance Chart, he instantly becomes unhired.
 	
 	public static ArrayList<ColorMagic> getSourcesOfColor(RealmComponent test) {
 		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
-		ArrayList seen = ClearingUtility.dissolveIntoSeenStuff(test);
-		for (Iterator i=seen.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+		ArrayList<RealmComponent> seen = ClearingUtility.dissolveIntoSeenStuff(test);
+		for (RealmComponent rc : seen) {
 			String colorName = getColorSourceName(rc);
 			ColorMagic cm = ColorMagic.makeColorMagic(colorName,true);
 			if (cm!=null) {
 				colors.add(cm);
+			}
+			if (colorName!=null && colorName.matches("prism")) {
+				colors.add(new ColorMagic(ColorMagic.GRAY,true));
+				colors.add(new ColorMagic(ColorMagic.PURPLE,true));
+				colors.add(new ColorMagic(ColorMagic.GOLD,true));
 			}
 		}
 		return colors;
@@ -333,6 +402,13 @@ the Appearance Chart, he instantly becomes unhired.
 		name = StringUtilities.findAndReplace(name, "'", "");
 		return name;
 	}
+	public static String getSpellName(GameObject spell) {
+		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(spell.getGameData());
+		if (hostPrefs.hasPref(Constants.HOUSE1_NO_SECRETS)) {
+			return spell.getName();
+		}
+		return "##a Spell|"+spell.getName()+"##";
+	}
 	public static String getSpellDetail(GameObject spell) {
 		String name = getSpellReferenceName(spell);
 		String resource = "text/"+name+".rtf";
@@ -364,35 +440,44 @@ the Appearance Chart, he instantly becomes unhired.
 	}
 
 	public static void ApplyNamedSpellEffectToTarget(String effect, GameObject target, SpellWrapper spellWrapper) {
-
-			if(!target.hasThisAttribute(effect)){
-				target.setThisAttribute(effect);
+		ApplyNamedSpellEffectWithValueToTarget(effect, target, spellWrapper, "");
+	}
+	
+	public static void ApplyNamedSpellEffectWithValueToTarget(String effect, GameObject target, SpellWrapper spellWrapper, String value) {
+		if(!target.hasThisAttribute(effect)){
+			target.setThisAttribute(effect,value);
+		}
+		else{
+			spellWrapper.cancelSpell();
+			RealmLogging.logMessage(spellWrapper.getCaster().getGameObject().getName(),"Spell cancelled, because the targeted character already has this ability.");
+		}
+	}
+	
+	public static void ApplyNamedSpellEffectWithValuesToTarget(String effect, GameObject target, SpellWrapper spellWrapper, ArrayList<String> values) {
+		if(!target.hasThisAttribute(effect)){
+			target.setThisAttributeList(effect, values);
+		}
+		else {
+			for (String value : values) {
+				target.addThisAttributeListItem(effect, value);
 			}
-			else{
-				spellWrapper.expireSpell();
-				target.setThisAttribute(effect);
-				RealmLogging.logMessage(spellWrapper.getCaster().getGameObject().getName(),"Spell expired, because the targeted character already has this ability.");
-			}
-		
+		}
 	}
 
+	public static boolean ApplyNamedSpellEffectToTargetAndReturn(String effect, GameObject target, SpellWrapper spellWrapper) {
+		if(!target.hasThisAttribute(effect)){
+			target.setThisAttribute(effect);
+			return true;
+		}
+		spellWrapper.cancelSpell();
+		RealmLogging.logMessage(spellWrapper.getCaster().getGameObject().getName(),"Spell cancelled, because the targeted character already has this ability.");
+		return false;
+	}
+	
 	public static void setAlteredSpeed(RealmComponent chit, String attributeName, SpellWrapper spellWrapper) {	
 		String attributeValue = chit.getGameObject().getThisAttribute(attributeName);
 		int newspeed = spellWrapper.getGameObject().getThisInt(attributeValue);
 		chit.getGameObject().setThisAttribute("move_speed_change", newspeed);
-	}
-	
-	public static void createPhaseChit(RealmComponent target, GameObject spell){
-		CharacterWrapper character = new CharacterWrapper(target.getGameObject());
-		GameObject phaseChit = spell.getGameData().createNewObject();
-		
-		phaseChit.setName(spell.getName()+" Phase Chit ("+character.getGameObject().getName()+")");
-		phaseChit.copyAttributeBlockFrom(spell,"phase_chit");
-		phaseChit.renameAttributeBlock("phase_chit","this");
-		
-		phaseChit.setThisAttribute("spellID", spell.getStringId());
-		spell.setThisAttribute("phaseChitID",phaseChit.getStringId());
-		character.getGameObject().add(phaseChit);
 	}
 
 	public static boolean targetsAreBeingAttackedByHirelings(ArrayList<GameObject>attackers, GameObject caster) {
@@ -400,21 +485,22 @@ the Appearance Chart, he instantly becomes unhired.
 			RealmComponent rc = RealmComponent.getRealmComponent(atk);
 			if (!rc.getGameObject().equals(caster)) {
 				RealmComponent owner = rc.getOwner();
-				if (owner != null && owner.getGameObject().equals(caster)) return true;
+				if (owner != null && owner.getGameObject().equals(caster)) {
+					return true;
+				}
 			}
 		}
 		return false;
 	}
 	
-	public static GameObject findNativeFromTheseGroups(ArrayList<String>groups, GameObjectFilter filter, GameWrapper game){
+	public static GameObject findNativeFromTheseGroups(ArrayList<String> groups, GameObjectFilter filter, GameWrapper game) {
 		ArrayList<String> lowerCaseGroups = new ArrayList<String>();
-		for (String g : groups) lowerCaseGroups.add(g.toLowerCase());
-
+		for (String g : groups) {
+			lowerCaseGroups.add(g.toLowerCase());
+		}
 		ArrayList<GameObject> candidates = new ArrayList<GameObject>();
-		for (Iterator i = game.getGameData().getGameObjects().iterator(); i.hasNext();) {
-			GameObject go = (GameObject) i.next();
-			if (go.hasThisAttribute("native")
-					&& go.hasThisAttribute("denizen")
+		for (GameObject go : game.getGameData().getGameObjects()) {
+			if (go.hasThisAttribute("native") && go.hasThisAttribute("denizen")
 					&& lowerCaseGroups.contains(go.getThisAttribute("native").toLowerCase())
 					&& filter.test(go)) {
 				candidates.add(go);
@@ -425,12 +511,10 @@ the Appearance Chart, he instantly becomes unhired.
 		return candidates.get(0);
 	}
 
-	public static GameObject findNativeFromTheseGroups(String group, GameObjectFilter filter, GameWrapper game){
+	public static GameObject findNativeFromTheseGroups(String group, GameObjectFilter filter, GameWrapper game) {
 		ArrayList<GameObject> candidates = new ArrayList<GameObject>();
-		for (Iterator i = game.getGameData().getGameObjects().iterator(); i.hasNext();) {
-			GameObject go = (GameObject) i.next();
-			if (go.hasThisAttribute("native")
-					&& go.hasThisAttribute("denizen")
+		for (GameObject go : game.getGameData().getGameObjects()) {
+			if (go.hasThisAttribute("native") && go.hasThisAttribute("denizen")
 					&& go.getThisAttribute("native").toLowerCase().equals(group.toLowerCase())
 					&& filter.test(go)) {
 				candidates.add(go);
@@ -451,9 +535,9 @@ the Appearance Chart, he instantly becomes unhired.
 		}
 		character.getGameObject().add(summon); // so that you don't have to assign as a follower right away
 		
-		ArrayList list = spell.getGameObject().getThisAttributeList("created");
+		ArrayList<String> list = spell.getGameObject().getThisAttributeList("created");
 		if (list==null) {
-			list = new ArrayList();
+			list = new ArrayList<String>();
 		}
 		
 		if(createdMonsters == null){
@@ -481,5 +565,15 @@ the Appearance Chart, he instantly becomes unhired.
 		RealmLogging.logMessage(context.Spell.getCaster().getGameObject().getName(), rollType + " roll: "+ roller.getDescription());
 		return new RollResult(roller, roller.getStringResult(), die);
 	}
-
+	
+	public static TileLocation chooseTileLocation(JFrame parent, String title) {
+		CenteredMapView cmap = CenteredMapView.getSingleton();
+		cmap.markAllTiles(true);
+		cmap.setMapAttentionMessage(title);
+		TileLocationChooser chooser = new TileLocationChooser(parent,cmap,null);
+		chooser.setLocationRelativeTo(parent);
+		chooser.setVisible(true);
+		cmap.markAllTiles(false);
+		return chooser.getSelectedLocation();
+	}
 }

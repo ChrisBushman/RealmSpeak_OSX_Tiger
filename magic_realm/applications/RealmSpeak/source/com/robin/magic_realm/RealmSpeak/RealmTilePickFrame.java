@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
@@ -30,12 +13,14 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import com.robin.game.objects.*;
 import com.robin.general.swing.ComponentTools;
+import com.robin.general.swing.IconFactory;
 import com.robin.general.util.RandomNumber;
 import com.robin.magic_realm.components.*;
 import com.robin.magic_realm.components.swing.CenteredMapView;
 import com.robin.magic_realm.components.utility.*;
 import com.robin.magic_realm.components.wrapper.GameWrapper;
 import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
+import com.robin.magic_realm.map.Tile;
 
 public class RealmTilePickFrame extends RealmSpeakInternalFrame implements ChangeListener {
 	
@@ -49,7 +34,7 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 	
 	private JTable tilePickTable;
 	private TilePickTableModel tilePickModel;
-	private ArrayList tilesToAdd;
+	private ArrayList<GameObject> tilesToAdd;
 	
 	private JLabel instruction;
 	private boolean canPlace = false;
@@ -67,7 +52,7 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 		this.game = game;
 		this.map = map;
 		
-		tilesToAdd = new ArrayList();
+		tilesToAdd = new ArrayList<GameObject>();
 		tilePickModel = new TilePickTableModel();
 		
 		refreshTiles();
@@ -81,11 +66,11 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 		
 		// Find tiles (if any) that are to be distributed
 		GamePool pool = new GamePool(RealmObjectMaster.getRealmObjectMaster(gameHandler.getClient().getGameData()).getTileObjects());
-		Collection tiles = pool.find(Constants.PLAYER_TO_PLACE+"="+gameHandler.getClient().getClientName());
+		ArrayList<GameObject> tiles = pool.find(Constants.PLAYER_TO_PLACE+"="+gameHandler.getClient().getClientName());
 		tilesToAdd.addAll(tiles);
 		
 		// Determine solePlayer:
-		GameObject firstTile = (GameObject)tiles.iterator().next();
+		GameObject firstTile = tiles.iterator().next();
 		String p1 = firstTile.getThisAttribute(Constants.PLAYER_TO_PLACE);
 		String p2 = firstTile.getThisAttribute(Constants.PLAYER_TO_PLACE_NEXT);
 		if (p1.equals(p2)) {
@@ -100,7 +85,7 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 		TileComponent tile = (TileComponent)e.getSource();
 		int selRow = tilesToAdd.indexOf(tile.getGameObject());
 //		tilePickModel.removeCache(selRow);
-		GameObject go = (GameObject)tilesToAdd.remove(selRow);
+		GameObject go = tilesToAdd.remove(selRow);
 		doNextPlayer(go);
 		go.removeThisAttribute(Constants.PLAYER_TO_PLACE);
 		go.removeThisAttribute(Constants.PLAYER_TO_PLACE_NEXT);
@@ -120,17 +105,16 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
 			// Reset treasure location monsters
 			RealmUtility.finishBoardSetupAfterBuild(hostPrefs,data);
-//System.out.println(gameHandler.getClient().getClientName()+": Map ready");
 		}
 		else {
 			if (go!=null) {
 				nextPlayer = go.getThisAttribute(Constants.PLAYER_TO_PLACE_NEXT);
 			}
-//System.out.println(gameHandler.getClient().getClientName()+": nextPlayer = "+nextPlayer);
 			game.setGameMapBuilder(nextPlayer);
 		}
 	}
 	private void initComponents() {
+		setFrameIcon(IconFactory.findIcon("images/interface/build.gif"));
 		getContentPane().setLayout(new BorderLayout());
 		
 		tilePickTable = new JTable(tilePickModel);
@@ -147,7 +131,7 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 		});
 		getContentPane().add(new JScrollPane(tilePickTable),"Center");
 		
-		instruction = new JLabel("",JLabel.CENTER);
+		instruction = new JLabel("",SwingConstants.CENTER);
 		instruction.setFont(BIG_FONT);
 		instruction.setOpaque(true);
 		instruction.setBackground(MagicRealmColor.PALEYELLOW);
@@ -190,9 +174,9 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 	}
 	private TileComponent getSelectedTile() {
 		int selRow = tilePickTable.getSelectedRow();
-		ArrayList list = tilePickModel.getData();
+		ArrayList<GameObject> list = tilePickModel.getData();
 		if (selRow>=0 && selRow<list.size()) {
-			GameObject go = (GameObject)list.get(selRow);
+			GameObject go = list.get(selRow);
 			return (TileComponent)RealmComponent.getRealmComponent(go);
 		}
 		return null;
@@ -200,8 +184,8 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 	
 	private int getBorderLandIndex() {
 		for (int i=0;i<tilesToAdd.size();i++) {
-			GameObject go = (GameObject)tilesToAdd.get(i);
-			if ("Borderland".equals(go.getName()) && !go.hasThisAttribute(Constants.BOARD_NUMBER)) {
+			GameObject go = tilesToAdd.get(i);
+			if (go.hasThisAttribute(Constants.ANCHOR_TILE) && !go.hasThisAttribute(Constants.BOARD_NUMBER)) {
 				return i;
 			}
 		}
@@ -212,21 +196,29 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 		if (solePlayerIndex==-1 && !tilesToAdd.isEmpty()) {
 			solePlayerIndex = getBorderLandIndex();
 			if (solePlayerIndex == -1) {
+				boolean placePrioOneFirst = false;
+				boolean placePrioTwoFirst = false;
 				// No borderland?  Choose a random tile that CAN be placed.
-				ArrayList placeableIndices = new ArrayList();
+				ArrayList<Integer> placeableIndices = new ArrayList<Integer>();
 				for (int i=0;i<tilesToAdd.size();i++) {
-					GameObject go = (GameObject)tilesToAdd.get(i);
-					Collection c = map.getPlaceables(go);
+					GameObject go = tilesToAdd.get(i);
+					Collection<Tile> c = map.getPlaceables(go);
 					if (!c.isEmpty()) {
-						placeableIndices.add(new Integer(i));
+						placeableIndices.add(Integer.valueOf(i));
 						go.setThisAttribute(Constants.PLACEABLE);
+						if (go.hasThisAttribute(Constants.MAP_BUILDING_PRIO)) {
+							if (go.getThisAttribute(Constants.MAP_BUILDING_PRIO).matches("1")) {
+								placePrioOneFirst = true;
+							} else {
+								placePrioTwoFirst = true;
+							}
+						}
 					}
 					else {
 						go.removeThisAttribute(Constants.PLACEABLE);
 					}
 				}
 				if (canPlace) {
-//if (placeableIndices.size()<8) placeableIndices.clear(); // FIXME force a problem
 					if (placeableIndices.isEmpty()) {
 						// We got a problem here!!  Gotta start over somehow...
 						JOptionPane.showMessageDialog(gameHandler.getMainFrame(),"There are no more legal tile placements!  Starting the process over.","No Tile Placements",JOptionPane.ERROR_MESSAGE);
@@ -234,13 +226,25 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 						gameHandler.broadcast(Constants.BROADCAST_SPECIAL_ACTION,Constants.MESSAGE_RESTART_MAP_BUILDER);
 						return;
 					}
-					int r = RandomNumber.getRandom(placeableIndices.size());
-					Integer n = (Integer)placeableIndices.get(r);
+					int r = -1;
+					Integer n = -1;
+					while (true) {
+						r = RandomNumber.getRandom(placeableIndices.size());
+						n = placeableIndices.get(r);
+						if (placePrioOneFirst || placePrioTwoFirst) {
+							GameObject go = tilesToAdd.get(n);
+							if (!go.hasThisAttribute(Constants.MAP_BUILDING_PRIO)) continue;
+							if (placePrioOneFirst && go.getThisAttribute(Constants.MAP_BUILDING_PRIO).matches("1")) break;
+							if (!placePrioOneFirst && placePrioTwoFirst) break;
+						} else {
+							break;
+						}
+					}
 					solePlayerIndex = n.intValue();
 				}
 			}
 			else {
-				GameObject go = (GameObject)tilesToAdd.get(solePlayerIndex);
+				GameObject go = tilesToAdd.get(solePlayerIndex);
 				go.setThisAttribute(Constants.PLACEABLE);
 			}
 			tilePickModel.fireTableDataChanged();
@@ -255,7 +259,6 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 		map.rebuildFromScratch();
 		
 		String active = game.getGameMapBuilder();
-//System.out.println(gameHandler.getClient().getClientName()+":  active = "+active);
 		canPlace = (active!=null && active.equals(gameHandler.getClient().getClientName()));
 		
 		int validRow = getBorderLandIndex();
@@ -267,8 +270,8 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 			if (tilePickTable.getSelectedRowCount()==0) {
 				// This is sloppy, but...
 				for (int i=0;i<tilesToAdd.size();i++) {
-					GameObject go = (GameObject)tilesToAdd.get(i);
-					Collection c = map.getPlaceables(go);
+					GameObject go = tilesToAdd.get(i);
+					Collection<Tile> c = map.getPlaceables(go);
 					if (!c.isEmpty()) {
 						go.setThisAttribute(Constants.PLACEABLE);
 					}
@@ -286,7 +289,7 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 					map.setTileBeingPlaced(this,getSelectedTile());
 				}
 				else {
-					instruction.setText("You must select the Borderland tile");
+					instruction.setText("You must select the starting tile (Borderland or Falls)");
 				}
 			}
 		}
@@ -307,9 +310,8 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 	
 	private void doRandomPlace() {
 		tilePickTable.clearSelection();
-//		for (int i=0;i<10;i++) // FIXME Debugging
 		if (solePlayerIndex>=0) {
-			ArrayList list = new ArrayList();
+			ArrayList<GameObject> list = new ArrayList<GameObject>();
 			list.add(tilesToAdd.get(solePlayerIndex));
 			map.placeRandom(this,list);
 		}
@@ -351,9 +353,9 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 		public TilePickTableModel() {
 			cache = new Hashtable<GameObject,ImageIcon[]>();
 		}
-		public ArrayList getData() {
+		public ArrayList<GameObject> getData() {
 			if (solePlayer) {
-				ArrayList list = new ArrayList();
+				ArrayList<GameObject> list = new ArrayList<GameObject>();
 				if (solePlayerIndex>=0) {
 					list.add(tilesToAdd.get(solePlayerIndex));
 				}
@@ -375,7 +377,7 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 		}
 		public Object getValueAt(int row, int col) {
 			if (row<tilesToAdd.size()) {
-				GameObject go = (GameObject)getData().get(row);
+				GameObject go = getData().get(row);
 				switch(col) {
 					case 0:
 						return cache.get(go)[0];
@@ -399,7 +401,7 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 		public void updateRowHeights(JTable table) {
 			int maxIconColWidth = 0;
 			for (int i=0;i<getData().size();i++) {
-				GameObject go = (GameObject)getData().get(i);
+				GameObject go = getData().get(i);
 				TileComponent rc = (TileComponent)RealmComponent.getRealmComponent(go);
 				ImageIcon[] icon = cache.get(go);
 				if (icon == null) {

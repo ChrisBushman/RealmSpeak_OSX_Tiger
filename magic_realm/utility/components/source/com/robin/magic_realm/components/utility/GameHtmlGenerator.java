@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.utility;
 
 import java.awt.*;
@@ -156,13 +139,13 @@ public class GameHtmlGenerator extends HtmlGenerator {
 		int height = size.height;
 		
 		int n=0;
-		Iterator i=view.getDrawContainerList().iterator();
+		Iterator<GameObject> i=view.getDrawContainerList().iterator();
 		for (Rectangle r:view.getDrawRectList()) {
-			GameObject container = (GameObject)i.next();
+			GameObject container = i.next();
 			if (container.getHoldCount()>0) {
 				boolean allMonsters = true;
-				for (Iterator j=container.getHold().iterator();j.hasNext();) {
-					RealmComponent test = RealmComponent.getRealmComponent((GameObject)j.next());
+				for (GameObject go : container.getHold()) {
+					RealmComponent test = RealmComponent.getRealmComponent(go);
 					if (!test.isMonster()) {
 						allMonsters = false;
 						break;
@@ -209,8 +192,7 @@ public class GameHtmlGenerator extends HtmlGenerator {
 		sb.append("<h1>");
 		sb.append(container.getName());
 		sb.append("</h1>\n");
-		for (Iterator i=container.getHold().iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		for (GameObject go : container.getHold()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			
 			ImageIcon icon = rc.getIcon();
@@ -231,6 +213,13 @@ public class GameHtmlGenerator extends HtmlGenerator {
 		}
 		writeString(path+File.separator+page,container.getName(),sb.toString(),SETUP_HTML);
 	}
+	private void removeCaches() {
+		GamePool pool = new GamePool(data.getGameObjects());
+		ArrayList<GameObject> caches = pool.find("cache_number");
+		for (GameObject cache : caches) {
+			cache.detach();
+		}
+	}
 	private void generateMap(String path) {
 		// Map
 		CenteredMapView map = CenteredMapView.getSingleton();
@@ -248,6 +237,7 @@ public class GameHtmlGenerator extends HtmlGenerator {
 		g.setColor(Color.lightGray);
 		g.fillRect(0,0,rect.width,rect.height);
 		map.clearMapAttentionMessage();
+		map.clearMapAttentionMessage2();
 		map.clearMarkClearingAlertText();
 		map.setShowEmbellishments(game.getGameStarted());
 		map.setReplot(true);
@@ -355,6 +345,7 @@ public class GameHtmlGenerator extends HtmlGenerator {
 		writeString(path+File.separator+file,clearing.getDescription(),sb.toString(),"../"+MAP_PAGE);
 	}
 	private void generateImages(String path) {
+		removeCaches();
 		generateMap(path);
 		
 		// Setup Card
@@ -362,19 +353,42 @@ public class GameHtmlGenerator extends HtmlGenerator {
 		TreasureSetupCardView[] treasureSetupCardView;
 		if (hostPrefs.getMultiBoardEnabled()) {
 			int count = hostPrefs.getMultiBoardCount();
-			treasureSetupCardView = new TreasureSetupCardView[count];
-			treasureSetupCardView[0] = new TreasureSetupCardView(data,"","!"+Constants.BOARD_NUMBER);
-			setupCardNames.add("Treasure Setup Card A");
-			for (int n=1;n<count;n++) {
-				String boardNumber = Constants.MULTI_BOARD_APPENDS.substring(n-1,n);
-				treasureSetupCardView[n] = new TreasureSetupCardView(data,"",Constants.BOARD_NUMBER+"="+boardNumber);
-				setupCardNames.add("Treasure Setup Card "+boardNumber);
+			if (hostPrefs.usesSuperRealm()) {
+				treasureSetupCardView = new TreasureSetupCardView[count*2];
+				treasureSetupCardView[0] = new TreasureSetupCardView(data,"","!"+Constants.BOARD_NUMBER,true);
+				treasureSetupCardView[1] = new TreasureSetupCardView(data,"","!"+Constants.BOARD_NUMBER,true,true);
+				setupCardNames.add("Treasure Setup Card A");
+				setupCardNames.add("Chart of Clans A");
+				for (int n=1;n<count;n++) {
+					String boardNumber = Constants.MULTI_BOARD_APPENDS.substring(n-1,n);
+					treasureSetupCardView[n] = new TreasureSetupCardView(data,"",Constants.BOARD_NUMBER+"="+boardNumber,true);
+					treasureSetupCardView[n] = new TreasureSetupCardView(data,"",Constants.BOARD_NUMBER+"="+boardNumber,true, true);
+					setupCardNames.add("Treasure Setup Card "+boardNumber);
+					setupCardNames.add("Chart of Clans "+boardNumber);
+				}
+			} else {
+				treasureSetupCardView = new TreasureSetupCardView[count];
+				treasureSetupCardView[0] = new TreasureSetupCardView(data,"","!"+Constants.BOARD_NUMBER,true);
+				setupCardNames.add("Treasure Setup Card A");
+				for (int n=1;n<count;n++) {
+					String boardNumber = Constants.MULTI_BOARD_APPENDS.substring(n-1,n);
+					treasureSetupCardView[n] = new TreasureSetupCardView(data,"",Constants.BOARD_NUMBER+"="+boardNumber,true);
+					setupCardNames.add("Treasure Setup Card "+boardNumber);
+				}
 			}
 		}
 		else {
-			treasureSetupCardView = new TreasureSetupCardView[1];
-			treasureSetupCardView[0] = new TreasureSetupCardView(data,"");
-			setupCardNames.add("Treasure Setup Card");
+			if (hostPrefs.usesSuperRealm()) {
+				treasureSetupCardView = new TreasureSetupCardView[2];
+				treasureSetupCardView[0] = new TreasureSetupCardView(data,"",true);
+				treasureSetupCardView[1] = new TreasureSetupCardView(data,"",true,true);
+				setupCardNames.add("Treasure Setup Card");
+				setupCardNames.add("Chart of Clans");
+			} else {
+				treasureSetupCardView = new TreasureSetupCardView[1];
+				treasureSetupCardView[0] = new TreasureSetupCardView(data,"",true);
+				setupCardNames.add("Treasure Setup Card");
+			}
 		}
 		for (int i=0;i<treasureSetupCardView.length;i++) {
 			treasureSetupCardView[i].reset();
@@ -382,8 +396,6 @@ public class GameHtmlGenerator extends HtmlGenerator {
 			//saveComponentImage(setupCardPath,treasureSetupCardView[i]);
 			generateSetupCard(treasureSetupCardView[i],setupCardPath,setupCardNames.get(i));
 		}
-		
-		// Other?
 	}
 	private String getTitle() {
 		return "RealmSpeak - Month "+game.getMonth()+", Day "+game.getDay();
@@ -453,17 +465,16 @@ public class GameHtmlGenerator extends HtmlGenerator {
 		sb.append("</td></tr></table>\n");
 		
 		GamePool pool = new GamePool(RealmObjectMaster.getRealmObjectMaster(data).getPlayerCharacterObjects());
-		Collection characterGameObjects = pool.extract(CharacterWrapper.getKeyVals());
+		Collection<GameObject> characterGameObjects = pool.extract(CharacterWrapper.getKeyVals());
 		File dir = new File(path+CHAR_DIR);
 		if (!dir.exists()) {
 			dir.mkdir();
 		}
 		ArrayList<String> playerNames = new ArrayList<String>();
 		ArrayList<String> employerNames = new ArrayList<String>();
-		HashLists characterHash = new HashLists();
-		HashLists minionHash = new HashLists();
-		for (Iterator i = characterGameObjects.iterator(); i.hasNext();) {
-			GameObject go = (GameObject) i.next();
+		HashLists<String, CharacterWrapper> characterHash = new HashLists<String, CharacterWrapper>();
+		HashLists<String, CharacterWrapper> minionHash = new HashLists<String, CharacterWrapper>();
+		for (GameObject go : characterGameObjects) {
 			CharacterWrapper character = new CharacterWrapper(go);
 			if (character.isCharacter()) {
 				String playerName = character.getPlayerName();
@@ -490,13 +501,13 @@ public class GameHtmlGenerator extends HtmlGenerator {
 			sb.append("<tr><td valign=\"top\" bgcolor=\"#cccccc\"><h3>");
 			sb.append(playerName);
 			sb.append("</h3></td><td valign=\"top\">\n");
-			ArrayList list = characterHash.getList(playerName);
+			ArrayList<CharacterWrapper> list = characterHash.getList(playerName);
 			if (list==null || list.isEmpty()) continue;
 			Collections.sort(list,new Comparator<CharacterWrapper>() {
 				public int compare(CharacterWrapper o1, CharacterWrapper o2) {
 					// Sort by start date
-					DayKey key1 = new DayKey((String)o1.getAllDayKeys().get(0));
-					DayKey key2 = new DayKey((String)o2.getAllDayKeys().get(0));
+					DayKey key1 = new DayKey(o1.getAllDayKeys().get(0));
+					DayKey key2 = new DayKey(o2.getAllDayKeys().get(0));
 					int ret = key1.compareTo(key2);
 					if (ret==0) {
 						ret = o1.getCharacterName().compareTo(o2.getCharacterName());
@@ -504,8 +515,7 @@ public class GameHtmlGenerator extends HtmlGenerator {
 					return ret;
 				}
 			});
-			for (Iterator i=list.iterator();i.hasNext();) {
-				CharacterWrapper character = (CharacterWrapper)i.next();
+			for (CharacterWrapper character : list) {
 				String charHtmlPath = CHAR_PREFIX+character.getGameObject().getId();
 				saveCharacter(path+CHAR_DIR,charHtmlPath,character,title);
 				sb.append("<a href=\"."+CHAR_DIR+"/"+charHtmlPath+".html\">");
@@ -515,11 +525,11 @@ public class GameHtmlGenerator extends HtmlGenerator {
 					sb.append(" (Dead)");
 				}
 				sb.append(" - From ");
-				ArrayList dayKeys = character.getAllDayKeys();
+				ArrayList<String> dayKeys = character.getAllDayKeys();
 				if (dayKeys!=null && dayKeys.size()>0) {
-					sb.append((new DayKey((String)dayKeys.get(0))).getReadable());
+					sb.append((new DayKey(dayKeys.get(0))).getReadable());
 					sb.append(" to ");
-					sb.append((new DayKey((String)dayKeys.get(dayKeys.size()-1))).getReadable());
+					sb.append((new DayKey(dayKeys.get(dayKeys.size()-1))).getReadable());
 					sb.append(" (");
 					sb.append(character.getAllDayKeys().size());
 					sb.append(" days)");
@@ -536,15 +546,15 @@ public class GameHtmlGenerator extends HtmlGenerator {
 			sb.append("<tr><td valign=\"top\" bgcolor=\"#cccccc\"><h3>");
 			sb.append(employerName);
 			sb.append("</h3></td><td valign=\"top\">\n");
-			ArrayList list = minionHash.getList(employerName);
+			ArrayList<CharacterWrapper> list = minionHash.getList(employerName);
 			if (list==null || list.isEmpty()) continue;
 			Collections.sort(list,new Comparator<CharacterWrapper>() {
 				public int compare(CharacterWrapper o1, CharacterWrapper o2) {
 					// Sort by start date
-					ArrayList list1 = o1.getAllDayKeys();
-					ArrayList list2 = o2.getAllDayKeys();
-					DayKey key1 = list1==null?new DayKey(1,1):new DayKey((String)list1.get(0));
-					DayKey key2 = list2==null?new DayKey(1,1):new DayKey((String)list2.get(0));
+					ArrayList<String> list1 = o1.getAllDayKeys();
+					ArrayList<String> list2 = o2.getAllDayKeys();
+					DayKey key1 = list1==null?new DayKey(1,1):new DayKey(list1.get(0));
+					DayKey key2 = list2==null?new DayKey(1,1):new DayKey(list2.get(0));
 					int ret = key1.compareTo(key2);
 					if (ret==0) {
 						ret = o1.getCharacterName().compareTo(o2.getCharacterName());
@@ -552,19 +562,18 @@ public class GameHtmlGenerator extends HtmlGenerator {
 					return ret;
 				}
 			});
-			for (Iterator i=list.iterator();i.hasNext();) {
-				CharacterWrapper character = (CharacterWrapper)i.next();
+			for (CharacterWrapper character : list) {
 				String charHtmlPath = CHAR_PREFIX+character.getGameObject().getId();
 				saveCharacter(path+CHAR_DIR,charHtmlPath,character,title);
 				sb.append("<a href=\"."+CHAR_DIR+"/"+charHtmlPath+".html\">");
 				sb.append(character.getCharacterName());
 				sb.append("</a>");
-				ArrayList dayKeys = character.getAllDayKeys();
+				ArrayList<String> dayKeys = character.getAllDayKeys();
 				if (dayKeys!=null && dayKeys.size()>0) {
 					sb.append(" - From ");
-					sb.append((new DayKey((String)dayKeys.get(0))).getReadable());
+					sb.append((new DayKey(dayKeys.get(0))).getReadable());
 					sb.append(" to ");
-					sb.append((new DayKey((String)dayKeys.get(dayKeys.size()-1))).getReadable());
+					sb.append((new DayKey(dayKeys.get(dayKeys.size()-1))).getReadable());
 					sb.append(" (");
 					sb.append(character.getAllDayKeys().size());
 					sb.append(" days)");
@@ -641,13 +650,11 @@ public class GameHtmlGenerator extends HtmlGenerator {
 				"<td bgcolor=\"#cccccc\"><b>Actions</b></td>" +
 				"<td bgcolor=\"#cccccc\"><b>Summary</b></td>" +
 				"<td bgcolor=\"#cccccc\"><b>Kills</b></td></tr>");
-		ArrayList dayKeys = character.getAllDayKeys();
+		ArrayList<String> dayKeys = character.getAllDayKeys();
 		boolean grayed = false;
 		String currentDay = DayKey.getString(game.getMonth(),game.getDay());
 		if (dayKeys!=null) {
-			for (Iterator i=dayKeys.iterator();i.hasNext();) { // Got a NPE here??  Why does THAT happen?  dayKeys must be null, but how?
-				String key = (String)i.next();
-				
+			for (String key : dayKeys) { // Got a NPE here??  Why does THAT happen?  dayKeys must be null, but how?			
 				// Only show the currentDay if the character has played their turn!
 				if (currentDay!=null && currentDay.equals(key)) {
 					if (game.isRecording() || (game.isDaylight() && character.getPlayOrder()>0)) {
@@ -693,12 +700,11 @@ public class GameHtmlGenerator extends HtmlGenerator {
 		
 		writeString(path+File.separator+filename+".html",title+" - "+character.getCharacterName(),sb.toString(),"../"+DAY_PAGE);
 	}
-	private String getActionString(CharacterWrapper character,String dayKey) {
+	private static String getActionString(CharacterWrapper character,String dayKey) {
 		StringBufferedList sbl = new StringBufferedList(" , ","");
-		ArrayList list = character.getActions(dayKey);
+		ArrayList<String> list = character.getActions(dayKey);
 		if (list!=null) {
-			for (Iterator i=list.iterator();i.hasNext();) {
-				String val = (String)i.next();
+			for (String val : list) {
 				sbl.append(val);
 			}
 		}
@@ -710,11 +716,10 @@ public class GameHtmlGenerator extends HtmlGenerator {
 	}
 	private String getSummary(CharacterWrapper character,String dayKey) {
 		StringBuilder sb = new StringBuilder();
-		ArrayList list = character.getActions(dayKey);
+		ArrayList<String> list = character.getActions(dayKey);
 		if (list!=null) {
 			String lastMove = null;
-			for (Iterator i=list.iterator();i.hasNext();) {
-				String val = (String)i.next();
+			for (String val : list) {
 				if ("BLOCKED".equals(val)) {
 					break;
 				}
@@ -750,7 +755,7 @@ public class GameHtmlGenerator extends HtmlGenerator {
 			}
 		}
 	}
-	private void populateStats(StringBuilder sb,CharacterWrapper character) {
+	private static void populateStats(StringBuilder sb,CharacterWrapper character) {
 		sb.append("<table border=\"0\" cellpadding=\"2\" cellspacing=\"2\" width=\"100%\">\n");
 		// Fame
 		sb.append("<tr><td valign=\"top\" align=\"right\" bgcolor=\"#cccccc\"><b>Fame:</b></td><td valign=\"top\">");
@@ -787,7 +792,7 @@ public class GameHtmlGenerator extends HtmlGenerator {
 
 		sb.append("</table>");
 	}
-	private void populateAdvantages(StringBuilder sb,String title,ArrayList list) {
+	private static void populateAdvantages(StringBuilder sb,String title,ArrayList<String> list) {
 		sb.append("<tr><td valign=\"top\" align=\"right\" bgcolor=\"#cccccc\"><b>"+title+":</b></td><td valign=\"top\">");
 		if (list==null || list.isEmpty()) {
 			sb.append("None");
@@ -795,7 +800,7 @@ public class GameHtmlGenerator extends HtmlGenerator {
 		else {
 			sb.append("<ol>");
 			for (int i=0;i<list.size();i++) {
-				String adv = (String)list.get(i);
+				String adv = list.get(i);
 				sb.append("<li>");
 				sb.append(adv);
 				sb.append("</li>\n");
@@ -804,7 +809,7 @@ public class GameHtmlGenerator extends HtmlGenerator {
 		}
 		sb.append("</td></tr>\n");
 	}
-	private void populatePolitics(StringBuilder sb,String title,CharacterWrapper character,int rel) {
+	private static void populatePolitics(StringBuilder sb,String title,CharacterWrapper character,int rel) {
 		ArrayList<String> list = character.getRelationshipList(Constants.GAME_RELATIONSHIP,rel);
 		if (!list.isEmpty()) {
 			sb.append("<tr><td valign=\"top\" align=\"right\" bgcolor=\"#cccccc\"><b>"+title+":</b></td><td valign=\"top\">");
@@ -835,7 +840,7 @@ public class GameHtmlGenerator extends HtmlGenerator {
 		sb.append("</tr></table>");
 		writeString(path+File.separator+RULE_SUMMARY_PAGE,title+" - Rule Summary",sb.toString());
 	}
-	private void populateRules(StringBuilder sb,GameOptionPane gop,boolean active) {
+	private static void populateRules(StringBuilder sb,GameOptionPane gop,boolean active) {
 		String[] tabKeys = gop.getTabKeys();
 		for (int i=0;i<tabKeys.length;i++) {
 			String[] options = gop.getOptionDescriptions(tabKeys[i],active);

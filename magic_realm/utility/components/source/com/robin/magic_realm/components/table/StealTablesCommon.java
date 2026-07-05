@@ -1,0 +1,68 @@
+package com.robin.magic_realm.components.table;
+
+import java.util.ArrayList;
+
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
+import com.robin.game.objects.GameObject;
+import com.robin.magic_realm.components.RealmComponent;
+import com.robin.magic_realm.components.store.GuildStore;
+import com.robin.magic_realm.components.store.MagicGuild;
+import com.robin.magic_realm.components.store.ThievesGuild;
+import com.robin.magic_realm.components.swing.RealmComponentOptionChooser;
+import com.robin.magic_realm.components.utility.SetupCardUtility;
+import com.robin.magic_realm.components.wrapper.CharacterWrapper;
+
+public class StealTablesCommon {
+	public static void stealChoice(JFrame frame, CharacterWrapper character, RealmComponent victim, String tableName) {
+		stealChoice(frame,character,victim,tableName,true,false,false,false);
+	}
+	public static void stealChoiceHorse(JFrame frame, CharacterWrapper character, RealmComponent victim, String tableName) {
+		stealChoice(frame,character,victim,tableName,false,false,true,false);
+	}
+	public static void stealChoiceArmor(JFrame frame, CharacterWrapper character, RealmComponent victim, String tableName) {
+		stealChoice(frame,character,victim,tableName,false,false,false,true);
+	}
+	private static void stealChoice(JFrame frame, CharacterWrapper character, RealmComponent victim, String tableName, boolean allItems, boolean treasures, boolean horse, boolean armor) {
+		GameObject holder = SetupCardUtility.getDenizenHolder(victim.getGameObject());
+		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,"Select item to steal:",false);
+		ArrayList<GameObject> holdToNote = new ArrayList<GameObject>();
+		for(GameObject item:holder.getHold()) {
+			RealmComponent rc = RealmComponent.getRealmComponent(item);
+			if ((allItems || (treasures && rc.isTreasure()) || (horse && rc.isHorse()) || (armor && rc.isArmor())) && (rc.isItem() || rc.isTreasure())) {
+				if (rc.isTreasure()) {
+					holdToNote.add(item);
+				}
+				chooser.addRealmComponent(RealmComponent.getRealmComponent(item),item.getName());
+			}
+		}
+		if (!chooser.hasOptions()) {
+			String itemType = "";
+			if (allItems) {
+				itemType = "Nothing";
+			} else if (treasures) {
+				itemType = "No treasures";
+			} else if (horse) {
+				itemType = "No horse";
+			} else if (armor) {
+				itemType = "No armor";
+			}
+			JOptionPane.showMessageDialog(frame,itemType+" to steal from "+victim.getGameObject().getNameWithNumber(),tableName,JOptionPane.INFORMATION_MESSAGE);
+		}
+		else {
+			character.addNoteSteal(victim.getGameObject(),holdToNote);
+			chooser.setVisible(true);
+			RealmComponent selectedItem = chooser.getFirstSelectedComponent();
+			Loot.addItemToCharacter(frame, null, character, selectedItem.getGameObject());
+			
+			// Check for Thieves Guild join requirement
+			GuildStore currentGuild = character.getCurrentGuildStore(false);
+			if (character.hasGuildJoinRequirement() && currentGuild!=null && currentGuild instanceof ThievesGuild) {
+				if (((ThievesGuild)currentGuild).validateRequirementAndJoin(character, selectedItem.getGameObject())) {
+					JOptionPane.showMessageDialog(frame,ThievesGuild.JOIN_GUILD_TEXT,ThievesGuild.JOIN_GUILD_TITLE,JOptionPane.INFORMATION_MESSAGE);
+				}
+			}
+		}
+	}
+}

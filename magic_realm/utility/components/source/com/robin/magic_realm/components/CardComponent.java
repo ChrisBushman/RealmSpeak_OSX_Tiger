@@ -1,28 +1,13 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
 import javax.swing.ImageIcon;
 
 import com.robin.game.objects.GameObject;
+import com.robin.general.graphics.GraphicsUtil;
 import com.robin.general.graphics.TextType;
 import com.robin.general.graphics.TextType.Alignment;
 import com.robin.magic_realm.components.utility.Constants;
@@ -30,6 +15,7 @@ import com.robin.magic_realm.components.wrapper.CombatWrapper;
 
 public abstract class CardComponent extends RealmComponent {
 	private static final Stroke thickLine = new BasicStroke(4);
+	public static boolean killedByOption = false;
 	
 	public static final int CARD_WIDTH = 92;
 	public static final int CARD_HEIGHT = 114;
@@ -163,8 +149,19 @@ public abstract class CardComponent extends RealmComponent {
 				g.drawLine(0,0,CARD_WIDTH,CARD_HEIGHT);
 				g.drawLine(0,CARD_HEIGHT,CARD_WIDTH,0);
 				
-				// TODO Could show who killed it...
-				// TODO Could show how much fame/notoriety was scored here... (if killed by character)
+				GameObject killedBy = combat.getKilledBy();
+				if (killedByOption && killedBy != null) {
+					g.setColor(Color.red);
+					Font killerFont = new Font("Dialog",Font.BOLD,CARD_HEIGHT/9);
+					g.setFont(killerFont);
+					AffineTransform at = new AffineTransform();
+					at.rotate(-Math.PI/4);
+					g.setTransform(at);
+					GraphicsUtil.drawCenteredString(g,0,CARD_HEIGHT/2+6,0,12,"Destroyed by");
+					GraphicsUtil.drawCenteredString(g,0,CARD_HEIGHT/2+22,0,12,killedBy.getName());
+					at.rotate(+Math.PI/4);
+					g.setTransform(at);
+				}
 			}
 		}
 	}

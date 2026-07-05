@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmQuestBuilder;
 
 import java.awt.*;
@@ -29,6 +12,9 @@ import com.robin.game.objects.*;
 import com.robin.general.graphics.GraphicsUtil;
 import com.robin.general.swing.*;
 import com.robin.magic_realm.components.*;
+import com.robin.magic_realm.components.attribute.GuildLevelType;
+import com.robin.magic_realm.components.attribute.GuildLevelType.GuildLevel;
+import com.robin.magic_realm.components.attribute.RelationshipType;
 import com.robin.magic_realm.components.attribute.Spoils;
 import com.robin.magic_realm.components.attribute.TileLocation;
 import com.robin.magic_realm.components.quest.*;
@@ -51,7 +37,7 @@ public class QuestTesterFrame extends JFrame {
 	JLabel questName;
 	JButton activateButton;
 	JTextArea questDescription;
-	QuestStepView questStepView;
+	QuestStepInteractiveView questStepView;
 	JTextArea stepDetails;
 
 	JTextArea debugOutput;
@@ -60,33 +46,48 @@ public class QuestTesterFrame extends JFrame {
 	JLabel charName;
 	JLabel currentLocation;
 	JLabel currentDay;
+	JLabel currentWeather;
 	JLabel gtAmount;
 	JLabel spellAmount;
 	JLabel fameAmount;
 	JLabel notorietyAmount;
 	JLabel goldAmount;
+	JLabel fatigue;
+	JLabel wounds;
+	JLabel relationship;
+	JLabel guild;
 
 	// Inventory
 	JList activeInventory;
 	JList inactiveInventory;
 
-	// Hirelings
+	// Hirelings, Journal, Marked Things
 	JList hirelings;
+	JButton hirelingAdd;
+	JButton hirelingUnhire;
+	JButton hirelingKill;
+	JButton hirelingToggleFollow;
 	JList journalList;
+	JList markedThings;
 
 	// Clearing
 	JList clearingComponents;
+	JLabel clearingTitle;
 	JButton pickupFromClearingButton;
 	JButton removeFromClearingButton;
 	JButton searchClearingButton;
 	JButton killDenizenButton;
 	JButton discoverButton;
+	JButton openLocationButton;
+	JToggleButton enchantLocationButton;
+	JButton magicForClearingButton;
 
 	JToggleButton unspecifiedTime;
 	JToggleButton birdsongTime;
 	JToggleButton phaseTime;
 	JToggleButton turnTime;
 	JToggleButton eveningTime;
+	JToggleButton midnightTime;
 
 	boolean inventorySelectionLock = false;
 
@@ -101,7 +102,7 @@ public class QuestTesterFrame extends JFrame {
 
 	private void initComponents() {
 		setTitle("RealmSpeak Quest Tester");
-		setSize(1200, 768);
+		setSize(1400, 1080);
 
 		setLayout(new BorderLayout());
 
@@ -140,7 +141,6 @@ public class QuestTesterFrame extends JFrame {
 		questDescription.setBackground(null);
 		questDescription.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		top.add(new JScrollPane(questDescription), BorderLayout.CENTER);
-
 		add(top, BorderLayout.NORTH);
 
 		JPanel main = new JPanel(new GridLayout(2, 1));
@@ -155,7 +155,7 @@ public class QuestTesterFrame extends JFrame {
 		debugPanel.setBorder(BorderFactory.createTitledBorder("Debug Output"));
 		mainTop.add(debugPanel);
 
-		questStepView = new QuestStepView();
+		questStepView = new QuestStepInteractiveView(QuestTesterFrame.this);
 		questStepView.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent ev) {
 				QuestStep selected = questStepView.getSelectedStep();
@@ -188,13 +188,71 @@ public class QuestTesterFrame extends JFrame {
 	private JPanel buildCharacterStatsPanel() {
 		JPanel superPanel = new JPanel(new BorderLayout());
 		JPanel topPanel = new JPanel(new GridLayout(2, 1));
-		JButton retestQuestButton = new JButton("Check Quest Now");
+		JPanel questPanel = new JPanel(new GridLayout(2, 3));
+		JButton retestQuestButton = new JButton("Check Quest");
 		retestQuestButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				retestQuest();
 			}
 		});
-		topPanel.add(retestQuestButton);
+		questPanel.add(retestQuestButton);
+		JButton fulfillRequirements = new JButton("Fulfill step");
+		fulfillRequirements.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				QuestStep questStep = questStepView.getSelectedStep();
+				if (questStep!=null) {
+					questStepView.fulfillRequirementsForQuestStep(quest, questStep, character);
+					if (quest.getState() == QuestState.Complete) {
+						showQuestCompleted();
+					}
+					retestQuest();
+				}
+			}
+		});
+		questPanel.add(fulfillRequirements);
+		JButton failRequirements = new JButton("Fail step");
+		failRequirements.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				QuestStep questStep = questStepView.getSelectedStep();
+				if (questStep!=null) {
+					QuestStepInteractiveView.failRequirementsForQuestStep(quest, questStep, character);
+					if (quest.getState() == QuestState.Complete) {
+						showQuestCompleted();
+					}
+					retestQuest();
+				}
+			}
+		});
+		questPanel.add(failRequirements);
+		JButton ready = new JButton("Ready step");
+		ready.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				QuestStep questStep = questStepView.getSelectedStep();
+				if (questStep!=null) {
+					QuestStepInteractiveView.readyQuestStep(quest, questStep, character);
+					if (quest.getState() == QuestState.Complete) {
+						showQuestCompleted();
+					}
+					retestQuest();
+				}
+			}
+		});
+		questPanel.add(ready);
+		JButton pend = new JButton("Pend step");
+		pend.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				QuestStep questStep = questStepView.getSelectedStep();
+				if (questStep!=null) {
+					QuestStepInteractiveView.pendQuestStep(quest, questStep, character);
+					if (quest.getState() == QuestState.Complete) {
+						showQuestCompleted();
+					}
+					retestQuest();
+				}
+			}
+		});
+		questPanel.add(pend);
+		topPanel.add(questPanel);
 		JPanel phaseOptions = new JPanel(new GridLayout(1, 5));
 		ButtonGroup timeGroup = new ButtonGroup();
 		unspecifiedTime = new ForceTextToggle("Any");
@@ -209,6 +267,7 @@ public class QuestTesterFrame extends JFrame {
 		birdsongTime = new ForceTextToggle("Birdsong");
 		birdsongTime.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
+				GameWrapper.findGame(gameData).setState(GameWrapper.GAME_STATE_RECORDING);
 				retestQuest();
 			}
 		});
@@ -217,6 +276,7 @@ public class QuestTesterFrame extends JFrame {
 		phaseTime = new ForceTextToggle("Phase");
 		phaseTime.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
+				GameWrapper.findGame(gameData).setState(GameWrapper.GAME_STATE_PLAYING);
 				retestQuest();
 			}
 		});
@@ -225,6 +285,7 @@ public class QuestTesterFrame extends JFrame {
 		turnTime = new ForceTextToggle("Turn");
 		turnTime.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
+				GameWrapper.findGame(gameData).setState(GameWrapper.GAME_STATE_RESOLVING);
 				retestQuest();
 			}
 		});
@@ -233,11 +294,21 @@ public class QuestTesterFrame extends JFrame {
 		eveningTime = new ForceTextToggle("Evening");
 		eveningTime.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
+				GameWrapper.findGame(gameData).setState(GameWrapper.GAME_STATE_DAYEND);
 				retestQuest();
 			}
 		});
 		timeGroup.add(eveningTime);
 		phaseOptions.add(eveningTime);
+		midnightTime = new ForceTextToggle("Midnight");
+		midnightTime.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				GameWrapper.findGame(gameData).setState(GameWrapper.GAME_STATE_DAYEND);
+				retestQuest();
+			}
+		});
+		timeGroup.add(midnightTime);
+		phaseOptions.add(midnightTime);
 		topPanel.add(phaseOptions);
 		superPanel.add(topPanel, BorderLayout.NORTH);
 		JPanel panel = new JPanel(new BorderLayout());
@@ -249,12 +320,36 @@ public class QuestTesterFrame extends JFrame {
 		charName = new JLabel();
 		line.add(charName);
 		line.add(Box.createHorizontalGlue());
+		JToggleButton toggleHidden = new JToggleButton("Hidden");
+		toggleHidden.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				toggleHidden();
+			}
+		});
+		line.add(toggleHidden);
+		JToggleButton toggleFlying = new JToggleButton("Flying");
+		toggleFlying.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				toggleFlying();
+			}
+		});
+		line.add(toggleFlying);
 		box.add(line);
-
+		
 		line = group.createLabelLine("Current Location");
 		currentLocation = new JLabel();
 		line.add(currentLocation);
 		line.add(Box.createHorizontalGlue());
+		box.add(line);
+		line = group.createLine();
+		line.add(Box.createHorizontalGlue());
+		JButton runAway = new JButton("Run Away");
+		runAway.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				runAway();
+			}
+		});
+		line.add(runAway);
 		JButton changeLocation = new JButton("Change");
 		changeLocation.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
@@ -276,11 +371,31 @@ public class QuestTesterFrame extends JFrame {
 				character.setCurrentMonth(game.getMonth());
 				character.setCurrentDay(game.getDay());
 				character.startNewDay(RealmCalendar.getCalendar(gameData), HostPrefWrapper.findHostPrefs(gameData));
+				CombatWrapper.clearAllCombatInfo(character.getGameObject());
 				updateCharacterPanel();
 				retestQuest();
 			}
 		});
 		line.add(changeDay);
+		box.add(line);
+		
+		line = group.createLabelLine("Current Weather");
+		currentWeather = new JLabel();
+		line.add(currentWeather);
+		line.add(Box.createHorizontalGlue());
+		JButton changeWeather = new JButton("Change");
+		changeWeather.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				String weather = chooseWeather();
+				if (weather != null) {
+					RealmCalendar realmCalender = RealmCalendar.getCalendar(character.getGameData());
+					realmCalender.setWeatherResult(RealmCalendar.getWeatherInt(weather));
+					updateCharacterPanel();
+					retestQuest();
+				}
+			}
+		});
+		line.add(changeWeather);
 		box.add(line);
 
 		line = group.createLabelLine("Great Treasures");
@@ -360,6 +475,109 @@ public class QuestTesterFrame extends JFrame {
 		});
 		line.add(addGold);
 		box.add(line);
+		
+		line = group.createLabelLine("Recorded Fatique");
+		fatigue = new JLabel();
+		line.add(fatigue);
+		line.add(Box.createHorizontalGlue());
+		JButton subfatigue = new JButton("-");
+		subfatigue.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {		
+				character.setWeatherFatigue(character.getWeatherFatigue()-1);
+				updateCharacterPanel();
+				retestQuest();
+			}
+		});
+		line.add(subfatigue);
+		JButton addfatigue = new JButton("+");
+		addfatigue.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				character.setWeatherFatigue(character.getWeatherFatigue()+1);
+				updateCharacterPanel();
+				retestQuest();
+			}
+		});
+		line.add(addfatigue);
+		box.add(line);
+		
+		line = group.createLabelLine("Recorded Wounds");
+		wounds = new JLabel();
+		line.add(wounds);
+		line.add(Box.createHorizontalGlue());
+		JButton subwounds = new JButton("-");
+		subwounds.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {		
+				character.setExtraWounds(character.getExtraWounds()-1);
+				updateCharacterPanel();
+				retestQuest();
+			}
+		});
+		line.add(subwounds);
+		JButton addwounds = new JButton("+");
+		addwounds.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				character.setExtraWounds(character.getExtraWounds()+1);
+				updateCharacterPanel();
+				retestQuest();
+			}
+		});
+		line.add(addwounds);
+		box.add(line);
+		
+		line = group.createLabelLine("Relationship");
+		relationship = new JLabel();
+		line.add(relationship);
+		line.add(Box.createHorizontalGlue());
+		JButton relationship = new JButton("Set");
+		relationship.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				ArrayList<GameObject> list = chooseOther("native","rank=HQ","visitor");
+				if (list == null)
+					return;
+				if (list.size() != 1) {
+					JOptionPane.showMessageDialog(QuestTesterFrame.this, "Pick 1");
+					return;
+				}
+				int targetRel = chooseRelationshipLevel();
+				ArrayList<GameObject> representativeNativesToChange = QuestRequirementRelationship.getRepresentativeNatives(character);
+				for(GameObject denizen:representativeNativesToChange) {
+					int current = character.getRelationship(denizen);
+					int diff = targetRel - current;
+					character.changeRelationship(denizen,diff);
+				}
+				
+				retestQuest();
+			}
+		});
+		line.add(relationship);
+		box.add(line);
+		
+		line = group.createLabelLine("Guild");
+		guild = new JLabel();
+		line.add(guild);
+		line.add(Box.createHorizontalGlue());
+		JButton guild = new JButton("Set");
+		guild.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				ArrayList<GameObject> guildName = chooseOther("Guilds", "guild");
+				if (guildName == null)
+					return;
+				if (guildName.size() != 1) {
+					JOptionPane.showMessageDialog(QuestTesterFrame.this, "Pick 1");
+					return;
+				}
+				GuildLevel level = chooseGuildLevel();
+				int guildLevel = GuildLevelType.getIntFor(level);
+				
+				character.setCurrentGuild(guildName.get(0).getName());
+				character.setCurrentGuildLevel(guildLevel);
+				
+				updateCharacterPanel();
+				retestQuest();
+			}
+		});
+		line.add(guild);
+		box.add(line);
 
 		box.add(Box.createVerticalGlue());
 		panel.add(box, BorderLayout.NORTH);
@@ -401,13 +619,13 @@ public class QuestTesterFrame extends JFrame {
 		panel.add(makeTitledScrollPane("Inactive Inventory", inactiveInventory));
 
 		superPanel.add(panel, BorderLayout.CENTER);
-
 		JPanel controls = new JPanel(new GridLayout(2, 4));
+				
 		JButton addNew = new JButton("Item");
 		addNew.setToolTipText("Gain an item (treasure/weapon/armor)");
 		addNew.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> things = chooseSomething();
+				ArrayList<GameObject> things = chooseItem();
 				if (things == null)
 					return;
 				for (GameObject thing : things) {
@@ -418,26 +636,6 @@ public class QuestTesterFrame extends JFrame {
 			}
 		});
 		controls.add(addNew);
-		JButton addMc = new JButton("MC");
-		addMc.setToolTipText("Add a minor character");
-		addMc.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ev) {
-
-				String mcName = JOptionPane.showInputDialog("Minor Character Name"); // mcName??!?  Robble robble robble.
-				if (mcName == null)
-					return;
-
-				QuestMinorCharacter minorCharacter = quest.createMinorCharacter();
-				minorCharacter.setName(mcName);
-				minorCharacter.getGameObject().setThisAttribute(Constants.ACTIVATED);
-				//minorCharacter.setupAbilities();
-				character.getGameObject().add(minorCharacter.getGameObject());
-
-				updateCharacterPanel();
-				retestQuest();
-			}
-		});
-		controls.add(addMc);
 		JButton toggleActive = new JButton("Toggle");
 		toggleActive.setToolTipText("Activate/Deactivate the selected item above.");
 		toggleActive.addActionListener(new ActionListener() {
@@ -482,12 +680,58 @@ public class QuestTesterFrame extends JFrame {
 			}
 		});
 		controls.add(remove);
-		controls.add(Box.createGlue());
+		JButton drop = new JButton("Drop");
+		drop.setToolTipText("Drop the selected item in the clearing.");
+		drop.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				TileLocation tl = character.getCurrentLocation();
+				if (activeInventory.getSelectedIndex() != -1) {
+					GameObject thing = (GameObject) activeInventory.getSelectedValue();
+					if (TreasureUtility.doDeactivate(QuestTesterFrame.this, character, thing)) {
+						tl.clearing.add(thing, character);
+						updateCharacterPanel();
+						retestQuest();
+					}
+				}
+				else if (inactiveInventory.getSelectedIndex() != -1) {
+					GameObject thing = (GameObject) inactiveInventory.getSelectedValue();
+					tl.clearing.add(thing, character);
+					updateCharacterPanel();
+					retestQuest();
+				}
+			}
+		});
+		controls.add(drop);
 		JButton buy = new JButton("Buy");
-		buy.setEnabled(false); // TODO This doesn't work yet
 		buy.setToolTipText("Buy an Item from a Native.");
 		buy.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
+				ArrayList<GameObject> list = chooseOther("Seller", "visitor", "native,rank=HQ");
+				if (list == null)
+					return;
+				if (list.size() != 1) {
+					JOptionPane.showMessageDialog(QuestTesterFrame.this, "Pick 1");
+					return;
+				}
+				GameObject seller = list.get(0);		
+				QuestRequirementParams params = new QuestRequirementParams();
+				params.actionType = CharacterActionType.Trading;
+				params.actionName = TradeType.Buy.toString();
+				params.objectList = new ArrayList<GameObject>();
+				params.targetOfSearch = seller;
+				ArrayList<GameObject> items = chooseItem();
+				if (items == null)
+					return;
+				for (GameObject item : items) {
+					RealmComponent itemRc = RealmComponent.getRealmComponent(item);
+					int price = TreasureUtility.getBasePrice(null, itemRc);
+					character.setGold(character.getGold()-price);
+					Loot.addItemToCharacter(QuestTesterFrame.this, null, character, item, HostPrefWrapper.findHostPrefs(gameData));
+					params.objectList.add(item);
+				}
+				character.testQuestRequirements(QuestTesterFrame.this, params);
+				updateCharacterPanel();
+				retestQuest();
 			}
 		});
 		controls.add(buy);
@@ -512,19 +756,19 @@ public class QuestTesterFrame extends JFrame {
 				params.targetOfSearch = list.get(0);
 
 				if (activeInventory.getSelectedIndex() != -1) {
-					GameObject thing = (GameObject) activeInventory.getSelectedValue();
-					if (TreasureUtility.doDeactivate(QuestTesterFrame.this, character, thing)) {
-						thing.detach();
-						params.objectList.add(thing);
+					GameObject item = (GameObject) activeInventory.getSelectedValue();
+					if (TreasureUtility.doDeactivate(QuestTesterFrame.this, character, item)) {
+						item.detach();
+						params.objectList.add(item);
 						character.testQuestRequirements(QuestTesterFrame.this, params);
 						updateCharacterPanel();
 						retestQuest();
 					}
 				}
 				else if (inactiveInventory.getSelectedIndex() != -1) {
-					GameObject thing = (GameObject) inactiveInventory.getSelectedValue();
-					thing.detach();
-					params.objectList.add(thing);
+					GameObject item = (GameObject) inactiveInventory.getSelectedValue();
+					item.detach();
+					params.objectList.add(item);
 					character.testQuestRequirements(QuestTesterFrame.this, params);
 					updateCharacterPanel();
 					retestQuest();
@@ -532,48 +776,170 @@ public class QuestTesterFrame extends JFrame {
 			}
 		});
 		controls.add(sell);
-		JButton drop = new JButton("Drop");
-		drop.setToolTipText("Drop the selected item in the clearing.");
-		drop.addActionListener(new ActionListener() {
+		JButton addMc = new JButton("MC");
+		addMc.setToolTipText("Add a minor character");
+		addMc.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				TileLocation tl = character.getCurrentLocation();
-				if (activeInventory.getSelectedIndex() != -1) {
-					GameObject thing = (GameObject) activeInventory.getSelectedValue();
-					if (TreasureUtility.doDeactivate(QuestTesterFrame.this, character, thing)) {
-						tl.clearing.add(thing, character);
-						updateCharacterPanel();
-						retestQuest();
-					}
-				}
-				else if (inactiveInventory.getSelectedIndex() != -1) {
-					GameObject thing = (GameObject) inactiveInventory.getSelectedValue();
-					tl.clearing.add(thing, character);
-					updateCharacterPanel();
-					retestQuest();
-				}
+
+				String mcName = JOptionPane.showInputDialog("Minor Character Name"); // mcName??!?  Robble robble robble.
+				if (mcName == null)
+					return;
+
+				QuestMinorCharacter minorCharacter = quest.createMinorCharacter();
+				minorCharacter.setName(mcName);
+				minorCharacter.getGameObject().setThisAttribute(Constants.ACTIVATED);
+				//minorCharacter.setupAbilities();
+				character.getGameObject().add(minorCharacter.getGameObject());
+
+				updateCharacterPanel();
+				retestQuest();
 			}
 		});
-		controls.add(drop);
+		controls.add(addMc);
+		JButton castSpell = new JButton("CastSpell");
+		castSpell.setToolTipText("Casts a spell");
+		castSpell.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				ArrayList<GameObject> spells = chooseOther("Spell", "spell");
+				if (spells == null)
+					return;
+				if (spells.size() != 1) {
+					JOptionPane.showMessageDialog(QuestTesterFrame.this, "Pick 1");
+					return;
+				}
+				updateCharacterPanel();
+								
+				GameObject castedSpell = spells.get(0);
+				character.addCastedSpell(castedSpell);
+				String spellName = (castedSpell.getName().replaceAll("(\\s)\\[([0-9]+)\\]",""));
+				castedSpell.setName(spellName);
+				QuestRequirementParams reqParams = new QuestRequirementParams();
+				reqParams.actionType = CharacterActionType.CastSpell;
+				reqParams.objectList.add(castedSpell);
+				retestQuest(reqParams);
+			}
+		});
+		controls.add(castSpell);
+		
 		superPanel.add(controls, BorderLayout.SOUTH);
-
 		return superPanel;
 	}
 
 	private JPanel buildCharacterHirelingPanel() {
-		JPanel panel = new JPanel(new GridLayout(2, 1));
+		JPanel panel = new JPanel(new GridLayout(3, 1));
+		JPanel hirelingsPanel = new JPanel(new BorderLayout());	
 		hirelings = new JList();
+		hirelings.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		hirelings.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent e) {
+				updateHirelingsButtons();
+			}
+		});
+		JPanel hirelingButtons = new JPanel(new GridLayout(1, 4));
 		hirelings.setCellRenderer(new HirelingListRenderer());
-		panel.add(makeTitledScrollPane("Hirelings", hirelings));
+		hirelingsPanel.add(hirelings);
+		hirelingAdd = new JButton("Add");
+		hirelingAdd.setToolTipText("Hire new hirelings");
+		hirelingAdd.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				ArrayList<GameObject> things = chooseOther("Hireling", "native,!treasure,!dwelling,!horse,!boon,!credit");
+				if (things == null)
+					return;
+				
+				QuestRequirementParams qp = new QuestRequirementParams();
+				qp.actionType = CharacterActionType.Hire;
+				for (GameObject thing : things) {
+					thing.setThisAttribute("seen");
+					thing.removeThisAttribute(Constants.DEAD);
+					character.getCurrentLocation().clearing.add(thing, null);
+					character.addHireling(thing);
+					qp.objectList.add(thing);
+				}
+				updateCharacterPanel();
+				retestQuest(qp);
+			}
+		});
+		hirelingButtons.add(hirelingAdd);
+		hirelingUnhire = new JButton("Unhire");
+		hirelingUnhire.setToolTipText("Unhire hireling");
+		hirelingUnhire.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				RealmComponent hireling = (RealmComponent) hirelings.getSelectedValue();
+				if (hireling != null) {
+					character.removeHireling(hireling.getGameObject());
+				}
+				updateCharacterPanel();
+				retestQuest();
+			}
+		});
+		hirelingButtons.add(hirelingUnhire);
+		hirelingKill = new JButton("Kill");
+		hirelingKill.setToolTipText("Kill hireling");
+		hirelingKill.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				RealmComponent hireling = (RealmComponent) hirelings.getSelectedValue();
+				killDenizen(hireling);
+				
+				CombatWrapper combat = new CombatWrapper(hireling.getGameObject());
+				combat.setBetrayedBy(character.getGameObject());
+				CombatWrapper combatCharacter = new CombatWrapper(character.getGameObject());
+				combatCharacter.setBetrayed(hireling.getGameObject());
+				character.addTreachery(hireling.getGameObject());
+				
+				retestQuest();
+			}
+		});
+		hirelingButtons.add(hirelingKill);
+		hirelingToggleFollow = new JButton("Follow");
+		hirelingToggleFollow.setToolTipText("Toggle hireling to follow character");
+		hirelingToggleFollow.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				RealmComponent hireling = (RealmComponent) hirelings.getSelectedValue();
+				if (hireling != null) {
+					if (hireling.getHeldBy().getGameObject() != character.getGameObject()) {
+						character.getGameObject().add(hireling.getGameObject());
+					}
+					else {
+						if (character.getCurrentLocation() != null && character.getCurrentLocation().clearing != null) {
+							character.getCurrentLocation().clearing.add(hireling.getGameObject(), null);
+						}					
+					}
+				}
+				hirelings.updateUI();
+				retestQuest();
+			}
+		});
+		hirelingButtons.add(hirelingToggleFollow);
+		hirelingsPanel.add(hirelingButtons, BorderLayout.SOUTH);
+		panel.add(makeTitledScrollPane("Hirelings", hirelingsPanel));
 
 		journalList = new JList();
 		journalList.setCellRenderer(new JournalEntryListRenderer());
 		panel.add(makeTitledScrollPane("Journal", journalList));
+				
+		JPanel markedThingsPanel = new JPanel(new BorderLayout());
+		markedThings = new JList();
+		markedThings.setCellRenderer(new MarkedThingsListRenderer());
+		markedThingsPanel.add(markedThings);
+		panel.add(makeTitledScrollPane("Marked Things", markedThingsPanel));
 		return panel;
+	}
+	
+	private void updateHirelingsButtons() {
+		RealmComponent rc = (RealmComponent) hirelings.getSelectedValue();
+		hirelingUnhire.setEnabled(rc != null);
+		hirelingKill.setEnabled(rc != null);
+		hirelingToggleFollow.setEnabled(rc != null);
 	}
 
 	private JPanel buildCharacterClearingPanel() {
-		JPanel superPanel = new JPanel(new BorderLayout());
-		JPanel panel = new JPanel(new BorderLayout());
+		JPanel locationPanel = new JPanel(new BorderLayout());
+		JPanel locationButtonsWithTitlePanel = new JPanel(new GridLayout(2,1));
+		JPanel locationButtonsPanel = new JPanel(new GridLayout(2,2));
+		JPanel clearingChitsPanel = new JPanel(new BorderLayout());
+				
+		clearingTitle = new JLabel();
+		locationButtonsWithTitlePanel.add(clearingTitle, BorderLayout.NORTH);
 
 		searchClearingButton = new JButton("Search");
 		searchClearingButton.addActionListener(new ActionListener() {
@@ -585,8 +951,61 @@ public class QuestTesterFrame extends JFrame {
 				doSearchOn(rc);
 			}
 		});
-		panel.add(searchClearingButton, BorderLayout.NORTH);
-
+		locationButtonsPanel.add(searchClearingButton);
+		openLocationButton = new JButton("Open Location");
+		openLocationButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				RealmComponent rc = (RealmComponent) clearingComponents.getSelectedValue();
+				ArrayList<GameObject> objectsToOpen = new ArrayList<GameObject>();
+				objectsToOpen.add(rc.getGameObject());
+				TreasureUtility.openOneObject(QuestTesterFrame.this, character, objectsToOpen, null, true);
+				updateCharacterPanel();
+				retestQuest();
+			}
+		});
+		locationButtonsPanel.add(openLocationButton);
+		enchantLocationButton = new JToggleButton("Enchant Location");
+		enchantLocationButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				TileComponent tile = character.getCurrentLocation().tile;
+				if (tile.isLightSideUp()) {
+					tile.setDarkSideUp();
+				}
+				else {
+					tile.setLightSideUp();
+				}
+				
+				QuestRequirementParams params = new QuestRequirementParams();
+				params.actionType = CharacterActionType.Enchant;
+				params.actionName = RealmComponent.TILE;
+				params.objectList.add(tile.getGameObject());
+				character.testQuestRequirements(QuestTesterFrame.this, params);
+				
+				updateCharacterPanel();
+				retestQuest();
+			}
+		});
+		locationButtonsPanel.add(enchantLocationButton);
+		magicForClearingButton = new JButton("Magic color");
+		magicForClearingButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				int colorId = chooseMagicColorId();
+				if (colorId == -1) return;
+				ClearingDetail clearing = character.getCurrentLocation().clearing;
+				if (clearing.getMagic(colorId) == false) {
+					clearing.setMagic(colorId, true);
+				}
+				else {
+					clearing.setMagic(colorId, false);
+				}
+				updateCharacterPanel();
+				retestQuest();
+			}
+		});
+		locationButtonsPanel.add(magicForClearingButton);
+		locationButtonsWithTitlePanel.add(locationButtonsPanel, BorderLayout.NORTH);
+		clearingChitsPanel.add(locationButtonsWithTitlePanel, BorderLayout.NORTH);
+		
 		clearingComponents = new JList();
 		clearingComponents.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		clearingComponents.addListSelectionListener(new ListSelectionListener() {
@@ -595,9 +1014,9 @@ public class QuestTesterFrame extends JFrame {
 			}
 		});
 		clearingComponents.setCellRenderer(new QuestListRenderer());
-		panel.add(new JScrollPane(clearingComponents), BorderLayout.CENTER);
-		panel.setBorder(BorderFactory.createTitledBorder("Current Clearing"));
-		superPanel.add(panel, BorderLayout.CENTER);
+		clearingChitsPanel.add(new JScrollPane(clearingComponents), BorderLayout.CENTER);
+		clearingChitsPanel.setBorder(BorderFactory.createTitledBorder("Current Clearing"));
+		locationPanel.add(clearingChitsPanel, BorderLayout.CENTER);
 
 		JPanel controls = new JPanel(new GridLayout(3, 4));
 		JButton addChit = new JButton("Chit");
@@ -633,7 +1052,7 @@ public class QuestTesterFrame extends JFrame {
 		JButton addItem = new JButton("Item");
 		addItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> things = chooseSomething();
+				ArrayList<GameObject> things = chooseItem();
 				if (things == null)
 					return;
 				for (GameObject thing : things) {
@@ -679,7 +1098,7 @@ public class QuestTesterFrame extends JFrame {
 		JButton addNative = new JButton("Native");
 		addNative.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> things = chooseOther("Native", "native,!treasure,!dwelling,!horse,!boon");
+				ArrayList<GameObject> things = chooseOther("Native", "native,!treasure,!dwelling,!horse,!boon,!credit");
 				if (things == null)
 					return;
 				for (GameObject thing : things) {
@@ -692,10 +1111,11 @@ public class QuestTesterFrame extends JFrame {
 			}
 		});
 		controls.add(addNative);
-		JButton addVisitor = new JButton("Visitor");
+		JPanel miniControls = new JPanel(new GridLayout(1, 2));
+		JButton addVisitor = new JButton("V");
 		addVisitor.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> things = chooseOther("Visitor", "visitor");
+				ArrayList<GameObject> things = chooseOther("Visitor", Constants.VISITOR);
 				if (things == null)
 					return;
 				for (GameObject thing : things) {
@@ -706,7 +1126,28 @@ public class QuestTesterFrame extends JFrame {
 				retestQuest();
 			}
 		});
-		controls.add(addVisitor);
+		miniControls.add(addVisitor);
+		JButton addTraveler = new JButton("T");
+		addTraveler.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				ArrayList<GameObject> things = chooseOther("Traveler", Constants.TRAVELER_TEMPLATE);
+				if (things == null)
+					return;
+				for (GameObject template : things) {
+					GameObject go = gameData.createNewObject();
+					TravelerChitComponent traveler = new TravelerChitComponent(go);
+					traveler.assignTravelerTemplate(template);
+					traveler.getGameObject().setThisAttribute(Constants.TRAVELER);
+					traveler.getGameObject().setThisAttribute("chit");
+					traveler.getGameObject().setThisAttribute("seen");
+					character.getCurrentLocation().clearing.add(traveler.getGameObject(), null);
+				}
+				updateCharacterPanel();
+				retestQuest();
+			}
+		});
+		miniControls.add(addTraveler);
+		controls.add(miniControls);
 		JButton addMission = new JButton("Mission");
 		addMission.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
@@ -752,6 +1193,9 @@ public class QuestTesterFrame extends JFrame {
 				RealmComponent rc = (RealmComponent) clearingComponents.getSelectedValue();
 				if (rc == null)
 					return;
+				if (rc.ownedBy(RealmComponent.getRealmComponent(character.getGameObject()))) {
+					character.removeHireling(rc.getGameObject());
+				}
 				rc.getGameObject().detach();
 				updateCharacterPanel();
 				retestQuest();
@@ -762,7 +1206,7 @@ public class QuestTesterFrame extends JFrame {
 		discoverButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				RealmComponent rc = (RealmComponent) clearingComponents.getSelectedValue();
-				Search.discoverChit(QuestTesterFrame.this, character, character.getCurrentLocation().clearing, rc, new QuestRequirementParams(), null);
+				Search.discoverChit(QuestTesterFrame.this, character, character.getCurrentLocation().clearing, rc, new QuestRequirementParams(), null,false);
 				updateCharacterPanel();
 				retestQuest();
 			}
@@ -775,20 +1219,7 @@ public class QuestTesterFrame extends JFrame {
 				if (victim == null)
 					return;
 				int index = clearingComponents.getSelectedIndex();
-				String dayKey = character.getCurrentDayKey();
-				ArrayList<GameObject> kills = character.getKills(dayKey);
-				int killCount = kills == null ? 0 : kills.size();
-				victim.getGameObject().setThisAttribute(Constants.DEAD);
-				Spoils spoils = new Spoils();
-				spoils.addFame(victim.getGameObject().getThisInt("fame"));
-				spoils.addNotoriety(victim.getGameObject().getThisInt("notoriety"));
-				spoils.setUseMultiplier(true);
-				spoils.setMultiplier(killCount + 1);
-				character.addKill(victim.getGameObject(), spoils);
-				character.addFame(spoils.getFame());
-				character.addNotoriety(spoils.getNotoriety());
-				victim.getGameObject().detach();
-				updateCharacterPanel();
+				killDenizen(victim);
 				int listLength = clearingComponents.getModel().getSize();
 				if (listLength > 0) {
 					if (index >= listLength)
@@ -799,12 +1230,34 @@ public class QuestTesterFrame extends JFrame {
 			}
 		});
 		controls.add(killDenizenButton);
-		superPanel.add(controls, BorderLayout.SOUTH);
+		locationPanel.add(controls, BorderLayout.SOUTH);
 
-		return superPanel;
+		return locationPanel;
 	}
 
-	private ArrayList<GameObject> chooseSomething() {
+	private void killDenizen(RealmComponent victim) {		
+		String dayKey = character.getCurrentDayKey();
+		ArrayList<GameObject> kills = character.getKills(dayKey);
+		int killCount = kills == null ? 0 : kills.size();
+		GameObject victimGameObject = victim.getGameObject();
+		victimGameObject.setThisAttribute(Constants.DEAD);
+		Spoils spoils = new Spoils();
+		spoils.addFame(victimGameObject.getThisInt("fame"));
+		spoils.addNotoriety(victimGameObject.getThisInt("notoriety"));
+		spoils.setUseMultiplier(true);
+		spoils.setMultiplier(killCount + 1);
+		character.addKill(victimGameObject, spoils);
+		character.addFame(spoils.getFame());
+		character.addNotoriety(spoils.getNotoriety());
+		if (victimGameObject.hasThisAttribute("native")) {
+			character.addGold(Integer.parseInt(victimGameObject.getThisAttribute("base_price")));
+		}
+		character.removeHireling(victimGameObject);
+		victimGameObject.detach();
+		updateCharacterPanel();
+	}
+	
+	private ArrayList<GameObject> chooseItem() {
 		GamePool pool = new GamePool(gameData.getGameObjects());
 		Hashtable<String, GameObject> hash = new Hashtable<String, GameObject>();
 		ArrayList<String> weaponList = new ArrayList<String>();
@@ -860,8 +1313,7 @@ public class QuestTesterFrame extends JFrame {
 		for (String kv : keyVals) {
 			for (GameObject thing : pool.find(kv)) {
 				String itemKey = getKey(thing);
-				if (hash.containsKey(itemKey))
-					continue;
+				if (hash.containsKey(itemKey)) continue;
 				chitList.add(itemKey);
 				hash.put(itemKey, thing);
 			}
@@ -881,6 +1333,66 @@ public class QuestTesterFrame extends JFrame {
 		}
 		return null;
 	}
+	
+	private String chooseWeather() {
+		ListChooser chooser = new ListChooser(this, "Choose weather", new String[] {RealmCalendar.WEATHER_CLEAR, RealmCalendar.WEATHER_SHOWERS, RealmCalendar.WEATHER_STORM, RealmCalendar.WEATHER_SPECIAL} );
+		chooser.setDoubleClickEnabled(true);
+		chooser.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		chooser.setLocationRelativeTo(this);
+		chooser.setVisible(true);
+		String selected = (String) chooser.getSelectedItem();
+		return selected;
+	}
+	
+	private int chooseMagicColorId() {
+		ListChooser chooser = new ListChooser(this, "Select magic color:", Constants.MAGIC_COLORS);
+		chooser.setDoubleClickEnabled(true);
+		chooser.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		chooser.setLocationRelativeTo(this);
+		chooser.setVisible(true);
+		Object object = chooser.getSelectedItem();
+		return Arrays.asList(Constants.MAGIC_COLORS).indexOf(object);
+	}
+	
+	private int chooseRelationshipLevel() {
+		ListChooser chooser = new ListChooser(this, "Choose releationship", RelationshipType.RelationshipNames);
+		chooser.setDoubleClickEnabled(true);
+		chooser.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		chooser.setLocationRelativeTo(this);
+		chooser.setVisible(true);
+		Object object = chooser.getSelectedItem();
+		return RelationshipType.getIntFor(object.toString());
+	}
+	
+	private GuildLevel chooseGuildLevel() {
+		ListChooser chooser = new ListChooser(this, "Choose guild level", GuildLevel.values() );
+		chooser.setDoubleClickEnabled(true);
+		chooser.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		chooser.setLocationRelativeTo(this);
+		chooser.setVisible(true);
+		GuildLevel selected = (GuildLevel) chooser.getSelectedItem();
+		return selected;
+	}
+	
+	private String getEnchanted() {
+		if (character != null && character.getCurrentLocation() != null && character.getCurrentLocation().tile.isEnchanted()) {
+			return " (enchanted) ";
+		}
+		return "";
+	}
+	
+	private String getMagicColors() {
+		StringBuffer colors = new StringBuffer();
+		if (character != null && character.getCurrentLocation() != null) {		
+			for (String color : Constants.MAGIC_COLORS) {
+				int colorId = Arrays.asList(Constants.MAGIC_COLORS).indexOf(color);
+				if (character.getCurrentLocation().clearing.getMagic(colorId)) {
+					colors.append(color+" ");
+				}
+			}
+		}
+		return colors.toString();
+	}	
 
 	private void updateStepDetails(QuestStep step) {
 		StringBuffer sb = new StringBuffer();
@@ -897,6 +1409,9 @@ public class QuestTesterFrame extends JFrame {
 			sb.append("[");
 			sb.append(req.getRequirementType());
 			sb.append("]: ");
+			if (req.isNot()) {
+				sb.append("NOT ");
+			}
 			sb.append(req.toString());
 			sb.append("\n");
 		}
@@ -939,8 +1454,14 @@ public class QuestTesterFrame extends JFrame {
 			variantChoices.add(GameVariant.PRUITTS_GAME_VARIANT);
 		if (quest.getBoolean(QuestConstants.VARIANT_EXP1))
 			variantChoices.add(GameVariant.EXP1_GAME_VARIANT);
-		if (variantChoices.isEmpty())
+		if (quest.getBoolean(QuestConstants.VARIANT_SUPER_REALM))
+			variantChoices.add(GameVariant.SUPER_REALM);
+		if (variantChoices.isEmpty()) {
 			variantChoices.add(GameVariant.ORIGINAL_GAME_VARIANT);
+			variantChoices.add(GameVariant.PRUITTS_GAME_VARIANT);
+			variantChoices.add(GameVariant.EXP1_GAME_VARIANT);
+			variantChoices.add(GameVariant.SUPER_REALM);
+		}
 
 		GameVariant useVariant;
 		if (variantChoices.size() == 1) {
@@ -997,6 +1518,10 @@ public class QuestTesterFrame extends JFrame {
 		character.setCurrentMonth(game.getMonth());
 		character.setCurrentDay(game.getDay());
 		TileComponent tile = (TileComponent) RealmComponent.getRealmComponent(gameData.getGameObjectByName("Awful Valley"));
+		GamePool pool = new GamePool(gameData.getGameObjects());
+		for (GameObject go : pool.find("tile")) {
+			go.setAttribute("mapGrid","mapPosition",0);
+		}
 		ClearingDetail clearing = tile.getClearing(1);
 		clearing.add(character.getGameObject(), character);
 		character.startNewDay(RealmCalendar.getCalendar(gameData), hostPrefs);
@@ -1034,10 +1559,13 @@ public class QuestTesterFrame extends JFrame {
 			questName.setIcon(RealmComponent.getRealmComponent(quest.getGameObject()).getFaceUpIcon());
 
 			if (quest.getState() == QuestState.Complete) {
-				JOptionPane.showMessageDialog(this, "Quest is Complete!", "Quest Complete", JOptionPane.INFORMATION_MESSAGE, RealmComponent.getRealmComponent(quest.getGameObject()).getFaceUpIcon());
+				showQuestCompleted();
 			}
 		}
 		questStepView.repaint();
+		
+		character.distributeMonsterControlInCurrentClearing(false);
+		
 		updateCharacterPanel();
 		debugOutput.setCaretPosition(0); // why doesn't this work?
 	}
@@ -1051,7 +1579,13 @@ public class QuestTesterFrame extends JFrame {
 			return GamePhaseType.EndOfTurn;
 		if (eveningTime.isSelected())
 			return GamePhaseType.StartOfEvening;
+		if (midnightTime.isSelected())
+			return GamePhaseType.Midnight;
 		return GamePhaseType.Unspecified;
+	}
+	
+	private void showQuestCompleted() {
+		JOptionPane.showMessageDialog(this, "Quest is Complete!", "Quest Complete", JOptionPane.INFORMATION_MESSAGE, RealmComponent.getRealmComponent(quest.getGameObject()).getFaceUpIcon());
 	}
 
 	private void updateCharacterPanel() {
@@ -1059,16 +1593,23 @@ public class QuestTesterFrame extends JFrame {
 		charName.setIcon(RealmComponent.getRealmComponent(character.getGameObject()).getSmallIcon());
 		currentLocation.setText(character.getCurrentLocation().toString());
 		currentDay.setText(character.getCurrentDayKey());
+		currentWeather.setText(RealmCalendar.getCalendar(character.getGameData()).getWeatherTypeName(character.getCurrentMonth()));
 		gtAmount.setText(String.valueOf(character.getGreatTreasureScore().getOwnedPoints()));
 		fameAmount.setText(String.valueOf((int) character.getFame()));
 		notorietyAmount.setText(String.valueOf((int) character.getNotoriety()));
 		goldAmount.setText(String.valueOf((int) character.getGold()));
+		fatigue.setText(String.valueOf(character.getWeatherFatigue()));
+		wounds.setText(String.valueOf(character.getExtraWounds()));
+		guild.setText(character.getCurrentGuildLevelName());
 
 		activeInventory.setListData(new Vector<GameObject>(character.getActiveInventory()));
 		inactiveInventory.setListData(new Vector<GameObject>(character.getInactiveInventory()));
 		hirelings.setListData(new Vector<RealmComponent>(character.getAllHirelings()));
 		journalList.setListData(new Vector<QuestJournalEntry>(quest.getJournalEntries()));
+		markedThings.setListData(new Vector<RealmComponent>(getAllMarkedThings()));
 
+		clearingTitle.setText(character.getCurrentLocation().toString()+getEnchanted()+" "+getMagicColors());
+		
 		Vector<RealmComponent> rcs = new Vector<RealmComponent>();
 		for (RealmComponent rc : character.getCurrentLocation().clearing.getClearingComponents(true)) {
 			if (rc.isCharacter())
@@ -1077,18 +1618,90 @@ public class QuestTesterFrame extends JFrame {
 		}
 		clearingComponents.setListData(rcs);
 		updateClearingButtons();
+		updateHirelingsButtons();
 	}
-
+	
 	private void updateClearingButtons() {
 		RealmComponent rc = (RealmComponent) clearingComponents.getSelectedValue();
 		pickupFromClearingButton.setEnabled(rc != null);
 		removeFromClearingButton.setEnabled(rc != null);
 		discoverButton.setEnabled(rc != null);
+		openLocationButton.setEnabled(rc != null && rc.isTreasureLocation());
 		killDenizenButton.setEnabled(rc != null && (rc.isMonster() || rc.isNative()));
 		searchClearingButton.setEnabled(true); // always on?
 	}
 
+	private void toggleHidden() {
+		if (character.isHidden()) {
+			character.setHidden(false);
+		}
+		else {
+			character.setHidden(true);
+			QuestRequirementParams params = new QuestRequirementParams();
+			params.actionType = CharacterActionType.Hide;
+			character.testQuestRequirements(QuestTesterFrame.this,params);
+		}
+		retestQuest();
+	}
+	
+	private void toggleFlying() {
+		if (character.getCurrentLocation().isFlying()) {
+			character.getCurrentLocation().setFlying(false);
+			character.getGameObject().removeThisAttribute("isflying");
+		}
+		else {
+			character.getCurrentLocation().setFlying(true);
+			character.getGameObject().setThisAttribute("isflying");
+			QuestRequirementParams params = new QuestRequirementParams();
+			params.actionType = CharacterActionType.Fly;
+			character.testQuestRequirements(QuestTesterFrame.this,params);
+		}
+		retestQuest();
+	}
+	
+	private void runAway() {
+		ClearingDetail clearing = chooseNewLocationDialog(true);
+		if (clearing == null) {
+			return;
+		}
+		
+		// All following hirelings need to remain behind
+		TileLocation oldLocation = character.getCurrentLocation();
+		if (oldLocation != null) {
+			for (RealmComponent hireling : character.getFollowingHirelings()) {
+				oldLocation.clearing.add(hireling.getGameObject(),null);
+				if (hireling.getGameObject().hasThisAttribute(Constants.CAPTURE)) {
+					character.removeHireling(hireling.getGameObject());
+				}
+			}
+		}
+		
+		ClearingUtility.moveToLocation(character.getGameObject(),clearing.getTileLocation(),true);
+		character.addMoveHistory(character.getCurrentLocation());
+		updateCharacterPanel();
+		
+		QuestRequirementParams params = new QuestRequirementParams();
+		params.actionType = CharacterActionType.Move;
+		character.testQuestRequirements(QuestTesterFrame.this, params);
+		
+		retestQuest();
+	}
+		
 	private void chooseNewLocation() {
+		ClearingDetail clearing = chooseNewLocationDialog(false);
+		if (clearing != null) {
+			character.moveToLocation(this, clearing.getTileLocation());
+			updateCharacterPanel();
+			
+			QuestRequirementParams params = new QuestRequirementParams();
+			params.actionType = CharacterActionType.Move;
+			character.testQuestRequirements(QuestTesterFrame.this, params);
+			
+			retestQuest();
+		}
+	}
+		
+	private ClearingDetail chooseNewLocationDialog(boolean runAway) {
 		GamePool pool = new GamePool(gameData.getGameObjects());
 		Hashtable<String, ClearingDetail> hash = new Hashtable<String, ClearingDetail>();
 		Vector<String> locationNames = new Vector<String>();
@@ -1101,18 +1714,23 @@ public class QuestTesterFrame extends JFrame {
 			}
 		}
 		Collections.sort(locationNames);
-
-		ButtonOptionDialog dialog = new ButtonOptionDialog(this, null, "Select new Location:", "Change Location", true, 6);
+		
+		String headline = "Change Location";
+		String text = "Select new Location:";
+		if (runAway) {
+			headline = "Run Away";
+			text = "Run towards which clearing?";
+		}
+		
+		ButtonOptionDialog dialog = new ButtonOptionDialog(this, null, text, headline, true, 6);
 		dialog.addSelectionObjects(locationNames);
 		dialog.setVisible(true);
 
 		String val = (String) dialog.getSelectedObject();
-		if (val != null) {
-			ClearingDetail clearing = hash.get(val);
-			character.moveToLocation(this, clearing.getTileLocation());
-			updateCharacterPanel();
-			retestQuest();
+		if (val==null) {
+			return null;
 		}
+		return hash.get(val);
 	}
 
 	private void exitApp() {
@@ -1155,6 +1773,7 @@ public class QuestTesterFrame extends JFrame {
 		String gain = (String) dialog.getSelectedObject();
 
 		QuestRequirementParams params = new QuestRequirementParams();
+		params.actionType = CharacterActionType.SearchTable;
 		params.searchType = result;
 		params.targetOfSearch = rc.getGameObject();
 		params.actionName = table.toString();
@@ -1163,13 +1782,13 @@ public class QuestTesterFrame extends JFrame {
 		}
 		else if (SEARCH_RESULT_TREASURE.equals(gain)) {
 			params.searchHadAnEffect = true;
-			ArrayList<GameObject> stuff = chooseSomething();
+			ArrayList<GameObject> stuff = chooseItem();
 			if (stuff == null || stuff.size() == 0)
 				return;
 			params.objectList = stuff;
 			for (GameObject thing : stuff) {
 				Loot loot = new Loot(this, character, rc.getGameObject(), null);
-				loot.handleSpecial(character, character.getCurrentLocation().clearing, thing, true);
+				loot.handleSpecial(character, thing, true);
 				//Loot.addItemToCharacter(this,null,character,thing);
 			}
 		}
@@ -1185,7 +1804,7 @@ public class QuestTesterFrame extends JFrame {
 		}
 		retestQuest(params);
 	}
-
+	
 	private void updateTextArea(final String text) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
@@ -1271,10 +1890,50 @@ public class QuestTesterFrame extends JFrame {
 				else {
 					sb.append(" (permanent)");
 				}
+				if (go.getHeldBy() == character.getGameObject()) {
+					sb.append(" (following)");
+				}
+				
 				setText(sb.toString());
 			}
 			return this;
 		}
+	}
+	
+	private class MarkedThingsListRenderer extends DefaultListCellRenderer {
+		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+			super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+			GameObject go = null;
+			if (value instanceof RealmComponent) {
+				go = ((RealmComponent) value).getGameObject();
+			}
+			else if (value instanceof GameObject) {
+				go = (GameObject) value;
+			}	
+			if (go != null) {
+				RealmComponent rc = RealmComponent.getRealmComponent(go);
+				StringBuffer sb = new StringBuffer();
+				sb.append(getKey(go));
+				TileLocation location = rc.getCurrentLocation();
+				if (location!=null) {
+					sb.append(" ("+location+")");
+				} else if (rc.getHeldBy()!=null){
+					sb.append(" ("+rc.getHeldBy().getGameObject().getName()+")");
+				}
+				setText(sb.toString());
+			}
+			return this;
+		}
+	}
+	
+	public ArrayList<RealmComponent> getAllMarkedThings() {
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
+		GamePool pool = new GamePool(character.getGameData().getGameObjects());
+		for (GameObject go : pool.find(QuestConstants.QUEST_MARK)) {
+			RealmComponent rc = RealmComponent.getRealmComponent(go);
+			list.add(rc);
+		}
+		return list;
 	}
 
 	private class JournalEntryListRenderer extends DefaultListCellRenderer {
@@ -1314,7 +1973,7 @@ public class QuestTesterFrame extends JFrame {
 		data.ignoreRandomSeed = true;
 		File file = (args.length > 0 && args[0].trim().length() > 0) ? new File(args[0]) : null;
 		if (file != null && data.zipFromFile(file)) {
-			Quest aQuest = new Quest((GameObject) data.getGameObjects().iterator().next());
+			Quest aQuest = new Quest(data.getGameObjects().iterator().next());
 			aQuest.autoRepair(); // Just in case
 
 			final QuestTesterFrame frame = new QuestTesterFrame(aQuest, "Berserker");

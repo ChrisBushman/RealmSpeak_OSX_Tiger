@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest.requirement;
 
 import java.util.ArrayList;
@@ -25,8 +8,12 @@ import javax.swing.JFrame;
 
 import com.robin.game.objects.GameObject;
 import com.robin.game.objects.GamePool;
+import com.robin.magic_realm.components.RealmComponent;
+import com.robin.magic_realm.components.quest.ArmoredType;
 import com.robin.magic_realm.components.quest.QuestConstants;
 import com.robin.magic_realm.components.quest.QuestStep;
+import com.robin.magic_realm.components.quest.TargetValueType;
+import com.robin.magic_realm.components.quest.VulnerabilityType;
 import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 import com.robin.magic_realm.components.wrapper.DayKey;
@@ -37,8 +24,13 @@ public class QuestRequirementKill extends QuestRequirement {
 
 	public static final String REGEX_FILTER = "_regex";
 	public static final String REQUIRE_MARK = "_rqm";
-	public static final String STEP_ONLY_KILLS = "_sok";
+	public static final String TARGET_VALUE_TYPE = "_tvt";
 	public static final String VALUE = "_rq";
+	public static final String VULNERABILITY = "_vy";
+	public static final String ARMORED = "_arm";
+	private static final String STEP_ONLY_KILLS = "_sok"; // compatibility for old quests
+	public static final String REGEX_DESCRIPTION = "_regex_description";
+	public static final String KILL_CHARACTERS = "_kill_characters";
 	
 	public QuestRequirementKill(GameObject go) {
 		super(go);
@@ -47,10 +39,21 @@ public class QuestRequirementKill extends QuestRequirement {
 	protected boolean testFulfillsRequirement(JFrame frame,CharacterWrapper character,QuestRequirementParams reqParams) {
 		logger.fine(buildDescription());
 		QuestStep step = getParentStep();
-		DayKey earliestTime = getOnlyCountKillsForStep()?step.getQuestStepStartTime():step.getQuestStartTime();
-		if (earliestTime==null) {
-			logger.fine("Quest has no start time?  This is a bug: contact Robin.");
-			return false;
+		DayKey earliestTime = new DayKey(1,1);
+		TargetValueType tvt = getTargetValueType();
+		switch (tvt) {
+			case Game:
+				earliestTime = new DayKey(1,1);
+				break;
+			case Quest:
+				earliestTime = step.getQuestStartTime();
+				break;
+			case Step:
+				earliestTime = step.getQuestStepStartTime();
+				break;
+			case Day:
+				earliestTime = new DayKey(character.getCurrentDayKey());
+				break;
 		}
 		
 		boolean requireMark = getRequireMark();
@@ -62,12 +65,15 @@ public class QuestRequirementKill extends QuestRequirement {
 		if (numberOfKillsNeeded==QuestConstants.ALL_VALUE) {
 			GamePool pool = new GamePool(getGameData().getGameObjects());
 			for(GameObject go:pool.find("vulnerability,!weight")) { // stuff that can be killed has a vulnerability, including characters!
+				if (!killCharacters() && !go.hasThisAttribute(Constants.DENIZEN)) continue;
+				if (killCharacters() && !go.hasThisAttribute(RealmComponent.CHARACTER)) continue;
 				if (pattern!=null && !pattern.matcher(go.getName()).find()) continue;
 				if (requireMark) {
 					String mark = go.getThisAttribute(QuestConstants.QUEST_MARK);
 					if (mark==null || !mark.equals(questId)) continue;
 				}
-				
+				if (getVulnerability()!=VulnerabilityType.Any && VulnerabilityType.valueOf(go.getThisAttribute("vulnerability"))!=getVulnerability()) continue;
+				if ((getArmored() == ArmoredType.Armored && !go.hasThisAttribute("armored"))|| (getArmored() == ArmoredType.Unarmored && go.hasThisAttribute("armored"))) continue;
 				if (!go.hasThisAttribute(Constants.DEAD)) {
 					logger.fine(go.getName()+" is still alive.");
 					return false;
@@ -77,23 +83,26 @@ public class QuestRequirementKill extends QuestRequirement {
 		}
 		
 		ArrayList<GameObject> validKills = new ArrayList<GameObject>();
-		ArrayList allDayKeys = character.getAllDayKeys();
+		ArrayList<String> allDayKeys = character.getAllDayKeys();
 		if (allDayKeys==null) {
 			logger.fine("Character hasn't had a turn yet.");
 			return false;
 		}
-		for(Object obj:allDayKeys) {
-			String dayKeyString = (String)obj;
+		for(String dayKeyString:allDayKeys) {
 			DayKey dayKey = new DayKey(dayKeyString);
 			if (dayKey.before(earliestTime)) continue; // ignore kills on days before the earliest allowable date
 			
 			ArrayList<GameObject> kills = character.getKills(dayKeyString);
 			for(GameObject kill:kills) {
+				if (!killCharacters() && !kill.hasThisAttribute(Constants.DENIZEN)) continue;
+				if (killCharacters() && !kill.hasThisAttribute(RealmComponent.CHARACTER)) continue;
 				if (pattern!=null && !pattern.matcher(kill.getName()).find()) continue;
 				if (requireMark) {
 					String mark = kill.getThisAttribute(QuestConstants.QUEST_MARK);
 					if (mark==null || !mark.equals(questId)) continue;
 				}
+				if (getVulnerability()!=VulnerabilityType.Any && VulnerabilityType.valueOf(kill.getThisAttribute("vulnerability"))!=getVulnerability()) continue;
+				if ((getArmored() == ArmoredType.Armored && !kill.hasThisAttribute("armored")) || (getArmored() == ArmoredType.Unarmored && kill.hasThisAttribute("armored"))) continue;
 				
 				validKills.add(kill);
 			}
@@ -114,13 +123,27 @@ public class QuestRequirementKill extends QuestRequirement {
 		sb.append(mark?"":"any ");
 		sb.append(val==QuestConstants.ALL_VALUE?"ALL":""+val);
 		sb.append(mark?" marked":"");
-		sb.append(" denizen");
+		if (getArmored() != ArmoredType.Any) {
+			sb.append(" "+getArmored().toString().toLowerCase());
+		}
+		if (killCharacters()) {
+			sb.append(" character");
+		}
+		else {
+			sb.append(" denizen");
+		}
 		sb.append(val==1?"":"s");
-		sb.append(" that match");
-		sb.append(val==1?"es":"");
-		sb.append(" regex: /");
-		sb.append(getRegExFilter());
-		sb.append("/");
+		if(getRegExFilter().length() != 0) {
+			sb.append(" that match");
+			sb.append(val==1?"es ":" ");
+			if (getRegExDescription().length() > 0) {
+				sb.append(getRegExDescription());
+			} else {
+				sb.append(getRegExFilter());
+			}
+		}
+		sb.append(getVulnerability()!=VulnerabilityType.Any?" with vulnerability "+getVulnerability():"");
+		sb.append(".");
 		return sb.toString();
 	}
 
@@ -128,16 +151,46 @@ public class QuestRequirementKill extends QuestRequirement {
 		return RequirementType.Kill;
 	}
 	
-	public String getRegExFilter() {
+	private String getRegExFilter() {
 		return getString(REGEX_FILTER);
 	}
-	public boolean getOnlyCountKillsForStep() {
-		return getBoolean(STEP_ONLY_KILLS);
+	public TargetValueType getTargetValueType() {
+		if (getString(TARGET_VALUE_TYPE) == null) { // compatibility for old quests
+			if (getBoolean(STEP_ONLY_KILLS)) { 
+				return TargetValueType.Step;
+			}
+			return TargetValueType.Quest;
+		}
+		return TargetValueType.valueOf(getString(TARGET_VALUE_TYPE));
 	}
-	public boolean getRequireMark() {
+	private boolean getRequireMark() {
 		return getBoolean(REQUIRE_MARK);
 	}
-	public int getValue() {
+	private int getValue() {
 		return getInt(VALUE);
+	}
+	private VulnerabilityType getVulnerability() {
+		String vulnerability = getString(VULNERABILITY);
+		if (vulnerability == null || vulnerability.matches("undefined")) { // compatibility for old quests
+			return VulnerabilityType.Any;
+		}
+		return VulnerabilityType.valueOf(getString(VULNERABILITY));
+	}
+	private ArmoredType getArmored() {
+		String armor = getString(ARMORED);
+		if (armor == null) { // compatibility for old quests
+			return ArmoredType.Any;
+		}
+		return ArmoredType.valueOf(getString(ARMORED));
+	}
+	
+	public String getRegExDescription() {
+		if (getGameObject().hasAttribute(getBlockName(),REGEX_DESCRIPTION)) {
+			return getString(REGEX_DESCRIPTION);
+		}
+		return "";
+	}
+	private boolean killCharacters() {
+		return getBoolean(KILL_CHARACTERS);
 	}
 }

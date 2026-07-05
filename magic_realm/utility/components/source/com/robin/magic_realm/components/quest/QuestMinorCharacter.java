@@ -1,28 +1,13 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.robin.game.objects.GameObject;
+import com.robin.game.objects.GameObjectBlockManager;
 import com.robin.game.objects.GameObjectWrapper;
 import com.robin.general.util.OrderedHashtable;
+import com.robin.magic_realm.components.utility.Constants;
 
 public class QuestMinorCharacter extends GameObjectWrapper {
 	
@@ -32,6 +17,7 @@ public class QuestMinorCharacter extends GameObjectWrapper {
 	public static final String ABILITY_BLOCK_NAME = "_abn";
 	public static final String ABILITY_TYPE = "_at";
 	public static final String ABILITY_DESCRIPTION = "_ad";
+	public static final String BONUS_CHIT_GENERATED = "_bcg";
 	
 	private static final String[] IGNORE = {
 		ABILITY_TYPE,
@@ -63,8 +49,8 @@ public class QuestMinorCharacter extends GameObjectWrapper {
 				if (ignore.contains(key)) continue;
 				Object val = block.get(key);
 				if (val instanceof ArrayList) {
-					ArrayList list = new ArrayList((ArrayList)val);
-					ArrayList current = getGameObject().getThisAttributeList(key);
+					ArrayList<String> list = new ArrayList((ArrayList)val);
+					ArrayList<String> current = getGameObject().getThisAttributeList(key);
 					if (current!=null && !current.isEmpty()) {
 						list.addAll(current);
 					}
@@ -75,6 +61,18 @@ public class QuestMinorCharacter extends GameObjectWrapper {
 				}
 			}
 			getGameObject().removeAttributeBlock(abilityBlockName);
+		}
+	}
+	public void setupBonusChit() {
+		if (getGameObject().hasThisAttribute(BONUS_CHIT_GENERATED)) return;
+		getGameObject().setThisAttribute(BONUS_CHIT_GENERATED);
+		GameObjectBlockManager man = new GameObjectBlockManager(getGameObject());
+		GameObject bonusChit = man.extractGameObjectFromBlocks(Constants.BONUS_CHIT + "design", false);
+		if (bonusChit != null) {
+			bonusChit.setThisAttribute("icon_type", getGameObject().getThisAttribute("icon_type"));
+			bonusChit.setThisAttribute("icon_folder", getGameObject().getThisAttribute("icon_folder"));
+			bonusChit.setThisAttribute(Constants.CHIT_EARNED);
+			getGameObject().add(bonusChit);
 		}
 	}
 	public void init() {

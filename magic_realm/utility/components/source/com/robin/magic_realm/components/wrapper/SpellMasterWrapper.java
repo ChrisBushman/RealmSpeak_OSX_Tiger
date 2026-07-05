@@ -1,24 +1,8 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.wrapper;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collections;
+import java.util.Comparator;
 
 import javax.swing.JFrame;
 
@@ -27,6 +11,8 @@ import com.robin.general.util.HashLists;
 import com.robin.general.util.RandomNumber;
 import com.robin.magic_realm.components.attribute.ColorMagic;
 import com.robin.magic_realm.components.attribute.TileLocation;
+import com.robin.magic_realm.components.events.RealmEvents;
+import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.utility.RealmCalendar;
 
 /**
@@ -59,6 +45,7 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 	private static final String COMBAT_SPELLS = "combat";
 	private static final String PHASE_SPELLS = "phase";
 	private static final String MOVE_SPELLS = "move";
+	private static final String MIDNIGHT_SPELLS = "midnight";
 	
 	public SpellMasterWrapper(GameObject gm) {
 		super(gm);
@@ -84,21 +71,19 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 	 * @return		The single SpellWrapper object that was cast by this incantation object (if any)
 	 */
 	public SpellWrapper getIncantedSpell(GameObject incantation) {
-		GameObject incantedSpellObject = null;
-		for (SpellWrapper spell : getSpells(null)) {
-			GameObject io = spell.getIncantationObject();
-			if (io != null && io.equals(incantation)) {
-				incantedSpellObject = io;
-				break;
+		for (SpellWrapper s : getSpells(null)) {
+			GameObject inc = s.getIncantationObject();
+			if (inc != null && inc.equals(incantation)) {
+				return new SpellWrapper(inc);
 			}
 		}
-		return incantedSpellObject != null ? new SpellWrapper(incantedSpellObject) : null;
+		return null;
 	}
 	
-	public ArrayList getList(String key) {
-		ArrayList list = super.getList(key);
+	public ArrayList<String> getList(String key) {
+		ArrayList<String> list = super.getList(key);
 		if (list==null) {
-			return new ArrayList();
+			return new ArrayList<String>();
 		}
 		return list;
 	}
@@ -108,10 +93,9 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 	 * 
 	 * @return				A list of ALL breakable spells (currently Combat,Day,Permanent) that are in the clearing.
 	 */
-	public ArrayList getAllSpellsInClearing(TileLocation location,boolean needForCancel) {
-		ArrayList ret = new ArrayList();
-		for (Iterator i=getSpells(null).iterator();i.hasNext();) {
-			SpellWrapper spell = (SpellWrapper)i.next();
+	public ArrayList<SpellWrapper> getAllSpellsInClearing(TileLocation location,boolean needForCancel) {
+		ArrayList<SpellWrapper> ret = new ArrayList<SpellWrapper>();
+		for (SpellWrapper spell : getSpells(null)) {
 			if (!needForCancel || !spell.isNoCancelSpell()) {
 				TileLocation test = spell.getCurrentLocation();
 				if (test!=null) { // test might be null if the spell is targeting a treasure that hasn't yet been seen
@@ -128,7 +112,7 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 	}
 	private ArrayList<SpellWrapper> getSpells(String duration) {
 		GameData data = getGameObject().getGameData();
-		ArrayList ids = new ArrayList();
+		ArrayList<String> ids = new ArrayList<String>();
 		if (duration==null) {
 			ids.addAll(getList(PERMANENT_SPELLS));
 			ids.addAll(getList(DAY_SPELLS));
@@ -140,8 +124,7 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 			ids.addAll(getList(duration));
 		}
 		ArrayList<SpellWrapper> ret = new ArrayList<SpellWrapper>();
-		for (Iterator i=ids.iterator();i.hasNext();) {
-			String id = (String)i.next();
+		for (String id : ids) {
 			GameObject go = data.getGameObject(Long.valueOf(id));
 			ret.add(new SpellWrapper(go));
 		}
@@ -159,11 +142,26 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 		}
 		
 		// Clear all spell lists
-		setBoolean(DAY_SPELLS,false);
-		setBoolean(COMBAT_SPELLS,false);
-		setBoolean(PERMANENT_SPELLS,false);
-		setBoolean(PHASE_SPELLS,false);
-		setBoolean(MOVE_SPELLS,false);
+		removeAttribute(DAY_SPELLS);
+		removeAttribute(COMBAT_SPELLS);
+		removeAttribute(PERMANENT_SPELLS);
+		removeAttribute(PHASE_SPELLS);
+		removeAttribute(MOVE_SPELLS);
+	}
+	public void expireAllSpellsBut(String[] spells) {
+		// Expire the spells, one at a time
+		for (SpellWrapper spell:getSpells(null)) {
+			boolean ignoreSpell=false;
+			for (String spellName : spells) {
+				if (spellName.toLowerCase().matches(spell.getName().toLowerCase())) {
+					ignoreSpell = true;
+					break;
+				}
+			}
+			if (!ignoreSpell) {
+				spell.expireSpell();
+			}
+		}
 	}
 	/**
 	 * Causes all day spells to expire
@@ -175,7 +173,7 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 		}
 		
 		// Clear the day spell list
-		setBoolean(DAY_SPELLS,false);
+		removeAttribute(DAY_SPELLS);
 	}
 	
 	/**
@@ -188,7 +186,7 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 		}
 
 		// Clear the combat spell list
-		setBoolean(COMBAT_SPELLS,false);
+		removeAttribute(COMBAT_SPELLS);
 	}
 	/**
 	 * Causes all phase spells to expire
@@ -204,14 +202,15 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 		}
 
 		// Clear the phase spell list
-		setBoolean(PHASE_SPELLS,false);
+		removeAttribute(PHASE_SPELLS);
 		return ret;
 	}
 	/**
 	 * Calculates spell locations, and figures out the colors (infinite sources only here)
 	 */
 	public void energizePermanentSpells(JFrame frame,GameWrapper game) {
-		HashLists conflicts = new HashLists();
+		HashLists<GameObject, SpellWrapper> conflicts = new HashLists<GameObject, SpellWrapper>();
+		ArrayList<SpellWrapper> affectingSpells = new ArrayList<SpellWrapper>();
 		for (SpellWrapper spell:getSpells(PERMANENT_SPELLS)) {
 			if (spell.isInert()) { // no point energizing non-inert spells!
 				TileLocation loc = spell.getCurrentLocation();
@@ -222,8 +221,7 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 				else {
 					if (spellCanEnergize(game,loc,spell,true)) {
 						if (spell.canConflict()) {
-							// Before we can add this, need to make sure that the affected target isn't already
-							// afflicted with a STRONGER spell
+							// Before we can add this, need to make sure that the affected target isn't already afflicted with a STRONGER spell
 							boolean addSpell = true;
 							
 							int str = spell.getConflictStrength();
@@ -245,28 +243,29 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 							}
 						}
 						else {
-							spell.affectTargets(frame,game,false);
+							affectingSpells.add(spell);
 						}
 					}
 				}
 			}
 		}
+		for (SpellWrapper energizedSpell : affectingSpells) {
+			energizedSpell.affectTargets(frame,game,false,affectingSpells);
+		}
 		
 		// Resolve conflicts per target (if any)
-		for (Iterator i=conflicts.keySet().iterator();i.hasNext();) {
-			GameObject target = (GameObject)i.next();
+		for (GameObject target : conflicts.keySet()) {
 			SpellWrapper strongest = null;
-			ArrayList list = conflicts.getList(target);
+			ArrayList<SpellWrapper> list = conflicts.getList(target);
 			if (list.size()==1) {
 				// No conflict!
-				strongest = (SpellWrapper)list.get(0);
+				strongest = list.get(0);
 			}
 			else {
 				// Multiple spells affecting target - find the strongest one
 				ArrayList<SpellWrapper> strongGroup = new ArrayList<SpellWrapper>();
 				int bestStrength = 0;
-				for (Iterator n=list.iterator();n.hasNext();) {
-					SpellWrapper spell = (SpellWrapper)n.next();
+				for (SpellWrapper spell : list) {
 					int strength = spell.getConflictStrength();
 					if (strength > bestStrength) {
 						strongGroup.clear();
@@ -308,39 +307,41 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 				}
 			}
 			if (strongest!=null) {
-				strongest.affectTargets(frame,game,false);
+				strongest.affectTargets(frame,game,false,affectingSpells);
 			}
 		}
 	}
-	private boolean spellCanEnergize(GameWrapper game,TileLocation loc,SpellWrapper spell,boolean includeCalendar) {
+	private static boolean spellCanEnergize(GameWrapper game,TileLocation loc,SpellWrapper spell,boolean includeCalendar) {
 		RealmCalendar cal = RealmCalendar.getCalendar(game.getGameObject().getGameData());
-		ArrayList infiniteSources = new ArrayList();
-		if (loc.isInClearing()) {
-			infiniteSources.addAll(loc.clearing.getAllSourcesOfColor(true));
+		ArrayList<ColorMagic> infiniteSources = new ArrayList<ColorMagic>();
+		if (loc!=null) {
+			if (loc.isInClearing()) {
+				infiniteSources.addAll(loc.clearing.getAllSourcesOfColor(true));
+			}
+			else if (loc.isBetweenClearings()) {
+				infiniteSources.addAll(loc.clearing.getAllSourcesOfColor(true));
+				infiniteSources.addAll(loc.getOther().clearing.getAllSourcesOfColor(true));
+			}
+			else if (loc.isTileOnly()) {
+				infiniteSources.addAll(loc.tile.getAllSourcesOfColor());
+			}
+			else if (loc.isBetweenTiles()) {
+				infiniteSources.addAll(loc.tile.getAllSourcesOfColor());
+				infiniteSources.addAll(loc.getOther().tile.getAllSourcesOfColor());
+			}
 		}
-		else if (loc.isBetweenClearings()) {
-			infiniteSources.addAll(loc.clearing.getAllSourcesOfColor(true));
-			infiniteSources.addAll(loc.getOther().clearing.getAllSourcesOfColor(true));
-		}
-		else if (loc.isTileOnly()) {
-			infiniteSources.addAll(loc.tile.getAllSourcesOfColor());
-		}
-		else if (loc.isBetweenTiles()) {
-			infiniteSources.addAll(loc.tile.getAllSourcesOfColor());
-			infiniteSources.addAll(loc.getOther().tile.getAllSourcesOfColor());
-		}
-		
 		if (includeCalendar) {
 			// 7th day color magic!
 			infiniteSources.addAll(cal.getColorMagic(game.getMonth(),game.getDay()));
 		}
 
+		// Events
+		infiniteSources.addAll(RealmEvents.getInfiniteColorMagicSources(game.getGameObject().getGameData()));
+		
 		if (infiniteSources.size()>0) {
 			ColorMagic spellColor = spell.getRequiredColorMagic();
 			if (spellColor==null || infiniteSources.contains(spellColor)) {
-				// We got it!
 				return true;
-//				spell.affectTargets(frame,game,false);
 			}
 		}
 		return false;
@@ -348,6 +349,7 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 	public void deenergizePermanentSpells() {
 		// Make each permanent spell "inert", one at a time
 		boolean didDeenergize = false;
+		ArrayList<SpellWrapper> denergizeSpells = new ArrayList<SpellWrapper>();
 		for (SpellWrapper spell:getSpells(PERMANENT_SPELLS)) {
 			if (!spell.isInert()) { // If spell is already inert, then don't deenergize it!
 				// Don't deenergize spells that have an automatic supply of color magic
@@ -356,18 +358,41 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 				}
 				
 				if(!spell.isAlwaysActive()){
-					spell.unaffectTargets();
-					spell.makeInert();
+					denergizeSpells.add(spell);
 					didDeenergize = true;
 				}
 			}
 		}
+		Collections.sort(denergizeSpells,new Comparator<SpellWrapper>() {
+			public int compare(SpellWrapper s1,SpellWrapper s2) {				
+				int pos1 = s1.getGameObject().getThisInt("spell_strength");
+				int pos2 = s2.getGameObject().getThisInt("spell_strength");
+				
+				return pos1-pos2;
+			}
+		});
+		for (SpellWrapper spell : denergizeSpells) {
+			if (spell.getGameObject().hasThisAttribute(Constants.BREAK_IF_INERT)) {
+				spell.expireSpell();
+			} else {
+				spell.unaffectTargets();
+				spell.makeInert();
+			}
+		}
+		
 		if (didDeenergize) {
 			// Yes, this is a dangerous recursion, but necessary I think.  If you Absorb Essence, and then activate a Transform
 			// spell, you end up two layers deep in spell wizardry, and this is the only way to guarantee that both are deenergized.
 			deenergizePermanentSpells();
 		}
 	}
+	public void uneffectTargetsForMidnightSpells(GameWrapper game) {
+		for (SpellWrapper spell:getSpells(MIDNIGHT_SPELLS)) {
+			spell.expireSpell();
+		}
+		this.removeAttribute(MIDNIGHT_SPELLS);
+	}
+	
 	/**
 	 * Adds a spell to the master list.  Organizes into three bins:  permanent, day, combat.  All other spell
 	 * duration types (instant,attack,phase,move) are ignored here.
@@ -389,6 +414,9 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 		else if (MOVE_SPELLS.equals(duration)) {
 			addMoveSpell(spell);
 		}
+		if (spell.getGameObject().hasThisAttribute(Constants.UNEFFECT_AT_MIDNIGHT)) {
+			addMidnightSpell(spell);
+		}
 	}
 	private void addPermanentSpell(SpellWrapper spell) {
 		addListItem(PERMANENT_SPELLS,spell.getGameObject().getStringId());
@@ -408,15 +436,24 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 			addListItem(PHASE_SPELLS,spell.getGameObject().getStringId());
 		}
 	}
+	private void addMidnightSpell(SpellWrapper spell) {
+		addListItem(MIDNIGHT_SPELLS,spell.getGameObject().getStringId());
+	}
 	
 
 	public void removeSpell(SpellWrapper spell) {
 		String duration = spell.getGameObject().getThisAttribute("duration");
-		ArrayList list = getList(duration);
+		ArrayList<String> list = getList(duration);
 		if (list!=null && list.contains(spell.getGameObject().getStringId())) {
-			list = new ArrayList(list);
+			list = new ArrayList<String>(list);
 			list.remove(spell.getGameObject().getStringId());
 			setList(duration,list);
+		}
+		list = getList(MIDNIGHT_SPELLS);
+		if (list!=null && list.contains(spell.getGameObject().getStringId())) {
+			list = new ArrayList<String>(list);
+			list.remove(spell.getGameObject().getStringId());
+			setList(MIDNIGHT_SPELLS,list);
 		}
 	}
 	public void expireIncantationSpell(GameObject incantation) {
@@ -426,27 +463,14 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 		}
 	}
 	public void expireBewitchingSpells(GameObject target) {
-		expireBewitchingSpells(target,null,false);
+		expireBewitchingSpells(target,null);
 	}
 	public void expireBewitchingSpells(GameObject target,SpellWrapper exclude) {
-		expireBewitchingSpells(target,exclude,false);
-	}
-	public void nullifyBewitchingSpells(GameObject target,SpellWrapper exclude) {
-		expireBewitchingSpells(target,exclude,true);
-	}
-	private void expireBewitchingSpells(GameObject target,SpellWrapper exclude,boolean nullify) {
 		for (SpellWrapper spell:getAffectingSpells(target)) {
 			if (exclude!=null && exclude.getGameObject().equals(spell.getGameObject())) continue;
-			if (!nullify) {
-				spell.removeTarget(target);
-				if (spell.getTargetCount()==0) {
-					spell.expireSpell();
-//System.err.println(spell.getGameObject().getName()+" is expired");
-				}
-			}
-			else {
-				spell.nullifySpell();
-//System.err.println(spell.getGameObject().getName()+" is nullified");
+			spell.removeTarget(target);
+			if (spell.getTargetCount()==0) {
+				spell.expireSpell();
 			}
 		}
 	}
@@ -455,7 +479,6 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 			if (exclude==null || !exclude.getGameObject().equals(spell.getGameObject())) {
 				if (spell.isNullified()) {
 					spell.restoreSpell();
-//System.err.println(spell.getGameObject().getName()+" is restored after nullification");
 				}
 			}
 		}
@@ -464,27 +487,21 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 	private static final String SPELL_MASTER_KEY = "__RealmSpellMaster_";
 	public static Long MASTER_ID = null;
 	public static SpellMasterWrapper getSpellMaster(GameData data) {
-//System.out.println("MASTER_ID = "+MASTER_ID+", dataid = "+data.dataid);
 		if (MASTER_ID==null) {
-//System.out.println(data.toIdentifier()+": MASTER_ID is null");
 			GamePool pool = new GamePool(data.getGameObjects());
-			ArrayList list = pool.find(SPELL_MASTER_KEY);
+			ArrayList<GameObject> list = pool.find(SPELL_MASTER_KEY);
 			GameObject gm = null;
 			if (list!=null && list.size()==1) {
-				gm = (GameObject)list.iterator().next();
-//System.out.println(data.toIdentifier()+": Found a SpellMaster!");
+				gm = list.iterator().next();
 			}
 			if (gm==null) {
 				gm = data.createNewObject();
 				gm.setName(SPELL_MASTER_KEY);
 				gm.setThisAttribute(SPELL_MASTER_KEY);
-//System.out.println(data.toIdentifier()+": Creating a new SpellMaster!");
 			}
-			MASTER_ID = new Long(gm.getId());
+			MASTER_ID = Long.valueOf(gm.getId());
 			return new SpellMasterWrapper(gm);
 		}
-		else {
-			return new SpellMasterWrapper(data.getGameObject(MASTER_ID));
-		}
+		return new SpellMasterWrapper(data.getGameObject(MASTER_ID));
 	}
 }

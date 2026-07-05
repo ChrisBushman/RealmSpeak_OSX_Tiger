@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle;
 
 import java.awt.*;
@@ -30,6 +13,7 @@ import javax.swing.filechooser.FileFilter;
 
 import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
+import com.robin.game.objects.GamePool;
 import com.robin.game.server.GameClient;
 import com.robin.general.io.*;
 import com.robin.general.swing.*;
@@ -39,21 +23,25 @@ import com.robin.magic_realm.RealmBattle.targeting.SpellTargeting;
 import com.robin.magic_realm.RealmCharacterBuilder.RealmCharacterBuilderModel;
 import com.robin.magic_realm.components.*;
 import com.robin.magic_realm.components.attribute.*;
+import com.robin.magic_realm.components.quest.CharacterActionType;
+import com.robin.magic_realm.components.quest.requirement.QuestRequirementParams;
+import com.robin.magic_realm.components.store.GuildStore;
+import com.robin.magic_realm.components.store.ThievesGuild;
 import com.robin.magic_realm.components.swing.*;
 import com.robin.magic_realm.components.table.*;
 import com.robin.magic_realm.components.utility.*;
+import com.robin.magic_realm.components.utility.SpellUtility.TeleportType;
+import com.robin.magic_realm.components.utility.TreasureUtility.ArmorType;
 import com.robin.magic_realm.components.wrapper.*;
 
 public class CombatFrame extends JFrame {
-	
-	private static final String DATA_NAME = "CombatFrame";
-	
 	public static final int PARTICIPANT_ROW_HEIGHT = 60;
 
 	private static Logger logger = Logger.getLogger(CombatFrame.class.getName());
 	
 	private static final Font COMBAT_ROUND_FONT = new Font("Dialog",Font.BOLD|Font.ITALIC,20);
 	private static final Font INSTRUCTION_FONT = new Font("Dialog",Font.BOLD,16);
+	private static final Font INVENTORY_AWKENED_SPELLS_FONT = new Font("Dialog",Font.BOLD,14);
 	
 	private static final Border LOCK_OFF_BORDER = BorderFactory.createLineBorder(UIManager.getColor("Panel.background"),3);
 	private static final Border LOCK_ON_BORDER = BorderFactory.createLineBorder(Color.red,3);
@@ -68,7 +56,7 @@ public class CombatFrame extends JFrame {
 	
 	private ArrayList<RealmComponent> allParticipants;
 	private boolean[] participantHasHotspots;
-	private JTable participantTable;
+	public JTable participantTable;
 	private BattleParticipantTableModel participantTableModel;
 	private JScrollPane participantTableSp;
 	private JPanel combatSheetPanel;
@@ -95,11 +83,12 @@ public class CombatFrame extends JFrame {
 	private JPanel showPanel;
 	private JButton showChitsButton;
 	private JButton showInventoryButton;
+	private RealmObjectPanel inventoryObjectPanel;
 	private JButton exportButton;
 	private JButton combatSummaryButton;
 	private JToggleButton lockNextButton;
 	private JButton undoButton;
-	private JButton textButton;
+	private JToggleButton textButton;
 	private FlashingButton endButton; // if combat is not necessary (ie., all characters are hidden)
 	private FlashingButton nextButton;
 	
@@ -108,6 +97,7 @@ public class CombatFrame extends JFrame {
 	private JScrollPane rollerResultsScroll;
 	
 	private boolean changes;
+	private boolean targetsSelected;
 	private boolean nonaffectingChanges; // this is so the reset button can be lit without disabling all the buttons
 	
 	private FileManager exportFileManager;
@@ -139,6 +129,7 @@ public class CombatFrame extends JFrame {
 		Constants.COMBAT_FATIGUE,
 		Constants.COMBAT_DISENGAGE,
 	};
+	private static final String THROWING = "Throwing";
 	// other controls
 	
 	private JButton endSimulationButton;
@@ -155,10 +146,14 @@ public class CombatFrame extends JFrame {
 	private JButton runAwayButton;
 	private JButton alertWeaponButton;
 	private JButton castSpellButton;
+	private JButton teleportInstantButton;
+	private JButton raiseDeadButton;
 	private JButton activateInactivateButton;
 	private JButton pickupItemButton;
+	private JButton hireNomadButton;
 	private JButton dropBelongingsButton;
 	private JButton abandonBelongingsButton;
+	private JButton stealButton;
 	private JButton suggestButton;
 	
 	// assign targets
@@ -169,8 +164,12 @@ public class CombatFrame extends JFrame {
 	// Change tactics for transmorphed players
 	private JButton changeTacticsButton;
 	private JButton useColorChitButton;
+	private JButton useMagicMoveButton;
 	
 	private CombatSuggestionAi suggestionAi;
+	private static boolean combatNextPhaseWarning = true;
+	private static boolean autoPositioningAttackers = false;
+	private static boolean controlsPlacement2 = false;
 	
 	// These are needed to differentiate all the players during results
 	private String playerName;
@@ -179,22 +178,36 @@ public class CombatFrame extends JFrame {
 	
 	protected static DieRoller runAwayRoll = null;
 	protected static int runAwayFatigue;
-	public void setRunAwayRoll(DieRoller roller) {
+	public static void setRunAwayRoll(DieRoller roller) {
 		runAwayRoll = roller;
 	}
-	public void setRunAwayFatigue(int val) {
+	public static void setRunAwayFatigue(int val) {
 		runAwayFatigue = val;
 	}
-	public void clearRunaway() {
+	public static void clearRunaway() {
 		runAwayRoll = null;
 		runAwayFatigue = 0;
 	}
 	public void madeChanges() {
 		changes = true;
 	}
+	public static boolean isInteractiveFrame() {
+		return interactiveFrame;
+	}
 	
+	public static boolean hasAutoPositioningAttackers() {
+		return autoPositioningAttackers;
+	}
+	public static void setAutoPositioningAttackers(boolean val) {
+		autoPositioningAttackers = val;
+	}
+	public static void setControlsPlacement2(boolean val) {
+		controlsPlacement2 = val;
+	}
+
 	protected static DieRoller ambushRoll = null;
 	protected static RealmComponent ambusher = null;
+	protected static boolean ambushRollAtEndOfCombatRound = false;
 	public static boolean successfulAmbush() {
 		return ambushRoll!=null && ambushRoll.getHighDieResult()<6;
 	}
@@ -206,9 +219,9 @@ public class CombatFrame extends JFrame {
 	}
 	
 	private static CombatFrame singleton = null;
-	public static CombatFrame getSingleton(JFrame frame,String playerName,ActionListener listener) {
+	public static CombatFrame getSingleton(String playerName,ActionListener listener) {
 		if (singleton==null) {
-			singleton = new CombatFrame(frame,playerName,listener);
+			singleton = new CombatFrame(playerName,listener);
 		}
 		singleton.playerName = playerName; // this probably isn't necessary, but to be consistent, this should happen
 		return singleton;
@@ -222,6 +235,17 @@ public class CombatFrame extends JFrame {
 	}
 	public static boolean isSingletonShowing() {
 		return singleton!=null && singleton.isVisible();
+	}
+	public void updateConnectionTitle(boolean showInfo, String ip, int port) {
+		if (showInfo) {
+			if (ip == null) {
+				setTitle(Constants.APPLICATION_NAME+" Combat Frame for " + playerName + " (Local)");
+			} else {
+				setTitle(Constants.APPLICATION_NAME+" Combat Frame for " + playerName + " @ " + ip + ":" + port);
+			}
+		} else {
+			setTitle(Constants.APPLICATION_NAME+" Combat Frame for " + playerName);
+		}
 	}
 	public static CombatFrame getSingleton() {
 		return singleton;
@@ -272,8 +296,9 @@ public class CombatFrame extends JFrame {
 	 * 
 	 * @see #getSingleton(String, ActionListener)
 	 */
-	private CombatFrame(JFrame frame,String playerName,ActionListener listener) {
-		super("RealmSpeak Combat Frame for "+playerName);
+	private CombatFrame(String playerName,ActionListener listener) {
+		super(Constants.APPLICATION_NAME+" Combat Frame for "+playerName);
+		setIconImage(IconFactory.findIcon("images/combat/combatsummary.gif").getImage());
 		
 		// this will guarantee no lockup... but then dialogs are lying around??
 		//setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
@@ -281,15 +306,15 @@ public class CombatFrame extends JFrame {
 		suggestionAi = new CombatSuggestionAi(this);
 		
 		this.playerName = playerName;
+		this.allParticipants = new ArrayList<RealmComponent>();
 		this.finishedActionListener = listener;
-		allParticipants = new ArrayList<RealmComponent>();
 		if (lastKnownLocation==null) {
 			lastKnownLocation = ComponentTools.findPreferredRectangle(970,Integer.MAX_VALUE);
 		}
 		initComponents();
 		setSize(lastKnownLocation.width,lastKnownLocation.height);
 		setLocation(lastKnownLocation.x,lastKnownLocation.y);
-		setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		
 		exportFileManager = new FileManager(this,"Export Destination",null);
 	}
@@ -315,17 +340,22 @@ public class CombatFrame extends JFrame {
 		chargeButton = null;
 		runAwayButton = null;
 		castSpellButton = null;
+		teleportInstantButton = null;
+		raiseDeadButton = null;
 		selectSpellTargetsButton = null;
 		cancelSpellButton = null;
 		alertWeaponButton = null;
 		activateInactivateButton = null;
 		pickupItemButton = null;
+		hireNomadButton = null;
 		dropBelongingsButton = null;
 		abandonBelongingsButton = null;
+		stealButton = null;
 		suggestButton = null;
 		selectTargetFromUnassignedButton = null;
 		changeTacticsButton = null;
 		useColorChitButton = null;
+		useMagicMoveButton = null;
 		
 		if (participantTable!=null) {
 			participantTable.clearSelection();
@@ -336,7 +366,7 @@ public class CombatFrame extends JFrame {
 		denizenPanel.clearSelected();
 		denizenPanel.repaint();
 	}
-	public Collection getUnassignedDenizens() {
+	public Collection<Component> getUnassignedDenizens() {
 		return Arrays.asList(denizenPanel.getComponents());
 	}
 	public void refreshParticipants() {
@@ -344,8 +374,7 @@ public class CombatFrame extends JFrame {
 		// Build BattleParticipant list by examining flag for sheetOwner
 		ArrayList<RealmComponent> chars = new ArrayList<RealmComponent>();
 		ArrayList<RealmComponent> everyoneElse = new ArrayList<RealmComponent>();
-		for (Iterator i=currentBattleModel.getAllBattleParticipants(true).iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+		for (RealmComponent rc : currentBattleModel.getAllBattleParticipants(true)) {
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 			if (rc.isCharacter()) {
 				chars.add(rc);
@@ -355,14 +384,15 @@ public class CombatFrame extends JFrame {
 			}
 		}
 		// Sort chars by combat order, and add them first
-		Collections.sort(chars,new Comparator() {
-			public int compare(Object o1,Object o2) {
+		Collections.sort(chars,new Comparator<RealmComponent>() {
+			public int compare(RealmComponent rc1,RealmComponent rc2) {
 				int ret = 0;
-				RealmComponent rc1 = (RealmComponent)o1;
-				RealmComponent rc2 = (RealmComponent)o2;
 				CharacterWrapper c1 = new CharacterWrapper(rc1.getGameObject());
 				CharacterWrapper c2 = new CharacterWrapper(rc2.getGameObject());
 				ret = c1.getCombatPlayOrder()-c2.getCombatPlayOrder();
+				if (ret==0) {
+					ret = c1.getGameObject().getName().compareTo(c2.getGameObject().getName());
+				}
 				return ret;
 			}
 		});
@@ -399,7 +429,7 @@ public class CombatFrame extends JFrame {
 	public void updateHotspotIndicators() {
 		int n=0;
 		for (RealmComponent rc:new ArrayList<RealmComponent>(allParticipants)) {
-			CombatSheet cs = CombatSheet.createCombatSheet(this,currentBattleModel,rc,interactiveFrame);
+			CombatSheet cs = CombatSheet.createCombatSheet(this,currentBattleModel,rc,interactiveFrame,hostPrefs);
 			participantHasHotspots[n++] = cs.hasHotspots();
 		}
 		participantTable.revalidate();
@@ -414,10 +444,9 @@ public class CombatFrame extends JFrame {
 	public void updateDenizenPanel() {
 		BattleGroup denizenGroup = currentBattleModel.getDenizenBattleGroup();
 		if (denizenGroup!=null && denizenGroup.size()>0) {
-			for (Iterator i=denizenGroup.getBattleParticipants().iterator();i.hasNext();) {
-				RealmComponent denizen = (RealmComponent)i.next();
+			for (RealmComponent denizen : denizenGroup.getBattleParticipants()) {
 				CombatWrapper combat = new CombatWrapper(denizen.getGameObject());
-				if (denizen.getTarget()==null && !combat.isSheetOwner()) {
+				if (denizen.getTarget()==null && denizen.get2ndTarget()==null && !combat.isSheetOwner()) {
 					denizenPanel.addRealmComponent(denizen);
 				}
 			}
@@ -427,6 +456,7 @@ public class CombatFrame extends JFrame {
 	public void updateFrame(GameData data) {
 		changes = false;
 		nonaffectingChanges = false;
+		targetsSelected = false;
 		clearRunaway();
 		ambushRoll = null;
 		ambusher = null;
@@ -444,21 +474,21 @@ public class CombatFrame extends JFrame {
 			
 			// Test for a PEACE condition
 			CombatWrapper tile = new CombatWrapper(currentCombatLocation.tile.getGameObject());
-			if (tile.isPeaceClearing(currentCombatLocation.clearing.getNum())) {
+			if (tile.isPeaceClearing(currentCombatLocation.clearing.getNum()) || tile.isSleepClearing(currentCombatLocation.clearing.getNum())) {
 				currentBattleModel.makePeace();
 			}
 			
 			// Understand the current state (ie., luring, deploying, etc)
-			HashLists lists = RealmBattle.findCharacterStates(currentCombatLocation,gameData);
+			HashLists<Integer,CharacterWrapper> lists = RealmBattle.findCharacterStates(currentCombatLocation,gameData);
 			if (lists.isEmpty()) {
 				// This happens when a player's hireling is asking to END combat when the owner is not present.
 				// Not sure why, but doing a "return" here solves the problem.
 				return;
 			}
-			ArrayList states = new ArrayList(lists.keySet());
+			ArrayList<Integer> states = new ArrayList<Integer>(lists.keySet());
 			Collections.sort(states);
 			
-			Integer firstState = (Integer)states.iterator().next();
+			Integer firstState = states.iterator().next();
 			if (firstState.intValue()>=Constants.COMBAT_WAIT) {
 				return;
 //				// Shoudn't encounter a WAIT state here!
@@ -476,14 +506,13 @@ public class CombatFrame extends JFrame {
 				// activeCharacter is the character that is viewing the frame, EXCEPT in the case where everyone
 				// is viewing the results.  In THIS case, activeCharacter is simply the first one in the list, which
 				// doesn't really mean ANYTHING.
-				ArrayList characterList = lists.getList(firstState);
-				activeCharacter = (CharacterWrapper)characterList.iterator().next();
+				ArrayList<CharacterWrapper> characterList = lists.getList(firstState);
+				activeCharacter = characterList.iterator().next();
 				activeParticipant = RealmComponent.getRealmComponent(activeCharacter.getGameObject());
 				activeCharacterIsHere = currentBattleModel.getBattleGroup(activeParticipant).getCharacterInBattle()!=null;
 				activeCharacterIsTransmorphed = activeCharacter.getTransmorph()!=null;
 				
-				for (Iterator i=characterList.iterator();i.hasNext();) {
-					CharacterWrapper character = (CharacterWrapper)i.next();
+				for (CharacterWrapper character : characterList) {
 					if (character.getDoInstantPeer()) {
 						// Only process if the character belongs to THIS player
 						if (character.getPlayerName().equals(GameClient.GetMostRecentClient().getClientName())) {
@@ -512,11 +541,10 @@ public class CombatFrame extends JFrame {
 				logger.finer("actionState = "+actionState);
 				
 				// Action Controls
-				ArrayList controls = createControls();
+				ArrayList<JComponent> controls = createControls();
 				controlPanel.removeAll();
-				for (Iterator i=controls.iterator();i.hasNext();) {
+				for (JComponent component : controls) {
 					JPanel panel = new JPanel(new BorderLayout());
-					JComponent component = (JComponent)i.next();
 					panel.add(component,"Center");
 					controlPanel.add(panel);
 				}
@@ -567,7 +595,7 @@ public class CombatFrame extends JFrame {
 		updateControls();
 		
 		// Check for ask demon questions
-		String myName = "test";
+		String myName = "Player";
 		if (GameClient.GetMostRecentClient()!=null) {
 			myName = GameClient.GetMostRecentClient().getClientName();
 		}
@@ -586,6 +614,32 @@ public class CombatFrame extends JFrame {
 			broadcastMessage(key,answer);
 			broadcastMessage(RealmLogging.BATTLE,myName+" answered a question.");
 		}
+		ret = theGame.getNextInformation(myName);
+		if (ret!=null) {
+			GameObject go = gameData.getGameObject(Long.valueOf(ret[0]));
+			RealmComponent rc = RealmComponent.getRealmComponent(go);
+			if (rc.isCharacter()) {
+				CharacterWrapper character = new CharacterWrapper(go);
+				RealmComponentOptionChooser questViewer = new RealmComponentOptionChooser(this, go.getName(), "Close");
+				for (GameObject quest : character.getAllQuestObjects()) {
+					questViewer.addRealmComponent(RealmComponent.getRealmComponent(quest),true);
+				}
+				questViewer.setLocationRelativeTo(this);
+				questViewer.setVisible(true);
+			}
+			else {
+				RealmComponentOptionChooser boxViewer = new RealmComponentOptionChooser(this, go.getName(), "Close");
+				for (GameObject hold : go.getHold()) {
+					RealmComponent holdRc = RealmComponent.getRealmComponent(hold);
+					if (!go.hasThisAttribute("tile") || holdRc.isChit() || holdRc.isTreasureLocation()) {
+						boxViewer.addRealmComponentAndFlipSide(holdRc);
+					}
+				}
+				boxViewer.setLocationRelativeTo(this);
+				boxViewer.setVisible(true);
+			}
+			broadcastMessage(RealmLogging.BATTLE,myName+" got information by a Demon.");
+		}
 //		if (actionState==Constants.COMBAT_RESOLVING) {
 //			showCombatSummary();
 //		}
@@ -597,7 +651,7 @@ public class CombatFrame extends JFrame {
 			if (actionState==Constants.COMBAT_RESOLVING) {
 				if (allParticipants!=null) {
 					for (RealmComponent rc:allParticipants) {
-						CombatSheet sheet = CombatSheet.createCombatSheet(this,currentBattleModel,rc,interactiveFrame);
+						CombatSheet sheet = CombatSheet.createCombatSheet(this,currentBattleModel,rc,interactiveFrame, hostPrefs);
 						if (sheet.hasBattleRolls()) {
 							battleRolls = true;
 							break;
@@ -614,15 +668,15 @@ public class CombatFrame extends JFrame {
 		}
 	}
 	public boolean hasRandomAssignment() {
-		ArrayList list = activeCharacter.getGameObject().getThisAttributeList(Constants.RANDOM_ASSIGNMENT_WINNER);
+		ArrayList<String> list = activeCharacter.getGameObject().getThisAttributeList(Constants.RANDOM_ASSIGNMENT_WINNER);
 		return (list!=null && list.size()>0);
 	}
 	public void updateRandomAssignment() {
-		ArrayList list = activeCharacter.getGameObject().getThisAttributeList(Constants.RANDOM_ASSIGNMENT_WINNER);
+		ArrayList<String> list = activeCharacter.getGameObject().getThisAttributeList(Constants.RANDOM_ASSIGNMENT_WINNER);
 		if (list!=null) {
-			list = new ArrayList(list);
+			list = new ArrayList<String>(list);
 			if (list.size()>0) {
-				String denizenId = (String)list.remove(0);
+				String denizenId = list.remove(0);
 				activeCharacter.getGameObject().setThisAttributeList(Constants.RANDOM_ASSIGNMENT_WINNER,list);
 				GameObject go = gameData.getGameObject(Long.valueOf(denizenId));
 				RealmComponent denizen = RealmComponent.getRealmComponent(go);
@@ -737,6 +791,28 @@ public class CombatFrame extends JFrame {
 		}
 		return castSpellButton;
 	}
+	private JButton getTeleportInstantButton() {
+		if (teleportInstantButton==null) {
+			teleportInstantButton = new JButton("Teleport (instant)");
+			teleportInstantButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ev) {
+					setTeleportInstant();
+				}
+			});
+		}
+		return teleportInstantButton;
+	}
+	private JButton getRaiseDeadButton() {
+		if (raiseDeadButton==null) {
+			raiseDeadButton = new JButton("Raise Dead (Necromancer)");
+			raiseDeadButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ev) {
+					raiseDead();
+				}
+			});
+		}
+		return raiseDeadButton;
+	}
 	private JButton getActivateInactivateButton() {
 		if (activateInactivateButton==null) {
 			activateInactivateButton = new JButton("Activate/Inactivate");
@@ -758,6 +834,17 @@ public class CombatFrame extends JFrame {
 			});
 		}
 		return pickupItemButton;
+	}
+	private JButton getHireNomadButton() {
+		if (hireNomadButton==null) {
+			hireNomadButton = new JButton("Hire Nomad");
+			hireNomadButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ev) {
+					hireNomad();
+				}
+			});
+		}
+		return hireNomadButton;
 	}
 	private JButton getDropBelongingsButton() {
 		if (dropBelongingsButton==null) {
@@ -781,32 +868,42 @@ public class CombatFrame extends JFrame {
 		}
 		return abandonBelongingsButton;
 	}
+	private JButton getStealButton() {
+		if (stealButton==null) {
+			stealButton = new JButton("Steal");
+			stealButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ev) {
+					steal();
+				}
+			});
+		}
+		return stealButton;
+	}
 	private JButton getSelectTargetFromUnassignedButton() {
 		if (selectTargetFromUnassignedButton==null) {
 			selectTargetFromUnassignedButton = new JButton("Select Unassigned Target");
 			selectTargetFromUnassignedButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
-					ArrayList targetList = new ArrayList();
+					ArrayList<RealmComponent> targetList = new ArrayList<RealmComponent>();
 					Component[] c = denizenPanel.getComponents();
 					for (int i=0;i<c.length;i++) {
 						if (c[i] instanceof RealmComponent) {
-							targetList.add(c[i]);
+							targetList.add((RealmComponent) c[i]);
 						}
 					}
 					
-					// Choosing an unassigned target puts them on their OWN sheet (sucker punch)
-					// unless watchful natives is in play
+					// Choosing an unassigned target puts them on their OWN sheet (sucker punch) unless watchful natives is in play
 					RealmComponent theTarget = assignTarget(targetList);
 					CombatWrapper targetCombat = theTarget==null?null:(new CombatWrapper(theTarget.getGameObject()));
 					
-					if (theTarget!=null && (!theTarget.isNative() || !hostPrefs.hasPref(Constants.TE_WATCHFUL_NATIVES))) {
-						targetCombat.setSheetOwner(true);
-						targetCombat.setCombatBox(1);
-						changes = true;
-						removeDenizen(theTarget);
-						refreshParticipants();
-						repaint();
-						updateControls();
+					if (theTarget!=null && targetCombat!=null && (!theTarget.isNative() || !hostPrefs.hasPref(Constants.TE_WATCHFUL_NATIVES))) {
+							targetCombat.setSheetOwner(true);
+							placeInFirstCombatBox(targetCombat);
+							changes = true;
+							removeDenizen(theTarget);
+							refreshParticipants();
+							repaint();
+							updateControls();
 					}
 				}
 			});
@@ -849,7 +946,10 @@ public class CombatFrame extends JFrame {
 							RealmComponent target = activeParticipant.getTarget();
 							CombatWrapper combat = new CombatWrapper(target.getGameObject());
 							combat.removeAttacker(activeParticipant.getGameObject());
-							activeParticipant.clearTarget();
+							RealmComponent target2 = activeParticipant.get2ndTarget();
+							CombatWrapper combat2 = new CombatWrapper(target2.getGameObject());
+							combat2.removeAttacker(activeParticipant.getGameObject());
+							activeParticipant.clearTargets();
 							updateSelection();
 						}
 					}
@@ -863,7 +963,7 @@ public class CombatFrame extends JFrame {
 			useColorChitButton = new JButton("Play Color Chit");
 			useColorChitButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
-					MagicChit colorChit = RealmUtility.burnColorChit(CombatFrame.this,theGame,activeCharacter);
+					MagicChit colorChit = RealmUtility.burnColorChit(CombatFrame.this,theGame,activeCharacter,hostPrefs.hasPref(Constants.OPT_COLOR_CHIT_TARGETING_NO_HIDDEN_TARGETS));
 					if (colorChit!=null) {
 						CombatWrapper combat = new CombatWrapper(activeCharacter.getGameObject());
 						combat.addUsedChit(colorChit.getGameObject());
@@ -876,6 +976,30 @@ public class CombatFrame extends JFrame {
 			});
 		}
 		return useColorChitButton;
+	}
+	private JButton getUseMagicMoveButton() {
+		if (useMagicMoveButton==null) {
+			useMagicMoveButton = new JButton("Magic Move");
+			useMagicMoveButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ev) {
+					CharacterActionChitComponent moveChit = RealmUtility.selectMoveChitToBoost(CombatFrame.this,activeCharacter);
+					if (moveChit == null) return;
+					MagicChit colorChit = RealmUtility.selectColorMagicChitToFatigue(CombatFrame.this,activeCharacter);
+					if (colorChit == null) return;
+					
+					colorChit.makeFatigued();
+					RealmUtility.reportChitFatigue(activeCharacter,colorChit,"Fatigued color chit: ");
+					CombatWrapper combat = new CombatWrapper(activeCharacter.getGameObject());
+					combat.addUsedChit(colorChit.getGameObject());
+					RealmLogging.logMessage(activeCharacter.getGameObject().getName(),"Boosted move chit: "+moveChit.getShortName());
+					moveChit.setMagicMove(true);
+					nonaffectingChanges = true;
+					updateControls();
+					repaint();
+				}
+			});
+		}
+		return useMagicMoveButton;
 	}
 	private JPanel getShowPanel() {
 		if (showPanel==null) {
@@ -945,9 +1069,9 @@ public class CombatFrame extends JFrame {
 		return suggestButton;
 	}
 	
-	private ArrayList createControls() {
-		ArrayList list = new ArrayList();
-		roundLabel = new JLabel("Round "+getCurrentRound(),JLabel.CENTER);
+	private ArrayList<JComponent> createControls() {
+		ArrayList<JComponent> list = new ArrayList<JComponent>();
+		roundLabel = new JLabel("Round "+getCurrentRound(),SwingConstants.CENTER);
 		roundLabel.setFont(COMBAT_ROUND_FONT);
 		roundLabel.setForeground(Color.blue);
 		roundLabel.setBackground(Color.yellow);
@@ -960,24 +1084,33 @@ public class CombatFrame extends JFrame {
 		}
 		
 		list.add(getRefreshDisplayButton());
+		if (!controlsPlacement2) {
+			list.add(gameControls);
+		}
 		
 		if (interactiveFrame) {
 			// Special "Change Tactics" button for transmorphed players
 			
 			switch(actionState) {
 				case Constants.COMBAT_LURE:
-					instructionLabel = new JLabel("Lure Denizens",IconFactory.findIcon("icons/arrow4.gif"),JLabel.LEADING);
+					instructionLabel = new JLabel("Lure Denizens",IconFactory.findIcon("icons/arrow4.gif"),SwingConstants.LEADING);
 					instructionLabel.setFont(INSTRUCTION_FONT);
 					list.add(instructionLabel);
+					if (hostPrefs.hasPref(Constants.TE_EXTENDED_TREACHERY)) {
+						list.add(getTreacheryButton());
+					}
 					break;
 				case Constants.COMBAT_DEPLOY:
-					instructionLabel = new JLabel("Deploy/Charge",IconFactory.findIcon("icons/arrow2.gif"),JLabel.LEADING);
+					instructionLabel = new JLabel("Deploy/Charge",IconFactory.findIcon("icons/arrow2.gif"),SwingConstants.LEADING);
 					instructionLabel.setFont(INSTRUCTION_FONT);
 					list.add(instructionLabel);
+					if (hostPrefs.hasPref(Constants.TE_EXTENDED_TREACHERY)) {
+						list.add(getTreacheryButton());
+					}
 					list.add(getChargeButton());
 					break;
 				case Constants.COMBAT_ACTIONS:
-					instructionLabel = new JLabel("Actions",IconFactory.findIcon("icons/arrow2.gif"),JLabel.LEADING);
+					instructionLabel = new JLabel("Actions",IconFactory.findIcon("icons/arrow2.gif"),SwingConstants.LEADING);
 					instructionLabel.setFont(INSTRUCTION_FONT);
 					list.add(instructionLabel);
 					if (activeCharacterIsHere && activeCharacter.canChangeTactics()) {
@@ -986,19 +1119,36 @@ public class CombatFrame extends JFrame {
 					list.add(getRunAwayButton());
 					list.add(getAlertWeaponButton());
 					list.add(getCastSpellButton());
+					if (activeCharacter.canUseInstantTeleport()) {
+						list.add(getTeleportInstantButton());
+					}
+					if (activeCharacter.affectedByKey(Constants.RAISE_DEAD)) {
+						list.add(getRaiseDeadButton());
+					}
 					list.add(getActivateInactivateButton());
-					if (hostPrefs.hasPref(Constants.ADV_DROPPING)) {
+					if (hostPrefs.hasPref(Constants.ADV_DROPPING) || hostPrefs.hasPref(Constants.OPT_THROWING_WEAPONS)) {
 						list.add(getPickupItemButton());
 						list.add(getDropBelongingsButton());
 					}
 					list.add(getAbandonBelongingsButton());
 
+					if (hostPrefs.usesSuperRealm()) {
+						list.add(getHireNomadButton());
+					}
+					
+					if (hostPrefs.hasPref(Constants.SR_OPT_STEALING)) {
+						list.add(getStealButton());
+					}
+					
 					if (activeCharacterIsHere) {
 						list.add(getUseColorChitButton());
 					}
+					if (activeCharacterIsHere && activeCharacter.affectedByKey(Constants.MAGIC_MOVE)) {
+						list.add(getUseMagicMoveButton());
+					}
 					break;
 				case Constants.COMBAT_ASSIGN:
-					instructionLabel = new JLabel("Assign Targets",IconFactory.findIcon("icons/arrow4.gif"),JLabel.LEADING);
+					instructionLabel = new JLabel("Assign Targets",IconFactory.findIcon("icons/arrow4.gif"),SwingConstants.LEADING);
 					instructionLabel.setFont(INSTRUCTION_FONT);
 					list.add(instructionLabel);
 					list.add(getTreacheryButton());
@@ -1007,7 +1157,7 @@ public class CombatFrame extends JFrame {
 					}
 					CombatWrapper combat = new CombatWrapper(activeCharacter.getGameObject());
 					if (denizenPanel.getComponentCount()>0 && (!activeCharacterIsHere || combat.getCastSpell()==null)) {
-						instructionLabel = new JLabel("Unassigned Targets",IconFactory.findIcon("icons/arrow2.gif"),JLabel.LEADING);
+						instructionLabel = new JLabel("Unassigned Targets",IconFactory.findIcon("icons/arrow2.gif"),SwingConstants.LEADING);
 						instructionLabel.setFont(INSTRUCTION_FONT);
 						list.add(instructionLabel);
 						list.add(getSelectTargetFromUnassignedButton());
@@ -1018,7 +1168,7 @@ public class CombatFrame extends JFrame {
 					}
 					break;
 				case Constants.COMBAT_POSITIONING:
-					instructionLabel = new JLabel("Attack/Maneuver",IconFactory.findIcon("icons/arrow4.gif"),JLabel.LEADING);
+					instructionLabel = new JLabel("Attack/Maneuver",IconFactory.findIcon("icons/arrow4.gif"),SwingConstants.LEADING);
 					instructionLabel.setFont(INSTRUCTION_FONT);
 					list.add(instructionLabel);
 					if (activeCharacterIsHere && activeCharacter.canChangeTactics()) {
@@ -1027,7 +1177,7 @@ public class CombatFrame extends JFrame {
 					break;
 				case Constants.COMBAT_TACTICS:
 					// This stage can ONLY happen if the character has a special item (ie., Battle Bracelets)
-					instructionLabel = new JLabel("Change Tactics",IconFactory.findIcon("icons/arrow4.gif"),JLabel.LEADING);
+					instructionLabel = new JLabel("Change Tactics",IconFactory.findIcon("icons/arrow4.gif"),SwingConstants.LEADING);
 					instructionLabel.setFont(INSTRUCTION_FONT);
 					list.add(instructionLabel);
 					break;
@@ -1058,9 +1208,51 @@ public class CombatFrame extends JFrame {
 	}
 	private void showInventory() {
 		// Use the trade dialog to show detail
-		RealmTradeDialog viewer = new RealmTradeDialog(this,"Inventory for the "+activeCharacter.getCharacterName(),false,false,false);
+		final RealmTradeDialog viewer = new RealmTradeDialog(this,"Inventory for the "+activeCharacter.getCharacterName(),false,false,false);
 		viewer.setTradeObjects(activeCharacter.getInventory());
+		
+		viewer.tradeTable.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent ev) {
+				if (ev.getClickCount()==1 || MouseUtility.isRightOrControlClick(ev)) {
+					RealmComponent item = viewer.getMarkedRealmComponentFromTradeTable();
+					if (item!=null) {
+						GameObject go = item.getGameObject();
+						showAwakenedSpells(go);
+					}
+				}
+			}
+		});
 		viewer.setVisible(true);
+	}
+	private void showAwakenedSpells(GameObject go) {
+		if (go!=null && go.hasThisAttribute("treasure") && (go.hasThisAttribute("magic") || go.hasThisAttribute("book"))) {
+			Collection<GameObject> c = SpellUtility.getSpells(go,Boolean.TRUE,false,true);
+			if (c.size()>0) {
+				JPanel panel = new JPanel(new BorderLayout());
+				inventoryObjectPanel = new RealmObjectPanel();
+				inventoryObjectPanel.addObjects(c);
+				inventoryObjectPanel.addMouseListener(new MouseAdapter() {
+					public void mousePressed(MouseEvent ev) {
+						Component c = inventoryObjectPanel.getComponentAt(ev.getPoint());
+						if (c!=null && c instanceof SpellCardComponent) {
+							SpellCardComponent sc = (SpellCardComponent)c;
+							SpellWrapper spell = new SpellWrapper(sc.getGameObject());
+							SpellInfoDialog spellinfoDialog = new SpellInfoDialog(singleton, spell, false);
+							spellinfoDialog.setVisible(true);
+						}
+						
+					}
+				});
+				panel.add(inventoryObjectPanel,"Center");
+				
+				JLabel label = new JLabel("Click spell for more info",SwingConstants.CENTER);
+				label.setOpaque(true);
+				label.setBackground(MagicRealmColor.PALEYELLOW);
+				label.setFont(INVENTORY_AWKENED_SPELLS_FONT);
+				panel.add(label,"North");
+				JOptionPane.showMessageDialog(singleton,panel,go.getName()+" Awakened Spells",JOptionPane.PLAIN_MESSAGE);
+			}
+		}
 	}
 	private void initComponents() {
 		getContentPane().setLayout(new BorderLayout());
@@ -1104,6 +1296,7 @@ public class CombatFrame extends JFrame {
 			}
 		});
 		bottomPanel.add(lockNextButton,"North");
+
 		combatSummaryButton = new JButton("Round Summary",IconFactory.findIcon("images/combat/combatsummary.gif"));
 		combatSummaryButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
@@ -1112,24 +1305,44 @@ public class CombatFrame extends JFrame {
 		});
 		bottomPanel.add(combatSummaryButton,"Center");
 		gameControls = new JPanel(new GridLayout(2,2));
-		bottomPanel.add(gameControls,"South");
-		
+		if (controlsPlacement2) {
+			bottomPanel.add(gameControls,"South");
+		}
+
 		undoButton = new JButton("Reset");
 		undoButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				gameData.rollback();
+				int selectedRow = participantTable == null?-1:participantTable.getSelectedRow();
 				refresh();
+				if (selectedRow == 0) {
+					participantTable.setRowSelectionInterval(selectedRow,selectedRow);
+				}
 				CombatFrame.broadcastMessage(activeCharacter.getGameObject().getName(),"Presses the RESET combat button.");
 			}
 		});
 		gameControls.add(undoButton);
-		textButton = new JButton("Details");
+		textButton = new JToggleButton("Details");
+		textButton.setSelected(RealmLogWindow.getSingleton().isVisible());
 		textButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				RealmLogWindow log = RealmLogWindow.getSingleton();
-				log.setVisible(true);
-				log.toFront();
-				log.scrollToEnd();
+				if (textButton.isSelected()) {
+					log.setVisible(true);
+					log.toFront();
+					log.scrollToEnd();
+				}
+				else {
+					log.setVisible(false);
+				}
+			}
+		});
+		RealmLogWindow.getSingleton().addComponentListener(new ComponentAdapter() {
+			public void componentShown(ComponentEvent ev) {
+				textButton.setSelected(true);
+			}
+			public void componentHidden(ComponentEvent ev) {
+				textButton.setSelected(false);
 			}
 		});
 		gameControls.add(textButton);
@@ -1154,6 +1367,7 @@ public class CombatFrame extends JFrame {
 		nextButton.setFont(INSTRUCTION_FONT);
 		gameControls.add(nextButton);
 		ComponentTools.lockComponentSize(gameControls,180,80);
+		gameControls.setBorder(BorderFactory.createLineBorder(Color.yellow,6));
 		sidePanel.add(bottomPanel,"South");
 		
 		controlPanel = Box.createVerticalBox();
@@ -1199,6 +1413,9 @@ public class CombatFrame extends JFrame {
 			if (!hiddenStatus) {
 				broadcastMessage(ambusher.getGameObject().getName(),"Becomes unhidden.");
 			}
+			if (ambusher.isHidden() && !hiddenStatus) {
+				currentBattleModel.setGotUnhidden();
+			}
 			ambusher.setHidden(hiddenStatus);
 		}
 	}
@@ -1220,8 +1437,158 @@ public class CombatFrame extends JFrame {
 		}
 	}
 	private void doNext() {
+		if (combatNextPhaseWarning) {
+			String warning = null;
+			String warningTitle = null;
+			CharacterWrapper character = getActiveCharacter();
+			CombatWrapper characterCombat = new CombatWrapper(character.getGameObject());
+			TileLocation loc = character.getCurrentLocation();
+			boolean hasEnemies = character.getBattlingNativeGroups().size()>0 || characterCombat.getAttackerCount()>0;
+			ArrayList<GameObject> attackers = characterCombat.getAttackers();
+			boolean hasHirelings = false;
+			if (!hasEnemies) {
+				for (RealmComponent hireling : character.getAllHirelings()) {
+					if (loc.toString().matches(hireling.getCurrentLocation().toString())) {
+						hasHirelings = true;
+						if (new CombatWrapper(hireling.getGameObject()).getAttackerCount()>0) {
+							attackers.addAll(new CombatWrapper(hireling.getGameObject()).getAttackers());
+							hasEnemies = true;
+							break;
+						}
+					}
+				}
+			}
+		
+			if (actionState==Constants.COMBAT_DEPLOY) {
+				boolean hidden = character.isHidden();
+				boolean attackingEnemies = true;
+				for (RealmComponent hireling : character.getAllHirelings()) {
+					if (loc.toString().matches(hireling.getCurrentLocation().toString())) {
+						if (!hireling.isHidden()) {
+							hidden = false;
+						}
+						RealmComponent hirelingTarget = hireling.getTarget();
+						CombatWrapper combatH = new CombatWrapper(hireling.getGameObject());
+						if (hirelingTarget==null && combatH.isSheetOwner() && combatH.getAttackers().size()>0) {
+							for (GameObject attacker : combatH.getAttackers()) {
+								if (RealmComponent.getRealmComponent(attacker).isDenizen()) {
+									hirelingTarget=RealmComponent.getRealmComponent(attacker);
+								}
+							}
+						}
+						if (hirelingTarget==null || (hirelingTarget.isNative() && !character.isBattling(hirelingTarget.getGameObject()))) {
+							attackingEnemies = false;
+							break;
+						}
+					}
+				}
+				if (hasHirelings && hasEnemies && !hidden && !attackingEnemies && character.getAllHirelings().size()>0) {
+					warning = "Some of your hirelings are not attacking your enemies.";
+					warningTitle = "Hirelings not attacking";
+				}
+			} else if (actionState==Constants.COMBAT_ACTIONS) {
+				if (hasHirelings && hasEnemies && !character.isHidden() && character.isMagicUser() && !changes && castSpellButton.isEnabled()) {
+					warning = "You or your hirelings are being attacked and you have taken no action (e.g. casting a spell).";
+					warningTitle = "No action taken";
+				}
+			} else if (actionState==Constants.COMBAT_ASSIGN) {
+				if (hasEnemies && !character.isHidden() && !characterCombat.hasCastSpell() && RealmComponent.getRealmComponent(character.getGameObject()).getTarget()==null) {
+					warning = "You or your hirelings are being attacked but you are not attacking or casting any spell.";
+					warningTitle = "No attack or spell";
+				}
+			} else if (actionState==Constants.COMBAT_POSITIONING) {
+				boolean placedManeuver = false;
+				Collection<RealmComponent> c = character.getActiveMoveChitsAsRealmComponents();
+				c.addAll(character.getFlyChits());
+				for (RealmComponent chit : c) {
+					CombatWrapper combat = new CombatWrapper(chit.getGameObject());
+					if (combat.getPlacedAsMove()) {
+						placedManeuver = true;
+						break;
+					}
+				}
+				if (!placedManeuver) {
+					for (GameObject item : character.getActiveInventory()) {
+						CombatWrapper combat = new CombatWrapper(item);
+						if (combat.getPlacedAsMove()) {
+							placedManeuver = true;
+							break;
+						}
+					}
+				}
+				
+				if (characterCombat.getAttackerCount()>0 && !characterCombat.getPlacedAsMove() && !placedManeuver) {
+					warning = "You haven't placed any move chit on a defense box on your own sheet.";
+					warningTitle = "No maneuver chit placed";
+				}
+				if (RealmComponent.getRealmComponent(character.getGameObject()).getTarget()!=null) {
+					RealmComponent target1 = RealmComponent.getRealmComponent(character.getGameObject()).getTarget();
+					RealmComponent target2 = RealmComponent.getRealmComponent(character.getGameObject()).get2ndTarget();
+					boolean showAttackWarning = false;
+					if (!characterCombat.getPlayedAttack()) {
+						showAttackWarning = true;
+					}
+					if (!showAttackWarning) {
+						boolean attacksTarget1 = false;
+						boolean attacksTarget2 = false;
+						ArrayList<CombatWrapper> combatChits = new ArrayList<CombatWrapper>();
+						for (CharacterActionChitComponent chit : character.getActiveFightChits()) {
+							CombatWrapper combat = new CombatWrapper(chit.getGameObject());
+							combatChits.add(combat);
+						}
+						if (character.getTransmorph()!=null) {
+							CombatWrapper monsterCombat = new CombatWrapper(character.getTransmorph());
+							combatChits.add(monsterCombat);
+						}
+						for (CombatWrapper combat : combatChits) {
+							if (target1!=null && combat.getPlacedAsFight() && combat.getSheetOwnerId().matches(target1.getGameObject().getStringId())) {
+								attacksTarget1 = true;
+							}
+							if (target2!=null && combat.getPlacedAsFight() && combat.getSheetOwnerId().matches(target2.getGameObject().getStringId())) {
+								attacksTarget2 = true;
+							}
+							if (combat.getPlacedAsFight() && combat.getSheetOwnerId().matches(character.getGameObject().getStringId())) {
+								if (target1!=null && !(new CombatWrapper(target1.getGameObject())).isSheetOwner()) {
+									attacksTarget1 = true;
+								}
+								if (target2!=null && !(new CombatWrapper(target2.getGameObject())).isSheetOwner()) {
+									attacksTarget2 = true;
+								}
+							}
+						}
+						if ((target1!=null && !attacksTarget1) || (target2!=null && !attacksTarget2)) {
+							showAttackWarning = true;
+						}
+					}
+					if (showAttackWarning) {
+						String warningAttackChit = "You haven't placed any attack chit on your target's sheet.";
+						String warningTitleAttackChit = "No attack chit placed";
+						if (warning!=null && warningTitle!=null) {
+							warning = warning + " " +warningAttackChit;
+							warningTitle = warningTitle + " AND " + warningTitleAttackChit;
+						} else {
+							warning = warningAttackChit;
+							warningTitle = warningTitleAttackChit;
+						}
+					}
+				}
+			}
+			if (warning!=null && warningTitle!=null) {
+				warning = warning + "  Do you really want to proceed?";
+				int ret = JOptionPane.showConfirmDialog(this,warning,warningTitle,JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,activeCharacter.getIcon());
+				if (ret!=JOptionPane.YES_OPTION) {
+					return;
+				}
+			}
+		}
+		
 		if (activeCharacterIsHere) activeCharacter.testQuestRequirements(this);
 		if (okayToContinue()) {
+			if (ambushRollAtEndOfCombatRound && actionState==Constants.COMBAT_RESOLVING) {
+				ambushRoll = DieRollBuilder.getDieRollBuilder(this,activeCharacter).createHideRoller();
+				ambusher = RealmComponent.getRealmComponent(activeCharacter.getGameObject());
+				ambushRollAtEndOfCombatRound = false;
+			}
 			checkAmbush();
 			checkRunAway();
 			if (actionState==Constants.COMBAT_ASSIGN || actionState==Constants.COMBAT_DEPLOY) {
@@ -1262,33 +1629,30 @@ public class CombatFrame extends JFrame {
 			lockNextButton.setVisible(false);
 			if (row>=0) {
 				if (row==0) {
-					ArrayList characters = new ArrayList();
-					for (Iterator i=currentBattleModel.getAllParticipatingCharacters().iterator();i.hasNext();) {
-						RealmComponent rc = (RealmComponent)i.next();
-						characters.add(new CharacterWrapper(rc.getGameObject()));
-					}
-					combatSheetPanel.add(new JScrollPane(new CombatSummarySheet(characters)));
+					CombatSummarySheet combatSummarySheet = new CombatSummarySheet(this);
+					int height = 400+allParticipants.size()*(PARTICIPANT_ROW_HEIGHT+PARTICIPANT_ROW_HEIGHT/2);
+					combatSummarySheet.setPreferredSize(new Dimension(600,height));
+					combatSheetPanel.add(new JScrollPane(combatSummarySheet));
 				}
 				else {
 					RealmComponent rc = allParticipants.get(row-1);
-					activeCombatSheet = CombatSheet.createCombatSheet(this,currentBattleModel,rc,interactiveFrame);
+					activeCombatSheet = CombatSheet.createCombatSheet(this,currentBattleModel,rc,interactiveFrame, hostPrefs);
 					activeCombatSheet.addMouseListener(mouseListener);
 					activeCombatSheet.addMouseMotionListener(mouseListener);
 					combatSheetPanel.add(new JScrollPane(activeCombatSheet),"Center");
 					
 					if (rc.isCharacter()) {
 						CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
-						if (character.getPlayerName().equals(playerName)) { // FIXME NPE when adding, and then removing a character in the battle builder, and then playing a battle.
+						if (character.getPlayerName()!=null && character.getPlayerName().equals(playerName)) {
 							lockNextButton.setEnabled(true);
 							CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 							setLockNext(combat.isLockNext());
 							
 							// Before making the button visible, make sure that this isn't the LAST playing character
 							int count = 1;
-							Collection current = currentBattleModel.getAllParticipatingCharacters();
+							Collection<CharacterChitComponent> current = currentBattleModel.getAllParticipatingCharacters();
 							current.remove(rc);
-							for (Iterator i=current.iterator();i.hasNext();) {
-								RealmComponent cc = (RealmComponent)i.next();
+							for (RealmComponent cc : current) {
 								CombatWrapper cw = new CombatWrapper(cc.getGameObject());
 								if (!cw.isLockNext()) {
 									count++;
@@ -1305,6 +1669,9 @@ public class CombatFrame extends JFrame {
 			updateControls();
 		}
 	}
+	public void repaintCombatSheetPanel() {
+		combatSheetPanel.repaint();
+	}
 	private RealmComponent getSelectedParticipant() {
 		int row = participantTable.getSelectedRow();
 		if (row>0) {
@@ -1317,17 +1684,36 @@ public class CombatFrame extends JFrame {
 	 */
 	private boolean activeHasRedSideUpMonster() {
 		if (activeCharacterIsHere) { // no need to search if not here!
-			for (Iterator i=currentBattleModel.getAllBattleParticipants(true).iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
-				if (rc.isMonster()) {
-					RealmComponent target = rc.getTarget();
-					if (target!=null && target.equals(activeParticipant)) {
-						MonsterChitComponent monster = (MonsterChitComponent)rc;
-						if (monster.isPinningOpponent()) {
-							return true;
-						}
+			for (RealmComponent rc : currentBattleModel.getAllBattleParticipants(true)) {
+				RealmComponent transmorphedMonster = null;
+				if (rc.isCharacter()) {
+					GameObject transmorphed = (new CharacterWrapper(rc.getGameObject())).getTransmorph();
+					if (transmorphed!=null) {
+						transmorphedMonster = RealmComponent.getRealmComponent(transmorphed);
 					}
 				}
+				if (monsterIsPinningActiveCharacter(rc) || monsterIsPinningActiveCharacter(transmorphedMonster)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	private boolean monsterIsPinningActiveCharacter(RealmComponent rc) {
+		if (rc==null || (!rc.isMonster() && !rc.isCharacter())) return false;
+		RealmComponent target = rc.getTarget();
+		if (target!=null && target.equals(activeParticipant)) {
+			if (rc.isCharacter()) {
+				CharacterWrapper chararacter = new CharacterWrapper(rc.getGameObject());
+				GameObject transmorphed = chararacter.getTransmorph();
+				if (transmorphed==null) {
+					return false;
+				}
+				rc = RealmComponent.getRealmComponent(transmorphed);
+			}
+			MonsterChitComponent monster = (MonsterChitComponent)rc;
+			if (monster.isPinningOpponent()) {
+				return true;
 			}
 		}
 		return false;
@@ -1344,12 +1730,41 @@ public class CombatFrame extends JFrame {
 				denizenPanel.enableSelection();
 			}
 			if (endButton!=null) {
+				boolean event = false;
+				if (!event && currentBattleModel.getBattleLocation().tile.getGameObject().hasThisAttribute(Constants.EVENT_HURRICANE_WINDS)) {
+					ArrayList<String> clearings = currentBattleModel.getBattleLocation().tile.getGameObject().getThisAttributeList(Constants.EVENT_HURRICANE_WINDS);
+					for (String cl : clearings) {
+						if (currentBattleModel.getBattleLocation().clearing.getNumString().matches(cl)) {
+							event = true;
+							break;
+						}
+					}
+				}
+				if (!event && currentBattleModel.getBattleLocation().tile.getGameObject().hasThisAttribute(Constants.EVENT_CAVE_IN)) {
+					ArrayList<String> clearings = currentBattleModel.getBattleLocation().tile.getGameObject().getThisAttributeList(Constants.EVENT_CAVE_IN);
+					for (String cl : clearings) {
+						if (currentBattleModel.getBattleLocation().clearing.getNumString().matches(cl)) {
+							event = true;
+							break;
+						}
+					}
+				}
+				if (!event && currentBattleModel.getBattleLocation().tile.getGameObject().hasThisAttribute(Constants.EVENT_FLOOD)) {
+					ArrayList<String> clearings = currentBattleModel.getBattleLocation().tile.getGameObject().getThisAttributeList(Constants.EVENT_FLOOD);
+					for (String cl : clearings) {
+						if (currentBattleModel.getBattleLocation().clearing.getNumString().matches(cl)) {
+							event = true;
+							break;
+						}
+					}
+				}
 				boolean canEnd =
 					interactiveFrame													// Not observing
 					&& endCombatFrame==null												// Didn't already request END
 					&& !randomAss														// Not doing random assignment (or kicking some random ass?)
 					&& currentBattleModel.canSkipCombat(actionState)					// BattleModel allows skip combat
-					&& !changes;														// Are no changes
+					&& !changes															// Are no changes
+					&& !event;
 				endButton.setEnabled(canEnd);
 			}
 			if (chargeButton!=null) {
@@ -1368,20 +1783,34 @@ public class CombatFrame extends JFrame {
 						&& !activeCharacter.isFortified()
 						&& !combat.getHasCharged()
 						&& !activeHasRedSideUpMonster()
+						&& !activeCharacter.getGameObject().hasThisAttribute(Constants.LOST_IN_THE_MAZE)
 						&& !changes);
 			}
 			if (castSpellButton!=null) {
-				Collection castableSpellSets = null;
+				Collection<SpellSet> castableSpellSets = null;
 				if (activeCharacterIsHere) {
 					castableSpellSets = activeCharacter.getCastableSpellSets();
 				}
-				castSpellButton.setEnabled(endCombatFrame==null && !combat.isPeaceful() && activeCharacterIsHere && !combat.getHasCharged() && !activeCharacterIsTransmorphed && castableSpellSets.size()>0 && !changes);
+				castSpellButton.setEnabled(endCombatFrame==null && !combat.isPeaceful() && activeCharacterIsHere && !combat.getHasCharged()
+						&& !activeCharacterIsTransmorphed && castableSpellSets != null && castableSpellSets.size()>0
+						&& !activeCharacter.affectedByKey(Constants.DISENCHANT_POTION) && !changes);
+			}
+			if (teleportInstantButton!=null) {
+				teleportInstantButton.setEnabled(endCombatFrame==null && activeCharacterIsHere && activeCharacter.canUseInstantTeleport());
+			}
+			if (raiseDeadButton!=null) {
+				raiseDeadButton.setEnabled(endCombatFrame==null && !combat.isPeaceful() && activeCharacterIsHere
+						&& !activeCharacter.getGameObject().hasThisAttribute(Constants.MAGIC_PROTECTION_EXTENDED)
+						&& activeCharacter.affectedByKey(Constants.RAISE_DEAD)
+						&& !activeCharacter.affectedByKey(Constants.DISENCHANT_POTION)
+						&& !combat.getRaisedDead() && !combat.getRaiseTheDead());
 			}
 			if (selectSpellTargetsButton!=null) {
 				GameObject go = combat.getCastSpell();
 				SpellWrapper spell = go==null?null:new SpellWrapper(go);
 				boolean isSpell = endCombatFrame==null && activeCharacterIsHere && spell!=null && spell.getTargets().isEmpty();
-				selectSpellTargetsButton.setEnabled(isSpell);
+				boolean needsTargeting = isSpell && !spell.noTargeting();
+				selectSpellTargetsButton.setEnabled(needsTargeting);
 				cancelSpellButton.setEnabled(isSpell);
 			}
 			if (alertWeaponButton!=null) {
@@ -1399,22 +1828,37 @@ public class CombatFrame extends JFrame {
 			if (abandonBelongingsButton!=null) {
 				abandonBelongingsButton.setEnabled(!changes && activeCharacterIsHere && !combat.getHasCharged());
 			}
+			if (hireNomadButton!=null) {
+				hireNomadButton.setEnabled(!changes && activeCharacterIsHere && !combat.getHasCharged());
+			}
+			if (stealButton!=null) {
+				stealButton.setEnabled(!changes && activeCharacterIsHere && !combat.getHasCharged() && activeCharacter.isHidden());
+			}
 			if (selectTargetFromUnassignedButton!=null) {
-				selectTargetFromUnassignedButton.setEnabled(!changes && activeCharacterIsHere);
+				selectTargetFromUnassignedButton.setEnabled(!targetsSelected && activeCharacterIsHere);
 			}
 			if (useColorChitButton!=null) {
-				useColorChitButton.setEnabled(activeCharacter.getColorMagicChits().size()>0);
+				useColorChitButton.setEnabled(activeCharacter.getColorMagicChits().size()>0 && !activeCharacter.getGameObject().hasThisAttribute(Constants.MAGIC_PROTECTION_EXTENDED)
+						&& ((!hostPrefs.hasPref(Constants.FE_STEEL_AGAINST_MAGIC) && !activeCharacter.affectedByKey(Constants.STAFF_RESTRICTED_SPELLCASTING)) || activeCharacter.hasOnlyStaffAsActivatedWeapon()));
 			}
-			undoButton.setEnabled(interactiveFrame && endCombatFrame==null && (changes || nonaffectingChanges));
+			if (useMagicMoveButton!=null) {
+				useMagicMoveButton.setEnabled(activeCharacterIsHere && activeCharacter.affectedByKey(Constants.MAGIC_MOVE)
+						&& !activeCharacter.getGameObject().hasThisAttribute(Constants.MAGIC_PROTECTION_EXTENDED)
+						&& activeCharacter.getActiveMoveChits().size() > 0 && activeCharacter.getColorChits().size() > 0);
+			}
+			undoButton.setEnabled(interactiveFrame && endCombatFrame==null && (changes || nonaffectingChanges) && !combat.hasStolen());
 		}
 		if (endCombatFrame==null && currentBattleModel!=null) {
 			TileLocation tl = currentBattleModel.getBattleLocation();
 			CombatWrapper tile = new CombatWrapper(tl.tile.getGameObject());
-			if (tile.isPeaceClearing(tl.clearing.getNum())) {
+			if (tile.isPeaceClearing(tl.clearing.getNum()) || tile.isSleepClearing(tl.clearing.getNum())) {
 				nextButton.setEnabled(interactiveFrame);
 				endButton.setEnabled(interactiveFrame);
 				if (castSpellButton!=null) {
 					castSpellButton.setEnabled(false);
+				}
+				if (raiseDeadButton!=null) {
+					raiseDeadButton.setEnabled(false);
 				}
 			}
 		}
@@ -1436,7 +1880,7 @@ public class CombatFrame extends JFrame {
 		if (currentBattleModel!=null) {
 			TileLocation tl = currentBattleModel.getBattleLocation();
 			CombatWrapper tile = new CombatWrapper(tl.tile.getGameObject());
-			if (tile.isPeaceClearing(tl.clearing.getNum())) {
+			if (tile.isPeaceClearing(tl.clearing.getNum()) || tile.isSleepClearing(tl.clearing.getNum())) {
 				return true;
 			}
 		}
@@ -1458,19 +1902,25 @@ public class CombatFrame extends JFrame {
 		}
 		else if (actionState==Constants.COMBAT_POSITIONING) {
 			// Verify that everything that needs to be done, has been done (but only worry about friendly sheets)
-			ArrayList friendly = CombatSheet.filterFriends(activeParticipant,allParticipants);
-			for (Iterator i=friendly.iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
-				CombatSheet sheet = CombatSheet.createCombatSheet(this,currentBattleModel,rc,interactiveFrame);
-				
-				// Verify that all denizens are positioned
-				if (sheet.hasUnpositionedDenizens()) {
-					return new RealmComponentError(rc,"Unpositioned Denizens","There are unpositioned denizens on your sheet.");
-				}
-				
-				// Verify that as many combat boxes as can be used, ARE used
-				if (!sheet.usesMaxCombatBoxes() && !hostPrefs.hasPref(Constants.OPT_NO_BATTLE_DIST)) {
-					return new RealmComponentError(rc,"Not using enough boxes","You must place targets in as many boxes as possible (up to 3) before continuing.");
+			ArrayList<RealmComponent> friendly = CombatSheet.filterFriends(activeParticipant,allParticipants);
+			if (!hostPrefs.hasPref(Constants.SR_COMBAT)) {
+				for (RealmComponent rc : friendly) {
+					CombatSheet sheet = CombatSheet.createCombatSheet(this,currentBattleModel,rc,interactiveFrame, hostPrefs);
+					
+					// Verify that all denizens are positioned
+					if (sheet.hasUnpositionedDenizens()) {
+						return new RealmComponentError(rc,"Unpositioned Denizens","There are unpositioned denizens on your sheet.");
+					}
+					
+					// Verify that as many combat boxes as can be used, ARE used
+					if (!sheet.usesMaxCombatBoxes() && !hostPrefs.hasPref(Constants.OPT_NO_BATTLE_DIST)) {
+						return new RealmComponentError(rc,"Not using enough boxes","You must place targets in as many boxes as possible (up to 3) before continuing.");
+					}
+					
+					// Verify that combat boxes are used equally
+					if (hostPrefs.hasPref(Constants.FE_DEADLY_REALM) && sheet.getSheetOwner().isCharacter() && !sheet.usesCombatBoxesEqually()) {
+						return new RealmComponentError(rc,"Not using boxes equally","You must place targets as equally as possible.");
+					}
 				}
 			}
 			// Verify that attack spell (if any) was placed
@@ -1479,14 +1929,24 @@ public class CombatFrame extends JFrame {
 			if (sgo!=null) {
 				SpellWrapper spell = new SpellWrapper(sgo);
 				if (spell.isAlive() && spell.isAttackSpell() && spell.getAttackCombatBox()==0) {
-					return new RealmComponentError(null,"Missing spell attack","You must place your spell attack before continuing.");
+					for (RealmComponent target : spell.getTargets()) {
+						if (!target.isMistLike() && !target.hasMagicProtection() && (!target.isMonster() || !((MonsterChitComponent)target).isAbsorbed())) {
+							return new RealmComponentError(null,"Missing spell attack","You must place your spell attack before continuing.");
+						}
+						spell.removeTarget(target.getGameObject());
+						RealmLogging.logMessage(RealmLogging.BATTLE,spell.getName()+" cannot target "+target+".");
+					}
+					if (spell.getTargets().isEmpty() && !spell.noTargeting()) {
+						spell.cancelSpell();
+						RealmLogging.logMessage(RealmLogging.BATTLE,spell.getName()+" was canceled, as targets cannot be selected anymore.");
+					}
 				}
 			}
 			
 			// Make sure the character has placed an attack
-			if (activeCharacterIsHere && activeParticipant.getTarget()!=null) {
+			if (activeCharacterIsHere && activeParticipant.getTarget()!=null && activeParticipant.get2ndTarget()!=null) {
 				CombatWrapper charCombat = new CombatWrapper(activeParticipant.getGameObject());
-				if (!charCombat.getPlayedAttack() && canPlayAttack(0)) {
+				if (!charCombat.getPlayedAttack() && !charCombat.getPlayedSpell() && canPlayAttack(0)) {
 					return new RealmComponentError(activeParticipant,"Missing Attack Placement","The active character needs to place an attack.  Do you want to continue anyway?",true);
 				}
 			}
@@ -1496,10 +1956,9 @@ public class CombatFrame extends JFrame {
 				return new RealmComponentError(null,"Missing spell attack","You must place your spell attack before continuing.");
 			}
 			
-			ArrayList friendly = CombatSheet.filterFriends(activeParticipant,allParticipants);
-			for (Iterator i=friendly.iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
-				CombatSheet sheet = CombatSheet.createCombatSheet(this,currentBattleModel,rc,interactiveFrame);
+			ArrayList<RealmComponent> friendly = CombatSheet.filterFriends(activeParticipant,allParticipants);
+			for (RealmComponent rc : friendly) {
+				CombatSheet sheet = CombatSheet.createCombatSheet(this,currentBattleModel,rc,interactiveFrame, hostPrefs);
 				
 				// Verify that all targets (that need to be) are assigned
 				if (sheet.needsTargetAssignment()) {
@@ -1532,11 +1991,10 @@ public class CombatFrame extends JFrame {
 	/**
 	 * Removes any pieces that have already been played this round
 	 */
-	private void filterUsedOptions(ArrayList list) {
+	private void filterUsedOptions(ArrayList<RealmComponent> list) {
 		// Be sure to remove any pieces that have already been played!
 		CombatWrapper combat = new CombatWrapper(activeCharacter.getGameObject());
-		for (Iterator i=combat.getUsedChits().iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		for (GameObject go : combat.getUsedChits()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			list.remove(rc);
 		}
@@ -1547,11 +2005,11 @@ public class CombatFrame extends JFrame {
 	 * 
 	 * @return					A collection of all maneuver possibilities for the chosen box.
 	 */
-	public Collection getAvailableManeuverOptions(int box,boolean includeHorses) {
+	public Collection<RealmComponent> getAvailableManeuverOptions(int box,boolean includeHorses) {
 		return getAvailableManeuverOptions(box,includeHorses,true);
 	}
-	public Collection getAvailableManeuverOptions(int box,boolean includeHorses,boolean limitEffort) {
-		ArrayList list = new ArrayList();
+	public Collection<RealmComponent> getAvailableManeuverOptions(int box,boolean includeHorses,boolean limitEffort) {
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		GameObject transmorph = activeCharacter.getTransmorph();
 		if (transmorph==null) {
 			int effortLeft = limitEffort?getAvailableEffort():2;
@@ -1560,13 +2018,12 @@ public class CombatFrame extends JFrame {
 			Strength heaviestInventory = activeCharacter.getNeededSupportWeight();
 			
 			// Find all active chits that have less than (effortLimit-totalEffort) asterisks
-			Collection c = activeCharacter.getActiveMoveChits();
+			Collection<RealmComponent> c = activeCharacter.getActiveMoveChitsAsRealmComponents();
 			c.addAll(activeCharacter.getFlyChits());
-			for (Iterator i=c.iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
+			for (RealmComponent rc : c) {
 				if (rc.isActionChit()) {
 					CharacterActionChitComponent chit = (CharacterActionChitComponent)rc;
-					if (chit.getEffortAsterisks()<=effortLeft && chit.getStrength().strongerOrEqualTo(heaviestInventory)) {
+					if (chit.getEffortAsterisks()<=effortLeft && chit.getStrength().strongerOrEqualTo(heaviestInventory) && !chit.getStrength().isMaximum()) {
 						// Check the box_constraint (important for the DUCK chit)
 						int constraint = chit.getGameObject().getThisInt("box_constraint");
 						if (constraint==0 || constraint==box) {
@@ -1581,31 +2038,34 @@ public class CombatFrame extends JFrame {
 				}
 				else if (rc.isFlyChit()) {
 					// The only "Fly Chit" besides action chits right now is the Broomstick, which doesn't really have asterisks or constraints
-					list.add(rc);
+					FlyChitComponent chit = (FlyChitComponent)rc;
+					if (!chit.getStrength().isMaximum()) {
+						list.add(rc);
+					}
 				}
 			}
 			
 			// Add any boots cards or horses or flying carpets
-			for (Iterator i=activeCharacter.getActiveInventory().iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
+			for (GameObject go : activeCharacter.getActiveInventory()) {
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (go.hasThisAttribute("boots")) {
-					Strength bootStrength = new Strength(go.getThisAttribute("strength"));
-					if (bootStrength.strongerOrEqualTo(heaviestInventory)) {
+					Strength bootStrength = RealmUtility.getBootsStrength(go);
+					if (bootStrength.strongerOrEqualTo(heaviestInventory) && !rc.getWeight().isMaximum()) {
 						list.add(rc);
 					}
 				}
-				else if (includeHorses && rc.isHorse()) {
+				else if (includeHorses && (rc.isHorse() || rc.isNativeHorse())) {
 					// Check strength on both sides to see which is stronger (when CHARGING, is coded, may have to determine if horse was used)
 					Strength trotStrength = new Strength(go.getAttribute("trot","strength"));
 					Strength gallopStrength = new Strength(go.getAttribute("gallop","strength"));
+					if ((new CombatWrapper(rc.getGameObject()).getHorseCannotManeuver())) continue;
 					if (trotStrength.strongerOrEqualTo(heaviestInventory) || gallopStrength.strongerOrEqualTo(heaviestInventory)) {
 						list.add(rc);
 					}
 				}
 				else if (go.hasThisAttribute("fly_strength")) {
 					Strength flyStrength = new Strength(go.getThisAttribute("fly_strength"));
-					if (flyStrength.strongerOrEqualTo(heaviestInventory)) {
+					if (flyStrength.strongerOrEqualTo(heaviestInventory) && !flyStrength.isMaximum()) {
 						list.add(rc);
 					}
 				}
@@ -1618,18 +2078,21 @@ public class CombatFrame extends JFrame {
 			RealmComponent rc = RealmComponent.getRealmComponent(transmorph);
 			if (rc.isMonster()) {
 				MonsterChitComponent monster = (MonsterChitComponent)rc;
-				list.add(monster.getMoveChit());
+				MonsterMoveChitComponent chit = monster.getMoveChit();
+				if (!chit.getMoveStrength().isMaximum()) {
+					list.add(monster.getMoveChit());
+				}
 			}
 		}
 		
 		return list;
 	}
 	
-	public Collection getAvailableFightOptions(int box) {
+	public Collection<RealmComponent> getAvailableFightOptions(int box) {
 		return getAvailableFightOptions(box,true);
 	}
-	public Collection getAvailableFightOptions(int box,boolean limitEffort) {
-		ArrayList list = new ArrayList();
+	public Collection<RealmComponent> getAvailableFightOptions(int box,boolean limitEffort) {
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		GameObject transmorph = activeCharacter.getTransmorph();
 		if (transmorph==null) {
 			int effortLeft = limitEffort?getAvailableEffort():2;
@@ -1638,9 +2101,8 @@ public class CombatFrame extends JFrame {
 			Strength weaponWeight = activeCharacter.getActiveWeaponWeight();
 			
 			// Find all active chits that have less than (effortLimit-totalEffort) asterisks
-			for (Iterator i=activeCharacter.getActiveFightChits().iterator();i.hasNext();) {
-				CharacterActionChitComponent chit = (CharacterActionChitComponent)i.next();
-				if (chit.getEffortAsterisks()<=effortLeft && chit.getStrength().strongerOrEqualTo(weaponWeight)) {
+			for (CharacterActionChitComponent chit :  activeCharacter.getActiveFightChits()) {
+				if (chit.getEffortAsterisks()<=effortLeft && chit.getStrength().strongerOrEqualTo(weaponWeight) && !chit.getStrength().isNegligible()) {
 					// Check the box_constraint (for fight_lock type options - custom characters only)
 					int constraint = chit.getGameObject().getThisInt("box_constraint");
 					if (constraint==0 || constraint==box) {
@@ -1655,12 +2117,11 @@ public class CombatFrame extends JFrame {
 			}
 			
 			// Add any gloves cards
-			for (Iterator i=activeCharacter.getActiveInventory().iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
+			for (GameObject go: activeCharacter.getActiveInventory()) {
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (go.hasThisAttribute("gloves")) {
-					Strength gloveStrength = new Strength(go.getThisAttribute("strength"));
-					if (gloveStrength.strongerOrEqualTo(weaponWeight)) {
+					Strength gloveStrength = RealmUtility.getGlovesStrength(go);
+					if (gloveStrength.strongerOrEqualTo(weaponWeight) && !gloveStrength.isNegligible() && !rc.getWeight().isMaximum()) {
 						list.add(rc);
 					}
 				}
@@ -1697,9 +2158,8 @@ public class CombatFrame extends JFrame {
 		int nextStatus = RealmBattle.getNextWaitState(actionState);
 		// Set status for ALL characters on the same client as activeCharacter on RESOLVING
 		if (actionState==Constants.COMBAT_RESOLVING) {
-			Collection allCharacters = currentBattleModel.getAllOwningCharacters();
-			for (Iterator i=allCharacters.iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
+			Collection<RealmComponent> allCharacters = currentBattleModel.getAllOwningCharacters();
+			for (RealmComponent rc : allCharacters) {
 				CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 				
 				if (playerName.equals(character.getPlayerName())) {
@@ -1712,20 +2172,18 @@ public class CombatFrame extends JFrame {
 			activeCharacter.setCombatStatus(nextStatus);
 		}
 	}
-	public boolean areDenizensToLure(RealmComponent lurer) {
+	public boolean areDenizensToLure() {
 		return denizenPanel.getComponentCount()>0 || !findCharactersWithDenizenAttackers().isEmpty();
 	}
 	public int selectedDenizenCount() {
 		return denizenPanel.getSelectedComponents().size();
 	}
-	private ArrayList findCharactersWithDenizenAttackers() {
-		ArrayList list = new ArrayList();
+	private ArrayList<RealmComponent> findCharactersWithDenizenAttackers() {
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		if (currentBattleModel.areDenizens()) {
-			ArrayList denizens = new ArrayList(currentBattleModel.getDenizenBattleGroup().getBattleParticipants());
-			for (Iterator i=currentBattleModel.getAllParticipatingCharacters().iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
-				for (Iterator n=denizens.iterator();n.hasNext();) {
-					RealmComponent den = (RealmComponent)n.next();
+			ArrayList<RealmComponent> denizens = new ArrayList<RealmComponent>(currentBattleModel.getDenizenBattleGroup().getBattleParticipants());
+			for (RealmComponent rc : currentBattleModel.getAllParticipatingCharacters()) {
+				for (RealmComponent den : denizens) {
 					if (den.targeting(rc)) {
 						if (den.isMonster() && ((MonsterChitComponent)den).isPinningOpponent()) {
 							// Ignore red side up monsters (can't be lured)
@@ -1743,31 +2201,39 @@ public class CombatFrame extends JFrame {
 		}
 		return list;
 	}
-	public void lureDenizens(RealmComponent lurer,int box,boolean lureMultiple) {
+	public void lureDenizens(RealmComponent lurer,int boxA,int boxD,boolean lureMultiple) {
+		lureDenizens(lurer,boxA,boxD,lureMultiple, true) ;
+	}
+	public void lureDenizens(RealmComponent lurer,int boxA,int boxD,boolean lureMultiple, boolean filterNativeFriendly) {
 		if (denizenPanel.getSelectedCount()>0) {
-			lureSelectedDenizens(lurer,box);
+			lureSelectedDenizens(lurer,boxA,boxD,filterNativeFriendly);
 			changes = true;
 		}
 		else {
 			// Pick from characters sheets
 			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Lure from which Character Sheet?",true);
-			ArrayList list = findCharactersWithDenizenAttackers();
+			ArrayList<RealmComponent> list = findCharactersWithDenizenAttackers();
+			if (filterNativeFriendly) {
+				list = CombatSheet.filterNativeFriendly(lurer, list);
+			}
 			list.remove(lurer);
 			chooser.addRealmComponents(list,true);
 			if (chooser.hasOptions()) {
 				chooser.setVisible(true);
 				if (chooser.getSelectedText()!=null) {
 					RealmComponent rc = chooser.getFirstSelectedComponent();
-					ArrayList attackers = currentBattleModel.getAttackersFor(rc);
-					ArrayList denizens = new ArrayList(currentBattleModel.getDenizenBattleGroup().getBattleParticipants());
+					ArrayList<RealmComponent> attackers = currentBattleModel.getAttackersFor(rc);
+					ArrayList<RealmComponent> denizens = new ArrayList<RealmComponent>(currentBattleModel.getDenizenBattleGroup().getBattleParticipants());
 					denizens.retainAll(attackers); // intersection to find all denizen attackers
-					// Be sure to strip out any red-side-up monsters
-					ArrayList remove = new ArrayList();
-					for (Iterator i=denizens.iterator();i.hasNext();) {
-						RealmComponent dc = (RealmComponent)i.next();
+					// Be sure to strip out any red-side-up monsters and natives of same group for extended treachery
+					ArrayList<RealmComponent> remove = new ArrayList<RealmComponent>();
+					for (RealmComponent dc : denizens) {
 						if (dc.isMonster() && ((MonsterChitComponent)dc).isPinningOpponent()) {
 							remove.add(dc);
 						}
+						if (hostPrefs.hasPref(Constants.TE_EXTENDED_TREACHERY) && !activeCharacter.getTreacheryPreference() && lurer.isNative() && RealmUtility.getGroupName(lurer).matches(RealmUtility.getGroupName(dc))) {
+							remove.add(dc);
+						}						
 					}
 					denizens.removeAll(remove);
 					
@@ -1776,12 +2242,11 @@ public class CombatFrame extends JFrame {
 					RealmObjectChooser chooser2 = new RealmObjectChooser(title,gameData,!lureMultiple);
 					chooser2.addComponentsToChoose(denizens);
 					chooser2.setVisible(true);
-					Collection c = chooser2.getChosenObjects();
+					Collection<GameObject> c = chooser2.getChosenObjects();
 					if (c!=null && !c.isEmpty()) {
-						for (Iterator i=c.iterator();i.hasNext();) {
-							GameObject go = (GameObject)i.next();
+						for (GameObject go : c) {
 							RealmComponent luree = RealmComponent.getRealmComponent(go);
-							if (lureDenizen(lurer,box,luree)) {
+							if (lureDenizen(lurer,boxA,boxD,luree)) {
 								changes = true;
 							}
 						}
@@ -1791,37 +2256,68 @@ public class CombatFrame extends JFrame {
 		}
 		updateSelection();
 	}
-	private void lureSelectedDenizens(RealmComponent lurer,int box) {
-		Collection denizens = denizenPanel.getSelectedComponents();
+	private void lureSelectedDenizens(RealmComponent lurer,int boxA,int boxD,boolean filterNativeFriendly) {
+		Collection<RealmComponent> denizens = denizenPanel.getSelectedComponents();
 		denizenPanel.clearSelected();
-		for (Iterator i=denizens.iterator();i.hasNext();) {
-			RealmComponent denizen = (RealmComponent)i.next();
-			lureDenizen(lurer,box,denizen);
+		Collection<RealmComponent> validDenizens = denizens;
+		if (filterNativeFriendly) {
+			validDenizens = CombatSheet.filterNativeFriendly(lurer, denizens);
+			if (validDenizens.size() < denizens.size()) {
+				String message = "The "+lurer.getGameObject().getName()+" cannot lure some denizen(s) because the "+lurer.getGameObject().getName()+" is native friendly to this group.";
+				JOptionPane.showMessageDialog(this,message,"Native friendly",JOptionPane.WARNING_MESSAGE,lurer.getIcon());
+				return;
+			}
 		}
+		
+		for (RealmComponent denizen : validDenizens) {
+			if (hostPrefs.hasPref(Constants.TE_EXTENDED_TREACHERY) && lurer.isNative() && RealmUtility.getGroupName(lurer).matches(RealmUtility.getGroupName(denizen))) {
+				if (!activeCharacter.getTreacheryPreference()) {
+					String message = "The "+lurer.getGameObject().getName()+" cannot lure the "+denizen.getGameObject().getName()+" because it would trigger treachery.";
+					JOptionPane.showMessageDialog(this,message,"Treachery",JOptionPane.WARNING_MESSAGE,denizen.getIcon());
+					return;
+				}
+				BattleUtility.processTreachery(new CharacterWrapper(lurer.getOwner().getGameObject()),denizen);
+			}
+			
+			lureDenizen(lurer,boxA,boxD,denizen);
+		}
+
 	}
-	private boolean lureDenizen(RealmComponent lurer,int box,RealmComponent denizen) {
-		if (denizen.isMistLike()) {
+	private boolean lureDenizen(RealmComponent lurer,int boxA,int boxD,RealmComponent denizen) {
+		if (denizen.isMistLike() && !lurer.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE) && (!lurer.isCharacter() || !(new CharacterWrapper(lurer.getGameObject())).affectedByKey(Constants.IGNORE_MIST_LIKE))) {
 			String message = "The "+lurer.getGameObject().getName()
 							+" cannot lure the "+denizen.getGameObject().getName()
 							+" because it has been transmorphed into mist.";
 			JOptionPane.showMessageDialog(this,message,"Melted into Mist",JOptionPane.WARNING_MESSAGE,denizen.getIcon());
 			return false;
 		}
+		CombatWrapper denizenCw = new CombatWrapper(denizen.getGameObject());
+		if (!denizenCw.canUseCombatBoxAttack(boxA) || !denizenCw.canUseCombatBoxDefense(boxD)) {
+			JOptionPane.showMessageDialog(this,denizen.getGameObject().getNameWithNumber()+" cannot be placed in this combat box.","Spider Web",JOptionPane.WARNING_MESSAGE,denizen.getIcon());
+			return false;
+		}
+		
 		if (!lurer.isImmuneTo(denizen)) {
-			CombatFrame.broadcastMessage(lurer.getGameObject().getName(),"Lures the "+denizen.getGameObject().getName());
+			CombatFrame.broadcastMessage(lurer.getGameObject().getNameWithNumber(),"Lures the "+denizen.getGameObject().getNameWithNumber());
 			
 			RealmComponent target = denizen.getTarget();
 			if (target!=null) {
 				CombatWrapper combat = new CombatWrapper(target.getGameObject());
 				combat.removeAttacker(denizen.getGameObject());
 			}
+			RealmComponent target2 = denizen.get2ndTarget();
+			if (target2!=null) {
+				CombatWrapper combat = new CombatWrapper(target2.getGameObject());
+				combat.removeAttacker(denizen.getGameObject());
+			}
 			
 			denizen.setTarget(lurer);
-			CombatWrapper combat = new CombatWrapper(denizen.getGameObject());
-			combat.setCombatBox(box);
+			denizenCw.setCombatBoxAttack(boxA);
+			denizenCw.setCombatBoxDefense(boxD);
 			denizenPanel.removeGameObject(denizen.getGameObject());
 			denizenPanel.repaint();
 			if (lurer.isHidden()) {
+				currentBattleModel.setGotUnhidden();
 				lurer.setHidden(false);
 			}
 		}
@@ -1845,12 +2341,15 @@ public class CombatFrame extends JFrame {
 				JOptionPane.showMessageDialog(this,spell.getName()+" was broken!");
 			}
 		}
+		if (denizenCw.isPacified()) {
+			denizenCw.removePacified();
+		}
 		return true;
 	}
 	private void doChargeCharacter() {
 		boolean found = false;
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Charge Character",true);
-		for (RealmComponent rc:findCanBeSeen(currentBattleModel.getAllParticipatingCharacters(),false)) {
+		for (RealmComponent rc:findCanBeSeen(currentBattleModel.getAllParticipatingCharactersAsRc(),false)) {
 			if (!rc.isHorse() && !rc.equals(activeParticipant)) {
 				chooser.addRealmComponent(rc);
 				found = true;
@@ -1876,7 +2375,13 @@ public class CombatFrame extends JFrame {
 				false)) {
 			CombatFrame.broadcastMessage(activeCharacter.getGameObject().getName(),"Charges the "+charged.getGameObject().getName());
 			if (activeCharacter.isHidden()) {
+				currentBattleModel.setGotUnhidden();
 				activeCharacter.setHidden(false);
+				CombatFrame.broadcastMessage(activeCharacter.getGameObject().getName(),"Is unhidden!");
+			}
+			if (charged.isCharacter() && charged.isHidden()) {
+				currentBattleModel.setGotUnhidden();
+				charged.setHidden(false);
 				CombatFrame.broadcastMessage(activeCharacter.getGameObject().getName(),"Is unhidden!");
 			}
 			RealmComponent rc = activator.getSelectedMoveChit();
@@ -1888,11 +2393,9 @@ public class CombatFrame extends JFrame {
 		}
 		updateSelection();
 	}
-	private ArrayList getSelectedCombatSheetParticipants() {
-		ArrayList list = new ArrayList();
-		for (Iterator i=activeCombatSheet.getAllParticipantsOnSheet().iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
-			
+	private ArrayList<RealmComponent> getSelectedCombatSheetParticipants() {
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
+		for (RealmComponent rc : activeCombatSheet.getAllParticipantsOnSheet()) {
 			if (!rc.equals(activeParticipant) && (rc.isMonster() || rc.isNative())) {
 				list.add(rc);
 			}
@@ -1915,8 +2418,8 @@ public class CombatFrame extends JFrame {
 		
 		// Make sure that targeting can happen
 		if (!spellTargeting.hasTargets()) {
-			JOptionPane.showMessageDialog(this,"There are no valid targets for this spell!.","Unable to Select Targets for "+spell.getName(),JOptionPane.ERROR_MESSAGE);
-			spell.expireSpell();
+			JOptionPane.showMessageDialog(this,"There are no valid targets for this spell!","Unable to Select Targets for "+spell.getName(),JOptionPane.ERROR_MESSAGE);
+			spell.cancelSpell();
 			if (selectSpellTargetsButton!=null) {
 				selectSpellTargetsButton.setVisible(false);
 				cancelSpellButton.setVisible(false);
@@ -1935,12 +2438,20 @@ public class CombatFrame extends JFrame {
 			}
 			// Casting a spell causes you to become unhidden, if it targets an individual (not clearing)
 			if (spell.targetsCharacterOrDenizen() && activeCharacter.isHidden()) {
-				if (spell.getTargetCount()<=1 && hostPrefs.hasPref(Constants.ADV_AMBUSHES)) {
-					// You get an ambush roll to see if you stay hidden
-					ambushRoll = DieRollBuilder.getDieRollBuilder(this,activeCharacter).createHideRoller();
-					ambusher = RealmComponent.getRealmComponent(activeCharacter.getGameObject());
+				if ((spell.getTargetCount()<=1 && (hostPrefs.hasPref(Constants.ADV_AMBUSHES) || activeCharacter.affectedByKey(Constants.SNEAKY))) && !activeCharacter.affectedByKey(Constants.NO_AMBUSH)) {
+					if (hostPrefs.hasPref(Constants.FE_AMBUSH_END_OF_COMBATROUND)) {
+						ambushRollAtEndOfCombatRound = true;
+					}
+					else {
+						// You get an ambush roll to see if you stay hidden
+						ambushRoll = DieRollBuilder.getDieRollBuilder(this,activeCharacter).createHideRoller();
+						ambusher = RealmComponent.getRealmComponent(activeCharacter.getGameObject());
+					}
 				}
 				else {
+					if (activeCharacter.isHidden()) {
+						currentBattleModel.setGotUnhidden();
+					}
 					activeCharacter.setHidden(false,false);
 					refreshParticipants();
 					repaint();
@@ -1962,7 +2473,7 @@ public class CombatFrame extends JFrame {
 		if (ret==JOptionPane.YES_OPTION) {
 			JOptionPane.showMessageDialog(this,"Spell was cancelled and will NOT be cast.","Cancel "+spell.getName(),JOptionPane.ERROR_MESSAGE);
 			RealmLogging.logMessage(activeCharacter.getGameObject().getName(),"Cancels "+spell.getName());
-			spell.expireSpell();
+			spell.cancelSpell();
 			if (selectSpellTargetsButton!=null) {
 				selectSpellTargetsButton.setVisible(false);
 				cancelSpellButton.setVisible(false);
@@ -1972,25 +2483,33 @@ public class CombatFrame extends JFrame {
 		}
 	}
 	protected void assignTarget() {
-		ArrayList list = getSelectedCombatSheetParticipants();
+		ArrayList<RealmComponent> list = getSelectedCombatSheetParticipants();
 		assignTarget(list);
 	}
-	protected RealmComponent assignTarget(Collection list) {
+	protected RealmComponent assignTarget(Collection<RealmComponent> list) {
 		return assignTarget(activeParticipant,list);
 	}
 	public boolean canBeSeen(RealmComponent rc,boolean magicAttack) {
-		return !rc.isMistLike() && (!magicAttack || !rc.hasMagicProtection())
+		return canBeSeen(rc,magicAttack,false);
+	}
+	public boolean canBeSeen(RealmComponent rc,boolean magicAttack,boolean canTargetMistLike) {
+		return (canTargetMistLike || !rc.isMistLike() || activeCharacter.affectedByKey(Constants.IGNORE_MIST_LIKE)) && (!magicAttack || !rc.hasMagicProtection())
 				&& (!rc.isHidden() || activeCharacter.foundHiddenEnemy(rc.getGameObject()) || rc.getOwner()==activeParticipant);
 	}
 	/**
 	 * @return			The list of RealmComponents that can be seen by the activeCharacter.
 	 */
-	public ArrayList<RealmComponent> findCanBeSeen(Collection list,boolean magicAttack) {
+	public ArrayList<RealmComponent> findCanBeSeen(Collection<RealmComponent> list,boolean magicAttack) {
+		return findCanBeSeen(list,magicAttack,false);
+	}
+	/**
+	 * @return			The list of RealmComponents that can be seen by the activeCharacter.
+	 */
+	public ArrayList<RealmComponent> findCanBeSeen(Collection<RealmComponent> list,boolean magicAttack,boolean canTargetMistLike) {
 		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
-		for (Iterator i=list.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+		for (RealmComponent rc : list) {
 			// Make sure participant is "visible" to attacker
-			if (canBeSeen(rc,magicAttack)) {
+			if (canBeSeen(rc,magicAttack,canTargetMistLike)) {
 				ret.add(rc);
 				if (hostPrefs.hasPref(Constants.OPT_RIDING_HORSES)) {
 					RealmComponent horse = (RealmComponent)rc.getHorse();
@@ -2002,52 +2521,61 @@ public class CombatFrame extends JFrame {
 		}
 		return ret;
 	}
-	protected RealmComponent assignTarget(RealmComponent attacker,Collection list) {
+	protected RealmComponent assignTarget(RealmComponent attacker,Collection<RealmComponent> list) {
 		if (list!=null && list.size()>0) {
-			ArrayList visibleList = findCanBeSeen(list,false);
-			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Select a Target:",true);
+			ArrayList<RealmComponent> visibleList = findCanBeSeen(list,false);
+			String attackerName = attacker.getGameObject().getNameWithNumber(); 
+			String chooserTitle = attackerName+": Select a target";
+			if (attacker.getTarget()!=null) {
+				chooserTitle = attackerName+": Select secondary target";
+			}
+			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,chooserTitle,true);
+			visibleList = CombatSheet.filterNativeFriendly(attacker, visibleList);
 			chooser.addRealmComponents(visibleList,true);
 			chooser.setVisible(true);
 			if (chooser.getSelectedText()!=null) {
 				RealmComponent theTarget = chooser.getFirstSelectedComponent();
+				
+				if (hostPrefs.hasPref(Constants.SR_ADV_PROTECTED_LEADERS_TARGETING)) {
+					if (theTarget.isNativeLeader() && !theTarget.isHiredOrControlled()) {
+						String groupName = theTarget.getGameObject().getThisAttribute(RealmComponent.NATIVE).toLowerCase();
+						BattleGroup group = currentBattleModel.getDenizenBattleGroup();
+						for (RealmComponent member : group.getBattleParticipants()) {
+							if (!member.isNativeLeader() && member.isNative() && member.getGameObject().getThisAttribute(RealmComponent.NATIVE).toLowerCase().matches(groupName) && !member.isHiredOrControlled()) {
+								CombatWrapper combatWrapper = new CombatWrapper(member.getGameObject());
+								if (combatWrapper.getAttackerCount()==0) {
+									JOptionPane.showMessageDialog(this,"Cannot attack Native Leader unless all other unhired natives of the same group are also targeted.","Protected Leader",JOptionPane.INFORMATION_MESSAGE);
+									return null;
+								}
+							}
+						}
+					}
+				}
+				
 				String append = "";
-				if (theTarget.getGameObject().hasThisAttribute(Constants.NUMBER)) {
-					append = " "+theTarget.getGameObject().getThisAttribute(Constants.NUMBER);
+				append = aimingForHorseOrRider(attacker, theTarget, append);
+				if (attacker.getTarget()==null) {
+					attacker.setTarget(theTarget);
 				}
-				if (hostPrefs.hasPref(Constants.OPT_RIDING_HORSES)) {
-					if (theTarget.isHorse() || theTarget.isNativeHorse()) {
-						// Change target to native
-						theTarget = RealmComponent.getRealmComponent(theTarget.getGameObject().getHeldBy());
-						append = " (aiming for horse)";
-					}
-					else if (theTarget.getHorse()!=null) {
-						CombatWrapper combat = new CombatWrapper(theTarget.getGameObject());
-						combat.setTargetingRider(attacker.getGameObject());
-						append = " (aiming for rider)";
-					}
+				else {
+					attacker.set2ndTarget(theTarget);
 				}
-				attacker.setTarget(theTarget);
-				broadcastMessage(attacker.getGameObject().getName(),"Attacks the "+theTarget.getGameObject().getName()+append);
-				makeTarget(this,hostPrefs,attacker,theTarget,theGame);
-				if (theTarget.isNative() && theTarget.getOwnerId()==null) {
-					// non-battling unhired natives will begin battling the character immediately if attacked
-					if (!activeCharacter.isBattling(theTarget.getGameObject())) {
-						activeCharacter.addBattlingNative(theTarget.getGameObject());
-					}
-					makeWatchfulNatives(theTarget,true);
+				broadcastMessage(attacker.getGameObject().getName(),"Attacks the "+theTarget.getGameObject().getNameWithNumber()+append);
+				boolean gotUnhidden = makeTarget(this,hostPrefs,attacker,theTarget);
+				if (gotUnhidden) {
+					currentBattleModel.setGotUnhidden();
 				}
-				if (theTarget.isPacifiedBy(activeCharacter)) {
-					// Luring a pacified monster or native will break the spell
-					SpellWrapper spell = theTarget.getPacificationSpell(activeCharacter);
-					if (spell!=null) { // Might be null if Giants are pacified by the Pretty Rock
-						spell.expireSpell();
-						broadcastMessage(spell.getName()+" was broken!");
-						JOptionPane.showMessageDialog(this,spell.getName()+" was broken!");
+				handleNativeReaction(theTarget);
+				handleHoundReaction(theTarget);
+				
+				targetsSelected = true;
+				if (attacker.isCharacter() && attacker.get2ndTarget() == null) {
+					CharacterChitComponent character = (CharacterChitComponent) attacker;
+					if (character.getActiveWeaponsObjects().size() > 1) {
+						targetsSelected = false;
 					}
 				}
-				if (theTarget.ownedBy(activeParticipant)) {
-					BattleUtility.processTreachery(activeCharacter,theTarget);
-				}
+				
 				changes = true;
 				updateControls();
 				repaintAll();
@@ -2056,19 +2584,65 @@ public class CombatFrame extends JFrame {
 		}
 		return null;
 	}
+	private String aimingForHorseOrRider(RealmComponent attacker, RealmComponent theTarget, String message) {
+		if (hostPrefs.hasPref(Constants.OPT_RIDING_HORSES)) {
+			if (theTarget.isHorse() || theTarget.isNativeHorse()) {
+				// Change target to native
+				theTarget = RealmComponent.getRealmComponent(theTarget.getGameObject().getHeldBy());
+				message = " (aiming for horse)";
+			}
+			else if (theTarget.getHorse()!=null) {
+				CombatWrapper combat = new CombatWrapper(theTarget.getGameObject());
+				combat.setTargetingRider(attacker.getGameObject());
+				message = " (aiming for rider)";
+			}
+		}
+		return message;
+	}
+	private void handleNativeReaction(RealmComponent theTarget) {
+		if (theTarget.isNative() && theTarget.getOwnerId()==null) {
+			// non-battling unhired natives will begin battling the character immediately if attacked
+			if (!activeCharacter.isBattling(theTarget.getGameObject())) {
+				activeCharacter.addBattlingNative(theTarget.getGameObject());
+			}
+			makeWatchfulNatives(theTarget,true);
+		}
+		if (theTarget.isPacifiedBy(activeCharacter)) {
+			// Luring a pacified monster or native will break the spell
+			SpellWrapper spell = theTarget.getPacificationSpell(activeCharacter);
+			if (spell!=null) { // Might be null if Giants are pacified by the Pretty Rock
+				spell.expireSpell();
+			broadcastMessage(spell.getName()+" was broken!");
+				JOptionPane.showMessageDialog(this,spell.getName()+" was broken!");
+			}
+		}
+		CombatWrapper theTargetCw = new CombatWrapper(theTarget.getGameObject());
+		if (theTargetCw.isPacified()) {
+			theTargetCw.removePacified();
+		}
+		if (theTarget.ownedBy(activeParticipant)) {
+			BattleUtility.processTreachery(activeCharacter,theTarget);
+		}
+	}
+	private static void handleHoundReaction(RealmComponent theTarget) {
+		if (theTarget.getGameObject().hasThisAttribute(Constants.HOUND)) {
+			RealmComponent owner = theTarget.getOwner();
+			if (owner!=null) {
+				(new CharacterWrapper(owner.getGameObject())).removeHireling(theTarget.getGameObject());
+			}
+			theTarget.clearOwner();
+		}
+	}
 	public void makeWatchfulNatives(RealmComponent theTarget,boolean makeTargetWatchful) {
 		// Check for watchful natives
 		if (hostPrefs.hasPref(Constants.TE_WATCHFUL_NATIVES)) {
 			if (theTarget.getOwner()!=null) return; // this doesn't apply to hirelings!!
 			String targetedGroup = theTarget.getGameObject().getThisAttribute("native");
-			/* Get all the unassigned natives of this group in the clearing, and
-			 * make them "watchful"
-			 */
+			/* Get all the unassigned natives of this group in the clearing, and make them "watchful" */
 			
 			BattleGroup group = currentBattleModel.getDenizenBattleGroup();
 			if (group!=null) {
-				for (Iterator i=group.getBattleParticipants().iterator();i.hasNext();) {
-					RealmComponent member = (RealmComponent)i.next();
+				for (RealmComponent member : group.getBattleParticipants()) {
 					if (makeTargetWatchful || !member.equals(theTarget)) {
 						String groupName = member.getGameObject().getThisAttribute("native");
 						if (member.isNative() && groupName.equals(targetedGroup)) {
@@ -2086,23 +2660,21 @@ public class CombatFrame extends JFrame {
 			BattleGroup group = currentBattleModel.getDenizenBattleGroup();
 			if (group!=null) {
 				// Determine available hirelings
-				ArrayList availableHirelings = new ArrayList();
-				ArrayList hirelings = getHirelings();
-				for (Iterator n=hirelings.iterator();n.hasNext();) {
-					RealmComponent rc = (RealmComponent)n.next();
+				ArrayList<RealmComponent> availableHirelings = new ArrayList<RealmComponent>();
+				ArrayList<RealmComponent> hirelings = getHirelings();
+				for (RealmComponent rc : hirelings) {
 					if (!rc.isHidden()) {
 						availableHirelings.add(rc);
 					}
 				}
 				
 				// Cycle through denizens, and assign watchful natives if necessary
-				for (Iterator i=group.getBattleParticipants().iterator();i.hasNext();) {
-					RealmComponent rc = (RealmComponent)i.next();
+				for (RealmComponent rc : group.getBattleParticipants()) {
 					if (!rc.isNative()) continue;
 					NativeChitComponent member = (NativeChitComponent)rc;
 					if (!activeCharacter.isBattling(member.getGameObject())) continue; // watchful natives only attack those they are battling
 					CombatWrapper combat = new CombatWrapper(member.getGameObject());
-					if (!combat.isPeaceful() && combat.isWatchful() && member.getTarget()==null && (!combat.isSheetOwner() || combat.getAttackerCount()==0)) { // unassigned and watchful
+					if (!combat.isPeaceful() && combat.isWatchful() && member.getTarget()==null && member.get2ndTarget()==null && (!combat.isSheetOwner() || combat.getAttackerCount()==0)) { // unassigned and watchful
 						/*
 						 * Okay, now we have a watchful native, which means one of his/her group was attacked
 						 * AFTER the assignment round by the activeCharacter or minion.  What should happen is:
@@ -2126,13 +2698,13 @@ public class CombatFrame extends JFrame {
 								// character's choice...
 								if (availableHirelings.size()==1) {
 									// The choice is obvious
-									target = (RealmComponent)availableHirelings.get(0);
+									target = availableHirelings.get(0);
 								}
 								else {
 									// FIXME Active character decides how to distribute the watchfuls ... somehow
 									// For now, just assign them randomly...
 									int r = RandomNumber.getRandom(availableHirelings.size());
-									target = (RealmComponent)availableHirelings.get(r);
+									target = availableHirelings.get(r);
 								}
 							} // else nothing!
 							if (target!=null) {
@@ -2149,100 +2721,92 @@ public class CombatFrame extends JFrame {
 			}
 		}
 	}
-//	/**
-//	 * This method moves the specified target to its own sheet, and deals with the old sheet, if necessary.
-//	 */
-//	protected void moveTargetToNewSheet(RealmComponent deployTarget,boolean keepTarget) {
-//		// Move the target to its own sheet (if necessary), and handle old sheet if needed
-//		CombatWrapper combat = new CombatWrapper(deployTarget.getGameObject());
-//		RealmComponent deployTargetsTarget = deployTarget.getTarget();
-//		if (!combat.isSheetOwner()) {
-//			combat.setSheetOwner(true); // well it is NOW!
-//			
-//			if (deployTargetsTarget!=null && !deployTargetsTarget.isCharacter()) {
-//				ArrayList attackers = currentBattleModel.getAttackersFor(deployTargetsTarget,true,false);
-//				if (attackers.size()==1) { // deployTarget IS the last attacker
-//					CombatWrapper dttc = new CombatWrapper(deployTargetsTarget.getGameObject());
-//					
-//					// Move off the sheet...
-//					dttc.setSheetOwner(false);
-//					
-//					// ... and onto the new one as the last attacker
-//					deployTargetsTarget.setTarget(deployTarget);
-//				}
-//			}
-//		}
-//		if (keepTarget) {
-//			// I think the ONLY time this can happen, is when 2 T monsters hit the native... Can THAT happen?
-//			if (deployTargetsTarget!=null && !deployTargetsTarget.isCharacter()) {
-//				// If the deployTarget is keeping his target (RED-side monster), then the deployTargetsTarget should
-//				// move off the sheet anyway, dragging its attackers with it
-//				CombatWrapper dttc = new CombatWrapper(deployTargetsTarget.getGameObject());
-//				dttc.setSheetOwner(false);
-//			}
-//		}
-//		else {
-//			// Clear the target
-//			deployTarget.clearTarget();
-//		}
-//	}
-	public static void makeTarget(JFrame parent,HostPrefWrapper hostPrefs,RealmComponent theAttacker,RealmComponent theTarget,GameWrapper theGame) {
+	public static boolean makeTarget(JFrame parent,HostPrefWrapper hostPrefs,RealmComponent theAttacker,RealmComponent theTarget) {
+		boolean setGotUnhidden = false;
 		// A hidden attacker becomes unhidden on targeting (AMBUSH rules will change how this works somewhat)
 		if (theAttacker.isHidden()) {
 			boolean hiddenStatus = false;
-			
 			if (theAttacker.isCharacter() && parent!=null && hostPrefs!=null) {
 				CharacterChitComponent charChit = (CharacterChitComponent)theAttacker;
 				CharacterWrapper character = new CharacterWrapper(charChit.getGameObject());
-				if (charChit.isMissile() && hostPrefs.hasPref(Constants.ADV_AMBUSHES)) {
-					// You get an ambush roll to see if you stay hidden
-					ambushRoll = DieRollBuilder.getDieRollBuilder(parent,character).createHideRoller();
-					ambusher = theAttacker;
-					hiddenStatus = true; // postpone until hide roll is performed
+				if ((charChit.isMissile() && (hostPrefs.hasPref(Constants.ADV_AMBUSHES) || character.affectedByKey(Constants.SNEAKY))) && !character.affectedByKey(Constants.NO_AMBUSH)){
+					if (hostPrefs.hasPref(Constants.FE_AMBUSH_END_OF_COMBATROUND)) {
+						ambushRollAtEndOfCombatRound = true;
+						hiddenStatus = true;
+					}
+					else {
+						// You get an ambush roll to see if you stay hidden
+						ambushRoll = DieRollBuilder.getDieRollBuilder(parent,character).createHideRoller();
+						ambusher = theAttacker;
+						hiddenStatus = true; // postpone until hide roll is performed
+					}
 				}
 			}
 			if (!hiddenStatus) {
 				broadcastMessage(theAttacker.getGameObject().getName(),"Becomes unhidden.");
+			}
+			if (theAttacker.isHidden() && !hiddenStatus) {
+				setGotUnhidden = true;
 			}
 			theAttacker.setHidden(hiddenStatus);
 		}
 		
 		CombatWrapper combat = new CombatWrapper(theTarget.getGameObject());
 		combat.addAttacker(theAttacker.getGameObject());
+		
+		return setGotUnhidden;
 	}
 	public void replaceManeuver(int box) {
-		Collection list = getAvailableManeuverOptions(box,true,false);
+		CombatWrapper characterCombat = new CombatWrapper(activeCharacter.getGameObject());
+		if (!characterCombat.canUseCombatBoxDefense(box)) {
+			JOptionPane.showMessageDialog(this,"You cannot place a maneuver chit in this box.","Spider Web",JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		
+		Collection<RealmComponent> list = getAvailableManeuverOptions(box,true,false);
 		// Find out which maneuver is already placed, and change the box
-		for (Iterator i=list.iterator();i.hasNext();) {
-			RealmComponent maneuver = (RealmComponent)i.next();
+		for (RealmComponent maneuver : list) {
 			CombatWrapper combat = new CombatWrapper(maneuver.getGameObject());
-			if (combat.getCombatBox()>0) {
-				combat.setCombatBox(box);
+			if (combat.getCombatBoxDefense()>0) {
+				combat.setCombatBoxDefense(box);
 			}
 		}
+		changes = true;
 		updateSelection();
+	}
+	public void playManeuverOrParry(int box) {
+		String[] options = {"Maneuver","Parry","Cancel"};
+        int choice = JOptionPane.showOptionDialog(null, "Maneuver or Parry?", "Maneuver or Parry", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+        if (choice == 0) {
+        	playManeuver(box);
+        }
+        else if (choice == 1) {
+        	playParry(box);
+        }
 	}
 	public void playManeuver(int box) {
 		// First, clear out any chits already in play for maneuver
-		Collection c = activeCharacter.getActiveMoveChits();
+		Collection<RealmComponent> c = activeCharacter.getActiveMoveChitsAsRealmComponents();
 		c.addAll(activeCharacter.getFlyChits());
-		for (Iterator i=c.iterator();i.hasNext();) {
-			RealmComponent chit = (RealmComponent)i.next();
+		for (RealmComponent chit : c) {
 			CombatWrapper combat = new CombatWrapper(chit.getGameObject());
 			if (combat.getPlacedAsMove()) {
 				CombatWrapper.clearRoundCombatInfo(chit.getGameObject());
 			}
 		}
 		
-		Collection moveOptions = getAvailableManeuverOptions(box,!activeHasRedSideUpMonster());
+		Collection<RealmComponent> moveOptions = getAvailableManeuverOptions(box,!activeHasRedSideUpMonster());
 		
 		// Clear out all options already in play
-		for (Iterator i=moveOptions.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+		for (RealmComponent rc : moveOptions) {
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 			if (!rc.isActionChit() || combat.getPlacedAsMove()) {
-				CombatWrapper.clearRoundCombatInfo(rc.getGameObject());
+				if (combat.getHorseCannotManeuver()) {
+					CombatWrapper.clearRoundCombatInfo(rc.getGameObject());
+					combat.setHorseCannotManeuver(true);
+				} else {
+					CombatWrapper.clearRoundCombatInfo(rc.getGameObject());
+				}
 			}
 		}
 		
@@ -2252,21 +2816,21 @@ public class CombatFrame extends JFrame {
 			if (hostPrefs.hasPref(Constants.OPT_RIDING_HORSES)) {
 				BattleHorse horse  = activeCharacter.getActiveSteed();
 				if (horse!=null) {
-					ArrayList horseOnly = new ArrayList();
+					ArrayList<BattleHorse> horseOnly = new ArrayList<BattleHorse>();
 					horseOnly.add(horse);
 					RealmComponent chit = playManeuver(box,horseOnly);
 					if (chit==null) {
 						moveOptions.clear();
 					}
 					separateRider = true;
-					moveOptions.remove(horse);
+					moveOptions.remove((RealmComponent)horse);
 				}
 			}
 			
 			if (moveOptions.size()>0) {
 				RealmComponent chit = playManeuver(box,moveOptions);
 				if (chit!=null && separateRider) {
-					positionExtra(chit,0,false,false);
+					positionExtra(chit,0,0,false,false);
 				}
 			}
 			updateSelection();
@@ -2276,6 +2840,12 @@ public class CombatFrame extends JFrame {
 		}
 	}
 	private RealmComponent playManeuver(int box,Collection moveOptions) {
+		CombatWrapper characterCombat = new CombatWrapper(activeCharacter.getGameObject());
+		if (!characterCombat.canUseCombatBoxDefense(box)) {
+			JOptionPane.showMessageDialog(this,"You cannot place a maneuver chit in this box.","Spider Web",JOptionPane.ERROR_MESSAGE);
+			return null;
+		}
+		
 		RealmComponentOptionChooser chooser = MoveActivator.getChooserForMoveOptions(this,activeCharacter,moveOptions,true);
 		chooser.setVisible(true);
 		String selText = chooser.getSelectedText();
@@ -2290,29 +2860,215 @@ public class CombatFrame extends JFrame {
 				// Maneuvers are stored in character object in this rare case (transmorphed character)
 				combat = new CombatWrapper(activeCharacter.getGameObject());
 			}
-			combat.setCombatBox(box);
+			combat.setCombatBoxDefense(box);
 			combat.setPlacedAsMove(true);
 			return chit;
 		}
 		return null;
 	}
-	public void replaceAttack(int box) {
-		RealmComponent weapon = activeCharacter.getActiveWeapon();
+	public void playParry(int box) {
+		CombatWrapper charCombat = new CombatWrapper(activeCharacter.getGameObject());
+		if (!charCombat.canUseCombatBoxDefense(box)) {
+			JOptionPane.showMessageDialog(this,"Cannot place a parry in this combat box.","Spider Web",JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		
-		Collection fightOptions = getAvailableFightOptions(box,false);
-		
-		// Find out which piece is placed, and change the box
-		for (Iterator i=fightOptions.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
-			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
-			if (combat.getCombatBox()>0) {
-				combat.setCombatBox(box);
-				if (weapon!=null) {
-					combat = new CombatWrapper(weapon.getGameObject());
-					combat.setCombatBox(box);
+		ArrayList<WeaponChitComponent> weapons = activeCharacter.getActiveWeapons();
+		GameObject go = charCombat.getCastSpell();
+		SpellWrapper spell = go==null?null:new SpellWrapper(go);
+		boolean mageCastedSpell = false;
+		if (spell!=null) {
+			// Can't play a normal attack if a spell was cast this round!
+			mageCastedSpell = true;
+			if (activeCharacter.affectedByKey(Constants.BATTLE_MAGE) || hostPrefs.hasPref(Constants.SR_ADV_STEEL_AGAINST_MAGIC)) {
+				if (activeCharacter.hasOnlyStaffAsActivatedWeapon() && !activeCharacter.hasActiveArmorChits()) {
+					mageCastedSpell = false;
 				}
 			}
 		}
+		if (!charCombat.getPlayedAttack() && !charCombat.getPlayedBonusParry() && !charCombat.getPlayedSpell() ) {
+			// First, clear out any chits already in play for attack
+			for (CharacterActionChitComponent chit : activeCharacter.getActiveFightChits()) {
+				CombatWrapper combat = new CombatWrapper(chit.getGameObject());
+				if (combat.getPlacedAsFightOrParryOrParryShield()) {
+					CombatWrapper.clearRoundCombatInfo(chit.getGameObject());
+				}
+			}
+			// Clear out weapon, if any played
+			if (weapons != null) {
+				for (WeaponChitComponent weapon : weapons) {
+					weapon.getGameObject().removeAttributeBlock(CombatWrapper.COMBAT_BLOCK);
+				}
+			}
+			for (GameObject treasure : activeCharacter.getActiveTreasureWeaponObjects()) {
+				CombatWrapper combatTreasure = new CombatWrapper(treasure);
+				if (combatTreasure.getPlacedAsParry()) {
+					treasure.removeAttributeBlock(CombatWrapper.COMBAT_BLOCK);
+				}
+			}
+		}
+		
+		if (weapons == null || weapons.isEmpty()) {
+			boolean weaponAvailable = false;
+			for (WeaponChitComponent weapon : weapons) {
+				if (weapon.getGameObject().hasThisAttribute(Constants.NO_PARRY)) continue;
+				if (CombatWrapper.hasCombatInfo(weapon.getGameObject())) continue;
+				if (!weapon.isMissile() || activeCharacter.affectedByKey(Constants.PARRY_WITH_MISSILE) || hostPrefs.hasPref(Constants.PARRY_WITH_MISSILE)) {
+					weaponAvailable = true;
+					break;
+				}
+			}
+			if (!weaponAvailable) {
+				JOptionPane.showMessageDialog(this,"There are no weapons for parrying available to you.\n(Check your inventory!)","Cannot Parry",JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+		}
+		
+		Collection<RealmComponent> fightOptions = getAvailableFightOptions(box);
+		RealmComponent characterRc= RealmComponent.getRealmComponent(activeCharacter.getGameObject());
+		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Select Parry:",true);
+		int keyN = 0;
+		String key = "P"+(keyN);
+		if (!mageCastedSpell && weapons != null) {
+			for (RealmComponent chit : fightOptions) {
+				if (chit.getGameObject().hasThisAttribute(Constants.NO_PARRY)) continue;
+				CombatWrapper combat = new CombatWrapper(chit.getGameObject());
+				if(combat.getPlacedAsFightOrParryOrParryShield()) continue;
+				Strength chitStrength = null;
+				if (chit instanceof CharacterActionChitComponent) {
+					chitStrength = ((CharacterActionChitComponent) chit).getStrength();
+				} else if (chit.getGameObject().hasThisAttribute("gloves")) {
+					chitStrength = RealmUtility.getGlovesStrength(chit.getGameObject());
+				}
+				for (WeaponChitComponent weapon : weapons) {
+					if (weapon.getGameObject().hasThisAttribute(Constants.NO_PARRY)) continue;
+					if (CombatWrapper.hasCombatInfo(weapon.getGameObject())) continue;
+					if (weapon.isMissile() && !activeCharacter.affectedByKey(Constants.PARRY_WITH_MISSILE) && !hostPrefs.hasPref(Constants.PARRY_WITH_MISSILE)) continue;
+					if (chitStrength !=null && !chitStrength.strongerOrEqualTo(weapon.getWeight())) continue;
+					key = "P"+(keyN++);
+					chooser.addOption(key,"");
+					chooser.addRealmComponentToOption(key,chit);
+					chooser.addRealmComponentToOption(key,weapon);
+				}
+				for (GameObject treasure : activeCharacter.getActiveTreasureWeaponObjects()) {
+					if (treasure.hasThisAttribute(Constants.NO_PARRY)) continue;
+					if (CombatWrapper.hasCombatInfo(treasure)) continue;
+					if (TreasureUtility.isTreasureMissile(treasure) && !activeCharacter.affectedByKey(Constants.PARRY_WITH_MISSILE) && !hostPrefs.hasPref(Constants.PARRY_WITH_MISSILE)) continue;
+					if (chitStrength !=null && !chitStrength.strongerOrEqualTo(TreasureUtility.getWeightForTreasure(treasure))) continue;
+					key = "P"+(keyN++);
+					chooser.addOption(key,"");
+					chooser.addRealmComponentToOption(key,chit);
+					chooser.addRealmComponentToOption(key,RealmComponent.getRealmComponent(treasure));
+				}
+			}
+		}
+		chooser.addOption("Reset", "Reset");
+		chooser.setVisible(true);
+		if (chooser.getSelectedText() == "Reset") {
+			RealmComponent weaponCard = null;
+			for (GameObject item : activeCharacter.getActiveInventory()) {
+				if (item.hasThisAttribute("attack")) { // ONLY the Alchemist's Mixture has this, for now! - Now the Holy Hand Grenade
+					weaponCard = RealmComponent.getRealmComponent(item);
+				}
+			}
+			resetAttacks(charCombat,weapons,weaponCard,spell);
+		}
+		else if (chooser.getFirstSelectedComponent()!=null) {
+			RealmComponent chit = chooser.getFirstSelectedComponent();
+			RealmComponent weapon = chooser.getLastSelectedComponent();
+			CombatWrapper combatChit = new CombatWrapper(chit.getGameObject());
+			combatChit.setCombatBoxDefense(box);
+			combatChit.setPlacedAsParry(true);
+			combatChit.setSheetOwnerId(characterRc);
+			combatChit.setWeaponId(weapon);
+			CombatWrapper combatWeapon = new CombatWrapper(weapon.getGameObject());
+			combatWeapon.setCombatBoxDefense(box);
+			combatWeapon.setPlacedAsParry(true);
+			combatWeapon.setSheetOwnerId(characterRc);
+			charCombat.setPlayedAttack(true);
+		}
+		updateSelection();
+	}
+	public void replaceAttack(int box) {
+		CombatWrapper charCombat = new CombatWrapper(activeCharacter.getGameObject());
+		if (!charCombat.canUseCombatBoxAttack(box)) {
+			JOptionPane.showMessageDialog(this,"Cannot placd an attack in this combat box.","Spider Web",JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		
+		WeaponChitComponent weapon = activeCharacter.getActivePrimaryWeapon();
+		Collection<RealmComponent> fightOptions = getAvailableFightOptions(box,false);
+		
+		// Find out which piece is placed, and change the box
+		for (RealmComponent rc : fightOptions) {
+			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
+			if (combat.getCombatBoxAttack()>0) {
+				combat.setCombatBoxAttack(box);
+				if (weapon!=null) {
+					combat = new CombatWrapper(weapon.getGameObject());
+					combat.setCombatBoxAttack(box);
+				}
+			}
+		}
+		changes = true;
+		updateSelection();
+	}
+	public void replaceAttackOrParry(int box, RealmComponent sheetOwner) {
+		RealmComponent characterRc = RealmComponent.getRealmComponent(activeCharacter.getGameObject());
+		boolean replaceAttackPossible = activeCharacter.canReplaceFight(characterRc.getTarget()) || activeCharacter.canReplaceFight(characterRc.get2ndTarget());
+		boolean replaceParryPossible = activeCharacter.canReplaceParry(characterRc.getTarget(),box) || activeCharacter.canReplaceParry(characterRc.get2ndTarget(),box);;
+		if (replaceAttackPossible && !replaceParryPossible) {
+			replaceAttack(box);
+		}
+		if (!replaceAttackPossible && replaceParryPossible) {
+			replaceParry(box, sheetOwner);
+		}
+		if (replaceAttackPossible && replaceParryPossible) {
+			String[] options = {"Attack","Parry","Cancel"};
+	        int choice = JOptionPane.showOptionDialog(null, "Change Attack or Parry?", "Change Attack or Parry", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+	        if (choice == 0) {
+	        	replaceAttack(box);
+	        }
+	        else if (choice == 1) {
+	        	replaceParry(box, sheetOwner);
+	        }
+		}
+	}
+	public void replaceParry(int box, RealmComponent sheetOwner) {
+		CombatWrapper charCombat = new CombatWrapper(activeCharacter.getGameObject());
+		if (!charCombat.canUseCombatBoxDefense(box)) {
+			JOptionPane.showMessageDialog(this,"Cannot place a parry in this combat box.","Spider Web",JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		
+		Collection<CharacterActionChitComponent> fightChits = activeCharacter.getActiveFightChits();
+		for (CharacterActionChitComponent chit : fightChits) {
+			CombatWrapper combatChit = new CombatWrapper(chit.getGameObject());
+			if (combatChit.getCombatBoxDefense()!=box || !combatChit.getPlacedAsParry()) continue;
+			ArrayList<WeaponChitComponent> weapons = activeCharacter.getActiveWeapons();
+			if (weapons != null) {
+				for (WeaponChitComponent weapon : weapons) {
+					if (combatChit.getWeaponId().equals(weapon.getGameObject().getStringId())) {
+						CombatWrapper wCombat = new CombatWrapper(weapon.getGameObject());
+						if (wCombat.getCombatBoxDefense()==box && wCombat.getPlacedAsParry()) {
+							wCombat.setCombatBoxAttack(box);
+							wCombat.setCombatBoxDefense(0);
+							wCombat.setPlacedAsParry(false);
+							wCombat.setPlacedAsFight(true);
+							wCombat.setSheetOwnerId(sheetOwner);
+						}
+					}
+				}
+			}
+			combatChit.setCombatBoxAttack(box);
+			combatChit.setCombatBoxDefense(0);
+			combatChit.setPlacedAsParry(false);
+			combatChit.setPlacedAsFight(true);
+			combatChit.setSheetOwnerId(sheetOwner);
+			CombatWrapper combatChar = new CombatWrapper(activeCharacter.getGameObject());
+			combatChar.setPlayedAttack(true);
+		}
+		changes = true;
 		updateSelection();
 	}
 	public boolean canPlayAttack(int box) {
@@ -2322,126 +3078,362 @@ public class CombatFrame extends JFrame {
 		if (spell!=null) {
 			return spell.isAttackSpell();
 		}
-		Collection fightOptions = getAvailableFightOptions(box);
+		Collection<RealmComponent> fightOptions = getAvailableFightOptions(box);
 		return fightOptions.size()>0;
 	}
-	public void playAttack(int box) {
+	public void playAttack(int box, RealmComponent sheetOwner) {
 		CombatWrapper charCombat = new CombatWrapper(activeCharacter.getGameObject());
+		if (!charCombat.canUseCombatBoxAttack(box)) {
+			JOptionPane.showMessageDialog(this,"Cannot place an attack in this combat box.","Spider Web",JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		
 		GameObject go = charCombat.getCastSpell();
 		SpellWrapper spell = go==null?null:new SpellWrapper(go);
-		if (spell!=null) {
-			CombatWrapper.clearRoundCombatInfo(spell.getIncantationObject());
-			
+		boolean battleMage = false;
+		if (activeCharacter.affectedByKey(Constants.BATTLE_MAGE) || hostPrefs.hasPref(Constants.SR_ADV_STEEL_AGAINST_MAGIC)) {
+			if (activeCharacter.hasOnlyStaffAsActivatedWeapon() && !activeCharacter.hasActiveArmorChits()) {
+				battleMage = true;
+			}
+		}
+		
+		if (spell!=null && !charCombat.getPlayedSpell() && (battleMage || !charCombat.getPlayedAttack())) {
+			GameObject incantationObject = spell.getIncantationObject();
+			if (incantationObject != null) {
+				CombatWrapper.clearRoundCombatInfo(spell.getIncantationObject());
+			}
 			// Can't play a normal attack if a spell was cast this round!
 			
 			// If the spell is an attack spell, then place it now
 			if (spell.isAttackSpell()) {
-				GameObject incantationObject = spell.getIncantationObject();
 				CombatWrapper combat = new CombatWrapper(incantationObject);
-				combat.setCombatBox(box);
-				charCombat.setPlayedAttack(true);
+				combat.setCombatBoxAttack(box);
+				charCombat.setPlayedSpell(true);
 				updateSelection();
-			}
-			else {
-				JOptionPane.showMessageDialog(this,"There are no fight options available to you.","Cannot Attack",JOptionPane.ERROR_MESSAGE);
+				return;
 			}
 			
-			return;
-		}
-		
-		// First, clear out any chits already in play for attack
-		for (Iterator i=activeCharacter.getActiveFightChits().iterator();i.hasNext();) {
-			CharacterActionChitComponent chit = (CharacterActionChitComponent)i.next();
-			CombatWrapper combat = new CombatWrapper(chit.getGameObject());
-			if (combat.getPlacedAsFight()) {
-				CombatWrapper.clearRoundCombatInfo(chit.getGameObject());
+			if (!battleMage) {
+				JOptionPane.showMessageDialog(this,"There are no fight options available to you.","Cannot Attack",JOptionPane.ERROR_MESSAGE);
+				return;
 			}
 		}
 		
-		Collection fightOptions = getAvailableFightOptions(box);
-		
-		// Clear out any piece already in play for attack
-		for (Iterator i=fightOptions.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
-			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
-			if (!rc.isActionChit() || combat.getPlacedAsFight()) {
-				CombatWrapper.clearRoundCombatInfo(rc.getGameObject());
-			}
-		}
+		Collection<RealmComponent> fightOptions = getAvailableFightOptions(box);
 		RealmComponent weaponCard = null;
-		RealmComponent weapon = activeCharacter.getActiveWeapon();
-		if (weapon!=null) {
-			// Clear out weapon, if any played
-			CombatWrapper.clearRoundCombatInfo(weapon.getGameObject());
-		}
-		else {
-			// Check for Treasure Weapons (Alchemists Mixture)
-			for (Iterator n=activeCharacter.getActiveInventory().iterator();n.hasNext();) {
-				GameObject item = (GameObject)n.next();
-				if (item.hasThisAttribute("attack")) { // ONLY the Alchemists Mixture has this, for now! - Now the Holy Hand Grenade
+		ArrayList<WeaponChitComponent> weapons = activeCharacter.getActiveWeapons();
+		
+		// Check for Treasure Weapons (Alchemist's Mixture)
+		if (!activeCharacter.isTransmorphed()) {
+			for (GameObject item : activeCharacter.getActiveInventory()) {
+				if (item.hasThisAttribute("attack")) { // ONLY the Alchemist's Mixture has this, for now! - Now the Holy Hand Grenade
 					weaponCard = RealmComponent.getRealmComponent(item);
 				}
 			}
 		}
 		
-		if (fightOptions.size()>0) {
-			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Select Attack:",true);
-			int keyN = 0;
-			for (Iterator i=fightOptions.iterator();i.hasNext();) {
-				RealmComponent chit = (RealmComponent)i.next();
-				
-				// Normal Weapon
-				String key = "N"+(keyN++);
-				chooser.addOption(key,"");
-				chooser.addRealmComponentToOption(key,chit);
-				if (weapon!=null) {
-					chooser.addRealmComponentToOption(key,weapon);
-				}
-				else if (weaponCard!=null) {
-					chooser.addRealmComponentToOption(key,weaponCard);
-				}
-				
-			}
-			chooser.setVisible(true);
-			if (chooser.getSelectedText()!=null) {
-				charCombat.setPlayedAttack(true);
-				RealmComponent chit = chooser.getFirstSelectedComponent();
+		if (!charCombat.getPlayedAttack() && !charCombat.getPlayedBonusParry() && !charCombat.getPlayedSpell()) {
+			// First, clear out any chits already in play for attack
+			for (CharacterActionChitComponent chit : activeCharacter.getActiveFightChits()) {
 				CombatWrapper combat = new CombatWrapper(chit.getGameObject());
-				combat.setCombatBox(box);
-				combat.setPlacedAsFight(true);
+				if (combat.getPlacedAsFight()) {
+					CombatWrapper.clearRoundCombatInfo(chit.getGameObject());
+				}
+			}
+			// Clear out weapon, if any played
+			if (weapons != null) {
+				for (WeaponChitComponent weapon : weapons) {
+					weapon.getGameObject().removeAttributeBlock(CombatWrapper.COMBAT_BLOCK);
+				}
+			}
+			if (weaponCard != null) {
+				weaponCard.getGameObject().removeAttributeBlock(CombatWrapper.COMBAT_BLOCK);
+			}
+		}
+		
+		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Select Attack:",true);
+		int keyN = 0;
+		if (!charCombat.getPlayedSpell() || battleMage) {
+			for (RealmComponent chit : fightOptions) {
+				CombatWrapper combat = new CombatWrapper(chit.getGameObject());
+				if(combat.getPlacedAsFightOrParryOrParryShield()) continue;
 				
-				if (chit instanceof MonsterFightChitComponent) {
-					// Might need to place a monster part too!
-					MonsterChitComponent monster = (MonsterChitComponent)RealmComponent.getRealmComponent(chit.getGameObject());
-					MonsterPartChitComponent monsterWeapon = monster.getWeapon();
-					if (monsterWeapon!=null) {
-						if (monsterWeapon.isLightSideUp()) {
-							monsterWeapon.flip();
+				Strength chitStrength = null;
+				if (chit instanceof CharacterActionChitComponent) {
+					chitStrength = ((CharacterActionChitComponent) chit).getStrength();
+				} else if (chit.getGameObject().hasThisAttribute("gloves")) {
+					chitStrength = RealmUtility.getGlovesStrength(chit.getGameObject());
+				}
+				
+				if (weapons==null || weapons.isEmpty()) {
+					// Dagger
+					String key = "N"+(keyN++);
+					chooser.addOption(key,"");
+					chooser.addRealmComponentToOption(key,chit);
+				}
+				else {
+					for (WeaponChitComponent weapon : weapons) {
+						if (CombatWrapper.hasCombatInfo(weapon.getGameObject())) continue;
+						if (chitStrength !=null && !chitStrength.strongerOrEqualTo(weapon.getWeight())) continue;
+						String key = "N"+(keyN++);
+						chooser.addOption(key,"");
+						chooser.addRealmComponentToOption(key,chit);
+						chooser.addRealmComponentToOption(key,weapon);
+						if (weapon.isThrowable() && (hostPrefs.hasPref(Constants.OPT_THROWING_WEAPONS) || activeCharacter.affectedByKey(Constants.THROWING_WEAPONS))) {
+							key = "N"+(keyN++);
+							chooser.addOption(key,THROWING);
+							chooser.addRealmComponentToOption(key,chit);
+							chooser.addRealmComponentToOption(key,weapon);
 						}
-						positionExtra(monster,0,false,false);
 					}
 				}
-				
-				RealmComponent other = chooser.getLastSelectedComponent();
-				if (other!=null) {
-					combat = new CombatWrapper(other.getGameObject());
-					combat.setCombatBox(box);
+				if (weaponCard!=null) {
+					if (CombatWrapper.hasCombatInfo(weaponCard.getGameObject())) continue;
+					if (chitStrength !=null && !chitStrength.strongerOrEqualTo(TreasureUtility.getWeightForTreasure(weaponCard.getGameObject()))) continue;
+					String key = "N"+(keyN++);
+					chooser.addOption(key,"");
+					chooser.addRealmComponentToOption(key,chit);
+					chooser.addRealmComponentToOption(key,weaponCard);
+					if (weaponCard.getGameObject().hasThisAttribute(Constants.THROWABLE) && (hostPrefs.hasPref(Constants.OPT_THROWING_WEAPONS) || activeCharacter.affectedByKey(Constants.THROWING_WEAPONS))) {
+						key = "N"+(keyN++);
+						chooser.addOption(key,THROWING);
+						chooser.addRealmComponentToOption(key,chit);
+						chooser.addRealmComponentToOption(key,weaponCard);
+					}
 				}
 			}
-			else {
-				charCombat.setPlayedAttack(false);
+		}
+		
+		chooser.addOption("Reset", "Reset");
+		chooser.setVisible(true);
+		if (chooser.getSelectedText() == "Reset") {
+			resetAttacks(charCombat,weapons,weaponCard,spell);
+		}
+		else if (chooser.getSelectedText()!=null) {
+			charCombat.setPlayedAttack(true);
+			RealmComponent chit = chooser.getFirstSelectedComponent();
+			CombatWrapper combat = new CombatWrapper(chit.getGameObject());
+			combat.setCombatBoxAttack(box);
+			combat.setPlacedAsFight(true);
+			combat.setSheetOwnerId(sheetOwner);
+
+			if (chit instanceof MonsterFightChitComponent) {
+				// Might need to place a monster part too!
+				MonsterChitComponent monster = (MonsterChitComponent)RealmComponent.getRealmComponent(chit.getGameObject());
+				MonsterPartChitComponent monsterWeapon = monster.getWeapon();
+				if (monsterWeapon!=null) {
+					if (monsterWeapon.isLightSideUp()) {
+						monsterWeapon.flip();
+					}
+					positionExtra(monster,0,0,false,false);
+				}
 			}
-			updateSelection();
+			
+			RealmComponent weapon = chooser.getLastSelectedComponent();
+			if (weapon!=null) {
+				combat.setWeaponId(weapon);
+				CombatWrapper combatWeapon = new CombatWrapper(weapon.getGameObject());
+				combatWeapon.setCombatBoxAttack(box);
+				combatWeapon.setSheetOwnerId(sheetOwner);
+				if (chooser.getSelectedText().matches(THROWING)) {
+					combatWeapon.setThrown(true);
+				}
+			}
 		}
-		else {
-			JOptionPane.showMessageDialog(this,"There are no fight options available to you.","Cannot Attack",JOptionPane.ERROR_MESSAGE);
+		updateSelection();
+	}
+	public void playParryLikeShield(int box) {
+		CombatWrapper charCombat = new CombatWrapper(activeCharacter.getGameObject());
+		if (!charCombat.canUseCombatBoxDefense(box)) {
+			JOptionPane.showMessageDialog(this,"Cannot place a parry in this combat box.","Spider Web",JOptionPane.ERROR_MESSAGE);
+			return;
 		}
+		
+		GameObject go = charCombat.getCastSpell();
+		SpellWrapper spell = go==null?null:new SpellWrapper(go);
+		boolean mageCastedSpell = false;
+		if (spell!=null) {
+			// Can't play a normal attack if a spell was cast this round!
+			mageCastedSpell = true;
+			if (activeCharacter.affectedByKey(Constants.BATTLE_MAGE) || hostPrefs.hasPref(Constants.SR_ADV_STEEL_AGAINST_MAGIC)) {
+				if (activeCharacter.hasOnlyStaffAsActivatedWeapon() && !activeCharacter.hasActiveArmorChits()) {
+					mageCastedSpell = false;
+				}
+			}
+		}
+		
+		Collection<RealmComponent> fightOptions = getAvailableFightOptions(box);
+		ArrayList<WeaponChitComponent> weapons = activeCharacter.getActiveWeapons();		
+		if (!charCombat.getPlayedAttack() && !charCombat.getPlayedBonusParry() && !charCombat.getPlayedSpell()) {
+			// First, clear out any chits already in play for attack
+			for (CharacterActionChitComponent chit : activeCharacter.getActiveFightChits()) {
+				CombatWrapper combat = new CombatWrapper(chit.getGameObject());
+				if (combat.getPlacedAsFightOrParryOrParryShield()) {
+					CombatWrapper.clearRoundCombatInfo(chit.getGameObject());
+				}
+			}
+			// Clear out weapon, if any played
+			if (weapons != null) {
+				for (WeaponChitComponent weapon : weapons) {
+					weapon.getGameObject().removeAttributeBlock(CombatWrapper.COMBAT_BLOCK);
+				}
+			}
+			for (GameObject treasure : activeCharacter.getActiveTreasureWeaponObjects()) {
+				CombatWrapper combatTreasure = new CombatWrapper(treasure);
+				if (combatTreasure.getPlacedAsParryShield()) {
+					treasure.removeAttributeBlock(CombatWrapper.COMBAT_BLOCK);
+				}
+			}
+		}
+		
+		RealmComponent characterRc= RealmComponent.getRealmComponent(activeCharacter.getGameObject());
+		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Select Parry:",true);
+		int keyN = 0;
+		String key = "N"+(keyN);
+		
+		for (GameObject itemGo : activeCharacter.getActiveInventory()) {
+			if (itemGo.hasThisAttribute(Constants.NO_PARRY)) continue;
+			ArmorType armorType = TreasureUtility.getArmorType(itemGo);
+			RealmComponent item = RealmComponent.getRealmComponent(itemGo);
+			if (armorType!=ArmorType.None && armorType!=ArmorType.Special && armorType==ArmorType.Shield) {
+				key = "S"+(keyN++);
+				chooser.addOption(key,"");
+				chooser.addRealmComponentToOption(key,item);
+			}
+		}
+		for (RealmComponent chit : fightOptions) {
+			if (chit.getGameObject().hasThisAttribute(Constants.NO_PARRY)) continue;
+			CombatWrapper combat = new CombatWrapper(chit.getGameObject());
+			if(combat.getPlacedAsFightOrParryOrParryShield()) continue;
+			
+			if (!charCombat.getPlayedBonusParry() && activeCharacter.affectedByKey(Constants.BLOCK_NO_WEAPON)) {
+				key = "C"+(keyN++);
+				chooser.addOption(key,"");
+				chooser.addRealmComponentToOption(key,chit);
+			}
+			if (!mageCastedSpell && (hostPrefs.hasPref(Constants.OPT_PARRY_LIKE_SHIELD) || activeCharacter.affectedByKey(Constants.PARRY_LIKE_SHIELD))) {
+				for (WeaponChitComponent weapon : weapons) {
+					if (weapon.getGameObject().hasThisAttribute(Constants.NO_PARRY)) continue;
+					if (CombatWrapper.hasCombatInfo(weapon.getGameObject())) continue;
+					if (weapon.isMissile() && !activeCharacter.affectedByKey(Constants.PARRY_WITH_MISSILE) && !hostPrefs.hasPref(Constants.PARRY_WITH_MISSILE)) continue;
+					Strength chitStrength = null;
+					if (chit instanceof CharacterActionChitComponent) {
+						chitStrength = ((CharacterActionChitComponent) chit).getStrength();
+					} else if (chit.getGameObject().hasThisAttribute("gloves")) {
+						chitStrength = RealmUtility.getGlovesStrength(chit.getGameObject());
+					}
+					
+					if (chitStrength !=null && !chitStrength.strongerOrEqualTo(weapon.getWeight())) continue;
+					key = "W"+(keyN++);
+					chooser.addOption(key,"");
+					chooser.addRealmComponentToOption(key,chit);
+					chooser.addRealmComponentToOption(key,weapon);
+				}
+				for (GameObject treasure : activeCharacter.getActiveTreasureWeaponObjects()) {
+					if (treasure.hasThisAttribute(Constants.NO_PARRY)) continue;
+					if (CombatWrapper.hasCombatInfo(treasure)) continue;
+					if (TreasureUtility.isTreasureMissile(treasure) && !activeCharacter.affectedByKey(Constants.PARRY_WITH_MISSILE) && !hostPrefs.hasPref(Constants.PARRY_WITH_MISSILE)) continue;
+					Strength chitStrength = null;
+					if (chit instanceof CharacterActionChitComponent) {
+						chitStrength = ((CharacterActionChitComponent) chit).getStrength();
+					} else if (chit.getGameObject().hasThisAttribute("gloves")) {
+						chitStrength = RealmUtility.getGlovesStrength(chit.getGameObject());
+					}
+					
+					if (chitStrength !=null && !chitStrength.strongerOrEqualTo(TreasureUtility.getWeightForTreasure(treasure))) continue;
+					key = "W"+(keyN++);
+					chooser.addOption(key,"");
+					chooser.addRealmComponentToOption(key,chit);
+					chooser.addRealmComponentToOption(key,RealmComponent.getRealmComponent(treasure));
+				}
+			}
+		}
+		
+		chooser.setVisible(true);
+		if (chooser.getSelectedText()!=null) {
+			String selection = chooser.getSelectedOptionKey();
+						
+			String selFirst = selection.substring(0,1);
+			if ("W".equals(selFirst)) {
+				RealmComponent chit = chooser.getFirstSelectedComponent();
+				CombatWrapper combatChit = new CombatWrapper(chit.getGameObject());
+				combatChit.setCombatBoxDefense(box);
+				combatChit.setPlacedAsParryShield(true);
+				combatChit.setSheetOwnerId(characterRc);
+
+				RealmComponent weapon = chooser.getLastSelectedComponent();
+				if (weapon!=null) {
+					combatChit.setWeaponId(weapon);
+					CombatWrapper combatWeapon = new CombatWrapper(weapon.getGameObject());
+					combatWeapon.setCombatBoxDefense(box);
+					combatWeapon.setPlacedAsParryShield(true);
+					combatWeapon.setSheetOwnerId(characterRc);
+				}
+				charCombat.setPlayedAttack(true);
+			} else if ("C".equals(selFirst)) {
+				RealmComponent fightChit = chooser.getFirstSelectedComponent();
+				CombatWrapper combatFightChit = new CombatWrapper(fightChit.getGameObject());
+				combatFightChit.setCombatBoxDefense(box);
+				combatFightChit.setPlacedAsParryShield(true);
+				combatFightChit.setSheetOwnerId(characterRc);
+				charCombat.setPlayedBonusParry(true);
+			} else {
+				RealmComponent shield = chooser.getFirstSelectedComponent();
+				CombatWrapper combat = new CombatWrapper(shield.getGameObject());
+				combat.setCombatBoxDefense(box);
+			}
+
+		}
+		updateSelection();
+	}
+	private void resetAttacks(CombatWrapper charCombat, ArrayList<WeaponChitComponent> weapons, RealmComponent weaponCard, SpellWrapper spell) {
+		// First, clear out any chits already in play for attack
+		for (CharacterActionChitComponent chit : activeCharacter.getActiveFightChits()) {
+			CombatWrapper combat = new CombatWrapper(chit.getGameObject());
+			if (combat.getPlacedAsFightOrParryOrParryShield()) {
+				CombatWrapper.clearRoundCombatInfo(chit.getGameObject());
+			}
+		}
+		// Clear out weapon, if any played
+		if (weapons != null) {
+			for (WeaponChitComponent weapon : weapons) {
+				weapon.getGameObject().removeAttributeBlock(CombatWrapper.COMBAT_BLOCK);
+			}
+		}
+		if (weaponCard != null) {
+			weaponCard.getGameObject().removeAttributeBlock(CombatWrapper.COMBAT_BLOCK);
+		}
+		for (GameObject item : activeCharacter.getActiveInventory()) {
+			if (item.hasThisAttribute("gloves")) {
+				item.removeAttributeBlock(CombatWrapper.COMBAT_BLOCK);
+			}
+		}
+
+		GameObject transmorph = activeCharacter.getTransmorph();
+		if (transmorph != null) {
+			RealmComponent rc = RealmComponent.getRealmComponent(transmorph);
+			if (rc.isMonster()) {
+				MonsterChitComponent monster = (MonsterChitComponent) rc;
+				monster.getFightChit().getGameObject().removeAttributeBlock(CombatWrapper.COMBAT_BLOCK);
+			}
+		}
+
+		if (spell != null) {
+			GameObject incantationObject = spell.getIncantationObject();
+			if (incantationObject != null) {
+				CombatWrapper.clearRoundCombatInfo(spell.getIncantationObject());
+			}
+		}
+
+		charCombat.setPlayedAttack(false);
+		charCombat.setPlayedBonusParry(false);
+		charCombat.setPlayedSpell(false);
 	}
 	public static final String[] BOX_NAME = {"Thrust/Charge","Swing/Dodge","Smash/Duck"};
-	public void positionTarget(int box,ArrayList targets,boolean includeFlipside,boolean horseSameBox) {
+	public void positionTarget(int boxA, int boxD,ArrayList<RealmComponent> targets,boolean includeFlipside,boolean horseSameBox) {
 		RealmComponent target = null;
 		if (targets.size()==1) {
-			target = (RealmComponent)targets.iterator().next();
+			target = targets.iterator().next();
 		}
 		else {
 			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Select Target to Position",true);
@@ -2450,11 +3442,10 @@ public class CombatFrame extends JFrame {
 			chooser.setVisible(true);
 			if (chooser.getSelectedText()!=null) {
 				if ("ALL".equals(chooser.getSelectedText())) {
-					for (Iterator i=targets.iterator();i.hasNext();) {
-						RealmComponent rc = (RealmComponent)i.next();
-						ArrayList targs = new ArrayList();
+					for (RealmComponent rc : targets) {
+						ArrayList<RealmComponent> targs = new ArrayList<RealmComponent>();
 						targs.add(rc);
-						positionTarget(box,targs,includeFlipside,horseSameBox); // recursive
+						positionTarget(boxA,boxD,targs,includeFlipside,horseSameBox); // recursive
 					}
 					return;
 				}
@@ -2462,12 +3453,17 @@ public class CombatFrame extends JFrame {
 			}
 		}
 		if (target!=null) {
-			if (!positionExtra(target,box,true,horseSameBox)) {
+			if (!positionExtra(target,boxA,boxD,true,horseSameBox)) {
 				return;
 			}
 			
 			CombatWrapper combat = new CombatWrapper(target.getGameObject());
-			combat.setCombatBox(box);
+			if (!combat.canUseCombatBoxAttack(boxA) || !combat.canUseCombatBoxDefense(boxD)) {
+				JOptionPane.showMessageDialog(this,target.getGameObject().getName()+" cannot be placed in this combat box.","Spider Web",JOptionPane.WARNING_MESSAGE,target.getIcon());
+				return;
+			}
+			combat.setCombatBoxAttack(boxA);
+			combat.setCombatBoxDefense(boxD);
 			updateSelection();
 		}
 	}
@@ -2525,9 +3521,9 @@ public class CombatFrame extends JFrame {
 		}
 		return false;
 	}
-	public boolean positionExtra(RealmComponent target,int box,boolean allowCancel,boolean horseSameBox) {
+	public boolean positionExtra(RealmComponent target,int boxA,int boxD,boolean allowCancel,boolean horseSameBox) {
 		// allow current box, ONLY if target belongs to activeParticipant
-		boolean allowCurrentBox = box==0;
+		boolean allowCurrentBox = boxA==0&&boxD==0;
 		RealmComponent targetOwner = target.getOwner();
 		if (targetOwner!=null && targetOwner.getGameObject().equals(activeCharacter.getGameObject())) {
 			allowCurrentBox = true;
@@ -2538,6 +3534,13 @@ public class CombatFrame extends JFrame {
 		RealmComponent extra = null;
 		String extraName = null;
 		boolean includeCurrentBox = false;
+		
+		CombatWrapper combatTarget = new CombatWrapper(target.getGameObject());
+		if (!combatTarget.canUseCombatBoxAttack(boxA) || !combatTarget.canUseCombatBoxDefense(boxD)) {
+			JOptionPane.showMessageDialog(this,target.getGameObject().getName()+" cannot be placed in this combat box.","Spider Web",JOptionPane.WARNING_MESSAGE,target.getIcon());
+			return false;
+		}
+		
 		if (target.isMonster()) {
 			MonsterChitComponent monster = (MonsterChitComponent)target;
 			extra = monster.getWeapon();
@@ -2545,14 +3548,37 @@ public class CombatFrame extends JFrame {
 			if (monster.getOwnerId()!=null || monster.isAbsorbed()) { // Any type of hired or controlled monster should be able to flip its weapon anytime
 				includeFlipside = true;
 			}
+			
+			RealmComponent extra2 = (RealmComponent)target.getHorse();
+			if (!hostPrefs.hasPref(Constants.HOUSE3_HORSE_WEAPON_SAME_BOX)) {
+				includeCurrentBox = false;
+			}
+			else {
+				includeCurrentBox = true;
+			}
+			if (extra2!=null && (horseSameBox || extra!=null)) {
+				CombatWrapper combat = new CombatWrapper(extra2.getGameObject());
+				combat.setCombatBoxAttack(boxA);
+				combat.setCombatBoxDefense(boxD);
+			}
+			else if (extra2!=null && extra==null) {
+				extra = extra2;
+				extraName = "monster horse";
+			}
 		}
 		else if (target.isNative() || target.isTraveler()) {
 			extra = (RealmComponent)target.getHorse();
 			extraName = "native horse";
-			includeCurrentBox = true;
+			if (!hostPrefs.hasPref(Constants.HOUSE3_HORSE_WEAPON_SAME_BOX)) {
+				includeCurrentBox = false;
+			}
+			else {
+				includeCurrentBox = true;
+			}
 			if (extra!=null && horseSameBox) {
 				CombatWrapper combat = new CombatWrapper(extra.getGameObject());
-				combat.setCombatBox(box);
+				combat.setCombatBoxAttack(boxA);
+				combat.setCombatBoxDefense(boxD);
 				return true;
 			}
 		}
@@ -2568,7 +3594,7 @@ public class CombatFrame extends JFrame {
 			int boxConstraint = target.getGameObject().getThisInt("box_constraint");
 			for (int i=1;i<=3;i++) {
 				if (boxConstraint==0 || i==boxConstraint) {
-					if (includeCurrentBox || box!=i) {
+					if (includeCurrentBox || boxA!=i || boxD!=i) {
 						String key = "C"+(keyN++);
 						chooser.addOption(key,"Box "+i+" ("+BOX_NAME[i-1]+")");
 						chooser.addRealmComponentToOption(key,extra);
@@ -2589,7 +3615,12 @@ public class CombatFrame extends JFrame {
 							extra.flip();
 						}
 						CombatWrapper combat = new CombatWrapper(extra.getGameObject());
-						combat.setCombatBox(i+1);
+						if (!combat.canUseCombatBoxAttack(boxA) || !combat.canUseCombatBoxDefense(boxD)) {
+							JOptionPane.showMessageDialog(this,extra.getGameObject().getName()+" cannot be placed in this combat box.","Spider Web",JOptionPane.WARNING_MESSAGE,extra.getIcon());
+							return false;
+						}
+						combat.setCombatBoxAttack(i+1);
+						combat.setCombatBoxDefense(i+1);
 						break;
 					}
 				}
@@ -2601,13 +3632,12 @@ public class CombatFrame extends JFrame {
 		}
 		return true;
 	}
-	public void positionAttacker(ArrayList attackers,int box,boolean includeFlipSide,boolean horseSameBox) {
+	public void positionAttacker(ArrayList<RealmComponent> attackers,int boxA,int boxD,boolean includeFlipSide,boolean horseSameBox) {
 		// Native/Horse positioning
 		int count = 0;
 		RealmComponent lonePiece = null;
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Position which?",true);
-		for (Iterator i=attackers.iterator();i.hasNext();) {
-			RealmComponent attacker = (RealmComponent)i.next();
+		for (RealmComponent attacker : attackers) {
 			lonePiece = attacker;
 			String option = "n"+attacker.getGameObject().getStringId();
 			count++;
@@ -2631,22 +3661,28 @@ public class CombatFrame extends JFrame {
 			}
 		}
 		if (count==1) {
-			if (!positionExtra(lonePiece,box,true,horseSameBox)) {
+			if (!positionExtra(lonePiece,boxA,boxD,true,horseSameBox)) {
 				return;
 			}
 			
 			CombatWrapper combat = new CombatWrapper(lonePiece.getGameObject());
-			combat.setCombatBox(box);
+			if (!combat.canUseCombatBoxAttack(boxA) || !combat.canUseCombatBoxDefense(boxD)) {
+				JOptionPane.showMessageDialog(this,lonePiece.getGameObject().getName()+" cannot be placed in this combat box.","Spider Web",JOptionPane.WARNING_MESSAGE,lonePiece.getIcon());
+			}
+			else {
+				combat.setCombatBoxAttack(boxA);
+				combat.setCombatBoxDefense(boxD);
+			}
 		}
 		else {
 			chooser.setVisible(true);
 			String selKey = chooser.getSelectedOptionKey();
 			if (selKey!=null) {
 				RealmComponent rc = chooser.getFirstSelectedComponent();
-				if (rc.isChit()) { // TODO When the heck would it ever be anything BUT a chit?  It was a TreasureCardComponent once (see BUG #1374), but how?
+				if (rc.isChit()) {
 					ChitComponent chit = (ChitComponent)rc;
 	
-					if (!positionExtra(chit,box,true,horseSameBox)) {
+					if (!positionExtra(chit,boxA,boxD,true,horseSameBox)) {
 						return;
 					}
 					
@@ -2655,7 +3691,12 @@ public class CombatFrame extends JFrame {
 					}
 					
 					CombatWrapper combat = new CombatWrapper(chit.getGameObject());
-					combat.setCombatBox(box);
+					if (!combat.canUseCombatBoxAttack(boxA) || !combat.canUseCombatBoxDefense(boxD)) {
+						JOptionPane.showMessageDialog(this,chit.getGameObject().getName()+" cannot be placed in this combat box.","Spider Web",JOptionPane.WARNING_MESSAGE,chit.getIcon());
+					} else {
+						combat.setCombatBoxAttack(boxA);
+						combat.setCombatBoxDefense(boxD);
+					}
 				}
 			}
 		}
@@ -2664,10 +3705,9 @@ public class CombatFrame extends JFrame {
 		CombatFrame.broadcastMessage(activeCharacter.getGameObject().getName(),"Presses the END combat button.");
 		endButton.setEnabled(false);
 		nextButton.setEnabled(false);
-		ArrayList playersToRespond = new ArrayList();
-		Collection chars = currentBattleModel.getAllOwningCharacters();
-		for (Iterator i=chars.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+		ArrayList<String> playersToRespond = new ArrayList<String>();
+		Collection<RealmComponent> chars = currentBattleModel.getAllOwningCharacters();
+		for (RealmComponent rc : chars) {
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 			if (!combat.isLockNext()) {
 				CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
@@ -2689,8 +3729,7 @@ public class CombatFrame extends JFrame {
 			RealmDirectInfoHolder info = new RealmDirectInfoHolder(gameData,playerName);
 			info.setCommand(RealmDirectInfoHolder.QUERY_YN);
 			info.setString(endCombatFrame.getId()+":"+playerName+" wants to END combat.  Do you agree?");
-			for (Iterator i=playersToRespond.iterator();i.hasNext();) {
-				String charPlayerName = (String)i.next();
+			for (String charPlayerName : playersToRespond) {
 				GameClient.GetMostRecentClient().sendInfoDirect(charPlayerName,info.getInfo());
 			}
 			
@@ -2714,10 +3753,7 @@ public class CombatFrame extends JFrame {
 	public void endCombatNow() {
 		endCombatFrame = null;
 		CombatFrame.broadcastMessage(activeCharacter.getGameObject().getName(),"Combat has ended.");
-		Collection chars = currentBattleModel.getAllOwningCharacters();
-		for (Iterator i=chars.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
-			
+		for (RealmComponent rc : currentBattleModel.getAllOwningCharacters()) {		
 			// Set every character in combat to skip combat, and to the next wait state
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 			combat.setSkipCombat(true);
@@ -2735,13 +3771,25 @@ public class CombatFrame extends JFrame {
 					"Trapped!",JOptionPane.PLAIN_MESSAGE,discoverToLeave.getFaceUpIcon());
 			return;
 		}
+		if (activeCharacter.hasMesmerizeEffect(Constants.DISTRACTED)) {
+			JOptionPane.showMessageDialog(
+					this,"You are distracted by a mesmerize spell and cannot RUN AWAY.",
+					"Distracted!",JOptionPane.PLAIN_MESSAGE,activeCharacter.getIcon());
+			return;
+		}
+		if (activeCharacter.isOffroadTravelLost()) {
+			JOptionPane.showMessageDialog(
+					this,"You are lost and cannot RUN AWAY. Travel offroad to find a way back.",
+					"Lost!",JOptionPane.PLAIN_MESSAGE,activeCharacter.getIcon());
+			return;
+		}
 		
 		MoveActivator activator = new MoveActivator(this);
 		MoveActionResult result = activator.playedValidMoveChit("Run Away","You cannot run away, because you do not have a fast enough move to play.\n(Check your inventory!)");
 		if (result!=MoveActionResult.NO_MOVE_POSSIBLE) {
 			TileLocation runToClearing = chooseClearingToRunTo(activator.isFly());
 			
-			if (result==MoveActionResult.SUCCESSFUL) {
+			if (result==MoveActionResult.SUCCESSFUL && (runToClearing!=null || activeCharacter.getGameObject().hasThisAttribute(BattleBuilder.CHARACTER_PRESENT))) {
 				activator.prepareFatigue();
 				// Set the character's location between clearings (or tiles)
 				doRun(runToClearing,activator.getFly(),activator.getAttackers(),activator.getSelectedMoveChit());
@@ -2766,13 +3814,12 @@ public class CombatFrame extends JFrame {
 		
 		// Pick a clearing to run to
 		if (runToClearingOptions.size()==1) {
-			runToClearing = (TileLocation)runToClearingOptions.iterator().next();
+			runToClearing = runToClearingOptions.get(0);
 		}
 		else {
 			CenteredMapView.getSingleton().setMarkClearingAlertText("Run towards which clearing?");
 			CenteredMapView.getSingleton().markAllClearings(false);
-			for (Iterator i=runToClearingOptions.iterator();i.hasNext();) {
-				TileLocation tl = (TileLocation)i.next();
+			for (TileLocation tl : runToClearingOptions) {
 				if (tl.isInClearing()) {
 					ClearingDetail clearing = tl.clearing;
 					clearing.setMarked(true);
@@ -2801,7 +3848,7 @@ public class CombatFrame extends JFrame {
 		
 		// First check the special condition that the character can walk the woods
 		boolean walkingWoods = false;
-		if (activeCharacter.canWalkWoods(from.tile)) {
+		if (activeCharacter.canWalkWoods(from.tile,from.clearing,null)) {
 			int ret = JOptionPane.showConfirmDialog(
 					this,
 					"Run into the woods?",
@@ -2815,28 +3862,27 @@ public class CombatFrame extends JFrame {
 		}
 		
 		// Determine if character moved here "today"
-		ArrayList moveHistory = activeCharacter.getMoveHistory();
+		ArrayList<String> moveHistory = activeCharacter.getMoveHistory();
 		if (moveHistory==null) { // this happens in the combat simulator
 			runToClearingOptions.add(null);
 		}
 		else if (isFly) {
 			TileLocation bl = from;
 			// Find all adjacent tiles
-			for (Iterator i=bl.tile.getAllAdjacentTiles().iterator();i.hasNext();) {
-				TileComponent atile = (TileComponent)i.next();
+			for (TileComponent atile : bl.tile.getAllAdjacentTiles()) {
 				TileLocation tl = new TileLocation(atile,true);
 				runToClearingOptions.add(tl);
 			}
 		}
 		else if (!walkingWoods) {
-			String lastMoveAction = (String)moveHistory.get(moveHistory.size()-1); // moveHistory should NEVER be empty
+			String lastMoveAction = moveHistory.get(moveHistory.size()-1); // moveHistory should NEVER be empty
 			if (!CharacterWrapper.MOVE_HISTORY_DAY.equals(lastMoveAction)) { // If no moves today, then the lastMoveAction==MOVE_HISTORY_DAY
 				// Now we need to determine from *where* by searching entire moveHistory backwards
 				// Since partway moves are recorded here, we simply need to find the next move back
 				// that is not a MOVE_HISTORY_DAY.  MOVE_HISTORY_JUMP should stop the search
 				String previousMoveAction = null;
 				for (int n = moveHistory.size() - 2 ; n >= 0 ; n --) {
-					String moveAction = (String)moveHistory.get(n);
+					String moveAction = moveHistory.get(n);
 					if (CharacterWrapper.MOVE_HISTORY_JUMP.equals(moveAction)) {
 						break;
 					}
@@ -2873,7 +3919,7 @@ public class CombatFrame extends JFrame {
 							runToClearingOptions.add(movedFrom);
 						}
 						else {
-							JOptionPane.showMessageDialog(this,"The path you took to get here is now an undiscovered path, and you cannot run.","Path Gone",JOptionPane.WARNING_MESSAGE);
+							JOptionPane.showMessageDialog(this,"The path you took to get here is now an undiscovered or thorned path, and you cannot run.","Path Gone",JOptionPane.WARNING_MESSAGE);
 							return null;
 						}
 					}
@@ -2886,8 +3932,7 @@ public class CombatFrame extends JFrame {
 		}
 		if (runToClearingOptions.isEmpty()) {
 			// what ARE the choices?
-			for (Iterator i=activeCharacter.findAvailableClearingMoves(true).iterator();i.hasNext();) {
-				ClearingDetail clearing = (ClearingDetail)i.next();
+			for (ClearingDetail clearing : activeCharacter.findAvailableClearingMoves(true)) {
 				TileLocation tl = new TileLocation(clearing);
 				runToClearingOptions.add(tl);
 			}
@@ -2897,13 +3942,12 @@ public class CombatFrame extends JFrame {
 	/**
 	 * Finishes the run activity after going through the choices
 	 */
-	private boolean doRun(TileLocation runToClearing,Fly fly,ArrayList attackers,RealmComponent moveChit) {
+	private boolean doRun(TileLocation runToClearing,Fly fly,ArrayList<RealmComponent> attackers,RealmComponent moveChit) {
 		// If ran away, then there are no attackers anymore.
-		for (Iterator i=attackers.iterator();i.hasNext();) {
-			RealmComponent attacker = (RealmComponent)i.next();
+		for (RealmComponent attacker : attackers) {
 			CombatWrapper combat = new CombatWrapper(attacker.getGameObject());
 			combat.setWatchful(false); // just in case they were watchful - shouldn't be anymore.
-			attacker.clearTarget();
+			attacker.clearTargets();
 		}
 		
 		// Be sure to abandon heavy stuff
@@ -2915,6 +3959,25 @@ public class CombatFrame extends JFrame {
 			}
 			for (GameObject item:toDrop) {
 				broadcastMessage(activeCharacter.getGameObject().getName(),item.getName()+" was left behind!");
+			}
+		}
+		
+		if (hostPrefs.hasPref(Constants.SR_ADV_GROUNDED_MISSIONS_AND_TASKS)) {
+			for (GameObject item:activeCharacter.getInventory()) {
+				if (RealmComponent.getRealmComponent(item).isGoldSpecial()) {
+					GoldSpecialChitComponent gs = (GoldSpecialChitComponent)RealmComponent.getRealmComponent(item);
+					if (gs.isMission() || gs.isTask()) {
+						gs.expireEffect(activeCharacter);
+						activeCharacter.addFailedGoldSpecial(gs);
+						TreasureUtility.doDrop(activeCharacter,item,combatListener,false);
+						
+						QuestRequirementParams qp = new QuestRequirementParams();
+						qp.actionName = item.getName();
+						qp.actionType = CharacterActionType.AbandonMissionCampaign;
+						qp.targetOfSearch = gs.getGameObject();
+						activeCharacter.testQuestRequirements(this,qp);
+					}
+				}
 			}
 		}
 		
@@ -2936,8 +3999,7 @@ public class CombatFrame extends JFrame {
 		
 		// All following hirelings need to remain behind
 		TileLocation battleLocation = getBattleModel().getBattleLocation();
-		for (Iterator i=activeCharacter.getFollowingHirelings().iterator();i.hasNext();) {
-			RealmComponent hireling = (RealmComponent)i.next();
+		for (RealmComponent hireling : activeCharacter.getFollowingHirelings()) {
 			battleLocation.clearing.add(hireling.getGameObject(),null);
 			if (hireling.getGameObject().hasThisAttribute(Constants.CAPTURE)) {
 				activeCharacter.removeHireling(hireling.getGameObject());
@@ -2948,17 +4010,26 @@ public class CombatFrame extends JFrame {
 		CombatWrapper.clearAllCombatInfo(activeCharacter.getGameObject());
 		
 		// Need to disengage any participants who are targeting the runner!
-		for (Iterator i=currentBattleModel.getAllBattleParticipants(true).iterator();i.hasNext();) {
-			RealmComponent bp = (RealmComponent)i.next();
+		for (RealmComponent bp : currentBattleModel.getAllBattleParticipants(true)) {
 			RealmComponent bpTarget = bp.getTarget();
 			if (bpTarget!=null && bpTarget.equals(activeParticipant)) {
 				bp.clearTarget();
 			}
+			RealmComponent bpTarget2 = bp.get2ndTarget();
+			if (bpTarget2!=null && bpTarget2.equals(activeParticipant)) {
+				bp.clear2ndTarget();
+			}
 		}
 		
 		// Also, disengage the runner
-		activeParticipant.clearTarget();
+		activeParticipant.clearTargets();
 //		activeCharacter.clearCombat(); // can't clear out combat status: messes up hirelings left behind
+		for (GameObject treasure : activeCharacter.getActivatedTreasureObjects()) {
+			if (treasure.hasThisAttribute(Constants.COMPANION_FROM_HOLD_RETURNS)
+			|| (treasure.hasThisAttribute(Constants.SUMMON_COMPANION) && !treasure.hasThisAttribute(Constants.POTION))) {
+				TreasureUtility.doDeactivate(this, activeCharacter, treasure, true);
+			}
+		}
 		
 		// Need to check battle model - if nobody is left in the clearing to fight, things should get reset
 		RealmBattle.testCombatInClearing(currentBattleModel.getBattleLocation(),gameData);
@@ -2972,39 +4043,54 @@ public class CombatFrame extends JFrame {
 	}
 	public void alert() {
 		// Verify that the character has an active weapon or berserk chit to alert
-		WeaponChitComponent weapon = activeCharacter.getActiveWeapon();
+		WeaponChitComponent weaponPrimary = activeCharacter.getActivePrimaryWeapon();
+		ArrayList<WeaponChitComponent> weapons = null;
+		if (activeCharacter.affectedByKey(Constants.DUAL_WIELDING_ALERT)) {
+			weapons = activeCharacter.getActiveWeapons();
+		}
 		
 		// Find fastest attacker move speed on your sheet
 		MoveActivator activator = new MoveActivator(this);
 		Speed fastest = activator.getFastestAttackerMoveSpeed();
 		
 		// Find all playable options
-		Collection fightAlertChits = activeCharacter.getActiveFightAlertChits(fastest);
-		if (weapon==null && fightAlertChits.isEmpty()) {
+		Collection<CharacterActionChitComponent> fightAlertChits = activeCharacter.getActiveFightAlertChits(fastest);
+		if (weaponPrimary==null && (weapons==null || weapons.isEmpty()) && fightAlertChits.isEmpty()) {
 			JOptionPane.showMessageDialog(this,"You have nothing to Alert or Unalert.","Alert/Berserk",JOptionPane.INFORMATION_MESSAGE);
 			return;
 		}
-		Collection fightSpeedOptions = activeCharacter.getFightSpeedOptions(fastest,true);
-		Collection availableFightOptions = getAvailableFightOptions(0);
+		Collection<RealmComponent> fightSpeedOptions = activeCharacter.getFightSpeedOptions(fastest,true);
+		Collection<CharacterActionChitComponent> reflexChits = activeCharacter.getActiveReflexChits(fastest);
+		Collection<RealmComponent> availableFightOptions = getAvailableFightOptions(0);
 		fightSpeedOptions.retainAll(availableFightOptions); // Intersection between the two
+		fightSpeedOptions.addAll(reflexChits);
 		if (fightSpeedOptions.size()>0 || fightAlertChits.size()>0) {
 			// Choose one
 			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Select an option:",true);
 			int keyN = 0;
 			// Weapon alert options
-			if (weapon!=null) {
-				String string = weapon.isAlerted()?"Unalert":"Alert";
-				for (Iterator i=fightSpeedOptions.iterator();i.hasNext();) {
-					RealmComponent rc = (RealmComponent)i.next();
+			if (weapons != null) {
+				for (WeaponChitComponent weapon : weapons) {
+					String string = weapon.isAlerted()?"Unalert":"Alert";
+					for (RealmComponent rc : fightSpeedOptions) {
+						String key = "C"+(keyN++);
+						chooser.addOption(key,string);
+						chooser.addRealmComponentToOption(key,rc);
+						chooser.addRealmComponentToOption(key,weapon);
+					}
+				}
+			}
+			else if (weaponPrimary!=null) {
+				String string = weaponPrimary.isAlerted()?"Unalert":"Alert";
+				for (RealmComponent rc : fightSpeedOptions) {
 					String key = "C"+(keyN++);
 					chooser.addOption(key,string);
 					chooser.addRealmComponentToOption(key,rc);
-					chooser.addRealmComponentToOption(key,weapon);
+					chooser.addRealmComponentToOption(key,weaponPrimary);
 				}
 			}
 			// Chit alert options (BERSERK)
-			for (Iterator i=fightAlertChits.iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
+			for (RealmComponent rc : fightAlertChits) {
 				String key = "C"+(keyN++);
 				chooser.addOption(key,StringUtilities.capitalize(rc.getGameObject().getThisAttribute("action")));
 				chooser.addRealmComponentToOption(key,rc);
@@ -3016,11 +4102,18 @@ public class CombatFrame extends JFrame {
 				CombatWrapper combat = new CombatWrapper(activeCharacter.getGameObject());
 				combat.addUsedChit(fightToPlay.getGameObject());
 				
-				if (weapon!=null && chooser.getSelectedComponents().size()==2) {
+				if (weapons!=null && chooser.getSelectedComponents().size()==2) {
 					// Alert or unalert the weapon
-					weapon.setAlerted(!weapon.isAlerted());
-					String word = weapon.isAlerted()?"Alerts":"Unalerts";
-					broadcastMessage(activeCharacter.getGameObject().getName(),word+" the "+weapon.getGameObject().getName());
+					WeaponChitComponent selectedWeapon = (WeaponChitComponent) chooser.getLastSelectedComponent();
+					selectedWeapon.setAlerted(!selectedWeapon.isAlerted());
+					String word = selectedWeapon.isAlerted()?"Alerts":"Unalerts";
+					broadcastMessage(activeCharacter.getGameObject().getName(),word+" the "+selectedWeapon.getGameObject().getName());
+				}
+				else if (weaponPrimary!=null && chooser.getSelectedComponents().size()==2) {
+					// Alert or unalert the weapon
+					weaponPrimary.setAlerted(!weaponPrimary.isAlerted());
+					String word = weaponPrimary.isAlerted()?"Alerts":"Unalerts";
+					broadcastMessage(activeCharacter.getGameObject().getName(),word+" the "+weaponPrimary.getGameObject().getName());
 				}
 				else {
 					// Kinda HAS to be the BERSERK chit here, because nothing else applies!
@@ -3042,17 +4135,16 @@ public class CombatFrame extends JFrame {
 		}
 	}
 	public void castSpell() {
-		Collection castableSpellSets = activeCharacter.getCastableSpellSets();
+		Collection<SpellSet> castableSpellSets = activeCharacter.getCastableSpellSets();
 		if (castableSpellSets.size()>0) {
 			// Find fastest attacker move speed
 			MoveActivator activator = new MoveActivator(this);
 			Speed fastest = activator.getFastestAttackerMoveSpeed();
 			
 			// create a hash list of spells (filtering on speed)
-			Hashtable spellHash = new Hashtable();
-			HashLists spellSetHashlists = new HashLists();
-			for (Iterator i=castableSpellSets.iterator();i.hasNext();) {
-				SpellSet set = (SpellSet)i.next(); // by definition, the set is castable, but we need to test the speed
+			Hashtable<String, GameObject> spellHash = new Hashtable<String, GameObject>();
+			HashLists<String, SpellSet> spellSetHashlists = new HashLists<String, SpellSet>();
+			for (SpellSet set : castableSpellSets) { // by definition, the set is castable, but we need to test the speed
 				// Speed must be equal to or faster than all move speeds on sheet
 				set.filterSpeed(fastest);
 				if (set.canBeCast()) {
@@ -3068,16 +4160,13 @@ public class CombatFrame extends JFrame {
 				chooser.setVisible(true);
 				if (chooser.getSelectedText()!=null) {
 					SpellWrapper spell = new SpellWrapper(chooser.getFirstSelectedComponent().getGameObject());
-					ArrayList list = spellSetHashlists.getList(spell.getGameObject().getName());
+					ArrayList<SpellSet> list = spellSetHashlists.getList(spell.getGameObject().getName());
 					chooser = new RealmComponentOptionChooser(this,"Choose Casting Options for "+spell.getName()+":",true);
 					// Then choose a set
-					Hashtable setHash = new Hashtable();
+					Hashtable<String, SpellSet> setHash = new Hashtable<String, SpellSet>();
 					int keyN = 0;
-					for (Iterator i=list.iterator();i.hasNext();) {
-						SpellSet set = (SpellSet)i.next(); // by definition, the set is castable
-						
-						for (Iterator t=set.getValidTypeObjects().iterator();t.hasNext();) {
-							GameObject type = (GameObject)t.next();
+					for (SpellSet set : list) { // by definition, the set is castable
+						for (GameObject type : set.getValidTypeObjects()) {
 							if (set.getInfiniteSource()!=null) {
 								// No need to pick a color chit
 								String key = "P"+(keyN++);
@@ -3085,7 +4174,7 @@ public class CombatFrame extends JFrame {
 								chooser.addRealmComponentToOption(key,RealmComponent.getRealmComponent(type));
 								setHash.put(key, set);
 							}
-							else {
+							if (set.getInfiniteSource()==null || set.getColorMagic()==null) {
 								// add options for every color chit (will this be too much??)
 								for (MagicChit chit:set.getValidColorChits()) {
 									String key = "P"+(keyN++);
@@ -3101,15 +4190,15 @@ public class CombatFrame extends JFrame {
 					if (chooser.getSelectedText()!=null) {
 						// Make sure we get the spell from the correct set!
 						String key = chooser.getSelectedOptionKey();
-						SpellSet set = (SpellSet)setHash.get(key);
+						SpellSet set = setHash.get(key);
 						spell = new SpellWrapper(set.getSpell());
 						
 						// CAST THE SPELL
 						CombatWrapper combat = new CombatWrapper(activeCharacter.getGameObject());
-						Collection c = chooser.getSelectedComponents();
-						Iterator i=c.iterator();
+						Collection<RealmComponent> c = chooser.getSelectedComponents();
+						Iterator<RealmComponent> i=c.iterator();
 						// Magic chits/treasure fatigue at the end of the spell, so tie it to spell here (both ways)
-						RealmComponent incantationComponent = (RealmComponent)i.next();
+						RealmComponent incantationComponent = i.next();
 						
 						if (!incantationComponent.isActionChit()) {
 							// If it's anything but an action chit, then tag it as having been used this evening
@@ -3145,9 +4234,14 @@ public class CombatFrame extends JFrame {
 						}
 						if (i.hasNext()) {
 							// Color chits fatigue when they are used (if any was used)
-							MagicChit colorChit =  (MagicChit)i.next();
+							MagicChit colorChit = (MagicChit)i.next();
 							colorChit.makeFatigued();
+							spell.addColorChit(colorChit);
 							RealmUtility.reportChitFatigue(activeCharacter,colorChit,"Fatigued color chit: ");
+						}
+						if (incantationObject.hasThisAttribute(Constants.MAGIC_CHANGE_BY_FREE_SPELL)) {
+							spell.setCaster(activeCharacter);
+							spell.getGameObject().setThisAttribute(Constants.FREED_SPELL);
 						}
 						combat.setCastSpell(spell.getGameObject());
 						changes = true;
@@ -3158,6 +4252,51 @@ public class CombatFrame extends JFrame {
 			else {
 				JOptionPane.showMessageDialog(this,"There are no spellcasting options available to you.","Cannot Cast Spell",JOptionPane.ERROR_MESSAGE);
 			}
+		}
+	}
+	private void setTeleportInstant() {
+		int ret = JOptionPane.showConfirmDialog(null,"You want to teleport instantly?","Teleport",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
+		if (ret==JOptionPane.YES_OPTION) {
+			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Select destination:",true);
+			TileLocation loc = activeCharacter.getCurrentLocation();
+			if(loc!=null && loc.clearing!=null) {
+				for (RealmComponent tl : loc.clearing.getTreasureLocations()) {
+					if (tl.getGameObject().hasThisAttribute(Constants.TELEPORT_TO_LOCATION)) {
+						String destination = tl.getGameObject().getThisAttribute(Constants.TELEPORT_TO_LOCATION);
+						if (destination!=null && activeCharacter.hasTreasureLocationDiscovery(tl.getGameObject().getNameWithNumber())) {
+							GameObject destinationGo = new GamePool(gameData.getGameObjects()).findFirst("name="+destination);
+							if (destinationGo!=null) {
+								RealmComponent rc = RealmComponent.getRealmComponent(destinationGo);
+								if (rc.isTreasureLocation() && ((TreasureLocationChitComponent)rc).isFaceUp()) {
+									chooser.addRealmComponent(tl, "Teleport to "+destination);
+								}
+							}
+						}
+					}
+				}
+			}
+			chooser.setVisible(true);
+			String selText = chooser.getSelectedText();
+			if (selText!=null) {
+				RealmComponent treasureLocation = chooser.getFirstSelectedComponent();
+				String destination = treasureLocation.getGameObject().getThisAttribute(Constants.TELEPORT_TO_LOCATION);
+				CombatWrapper combat = new CombatWrapper(activeCharacter.getGameObject());
+				combat.setInstantTeleport(destination);
+				SpellUtility.doTeleport(this, "Instant Teleport", activeCharacter, TeleportType.Location, 0, destination);
+				broadcastMessage(activeCharacter.getGameObject().getName(),"Will teleport to "+destination);
+				changes = true;
+				updateControls();
+			}
+		}
+	}
+	private void raiseDead() {
+		int ret = JOptionPane.showConfirmDialog(null,"You want to raise the Dead?","Raise the Dead",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
+		if (ret==JOptionPane.YES_OPTION) {
+			CombatWrapper characterCombat = new CombatWrapper(activeCharacter.getGameObject());
+			characterCombat.setRaiseTheDead();
+			broadcastMessage(activeCharacter.getGameObject().getName(),"Casts Raise the Dead");
+			nonaffectingChanges = true;
+			updateControls();
 		}
 	}
 	public void activateInactivate() {
@@ -3178,15 +4317,13 @@ public class CombatFrame extends JFrame {
 		
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Select an option below:",true);
 		int keyN = 0;
-		for (Iterator i=activeCharacter.getInactiveInventory(true).iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		for (GameObject go : activeCharacter.getInactiveInventory(true)) {
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			String key = "C"+(keyN++);
 			chooser.addOption(key,"Activate");
 			chooser.addRealmComponentToOption(key,rc);
 		}
-		for (Iterator i=activeCharacter.getActiveInventory().iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		for (GameObject go : activeCharacter.getActiveInventory()) {
 			Inventory inv = new Inventory(go);
 			if (inv.canDeactivate()) {
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
@@ -3201,15 +4338,23 @@ public class CombatFrame extends JFrame {
 			boolean activate = "Activate".equals(selText);
 			RealmComponent rcToActivate = activate?chooser.getFirstSelectedComponent():null;
 			RealmComponent rcToInactivate = activate?null:chooser.getFirstSelectedComponent();
+			if (hostPrefs.hasPref(Constants.SR_PHASE_CHIT_ACTIVATION) && rcToActivate!=null && rcToActivate.isPhaseChit()) {
+				TreasureUtility.doActivate(this,activeCharacter,rcToActivate.getGameObject(),combatListener,true);
+				nonaffectingChanges = true;
+				updateControls();
+				return;
+			}
 			chooser = new RealmComponentOptionChooser(this,"Select an option below:",true);
-			Collection c = activate?activeCharacter.getActiveInventory():activeCharacter.getInactiveInventory();
+			Collection<GameObject> c = activate?activeCharacter.getActiveInventory():activeCharacter.getInactiveInventory();
 			if (c.size()>0) {
-				for (Iterator i=c.iterator();i.hasNext();) {
-					GameObject go = (GameObject)i.next();
-					RealmComponent rc = RealmComponent.getRealmComponent(go);
-					String key = "C"+(keyN++);
-					chooser.addOption(key,activate?"Inactivate":"Activate");
-					chooser.addRealmComponentToOption(key,rc);
+				for (GameObject go : c) {
+					Inventory inv = new Inventory(go);
+					if (!activate||inv.canDeactivate()) {
+						RealmComponent rc = RealmComponent.getRealmComponent(go);
+						String key = "C"+(keyN++);
+						chooser.addOption(key,activate?"Inactivate":"Activate");
+						chooser.addRealmComponentToOption(key,rc);
+					}
 				}
 				chooser.addOption("nothing","Skip "+(activate?"Inactivate":"Activate"));
 				chooser.setVisible(true);
@@ -3230,6 +4375,11 @@ public class CombatFrame extends JFrame {
 				}
 			}
 			// do it!
+			if (rcToInactivate!=null && rcToInactivate.getGameObject().hasThisAttribute("color_source")) {
+				JOptionPane.showMessageDialog(this,"Cancelled action.  No inventory was activated/inactivated.","Activate/Inactivate Cancelled",JOptionPane.INFORMATION_MESSAGE);
+				broadcastMessage(activeCharacter.getGameObject().getName(),"Unable to deactivate the "+rcToInactivate.getGameObject().getName());
+				return;
+			}
 			if (rcToActivate!=null) {
 				broadcastMessage(activeCharacter.getGameObject().getName(),"Activates the "+rcToActivate.getGameObject().getName());
 				if (rcToActivate.getGameObject().hasThisAttribute(Constants.AUTO_FLEE)) {
@@ -3294,13 +4444,51 @@ public class CombatFrame extends JFrame {
 			}
 		}
 	}
+	private void hireNomad() {
+		TileLocation current = activeCharacter.getCurrentLocation();
+		
+		if (activeCharacter.getRoundedGold()<1) {
+			JOptionPane.showMessageDialog(this,"You do not have enough gold for paying a nomad!","Hire Nomad - not enough gold",JOptionPane.INFORMATION_MESSAGE,activeCharacter.getIcon());
+			return;
+		}
+		if (activeCharacter.hasCurse(Constants.ASHES)) {
+			JOptionPane.showMessageDialog(this,"You are cursed by the ASHES curse, and cannot pay a nomad.!","Hire Nomad - cursed by ASHES",JOptionPane.INFORMATION_MESSAGE,activeCharacter.getIcon());
+			return;
+		}		
+		
+		if (current.isInClearing()) {
+			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Choose an nomad to hire:",true);
+			ArrayList<RealmComponent> list = current.clearing.getClearingComponents(false);
+			for(RealmComponent item:list) {
+				if (item.isNomad()) {
+					chooser.addRealmComponent(item);
+				}
+			}
+			if (chooser.hasOptions()) {
+				chooser.setVisible(true);
+				String option = chooser.getSelectedText();
+				if (option!=null) {
+					RealmComponent rc = chooser.getFirstSelectedComponent();
+					
+					activeCharacter.addGold(-1);			
+					Loot.addItemToCharacter(this,combatListener,activeCharacter,rc.getGameObject(),hostPrefs);
+					broadcastMessage(activeCharacter.getGameObject().getName(),"Hires the "+rc.getGameObject().getName());
+					
+					changes = true;
+					updateControls();
+				}
+			}
+			else {
+				JOptionPane.showMessageDialog(this,"There are no nomads to hire!","Hire Nomad",JOptionPane.INFORMATION_MESSAGE,activeCharacter.getIcon());
+			}
+		}
+	}
 	public void abandonBelongings(boolean plainSight) {
 		String title = (plainSight?"Drop":"Abandon")+" Belongings";
 		RealmObjectChooser chooser = new RealmObjectChooser(title,gameData,false);
 		
-		ArrayList list = new ArrayList();
-		for (Iterator i=activeCharacter.getInventory().iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
+		for (GameObject go : activeCharacter.getInventory()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc.isItem()) { // not a boon or phase chit!
 				list.add(go);
@@ -3312,19 +4500,17 @@ public class CombatFrame extends JFrame {
 		
 		if (chooser.pressedOkay()) {
 			TileLocation current = activeCharacter.getCurrentLocation();
-			Collection toDrop = chooser.getChosenObjects();
-			for (Iterator i=toDrop.iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
-				
+			for (GameObject go : chooser.getChosenObjects()) {				
 				boolean dropOkay = true;
 				// Deactivate first (but only if activated!)
-				if (go.hasThisAttribute(Constants.ACTIVATED)) {
+				if (go.hasThisAttribute(Constants.ACTIVATED) && !go.hasThisAttribute("color_source")) {
 					dropOkay = TreasureUtility.doDeactivate(this,activeCharacter,go);
 				}
 				if (dropOkay) {
 					// Then drop
 					current.clearing.add(go,plainSight?activeCharacter:null);
 					broadcastMessage(activeCharacter.getGameObject().getName(),title+"s the "+go.getName());
+					RealmUtility.sortGameObjectsHold(current.tile.getGameObject(),false);
 				}
 			}
 			changes = true;
@@ -3335,6 +4521,89 @@ public class CombatFrame extends JFrame {
 			return;
 		}
 	}
+	public void steal() {
+		TileLocation loc = currentBattleModel.getBattleLocation();
+		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Select victim to steal from:",true);
+		boolean noVictims = true;
+		for (RealmComponent rc : loc.clearing.getClearingComponents()) {
+			if (rc.isHidden() && !activeCharacter.foundHiddenEnemy(rc.getGameObject())) continue;
+			if (rc.isCharacter() && (new CharacterWrapper(rc.getGameObject()).foundHiddenEnemy(activeCharacter.getGameObject()))) continue;
+			if (rc.isCharacter() || rc.isHiredLeader()) {
+				chooser.addRealmComponent(rc,rc.getGameObject().getName());
+				noVictims = false;
+			}
+		}
+		if (noVictims) {
+			JOptionPane.showMessageDialog(this,"No one to steal from.","Steal",JOptionPane.INFORMATION_MESSAGE,activeCharacter.getIcon());
+			return;
+		}
+		chooser.setVisible(true);
+		RealmComponent victim = chooser.getFirstSelectedComponent();
+		if (victim == null) {
+			return;
+		}
+		CombatWrapper characterCombat = new CombatWrapper(activeCharacter.getGameObject());
+		characterCombat.setHasStolen();
+		changes = true;
+		updateControls();
+		
+		RealmCalendar cal = RealmCalendar.getCalendar(gameData);
+		boolean canHide = !cal.isHideDisabled(activeCharacter.getCurrentMonth());
+		if (!canHide && hostPrefs.hasPref(Constants.HOUSE3_SNOW_HIDE_EXCLUDE_CAVES) && loc.isInClearing() && loc.clearing.isCave()) {
+			canHide = true;
+		}
+		GameObject noHideItem = ClearingUtility.getItemInClearingWithKey(loc,Constants.NO_HIDE);
+		if (noHideItem!=null) {
+			canHide = false;
+		}
+		
+		if (canHide = false || activeCharacter.affectedByKey(Constants.SQUEAK)) {
+			broadcastMessage(activeCharacter.getGameObject().getName(),"Steal: Cannot HIDE, steal fails");
+			return;
+		}
+		
+		DieRoller hideRoller = DieRollBuilder.getDieRollBuilder(this,activeCharacter).createHideRoller();
+		if (hideRoller.getHighDieResult() < 6) {
+			broadcastMessage(activeCharacter.getGameObject().getName(),"Steal: Hides successfully!");
+			JOptionPane.showMessageDialog(this,"You hide successfully.","Steal",JOptionPane.INFORMATION_MESSAGE,activeCharacter.getIcon());
+		}
+		else {
+			broadcastMessage(activeCharacter.getGameObject().getName(),"Steal: Does not hide successfully!");
+			JOptionPane.showMessageDialog(this,"You do not hide successfully.","Steal",JOptionPane.INFORMATION_MESSAGE,activeCharacter.getIcon());
+			return;
+		}
+		
+		ArrayList<GameObject> inventory = new CharacterWrapper(victim.getGameObject()).getInactiveInventory();
+		if (inventory.size() == 0) {
+			broadcastMessage(activeCharacter.getGameObject().getName(),"Steal: Nothing to steal from "+victim.getGameObject().getName());
+			JOptionPane.showMessageDialog(this,"Nothing to steal from "+victim.getGameObject().getName()+".","Steal",JOptionPane.INFORMATION_MESSAGE,activeCharacter.getIcon());
+			return;
+		}
+		RealmUtility.sortGameObjectsHold(victim.getGameObject(),false);
+		inventory = new CharacterWrapper(victim.getGameObject()).getInactiveInventory();
+		
+		DieRoller stealRoller = DieRollBuilder.getDieRollBuilder(this,activeCharacter).createRoller("stealing");
+		int lootRoll = stealRoller.getHighDieResult();
+		if (lootRoll>inventory.size()) {
+			broadcastMessage(activeCharacter.getGameObject().getName(),"Steal: Failed to steal from the inactive inventory.");
+			JOptionPane.showMessageDialog(this,"Failed to steal from the inactive inventory.","Steal",JOptionPane.INFORMATION_MESSAGE,activeCharacter.getIcon());
+		}
+		else {
+			GameObject loot = inventory.get(lootRoll-1);
+			broadcastMessage(activeCharacter.getGameObject().getName(),"Steal: Stealed from "+victim.getGameObject().getName());
+			JOptionPane.showMessageDialog(this,"You have stolen the "+loot.getName()+" from the "+victim.getGameObject().getName()+".","Steal",JOptionPane.INFORMATION_MESSAGE,activeCharacter.getIcon());
+			Loot.addItemToCharacter(this,null,activeCharacter,loot);
+			
+			// Check for Thieves Guild join requirement
+			GuildStore currentGuild = activeCharacter.getCurrentGuildStore(false);
+			if (activeCharacter.hasGuildJoinRequirement() && currentGuild!=null && currentGuild instanceof ThievesGuild) {
+				if (((ThievesGuild)currentGuild).validateRequirementAndJoin(activeCharacter, loot)) {
+					JOptionPane.showMessageDialog(this,ThievesGuild.JOIN_GUILD_TEXT,ThievesGuild.JOIN_GUILD_TITLE,JOptionPane.INFORMATION_MESSAGE);
+				}
+			}
+		}
+	}
+	
 	/**
 	 * @return Returns the activeParticipant.
 	 */
@@ -3344,9 +4613,9 @@ public class CombatFrame extends JFrame {
 	/**
 	 * @return Returns the hirelings for the active participant
 	 */
-	public ArrayList getHirelings() {
+	public ArrayList<RealmComponent> getHirelings() {
 		BattleGroup battleGroup = currentBattleModel.getBattleGroup(activeParticipant);
-		ArrayList hirelings = new ArrayList();
+		ArrayList<RealmComponent> hirelings = new ArrayList<RealmComponent>();
 		if (battleGroup!=null) {
 			hirelings.addAll(battleGroup.getHirelings());
 		}
@@ -3365,7 +4634,7 @@ public class CombatFrame extends JFrame {
 		ArrayList<CombatSheet> sheets = new ArrayList<CombatSheet>();
 		// Actually creates them
 		for (RealmComponent rc:allParticipants) {
-			sheets.add(CombatSheet.createCombatSheet(this,currentBattleModel,rc,interactiveFrame));
+			sheets.add(CombatSheet.createCombatSheet(this,currentBattleModel,rc,interactiveFrame, hostPrefs));
 		}
 		return sheets;
 	}
@@ -3382,30 +4651,59 @@ public class CombatFrame extends JFrame {
 		refreshParticipants();
 		repaint();
 	}
+	private synchronized static void doDeadByFatigue(JFrame parent,CharacterWrapper character) {
+		CombatWrapper combat = new CombatWrapper(character.getGameObject());
+		ArrayList<GameObject> list = combat.getHitByList();
+		GameObject lastKiller = list.get(list.size()-1);
+		combat.setKilledBy(lastKiller);
+		RealmComponent rc = RealmComponent.getRealmComponent(character.getGameObject());
+		JOptionPane.showMessageDialog(parent,character.getCharacterName()+" was wounded to death.","Wounded to Death",JOptionPane.INFORMATION_MESSAGE,rc.getIcon());
+	}
+	private synchronized static boolean doFatigueWeather(JFrame parent,CharacterWrapper character) {
+		if (character.getWeatherFatigue()>0) {
+			broadcastMessage(character.getGameObject().getName(),"Fatiguing "+character.getWeatherFatigue()+" asterisk"+(character.getWeatherFatigue()==1?"":"s")+".");
+			ChitFatigueManager fatiguer = new ChitFatigueManager(parent,character,character.getWeatherFatigue());
+			fatiguer.setVisible(true);
+			character.clearWeatherFatigue();
+			// Test for death
+			if (fatiguer.isDead()) {
+				return true;
+			}
+		}
+		return false;
+	}
 	private synchronized static void doFatigueWounds(JFrame parent,CharacterWrapper character) {
 		CombatWrapper combat = new CombatWrapper(character.getGameObject());
-		
+
+		// Read and immediately clear HEALING and NEW_WOUNDS before showing any dialogs.
+		//
+		// This method is synchronized, so concurrent callers queue up rather than being
+		// skipped. Without clearing first, a queued second caller (e.g. checkRunAway()
+		// followed by the static doDisplay() COMBAT_FATIGUE path, or two clients racing in
+		// multiplayer) would read the same non-zero values and re-show all the dialogs,
+		// causing the player to fill out fatigue/wound assignments multiple times for the
+		// same hit. Clearing on entry means the second caller sees zero for both and exits
+		// each dialog block immediately.
+		//
+		// weatherFatigue is already cleared inside doFatigueWeather() after its dialog,
+		// and effortUsed is derived fresh from chit state, so neither needs clearing here.
 		int healing = combat.getHealing(); // i.e., Drain Life
+		combat.clearHealing();
+		int newWounds = combat.getNewWounds();
+		combat.clearNewWounds();
+
 		if (healing>0) {
 			broadcastMessage(character.getGameObject().getName(),"Healing "+healing+" asterisk"+(healing==1?"":"s")+".");
 			ChitRestManager rester = new ChitRestManager(parent,character,healing);
 			rester.setVisible(true);
 		}
-		
-		int newWounds = combat.getNewWounds();
-		if (newWounds>0) {
-			broadcastMessage(character.getGameObject().getName(),"Wounding "+newWounds+" chit"+(newWounds==1?"":"s")+".");
-		}
 		Effort effortUsed = BattleUtility.getEffortUsed(character);
 		int free = character.getEffortFreeAsterisks();
 		int needToFatigue = effortUsed.getNeedToFatigue(free);
 		needToFatigue += runAwayFatigue;
-		if (needToFatigue>0) {
+		boolean dead = doFatigueWeather(parent,character);
+		if (!dead && needToFatigue>0) {
 			broadcastMessage(character.getGameObject().getName(),"Fatiguing "+needToFatigue+" asterisk"+(needToFatigue==1?"":"s")+".");
-		}
-		
-		boolean dead = false;
-		if (needToFatigue>0) {
 			int runFatigueUsed = runAwayFatigue==0?0:runAwayFatigue+character.getEffortFreeAsterisks();
 			ChitFatigueManager fatiguer = new ChitFatigueManager(parent,character,needToFatigue,effortUsed.getMoveAsterisks()+runFatigueUsed,effortUsed.getFightAsterisks(),0);
 			fatiguer.setVisible(true);
@@ -3415,6 +4713,7 @@ public class CombatFrame extends JFrame {
 			}
 		}
 		if (!dead && newWounds>0) {
+			broadcastMessage(character.getGameObject().getName(),"Wounding "+newWounds+" chit"+(newWounds==1?"":"s")+".");
 			ChitWoundManager wounder = new ChitWoundManager(parent,character,newWounds);
 			wounder.setVisible(true);
 			
@@ -3429,11 +4728,7 @@ public class CombatFrame extends JFrame {
 		}
 		
 		if (dead) {
-			ArrayList list = combat.getHitByList();
-			GameObject lastKiller = (GameObject)list.get(list.size()-1);
-			combat.setKilledBy(lastKiller);
-			RealmComponent rc = RealmComponent.getRealmComponent(character.getGameObject());
-			JOptionPane.showMessageDialog(parent,character.getCharacterName()+" was wounded to death.","Wounded to Death",JOptionPane.INFORMATION_MESSAGE,rc.getIcon());
+			doDeadByFatigue(parent,character);
 		}
 	}
 	/**
@@ -3461,7 +4756,7 @@ public class CombatFrame extends JFrame {
 		
 		interactiveFrame = interactive;
 		if (!interactiveFrame) {
-			CombatFrame frame = CombatFrame.getSingleton(parent,playerName,listener);
+			CombatFrame frame = CombatFrame.getSingleton(playerName,listener);
 			frame.updateFrame(data);
 			frame.updateControls();
 			frame.setVisible(true);
@@ -3473,7 +4768,7 @@ public class CombatFrame extends JFrame {
 		}
 		
 		// ALWAYS show the combat frame
-		CombatFrame frame = CombatFrame.getSingleton(parent,playerName,listener);
+		CombatFrame frame = CombatFrame.getSingleton(playerName,listener);
 		frame.updateFrame(data);
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
@@ -3482,12 +4777,12 @@ public class CombatFrame extends JFrame {
 			}
 		});
 		
-		HashLists lists = RealmBattle.currentCombatHashLists(data);
+		HashLists<Integer,CharacterWrapper> lists = RealmBattle.currentCombatHashLists(data);
 		Integer firstState = null;
 		if (lists!=null && !lists.isEmpty()) {
-			ArrayList states = new ArrayList(lists.keySet());
+			ArrayList<Integer> states = new ArrayList<Integer>(lists.keySet());
 			Collections.sort(states);
-			firstState = (Integer)states.iterator().next();
+			firstState = states.iterator().next();
 		}
 		else {
 			// This can happen when the character gets a "I wish I were elsewhere" result on the WISH table
@@ -3497,16 +4792,28 @@ public class CombatFrame extends JFrame {
 		}
 		if (firstState.intValue()==Constants.COMBAT_PREBATTLE) {
 			logger.finer("handling prebattle");
-			ArrayList list = lists.getList(firstState);
-			CharacterWrapper character = (CharacterWrapper)list.iterator().next();
-			processBattlingNatives(frame,character,data);
+			ArrayList<CharacterWrapper> list = lists.getList(firstState);
+			CharacterWrapper character = list.iterator().next();
+			CombatWrapper combatWrapper = new CombatWrapper(character.getGameObject());
+			if (!combatWrapper.hasCombatPreBattleDone()) {
+				combatWrapper.setCombatPreBattleDone();
+				processBattlingNatives(frame,character,data);
+			}
 			character.setCombatStatus(Constants.COMBAT_WAIT+Constants.COMBAT_LURE);
 			listener.actionPerformed(new ActionEvent(parent,0,"")); // does the submit in RealmSpeak
 		}
+		else if (firstState.intValue()==Constants.COMBAT_ASSIGN) {
+			ArrayList<CharacterWrapper> list = lists.getList(firstState);
+			CharacterWrapper character = list.iterator().next();
+			boolean dead = doFatigueWeather(frame,character);
+			if (dead) {
+				doDeadByFatigue(parent,character);
+			}
+		}
 		else if (firstState.intValue()==Constants.COMBAT_FATIGUE) {
 			logger.finer("handling fatigue/wounds");
-			ArrayList list = lists.getList(firstState);
-			CharacterWrapper character = (CharacterWrapper)list.iterator().next();
+			ArrayList<CharacterWrapper> list = lists.getList(firstState);
+			CharacterWrapper character = list.iterator().next();
 			doFatigueWounds(frame,character);
 			character.setCombatStatus(Constants.COMBAT_WAIT+Constants.COMBAT_DISENGAGE);
 			listener.actionPerformed(new ActionEvent(parent,0,"")); // does the submit in RealmSpeak
@@ -3516,17 +4823,16 @@ public class CombatFrame extends JFrame {
 	}
 	private static void processBattlingNatives(JFrame parent,CharacterWrapper character,GameData data) {
 		TileLocation current = RealmBattle.getCurrentCombatLocation(data);
-		HashLists unhiredNatives = RealmUtility.getUnhiredNatives(current.clearing.getClearingComponents());
+		HashLists<String, RealmComponent> unhiredNatives = RealmUtility.getUnhiredNatives(current.clearing.getClearingComponents());
 		if (unhiredNatives.size()>0) {
-			for (Iterator i=unhiredNatives.keySet().iterator();i.hasNext();) {
-				String groupName = (String)i.next();
+			for (String groupName : unhiredNatives.keySet()) {
 				String capGroupName = StringUtilities.capitalize(groupName);
-				ArrayList list = unhiredNatives.getList(groupName);
+				ArrayList<RealmComponent> list = unhiredNatives.getList(groupName);
 				
-				RealmComponent firstNative  = (RealmComponent)list.get(0);
+				RealmComponent firstNative  = list.get(0);
 				Meeting meeting = Meeting.createMeetingTable(parent,character,current,firstNative,null,null,RelationshipType.FRIENDLY);
 				
-				ArrayList rolls = new ArrayList();
+				ArrayList<RollerResult> rolls = new ArrayList<RollerResult>();
 				while(meeting!=null) {
 					
 					DieRoller roller = DieRollBuilder.getDieRollBuilder(parent,character).createRoller(meeting.getTableKey(),current);
@@ -3541,7 +4847,7 @@ public class CombatFrame extends JFrame {
 					if (meeting.isBlockBattle()) {
 						// Battling!  Add all rolls
 						for (int n=0;n<rolls.size();n++) {
-							RollerResult rr = (RollerResult)rolls.get(n);
+							RollerResult rr = rolls.get(n);
 							character.addBattlingNativeRoll(groupName,rr.getResult(),rr.getSubtitle());
 						}
 						
@@ -3570,7 +4876,7 @@ public class CombatFrame extends JFrame {
 			}
 		}
 	}
-	private static final String testPlayerName = "test";
+	private static final String testPlayerName = "Player";
 	private static final String LAST_SAVE_LOCATION = "lastSaveLocation";
 	public static void main(String[] args) {
 		closeableFrame = true;
@@ -3591,6 +4897,11 @@ public class CombatFrame extends JFrame {
 		if (gamePrefMan.canLoad()) {
 			gamePrefMan.loadPreferences();
 		}
+		GameObject.showNumbers = gamePrefMan.getBoolean("monsterNumbers",true);
+		ChitComponent.killedByOption = gamePrefMan.getBoolean("killedBy",true);
+		CardComponent.killedByOption = gamePrefMan.getBoolean("killedBy",true);
+		combatNextPhaseWarning = gamePrefMan.getBoolean("combatNextPhaseWarning",true);
+		autoPositioningAttackers = gamePrefMan.getBoolean("autoPositioningAttackers",false);
 		switch(gamePrefMan.getInt("chitDisplayStyle")) {
 			case RealmComponent.DISPLAY_STYLE_CLASSIC:
 				RealmComponent.displayStyle = RealmComponent.DISPLAY_STYLE_CLASSIC;
@@ -3601,8 +4912,27 @@ public class CombatFrame extends JFrame {
 			case RealmComponent.DISPLAY_STYLE_FRENZEL:
 				RealmComponent.displayStyle = RealmComponent.DISPLAY_STYLE_FRENZEL;
 				break;
+			case RealmComponent.DISPLAY_STYLE_ALTERNATIVE:
+				RealmComponent.displayStyle = RealmComponent.DISPLAY_STYLE_ALTERNATIVE;
+				break;
+			case RealmComponent.DISPLAY_STYLE_LEGENDARY:
 			default:
-				RealmComponent.displayStyle = RealmComponent.DISPLAY_STYLE_CLASSIC;
+				RealmComponent.displayStyle = RealmComponent.DISPLAY_STYLE_LEGENDARY;
+				break;
+		}
+		switch(gamePrefMan.getInt("characterChitDisplayStyle")) {
+			case CharacterChitComponent.DISPLAY_STYLE_CLASSIC:
+				CharacterChitComponent.displayStyle = CharacterChitComponent.DISPLAY_STYLE_CLASSIC;
+				break;
+			case CharacterChitComponent.DISPLAY_STYLE_LEGENDARY_CLASSIC:
+				CharacterChitComponent.displayStyle = CharacterChitComponent.DISPLAY_STYLE_LEGENDARY_CLASSIC;
+				break;
+			case CharacterChitComponent.DISPLAY_STYLE_ALTERNATIVE:
+				CharacterChitComponent.displayStyle = CharacterChitComponent.DISPLAY_STYLE_ALTERNATIVE;
+				break;
+			case CharacterChitComponent.DISPLAY_STYLE_LEGENDARY:
+			default:
+				CharacterChitComponent.displayStyle = CharacterChitComponent.DISPLAY_STYLE_LEGENDARY;
 				break;
 		}
 		
@@ -3634,6 +4964,9 @@ public class CombatFrame extends JFrame {
 			}
 			else if (result.equals("Play Battle")) {
 				GameData loadedData = loadBattleSituation();
+				if (loadedData!=null) {
+					BattleBuilder.setupRandomNumberGenerator(HostPrefWrapper.findHostPrefs(loadedData));
+				}
 				startCombat(loadedData);
 			}
 			else {
@@ -3658,11 +4991,14 @@ public class CombatFrame extends JFrame {
 				prefMan.set(LAST_SAVE_LOCATION,lastSaveGame.getAbsolutePath());
 				prefMan.savePreferences();
 			}
-			loadedData.setDataName(DATA_NAME);
+			loadedData.setDataName(Constants.DATA_NAME_COMBAT_FRAME);
 			loadedData.setTracksChanges(true);
 			realmBattleData = loadedData;
 			
 			GameWrapper game = GameWrapper.findGame(realmBattleData);
+			
+			// Initialize map
+			CenteredMapView.initSingleton(loadedData);
 			
 			// Initialize combat
 			RealmBattle.resetCombat(realmBattleData);
@@ -3720,7 +5056,7 @@ public class CombatFrame extends JFrame {
 			chooser = new JFileChooser(new File(filePath));
 		}
 		else {
-			chooser = new JFileChooser();
+			chooser = new JFileChooser(".");
 		}
 		chooser.setAcceptAllFileFilterUsed(false);
 		chooser.setFileFilter(saveGameFileFilter);
@@ -3731,9 +5067,7 @@ public class CombatFrame extends JFrame {
 				data.zipFromFile(lastSaveGame);
 				return data;
 			}
-			else {
-				JOptionPane.showMessageDialog(frame,"File not found:  "+lastSaveGame.getPath());
-			}
+			JOptionPane.showMessageDialog(frame,"File not found:  "+lastSaveGame.getPath());
 		}
 		return null;
 	}
@@ -3769,22 +5103,54 @@ public class CombatFrame extends JFrame {
 	}
 	public void handleMissingMonsters() {
 		// What about doing a total cleanup of targets that have been teleported...
-		ArrayList all = currentBattleModel.getAllBattleParticipants(true);
-		for (Iterator i=all.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+		ArrayList<RealmComponent> all = currentBattleModel.getAllBattleParticipants(true);
+		for (RealmComponent rc : all) {
 			RealmComponent target = rc.getTarget();
 			if (target!=null) {
 				if (!currentBattleModel.getBattleLocation().equals(target.getCurrentLocation())) {
 					CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 					if (!combat.isSheetOwner()) {
 						combat.setSheetOwner(true);
-						combat.setCombatBox(1);
+						placeInFirstCombatBox(combat);
 					}
 					rc.clearTarget();
 				}
 			}
+			RealmComponent target2 = rc.get2ndTarget();
+			if (target2!=null) {
+				if (!currentBattleModel.getBattleLocation().equals(target2.getCurrentLocation())) {
+					CombatWrapper combat = new CombatWrapper(rc.getGameObject());
+					if (!combat.isSheetOwner()) {
+						combat.setSheetOwner(true);
+						placeInFirstCombatBox(combat);
+					}
+					rc.clear2ndTarget();
+				}
+			}
 		}
-		
+	}
+	public static void placeInFirstCombatBox(CombatWrapper combat) {
+		placeInCombatBoxAvailable(combat,1);
+	}
+	public static void placeInCombatBoxAvailable(CombatWrapper combat,int startCombatBox) {
+		if (combat.canUseCombatBoxAttack(startCombatBox) && combat.canUseCombatBoxDefense(startCombatBox)) {
+			combat.setCombatBoxAttack(startCombatBox);
+			combat.setCombatBoxDefense(startCombatBox);
+		} else if(combat.canUseCombatBoxAttack((startCombatBox+1)%3) && combat.canUseCombatBoxDefense((startCombatBox+1)%3)) {
+				combat.setCombatBoxAttack((startCombatBox+1)%3);
+				combat.setCombatBoxDefense((startCombatBox+1)%3);
+		} else if(combat.canUseCombatBoxAttack((startCombatBox+2)%3) && combat.canUseCombatBoxDefense((startCombatBox+2)%3)) {
+			combat.setCombatBoxAttack((startCombatBox+2)%3);
+			combat.setCombatBoxDefense((startCombatBox+2)%3);
+		}
+		else {
+			ArrayList<String> boxesA = combat.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
+			String boxA = boxesA.get(RandomNumber.getRandom(boxesA.size()));
+			combat.setCombatBoxAttack(Integer.parseInt(boxA));
+			ArrayList<String> boxesD = combat.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_DEFENSE);
+			String boxD = boxesD.get(RandomNumber.getRandom(boxesD.size()));
+			combat.setCombatBoxAttack(Integer.parseInt(boxD));
+		}
 	}
 	public void showCombatSummary() {
 		BattleSummaryWrapper bsw = new BattleSummaryWrapper(theGame.getGameObject());

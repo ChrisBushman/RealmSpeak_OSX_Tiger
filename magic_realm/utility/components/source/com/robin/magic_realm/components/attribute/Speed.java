@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.attribute;
 
 public class Speed implements Comparable {
@@ -30,20 +13,20 @@ public class Speed implements Comparable {
 	}
 	public Speed(String val) {
 		this();
-		if (val!=null) {
-			num = Integer.valueOf(val).intValue(); // NumberFormatException here is desired if val is not a number!
+		if (val!=null && val!="X") {
+			num = Integer.parseInt(val); // NumberFormatException here is desired if val is not a number!
 			infinitelySlow = false;
 		}
 	}
 	public Speed(int val) {
 		this();
-		num = val;
+		num = Math.max(val, 0);
 		infinitelySlow = false;
 	}
 	public Speed(Integer val) {
 		this();
 		if (val!=null) {
-			num = val.intValue();
+			num = Math.max(val.intValue(),0);
 			infinitelySlow = false;
 		}
 	}
@@ -51,6 +34,14 @@ public class Speed implements Comparable {
 		this(val);
 		if (!infinitelySlow) {
 			num += modifier;
+			num = Math.max(num, 0);
+		}
+	}
+	public Speed(String val,int modifier) {
+		this(val);
+		if (!infinitelySlow) {
+			num += modifier;
+			num = Math.max(num, 0);
 		}
 	}
 	public boolean isInfinitelySlow() {
@@ -63,7 +54,7 @@ public class Speed implements Comparable {
 		return "Speed "+num;
 	}
 	public String getSpeedString() {
-		if (!infinitelySlow && num>0) {
+		if (!infinitelySlow) {
 			return String.valueOf(num);
 		}
 		return "";

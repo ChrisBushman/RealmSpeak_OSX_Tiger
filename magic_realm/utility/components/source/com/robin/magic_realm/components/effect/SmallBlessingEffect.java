@@ -12,7 +12,7 @@ public class SmallBlessingEffect implements ISpellEffect {
 	public void apply(SpellEffectContext context) {
 		CharacterWrapper character = context.getCharacterTarget();
 		
-		Wish wish = new Wish(context.Parent);
+		Wish wish = new Wish(context.Parent,context.Spell.getAttackSpeed().getNum());
 		DieRoller roller = DieRollBuilder.getDieRollBuilder(context.Parent,character, context.Spell.getRedDieLock()).createRoller(wish);
 		roller.rollDice("Wish");
 		String result = wish.apply(character,roller);
@@ -23,8 +23,6 @@ public class SmallBlessingEffect implements ISpellEffect {
 
 	@Override
 	public void unapply(SpellEffectContext context) {
-		// TODO Auto-generated method stub
-
 	}
 
 }

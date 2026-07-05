@@ -1,24 +1,6 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmCharacterBuilder;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import com.robin.game.objects.GameObject;
 import com.robin.game.objects.GameObjectBlockManager;
@@ -64,7 +46,8 @@ public class VersionManager {
 				String extraActions = character.getAttribute(levelKey,Constants.EXTRA_ACTIONS);
 				//	- extra_actions changes from a string attribute, to an attributeList
 				if (extraActions!=null) {
-					ArrayList list = new ArrayList();
+					extraActions = extraActions.replace("SP", "E");
+					ArrayList<String> list = new ArrayList<String>();
 					list.add(extraActions);
 					character.setAttributeList(levelKey,Constants.EXTRA_ACTIONS,list);
 				}
@@ -72,18 +55,19 @@ public class VersionManager {
 				// - translate demon_immunity into the more generic monster_immunity
 				if (character.hasAttribute(levelKey,"demon_immunity")) {
 					character.removeAttribute(levelKey,"demon_immunity");
-					ArrayList demons = new ArrayList();
+					ArrayList<String> demons = new ArrayList<String>();
 					demons.add("Demon");
 					demons.add("Flying Demon");
 					demons.add("Imp");
+					demons.add("Devil");
 					character.setAttributeList(levelKey,"monster_immunity",demons);
 				}
 				
 				// - fix lost city, lost castle, and ruins diemods
 				if (character.hasAttribute(levelKey,Constants.DIEMOD)) {
-					ArrayList list = character.getAttributeList(levelKey,Constants.DIEMOD);
+					ArrayList<String> list = character.getAttributeList(levelKey,Constants.DIEMOD);
 					if (!list.isEmpty()) {
-						String val = (String)list.get(0);
+						String val = list.get(0);
 						StringUtilities.findAndReplace(val,"Lost City","Lost City%");
 						StringUtilities.findAndReplace(val,"Lost Castle","Lost Castle%");
 						StringUtilities.findAndReplace(val,"%ruins","%ruins%");
@@ -96,8 +80,7 @@ public class VersionManager {
 			character.setThisAttribute("start",start);
 			
 			// - fix character_chit to icon_type
-			for (Iterator i=character.getHold().iterator();i.hasNext();) {
-				GameObject item = (GameObject)i.next();
+			for (GameObject item : character.getHold()) {
 				if (item.hasThisAttribute("character_chit")) {
 					String iconType = item.getThisAttribute("character_chit");
 					item.setThisAttribute("icon_type",iconType);
@@ -115,7 +98,7 @@ public class VersionManager {
 			for (int i=1;i<=4;i++) {
 				String levelKey = "level_"+i;
 				if (character.hasAttribute(levelKey,"monster_immunity")) {
-					ArrayList monsters = new ArrayList(character.getAttributeList(levelKey,"monster_immunity"));
+					ArrayList<String> monsters = new ArrayList<String>(character.getAttributeList(levelKey,"monster_immunity"));
 					if (monsters.contains("Flying Demon")) {
 						monsters.remove("Flying Demon");
 						monsters.add("Winged Demon");

@@ -1,10 +1,8 @@
 package com.robin.magic_realm.components.effect;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import com.robin.game.objects.GameObject;
-import com.robin.general.util.Extensions;
 import com.robin.magic_realm.components.attribute.RelationshipType;
 import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.utility.GameObjectFilter;
@@ -18,7 +16,6 @@ public class SummonAidEffect implements ISpellEffect {
 	public void apply(SpellEffectContext context) {
 		CharacterWrapper character = context.getCharacterTarget();
 
-		//This spell requires 1 gold as a "sacrifice"
 		if(character.getGold() < 1){
 			context.Spell.expireSpell();
 			return;
@@ -26,9 +23,9 @@ public class SummonAidEffect implements ISpellEffect {
 
 		character.setGold(character.getGold() - 1);
 
-		//find all possible groups to summon from
 		ArrayList<String> friends = character.getRelationshipList(Constants.GAME_RELATIONSHIP, RelationshipType.FRIENDLY);
-		ArrayList<String> allies = character.getRelationshipList(Constants.GAME_RELATIONSHIP, RelationshipType.ALLY);
+		ArrayList<String> allies  = character.getRelationshipList(Constants.GAME_RELATIONSHIP, RelationshipType.ALLY);
+
 		GameObjectFilter notdead = new GameObjectFilter() {
 			public boolean test(GameObject go) {
 				CharacterWrapper cw = new CharacterWrapper(go);
@@ -36,20 +33,17 @@ public class SummonAidEffect implements ISpellEffect {
 			}
 		};
 
-		//find a guy to summon
-		GameObject buddy = Extensions.coalesce(
-				SpellUtility.findNativeFromTheseGroups(allies, notdead, context.Game),
-				SpellUtility.findNativeFromTheseGroups(friends, notdead, context.Game));
-
+		GameObject buddy = SpellUtility.findNativeFromTheseGroups(allies, notdead, context.Game);
 		if (buddy == null) {
-			//no one to summon
-			context.Spell.expireSpell();
+			buddy = SpellUtility.findNativeFromTheseGroups(friends, notdead, context.Game);
+		}
+
+		if(buddy == null){
+			context.Spell.cancelSpell();
 			return;
 		}
 
 		context.Spell.getGameObject().setThisAttribute("SummonedNative", buddy.getStringId());
-
-		//bring the summon to you
 		SpellUtility.bringSummonToClearing(character, buddy, context.Spell, null);
 	}
 
@@ -58,22 +52,22 @@ public class SummonAidEffect implements ISpellEffect {
 		long id = Long.parseLong(context.Spell.getGameObject().getThisAttribute("SummonedNative"));
 
 		GameObject buddy = null;
-		for (Iterator i = context.getGameData().getGameObjects().iterator(); i.hasNext();) {
-			GameObject go = (GameObject) i.next();
+		for (GameObject go : context.getGameData().getGameObjects()) {
 			if (go.equalsId(id)) {
 				buddy = go;
 				break;
 			}
 		}
+		if (buddy == null) return;
 
 		String nativeGroup = buddy.getThisAttribute("native");
-
 		CharacterWrapper cw = new CharacterWrapper(buddy);
 		CharacterWrapper casterCharacter = new CharacterWrapper(context.Caster);
 
-		if (cw.isDead()) {
+		if(cw.isDead()){
 			casterCharacter.changeRelationship(Constants.GAME_RELATIONSHIP, nativeGroup, -1, false);
-		} else {
+		}
+		else {
 			casterCharacter.removeHireling(buddy);
 			SetupCardUtility.resetDenizen(buddy);
 		}

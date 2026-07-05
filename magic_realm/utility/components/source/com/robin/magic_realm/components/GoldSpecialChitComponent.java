@@ -1,23 +1,8 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
+import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.util.*;
 
 import javax.swing.*;
@@ -42,14 +27,15 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 
 	protected GoldSpecialChitComponent(GameObject obj) {
 		super(obj);
-		lightColor = MagicRealmColor.GOLD;
-		darkColor = MagicRealmColor.GOLD;
 	}
 	public String getLightSideStat() {
 		return "this";
 	}
 	public String getDarkSideStat() {
 		return "this";
+	}
+	public void drawFrontside() {
+		gameObject.removeThisAttribute(Constants.DRAW_BACKSIDE);
 	}
 
 	public int getChitSize() {
@@ -64,16 +50,77 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 		GameObject other = getGameObject().getGameData().getGameObject(Long.valueOf(pairId));
 		return (GoldSpecialChitComponent)RealmComponent.getRealmComponent(other);
 	}
+	
 	public void paintComponent(Graphics g) {
+		String chitColor = gameObject.getThisAttribute("chit_color");
+		if (gameObject.hasThisAttribute(Constants.DRAW_BACKSIDE)) {
+			lightColor = MagicRealmColor.LIGHTBLUE;
+			darkColor = MagicRealmColor.LIGHTBLUE;
+		}
+		else if (chitColor!=null) {
+			lightColor = MagicRealmColor.getColor(chitColor);
+			darkColor = MagicRealmColor.getColor(chitColor);
+		} else {
+			lightColor = MagicRealmColor.GOLD;
+			darkColor = MagicRealmColor.GOLD;
+		}
+		
 		super.paintComponent(g);
 		
 		TextType tt;
 		
-		String name = gameObject.getName();
-		tt = new TextType(name,getChitSize()-4,"BOLD");
+		String name;
+		Color color = Color.black;
+		if (gameObject.hasThisAttribute(Constants.DRAW_BACKSIDE)) {
+			name = "Traveler";
+		} else {
+			name = gameObject.getName();
+			String colorString = gameObject.getThisAttribute("text_color");
+			if (colorString!=null) {
+				color = MagicRealmColor.getColor(colorString);
+			}
+		}
+		tt = new TextType(name,getChitSize()-4,"Plain");
 		int h = tt.getHeight(g);
 		int y = ((getChitSize()-h)>>1)-3;
-		tt.draw(g,2,y,Alignment.Center);
+		if (!gameObject.hasThisAttribute(Constants.BOUNTY_HUNTER)) {
+			tt.draw(g,2,y,Alignment.Center,color);
+		}
+		if (!gameObject.hasThisAttribute(Constants.DRAW_BACKSIDE) && gameObject.hasThisAttribute(Constants.SUPER_REALM)) {
+			if (gameObject.hasThisAttribute(Constants.VISITOR)) {
+				tt = new TextType("Visitor",getChitSize()-4,"NORMAL");
+				tt.draw(g,2,y-11,Alignment.Center,color);
+			}
+			else if (gameObject.hasThisAttribute(Constants.MISSION)) {
+				tt = new TextType("Mission",getChitSize()-4,"NORMAL");
+				tt.draw(g,2,y-11,Alignment.Center,color);
+			}
+			else if (gameObject.hasThisAttribute(Constants.NOMAD)) {
+				tt = new TextType("Nomad",getChitSize()-4,"NORMAL");
+				tt.draw(g,2,y-11,Alignment.Center,color);
+			}
+			else if (gameObject.hasThisAttribute(Constants.TASK)) {
+				tt = new TextType("Task",getChitSize()-4,"NORMAL");
+				tt.draw(g,2,y-11,Alignment.Center,color);
+			}
+			else if (gameObject.hasThisAttribute(Constants.BOUNTY_HUNTER)) {
+				tt = new TextType("Bounty",getChitSize()-4,"NORMAL");
+				tt.draw(g,2,y-11,Alignment.Center,color);
+				tt = new TextType(gameObject.getThisAttribute(Constants.BOUNTY_HUNTER_TARGET),getChitSize()-4,"NORMAL");
+				tt.draw(g,2,y+4,Alignment.Center,color);
+			}
+			else if (gameObject.hasThisAttribute(Constants.CAMPAIGN)) {
+				tt = new TextType("Campaign",getChitSize()-4,"NORMAL");
+				tt.draw(g,2,y-11,Alignment.Center,color);
+			}
+			if (getGameObject().hasThisAttribute(Constants.TASK_COMPLETED)) {
+				g.setColor(MagicRealmColor.GREEN);
+				Graphics2D g2 = (Graphics2D)g;
+				g2.setStroke(Constants.THICK_STROKE);
+				int m = T_CHIT_SIZE>>1;
+				g2.drawRect(1,1,m-1,m-1);
+			}
+		}
 	}
 	public String generateHTML(CharacterWrapper character) {
 		/*
@@ -100,19 +147,21 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 		text.append("<html><body><font size=\"-1\" face=\"Helvetical, Arial, sans-serif\">");
 		text.append("<table cellspacing=\"2\">");
 		boolean visitor = getGameObject().hasThisAttribute(Constants.VISITOR);
-		if (visitor) {
-			// Relationship to Character
-			text.append(rowHeaderStart);
-			text.append("Relationship:");
-			text.append(rowContentStart);
-			text.append(RealmUtility.getRelationshipNameFor(character,this));
-			text.append(rowEnd);
+		boolean nomad = getGameObject().hasThisAttribute(Constants.NOMAD);
+		if (visitor || nomad) {
+			if (visitor) {
+				// Relationship to Character
+				text.append(rowHeaderStart);
+				text.append("Relationship:");
+				text.append(rowContentStart);
+				text.append(RealmUtility.getRelationshipNameFor(character,this));
+				text.append(rowEnd);
+			}
 			
 			int small = 0;
 			int large = 0;
 			ArrayList<String> spellTypes = new ArrayList<String>();
-			for (Iterator i=getGameObject().getHold().iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
+			for (GameObject go : getGameObject().getHold()) {
 				String treasure = go.getThisAttribute("treasure");
 				if (treasure!=null) {
 					if ("large".equals(treasure)) {
@@ -154,6 +203,32 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 				text.append(list.toString());
 				text.append(rowEnd);
 			}
+			
+			// Special abilities
+			if (getGameObject().hasThisAttribute(Constants.BLACKSMITH)) {
+				text.append(rowHeaderStart);
+				text.append("Special ability:");
+				text.append(rowContentStart);
+				text.append("Repairs armor");
+				text.append(rowEnd);
+			}
+			if (getGameObject().hasThisAttribute(Constants.CLERIC)) {
+				text.append(rowHeaderStart);
+				text.append("Special ability:");
+				text.append(rowContentStart);
+				text.append("Breaks spells");
+				text.append(rowEnd);
+			}
+			if (getGameObject().hasThisAttribute(Constants.NOMAD)) {
+				String ability = getGameObject().getThisAttribute("text");
+				if (ability!=null && ability.length() > 0) {
+					text.append(rowHeaderStart);
+					text.append("Special ability:");
+					text.append(rowContentStart);
+					text.append(ability);
+					text.append(rowEnd);
+				}
+			}
 		}
 		else {
 			// Cost
@@ -171,8 +246,15 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 			text.append(rowHeaderStart);
 			text.append("Time Limit:");
 			text.append(rowContentStart);
-			text.append(getGameObject().getThisInt("time_limit"));
-			text.append(" days");
+			if (getGameObject().hasThisAttribute("time_limit")) { 
+				if (getGameObject().getThisAttribute("time_limit").matches("month")) {
+					text.append("end of month");
+				}
+				else {
+					text.append(getGameObject().getThisInt("time_limit"));
+					text.append(" days");
+				}
+			}
 			text.append(rowEnd);
 		}
 		// Days left
@@ -220,21 +302,20 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 			text.append(rowEnd);
 		}
 		// Partner
-		ArrayList partner = getPartners();
+		ArrayList<String> partner = getPartners();
 		if (!partner.isEmpty()) {
 			text.append("<tr><td valign=\"top\" align=\"right\" bgcolor=\"#33cc00\" rowspan=\"");
 			text.append(partner.size());
 			text.append("\"><b>");
 			text.append("Partner:");
 			text.append(rowContentStart);
-			for (Iterator i=partner.iterator();i.hasNext();) {
-				String group = (String)i.next();
+			for (String group : partner) {
 				text.append(StringUtilities.capitalize(group));
 				text.append(rowEnd);
 			}
 		}
 		// Foe
-		ArrayList foe = getFoes();
+		ArrayList<String> foe = getFoes();
 		if (!foe.isEmpty()) {
 			text.append("<tr><td valign=\"top\" align=\"right\" bgcolor=\"#33cc00\" rowspan=\"");
 			text.append(foe.size());
@@ -242,8 +323,7 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 			text.append("Foe:");
 			text.append(rowContentStart);
 			int total = 0;
-			for (Iterator i=foe.iterator();i.hasNext();) {
-				String group = (String)i.next();
+			for (String group : foe) {
 				text.append(group);
 				
 				if (hostPrefs!=null) {
@@ -284,14 +364,14 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 		
 		return text.toString();
 	}
-	public ArrayList getPartners() {
+	public ArrayList<String> getPartners() {
 		return getList("partner");
 	}
-	public ArrayList getFoes() {
+	public ArrayList<String> getFoes() {
 		return getList("foe");
 	}
-	private ArrayList getList(String key) {
-		ArrayList list = new ArrayList();
+	private ArrayList<String> getList(String key) {
+		ArrayList<String> list = new ArrayList<String>();
 		String val = getGameObject().getThisAttribute(key);
 		if (val!=null) {
 			StringTokenizer tokens = new StringTokenizer(val,",");
@@ -330,7 +410,16 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 		return ClearingUtility.getTileLocation(go);
 	}
 	public void makePayment(CharacterWrapper character) {
-		getGameObject().setThisAttribute("daysLeft",getGameObject().getThisAttribute("time_limit"));
+		if (!getGameObject().hasThisAttribute("time_limit")) return;
+		if (getGameObject().getThisAttribute("time_limit").matches("month")) {
+			GameWrapper game = GameWrapper.findGame(getGameObject().getGameData());
+			RealmCalendar cal = RealmCalendar.getCalendar(getGameObject().getGameData());
+			int days = 4*cal.getDays(game.getMonth());
+			getGameObject().setThisAttribute("daysLeft",days-game.getDay()+1);
+		}
+		else {
+			getGameObject().setThisAttribute("daysLeft",getGameObject().getThisAttribute("time_limit"));
+		}
 		int fame = getGameObject().getThisInt("fame_cost");
 		int not = getGameObject().getThisInt("notoriety_cost");
 		character.addFame(-fame);
@@ -359,14 +448,51 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 		if (reward>0) {
 			GameClient.broadcastClient(character.getGameObject().getName(),"Received "+reward+" gold as a reward.");
 		}
+
+		ArrayList<String> partners = getPartners();
+		if (partners!=null) {
+			for (String partner : partners) {
+				character.removeDamagedRelations(partner.toLowerCase());
+			}
+		}
+
+		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
+		if (getGameObject().hasThisAttribute("mission")) {
+			character.addCompletedMission(getGameObject().getName());
+			if (hostPrefs.hasPref(Constants.SR_DEDUCT_VPS) && !hostPrefs.hasPref(Constants.EXP_DEVELOPMENT_SR)) {
+				character.addDeductVPs(1);
+			}
+		}
+		if (getGameObject().hasThisAttribute(Constants.CAMPAIGN)) {
+			if (!getGameObject().hasThisAttribute(Constants.BOUNTY_HUNTER)) {
+				character.addCompletedCampaign(getGameObject().getName());
+			}
+			if (hostPrefs.hasPref(Constants.SR_DEDUCT_VPS)) {
+				character.addDeductVPs(2);
+			}
+		}
+		if (getGameObject().hasThisAttribute("task")) {
+			character.addCompletedTask(getGameObject().getName());
+		}
+		
 		QuestRequirementParams qp = new QuestRequirementParams();
-		qp.actionType = CharacterActionType.CompleteMissionCampaign;
+		if (!getGameObject().hasThisAttribute(Constants.BOUNTY_HUNTER)) {
+			qp.actionType = CharacterActionType.CompleteMissionCampaign;
+		} else {
+			qp.actionType = CharacterActionType.CompleteBounty;
+		}
 		qp.actionName = getGameObject().getName();
 		qp.targetOfSearch = getGameObject();
 		character.addPostQuestParams(qp);
 	}
 	public boolean isComplete(CharacterWrapper character,TileLocation current) {
-		if (getGameObject().hasThisAttribute("mission")) {
+		if (getGameObject().hasThisAttribute(Constants.BOUNTY_HUNTER)) {
+			GameObject target = getGameObject().getGameData().getGameObject(Long.valueOf(getGameObject().getThisAttribute(Constants.BOUNTY_HUNTER)));
+			CharacterWrapper targetdCharacter = new CharacterWrapper(target);
+			TileLocation loc = targetdCharacter.getCurrentLocation();
+			return target!=null && (target.hasThisAttribute(Constants.DEAD) || target.hasThisAttribute(Constants.DEAD_PERMANENT) || loc == null);
+		}
+		else if (getGameObject().hasThisAttribute(Constants.MISSION)) {
 			// Mission is complete when in a clearing with the deliverTarget dwelling
 			if (current.isInClearing()) {
 				RealmComponent dwelling = current.clearing.getDwelling();
@@ -375,21 +501,45 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 				}
 			}
 		}
-		else if (getGameObject().hasThisAttribute("campaign")) {
+		else if (getGameObject().hasThisAttribute(Constants.CAMPAIGN)) {
 			int total = 0;
 			// Campaign is complete when all foes are dead (off map AND off setup card)
 			GameData data = getGameObject().getGameData();
 			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
 			GamePool pool = new GamePool(data.getGameObjects());
-			ArrayList foe = getFoes();
+			ArrayList<String> foe = getFoes();
 			if (!foe.isEmpty()) {
-				for (Iterator i=foe.iterator();i.hasNext();) {
-					String group = (String)i.next();
+				for (String group : foe) {
 					total += getFoeCount_OnMap(hostPrefs,group,pool);
 					total += getFoeCount_OnCard(hostPrefs,group,pool);
 				}
 			}
 			return total==0;
+		}
+		else if (getGameObject().hasThisAttribute(Constants.TASK)) {
+			List<String> requiredTreasureLocations = getGameObject().getThisAttributeList(Constants.TASK_SITES);
+			if (current.isInClearing()) {
+				Collection<RealmComponent> treasureLocations = current.clearing.getTreasureLocations();
+				Collection<String> visitedTreasureLocations;
+				if (treasureLocations != null && !treasureLocations.isEmpty()) {
+					visitedTreasureLocations = character.getGameObject().getThisAttributeList(Constants.TASK_VISITED_SITES);
+					for (RealmComponent tl : treasureLocations) {
+						if (requiredTreasureLocations.contains(tl.toString().toLowerCase()) && (visitedTreasureLocations==null || !visitedTreasureLocations.contains(tl.toString().toLowerCase())))
+							character.getGameObject().addThisAttributeListItem(Constants.TASK_VISITED_SITES, tl.toString().toLowerCase());
+					}
+				}
+			}
+			
+			Collection<String> visitedTreasureLocations = character.getGameObject().getThisAttributeList(Constants.TASK_VISITED_SITES);
+			if (visitedTreasureLocations!=null && !visitedTreasureLocations.isEmpty()) {
+				for (String requiredTl : requiredTreasureLocations) {
+					if (!visitedTreasureLocations.contains(requiredTl.toLowerCase())) {
+						return false;
+					}
+				}
+				getGameObject().setThisAttribute(Constants.TASK_COMPLETED);
+				return true;
+			}
 		}
 		
 		return false;
@@ -400,6 +550,10 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 		if ("Quest".equals(getGameObject().getName())) {
 			query.add("monster");
 			query.add("icon_type="+group.toLowerCase());
+		}
+		else if (getGameObject().hasThisAttribute(Constants.SUPER_REALM) && getGameObject().hasThisAttribute("foe_monsters")) {
+			query.add("monster");
+			query.add(group.toLowerCase());
 		}
 		else {
 			query.add("!dwelling");
@@ -423,7 +577,7 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 		query.add("!"+Constants.DEAD);
 		return getFoeExistCount(pool.find(query));
 	}
-	private int getFoeExistCount(ArrayList<GameObject> foes) {
+	private static int getFoeExistCount(ArrayList<GameObject> foes) {
 		int count = 0;
 		for(GameObject foe:foes) {
 			if (foe.hasThisAttribute(Constants.SETUP_START_TILE_REQ)) {
@@ -455,15 +609,13 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 			String relBlock = RealmUtility.getRelationshipBlockFor(getGameObject());
 			
 			// Calculate change in friendliness, and apply (Partners ALL increase by 2)
-			for (Iterator i=getPartners().iterator();i.hasNext();) {
-				String group = (String)i.next();
+			for (String group : getPartners()) {
 				getGameObject().setAttribute("relationship",group.toLowerCase(),2);
 				character.changeRelationship(relBlock,group,2, false);
 			}
 			// (Foes move to ENEMY)
-			if (!"Quest".equals(getGameObject().getName())) {
-				for (Iterator i=getFoes().iterator();i.hasNext();) {
-					String group = (String)i.next();
+			if (!"Quest".equals(getGameObject().getName()) || getGameObject().hasThisAttribute(Constants.BOUNTY_HUNTER)) {
+				for (String group : getFoes()) {
 					int current = character.getRelationship(relBlock,group);
 					int change = RelationshipType.ENEMY - current;
 					getGameObject().setAttribute("relationship",group.toLowerCase(),change);
@@ -474,31 +626,54 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 	}
 	public void expireEffect(CharacterWrapper character) {
 		getGameObject().removeThisAttribute("daysLeft");
-		if (getGameObject().hasThisAttribute("mission")) {
+		if (getGameObject().hasThisAttribute(Constants.MISSION)) {
 			getGameObject().removeThisAttribute("reward");
 			getGameObject().removeThisAttribute("clearingCount");
 			getGameObject().removeThisAttribute("deliverTarget");
 		}
-		else {
+		else if (getGameObject().hasThisAttribute(Constants.CAMPAIGN)) {
 			character.setCurrentCampaign(null);
 			
 			String relBlock = RealmUtility.getRelationshipBlockFor(getGameObject());
 			
-			for (Iterator i=getPartners().iterator();i.hasNext();) {
-				String group = (String)i.next();
+			for (String group : getPartners()) {
 				int val = getGameObject().getInt("relationship",group.toLowerCase());
 				character.changeRelationship(relBlock,group,-val, false);
 			}
 			// (Foes move to ENEMY)
 			if (!"Quest".equals(getGameObject().getName())) {
-				for (Iterator i=getFoes().iterator();i.hasNext();) {
-					String group = (String)i.next();
+				for (String group : getFoes()) {
 					int val = getGameObject().getInt("relationship",group.toLowerCase());
 					character.changeRelationship(relBlock,group,-val, false);
 				}
 			}
 			getGameObject().removeAttributeBlock("relationship");
 		}
+		else if (getGameObject().hasThisAttribute(Constants.TASK)) {
+			ArrayList<String> requiredTreasureLocations = getGameObject().getThisAttributeList(Constants.TASK_SITES);
+			for (String requiredTl : requiredTreasureLocations) {
+				character.getGameObject().removeThisAttributeListItem(Constants.TASK_VISITED_SITES,requiredTl.toLowerCase());
+			}
+		}
+		if (getGameObject().hasThisAttribute(Constants.BOUNTY_HUNTER)) {
+			getGameObject().removeThisAttribute("fame_cost");
+			if (getGameObject().hasThisAttribute(Constants.CAMPAIGN_FAME)) {
+				getGameObject().setThisAttribute("fame_cost",getGameObject().getThisAttribute(Constants.CAMPAIGN_FAME));
+			}
+			getGameObject().removeThisAttribute("notoriety_cost");
+			if (getGameObject().hasThisAttribute(Constants.CAMPAIGN_NOTORIETY)) {
+				getGameObject().setThisAttribute("notoriety_cost",getGameObject().getThisAttribute(Constants.CAMPAIGN_NOTORIETY));
+			}
+			getGameObject().removeThisAttribute("foe");
+			if (getGameObject().hasThisAttribute(Constants.CAMPAGIN_FOE)) {
+				getGameObject().setThisAttribute("foe",getGameObject().getThisAttribute(Constants.CAMPAGIN_FOE));
+			}
+			getGameObject().removeThisAttribute("partner");
+			if (getGameObject().hasThisAttribute(Constants.CAMPAGIN_PARTNER)) {
+				getGameObject().setThisAttribute("partner",getGameObject().getThisAttribute(Constants.CAMPAGIN_PARTNER));
+			}
+		}
+		getGameObject().removeThisAttribute(Constants.BOUNTY_HUNTER);
 	}
 	public boolean meetsPointRequirement(CharacterWrapper character) {
 		int fame = getGameObject().getThisInt("fame_cost");
@@ -514,7 +689,7 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 	}
 	public void display(JFrame frame,CharacterWrapper character) {
 		JEditorPane pane = new JEditorPane("text/html",generateHTML(character)) {
-			public boolean isFocusTraversable() {
+			public boolean isFocusable() {
 				return false;
 			}
 		};
@@ -528,6 +703,18 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 				JOptionPane.INFORMATION_MESSAGE,
 				getIcon()
 		);
+	}
+	public boolean isMission() {
+		return gameObject.hasThisAttribute(Constants.MISSION);
+	}
+	public boolean isCampaign() {
+		return gameObject.hasThisAttribute(Constants.CAMPAIGN);
+	}
+	public boolean isTask() {
+		return gameObject.hasThisAttribute(Constants.TASK);
+	}
+	public boolean isBountyHunter() {
+		return gameObject.hasThisAttribute(Constants.BOUNTY_HUNTER);
 	}
 	/*
 	 * See Section 36 of 2nd edition manual

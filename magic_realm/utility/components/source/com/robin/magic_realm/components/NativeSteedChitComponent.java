@@ -1,23 +1,8 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
+import java.awt.Color;
 import java.awt.Graphics;
+import java.util.ArrayList;
 
 import com.robin.game.objects.GameObject;
 import com.robin.general.graphics.TextType;
@@ -25,6 +10,7 @@ import com.robin.general.graphics.TextType.Alignment;
 import com.robin.magic_realm.components.attribute.*;
 import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.utility.RealmLogging;
+import com.robin.magic_realm.components.utility.SpellUtility;
 import com.robin.magic_realm.components.wrapper.*;
 
 public class NativeSteedChitComponent extends SquareChitComponent implements BattleHorse {
@@ -37,6 +23,10 @@ public class NativeSteedChitComponent extends SquareChitComponent implements Bat
 		try {
 			lightColor = MagicRealmColor.getColor(getAttribute("trot","chit_color"));
 			darkColor = MagicRealmColor.getColor(getAttribute("gallop","chit_color"));
+			if (gameObject.hasThisAttribute(Constants.SUPER_REALM)) {
+				lightColor = Color.white;
+				darkColor = Color.white;
+			}
 		}
 		catch(Exception ex) {
 			System.out.println("problem with "+obj.getName()+": "+ex);
@@ -47,16 +37,92 @@ public class NativeSteedChitComponent extends SquareChitComponent implements Bat
 	}
 	
 	public int getChitSize() {
-		return getRider().isShrunk()?M_CHIT_SIZE:H_CHIT_SIZE;
+		RealmComponent rider = getRider();
+		if (rider!=null) {
+			if ((rider.isNative() && ((NativeChitComponent)rider).isShrunk())
+					|| (rider.isMonster() && !rider.isMonsterPart() && ((MonsterChitComponent)rider).isShrunk())) {
+				return M_CHIT_SIZE;
+			}
+		}
+		return H_CHIT_SIZE;
 	}
-	private NativeChitComponent getRider() {
-		return (NativeChitComponent)RealmComponent.getRealmComponent(getGameObject().getHeldBy());
+	private RealmComponent getRider() {
+		RealmComponent rider = RealmComponent.getRealmComponent(getGameObject().getHeldBy());
+		if (rider.isNative() || (rider.isMonster() && !rider.isMonsterPart())) {
+			return rider;
+		}
+		return null;
 	}
 	protected int sizeModifier() {
-		return getRider().sizeModifier();
+		RealmComponent rider = getRider();
+		if (rider!=null) {
+			if (rider.isNative()) {
+				return ((NativeChitComponent)rider).sizeModifier();
+			}
+			else if (rider.isMonster() && !rider.isMonsterPart()) {
+				return ((MonsterChitComponent)rider).sizeModifier();
+			}
+		}
+		return 0;
+	}
+	protected int vulnerabilityModifier() {
+		RealmComponent rider = getRider();
+		if (rider!=null) {
+			if (rider.isNative() && ((NativeChitComponent)rider).isShrunk()) {
+				return -1;
+			}
+			else if (rider.isMonster() && !rider.isMonsterPart() && ((MonsterChitComponent)rider).isShrunk()) {
+				return -1;
+			}
+		}
+		return 0;
 	}
 	protected int speedModifier() {
-		return getRider().speedModifier();
+		int mod = 0;
+		RealmComponent rider = getRider();
+		if (rider!=null ) {
+			if (rider.isNative()) {
+				mod = ((NativeChitComponent)rider).speedModifier();
+			}
+			else if (rider.isMonster() && !rider.isMonsterPart()) {
+				mod = ((MonsterChitComponent)rider).speedModifier();
+			}
+		}
+		if (getGameObject().hasThisAttribute(Constants.SLOWED)) {
+			mod++;
+		}
+		if (getGameObject().hasThisAttribute(Constants.SHRINK)) {
+			mod--;
+		}
+		if (new CombatWrapper(getGameObject()).isFreezed()) {
+			mod++;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT)) {
+			mod--;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) {
+			mod++;
+		}
+		if (flies() && getCurrentLocation()!=null && getCurrentLocation().clearing!=null && getCurrentLocation().clearing.isAffectedByViolentWinds()) {
+			mod++;
+		}
+		RealmComponent owner = getHeldBy();
+		if (getGameObject().hasThisAttribute("horse") && this.isActivated() && getStrength().strongerOrEqualTo(new Strength("M")) && owner!=null) {
+			CharacterWrapper character = new CharacterWrapper(owner.getGameObject());
+			if (character.affectedByKey(Constants.HORSE_ARMOR)) {
+				mod++;
+			}
+		}
+		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX1) && getManeuverCombatBox()==1) {
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX1);
+		}
+		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX2) && getManeuverCombatBox()==2) {
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX2);
+		}
+		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX3) && getManeuverCombatBox()==3) {
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX3);
+		}
+		return mod;
 	}
 	public String getLightSideStat() {
 		return "trot";
@@ -64,14 +130,72 @@ public class NativeSteedChitComponent extends SquareChitComponent implements Bat
 	public String getDarkSideStat() {
 		return "gallop";
 	}
+	public Speed getTrotSpeed() {
+		int mod = speedModifier();
+		Speed speed = new Speed(getAttributeInt("trot","move_speed"),mod);
+		if (getGameObject().hasThisAttribute(Constants.GROW_WINGS) && (new Speed(Constants.GROW_WINGS_SPEED)).fasterThan(speed)) {
+			mod--;
+			speed = new Speed(getAttributeInt("trot","move_speed"),mod);
+		}
+		if (this.isActivated() && !speed.fasterThanOrEqual(new Speed(2))) {
+			RealmComponent owner = getHeldBy();
+			if (owner!=null) {
+				CharacterWrapper character = new CharacterWrapper(owner.getGameObject());
+				if (character.affectedByKey(Constants.SPURS)) {
+					mod--;
+					speed = new Speed(getAttributeInt("trot","move_speed"),mod);
+				}
+			}
+		}
+		return speed;
+	}
+	public Speed getGallopSpeed() {
+		int mod = speedModifier();
+		Speed speed =  new Speed(getAttributeInt("gallop","move_speed"),mod);
+		if (getGameObject().hasThisAttribute(Constants.GROW_WINGS) && (new Speed(Constants.GROW_WINGS_SPEED)).fasterThan(speed)) {
+			mod--;
+			speed = new Speed(getAttributeInt("gallop","move_speed"),mod);
+		}
+		if (this.isActivated() && !speed.fasterThanOrEqual(new Speed(2))) {
+			RealmComponent owner = getHeldBy();
+			if (owner!=null) {
+				CharacterWrapper character = new CharacterWrapper(owner.getGameObject());
+				if (character.affectedByKey(Constants.SPURS)) {
+					mod--;
+					speed = new Speed(getAttributeInt("gallop","move_speed"),mod);
+				}
+			}
+		}
+		return speed;
+	}
+	public Strength getTrotStrength() {
+		return new Strength(getAttribute("trot","strength"));
+	}
+	public Strength getGallopStrength() {
+		return new Strength(getAttribute("gallop","strength"));
+	}
 	public String[] getFolderAndType() {
-		String name = gameObject.getName();
-		String letterCode = name.substring(0,1).toUpperCase();
-		String horse_type = (String)gameObject.getAttribute("this","horse");
+		String[] ret = new String[3];
+		if (isDisplayStyleAlternative() && gameObject.hasThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE) && gameObject.hasThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE)) {
+			ret[0] = gameObject.getThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE);
+			ret[1] = gameObject.getThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE);
+			if (gameObject.hasThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE)) {
+				ret[2] = gameObject.getThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE);
+			}
+			return ret;
+		}
+		if (gameObject.hasThisAttribute(Constants.SUPER_REALM)) {
+			ret[0] = gameObject.getThisAttribute(Constants.ICON_FOLDER);
+			ret[1] = gameObject.getThisAttribute(Constants.ICON_TYPE);
+			ret[2] = gameObject.getThisAttribute(Constants.ICON_SIZE);
+			return ret;
+		}
+		String horse_type = gameObject.getThisAttribute("horse");
 		if (horse_type!=null) {
 			String folder = useColorIcons()?"steed_c":"steed";
+			String letterCode = gameObject.getName().substring(0,1).toUpperCase();
 			horse_type = horse_type + (useColorIcons()?("_"+letterCode.toLowerCase()):"");
-			String[] ret = new String[2];
+			
 			ret[0] = folder;
 			ret[1] = horse_type;
 			return ret;
@@ -85,17 +209,45 @@ public class NativeSteedChitComponent extends SquareChitComponent implements Bat
 		String letterCode = name.substring(0,1).toUpperCase();
 		
 		// Draw image
-		String horse_type = (String)gameObject.getAttribute("this","horse");
-		if (horse_type!=null) {
-			String folder = useColorIcons()?"steed_c":"steed";
-			horse_type = horse_type + (useColorIcons()?("_"+letterCode.toLowerCase()):"");
-			drawIcon(g,folder,horse_type,0.5);
+		if (isDisplayStyleAlternative() && gameObject.hasThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE) && gameObject.hasThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE)) {
+			double size = 0.5;
+			int yOffset = 0;
+			String folder = gameObject.getThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE);
+			String icon = gameObject.getThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE);
+			if (gameObject.hasThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE)) {
+				size = Double.parseDouble(gameObject.getThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE));
+			}
+			if (gameObject.hasThisAttribute(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE)) {
+				yOffset = getThisInt(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE);
+			}
+			drawIcon(g,folder,icon,size,0,yOffset,null);
+		}
+		else if (gameObject.hasThisAttribute(Constants.SUPER_REALM)) {
+			double size = 0.5;
+			int yOffset = 0;
+			String folder = gameObject.getThisAttribute(Constants.ICON_FOLDER);
+			String icon = gameObject.getThisAttribute(Constants.ICON_TYPE);
+			if (gameObject.hasThisAttribute(Constants.ICON_SIZE)) {
+				size = Double.parseDouble(gameObject.getThisAttribute(Constants.ICON_SIZE));
+			}
+			if (gameObject.hasThisAttribute(Constants.ICON_Y_OFFSET)) {
+				yOffset = getThisInt(Constants.ICON_Y_OFFSET);
+			}
+			drawIcon(g,folder,icon,size,0,yOffset,null);
+		}
+		else {
+			String horse_type = gameObject.getThisAttribute("horse");
+			if (horse_type!=null) {
+				String folder = useColorIcons()?"steed_c":"steed";
+				horse_type = horse_type + (useColorIcons()?("_"+letterCode.toLowerCase()):"");
+				drawIcon(g,folder,horse_type,0.5);
+			}
 		}
 		
 		TextType tt;
 		
 		// Draw Owner
-		if (!getGameObject().hasThisAttribute("companion")) {
+		if (!getGameObject().hasThisAttribute("companion") && !getGameObject().hasThisAttribute(RealmComponent.MONSTER_STEED)) {
 			String id;
 			if (getGameObject().hasThisAttribute(Constants.BOARD_NUMBER)) {
 				id = name.substring(name.length() - 4,name.length()-2).trim();
@@ -103,22 +255,67 @@ public class NativeSteedChitComponent extends SquareChitComponent implements Bat
 			else {
 				id = name.substring(name.length() - 2).trim();
 			}
-			tt = new TextType(letterCode+id,getChitSize(),"WHITE_NOTE");
-			tt.draw(g,getChitSize()-10-tt.getWidth(g),7,Alignment.Left);
+			tt = new TextType(letterCode+id,getChitSize(),"NORMAL");
+		}
+		else {
+			tt = new TextType(name,getChitSize(),"NORMAL");
+		}
+		tt.draw(g,getChitSize()-10-tt.getWidth(g),7,Alignment.Left);
+		if (RealmComponent.displaySubline && getGameObject().hasThisAttribute("native")) {
+			String text = getGameObject().getThisAttribute("native");
+			if (getGameObject().hasThisAttribute("rank")) {
+				text = text + " " + getGameObject().getThisAttribute("rank");
+			}
+			tt = new TextType(text,(getChitSize()>>1)+20, "ITALIC");
+			if (getGameObject().hasThisAttribute(Constants.CLAN)) {
+				Color color = g.getColor();
+				Color clanColor = MagicRealmColor.getClanColor(getGameObject().getThisAttribute(Constants.CLAN));
+				tt.draw(g,5,13,Alignment.Left,clanColor);
+				g.setColor(color);
+			} else {
+				tt.draw(g,5,13,Alignment.Left);
+			}
 		}
 		
 		// Draw Stats
 		String asterisk = isTrotting()?"":"*";
 		
-		String speed = getMoveSpeed().getSpeedString();
-		String strength = getStrength().getChitString();
+		Speed speed = getMoveSpeed();
+		String speedString = speed.getSpeedString();
+		Strength strength = getStrength();
+		String strengthString = strength.getChitString();
 		
-		tt = new TextType(strength,getChitSize(),"BIG_BOLD");
+		String textType = "BIG_BOLD";
+		if (RealmComponent.displayColoredStats) {
+			Strength defaultStrength = new Strength(getFaceAttributeString("strength"));
+			if (strength.strongerThan(defaultStrength)) {
+				textType = "BIG_BOLD_BLUE";
+			} else if (defaultStrength.strongerThan(strength)) {
+				textType = "BIG_BOLD_RED";
+			}
+		}
+		tt = new TextType(strengthString,getChitSize(),textType);
 		tt.draw(g,10,(getChitSize()>>1)-tt.getHeight(g),Alignment.Left);
 		
-		tt = new TextType(speed+asterisk,getChitSize(),"BIG_BOLD");
+		textType = "BIG_BOLD";
+		if (RealmComponent.displayColoredStats) {
+			Speed defaultSpeed = new Speed(getFaceAttributeInteger("move_speed"));
+			if (speed.fasterThan(defaultSpeed)) {
+				textType = "BIG_BOLD_BLUE";
+			} else if (defaultSpeed.fasterThan(speed)) {
+				textType = "BIG_BOLD_RED";
+			}
+		}
+		tt = new TextType(speedString+asterisk,getChitSize(),textType);
 		tt.draw(g,getChitSize()>>1,getChitSize()-(getChitSize()>>2)-(getChitSize()>>3),Alignment.Left);
 		
+		if (RealmComponent.displayArmor && isArmored()) {
+			g.setColor(Color.black);
+			g.drawRect(0,0,getChitSize(),getChitSize());
+			g.drawRect(1,1,getChitSize()-2,getChitSize()-2);
+		}
+		
+		drawAttentionMarkers(g);
 		drawDamageAssessment(g);
 	}
 	// BattleChit Interface
@@ -129,9 +326,31 @@ public class NativeSteedChitComponent extends SquareChitComponent implements Bat
 	    return null; // horses don't have length
 	}
 	public Speed getMoveSpeed() {
-	    return new Speed(getFaceAttributeInteger("move_speed"),speedModifier());
+		int mod = speedModifier();
+		Speed speed = new Speed(getFaceAttributeInteger("move_speed"),mod);
+		if (getGameObject().hasThisAttribute(Constants.GROW_WINGS) && (new Speed(Constants.GROW_WINGS_SPEED)).fasterThan(speed)) {
+			mod--;
+			speed = new Speed(getFaceAttributeInteger("move_speed"),mod);
+		}
+		if (this.isActivated() && !speed.fasterThanOrEqual(new Speed(2))) {
+			RealmComponent owner = getHeldBy();
+			if (owner!=null) {
+				CharacterWrapper character = new CharacterWrapper(owner.getGameObject());
+				if (character.affectedByKey(Constants.SPURS)) {
+					mod--;
+					speed = new Speed(getFaceAttributeInteger("move_speed"),mod);
+				}
+			}
+		}
+		return speed;
+	}
+	public boolean flies() {
+		return getGameObject().hasThisAttribute(Constants.FLYING) || getGameObject().hasThisAttribute(Constants.GROW_WINGS);
 	}
 	public Speed getFlySpeed() {
+		if (flies()) {
+			return getMoveSpeed();
+		}
 		return null;
 	}
 	public boolean hasAnAttack() {
@@ -142,7 +361,14 @@ public class NativeSteedChitComponent extends SquareChitComponent implements Bat
 	}
 	public Strength getStrength() {
 		Strength strength = new Strength(getFaceAttributeString("strength"));
-		strength.modify(sizeModifier());
+		int mod = sizeModifier();
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT)) {
+			mod--;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) {
+			mod++;
+		}
+		strength.modify(mod);
 		return strength;
 	}
 	public Harm getHarm() {
@@ -153,6 +379,9 @@ public class NativeSteedChitComponent extends SquareChitComponent implements Bat
 	}
 	public String getMagicType() {
 	    return null; // horses don't have magic
+	}
+	public String getAttackSpell() {
+		return null; // horses don't have magic
 	}
 	// BattleHorse Interface
 	public void setGallop() {
@@ -166,27 +395,74 @@ public class NativeSteedChitComponent extends SquareChitComponent implements Bat
 	}
 	public int getManeuverCombatBox() {
 		CombatWrapper combat = new CombatWrapper(getGameObject());
-		return combat.getCombatBox();
+		return combat.getCombatBoxDefense();
 	}
 	public int getAttackCombatBox() {
 		CombatWrapper combat = new CombatWrapper(getGameObject());
-		return combat.getCombatBox();
+		return combat.getCombatBoxAttack();
 	}
 	public boolean applyHit(GameWrapper game,HostPrefWrapper hostPrefs,BattleChit attacker,int box,Harm attackerHarm,int attackOrderPos) {
-		Harm harm = new Harm(attackerHarm);
-		Strength vulnerability = new Strength(getAttribute("this","vulnerability"));
-		if (!harm.getIgnoresArmor() && getGameObject().hasThisAttribute(Constants.ARMORED)) {
-			harm.dampenSharpness();
-			RealmLogging.logMessage(attacker.getGameObject().getName(),"Hits armor, and reduces sharpness: "+harm.toString());
+		RealmComponent rider = getRider();
+		if (rider!=null) {
+			CombatWrapper combatRider = new CombatWrapper(rider.getGameObject());
+			ArrayList<SpellWrapper> holyShieldsRider = SpellUtility.getBewitchingSpellsWithKey(rider.getGameObject(),Constants.HOLY_SHIELD);
+			if ((holyShieldsRider!=null&&!holyShieldsRider.isEmpty()) || rider.affectedByKey(Constants.HOLY_SHIELD) || combatRider.hasHolyShield(attacker.getAttackSpeed(),attacker.getLength())) {
+				for (SpellWrapper spell : holyShieldsRider) {
+					spell.expireSpell();
+				}
+				combatRider.setHolyShield(attacker.getAttackSpeed(), attacker.getLength());
+				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits Holy Shield and the attack is blocked.");
+				return false;
+			}
 		}
+		
+		Harm harm = new Harm(attackerHarm);
+		Strength vulnerability = new Strength(getThisAttribute("vulnerability"));
+		
+		if (getGameObject().hasThisAttribute(Constants.POISON_IMMUNITY)) {
+			if (attacker.isCharacter()) {
+				WeaponChitComponent weapon = ((CharacterChitComponent)attacker).getAttackingWeapon();
+				if (weapon!=null && weapon.getGameObject().hasThisAttribute(Constants.POISON)) {
+					harm.dampenSharpness();
+					RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Steed has poison immunity and additional sharpness is ignored: "+harm.toString());
+				}
+			}
+			if (attacker.getGameObject().hasThisAttribute(Constants.POISON)) {
+				harm.dampenSharpness();
+				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Steed has poison immunity and additional sharpness is ignored: "+harm.toString());
+			}
+		}
+		
+		boolean armorPiercing = attacker.getGameObject().hasThisAttribute(Constants.ARMOR_PIERCING) || (attacker.isCharacter() && (new CharacterWrapper(attacker.getGameObject())).affectedByKey(Constants.ARMOR_PIERCING));
+		if (!harm.getIgnoresArmor() && !armorPiercing && isArmored()) {
+			harm.dampenSharpness();
+			RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits armor, and reduces sharpness: "+harm.toString());
+		}
+		else if (!isArmored() && !armorPiercing && hasBarkskin()) {
+			ColorMagic attackerImmunityColor = ColorMagic.makeColorMagic(attacker.getGameObject().getThisAttribute(Constants.MAGIC_IMMUNITY),true);
+			if (attackerImmunityColor!=null && (attackerImmunityColor.isPrismColor()||attackerImmunityColor.getColorNumber()==ColorMagic.GRAY)) {
+				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Barkskin is ignored.");
+			}
+			else {
+				harm.dampenSharpness();
+				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits barkskin, and reduces sharpness: "+harm.toString());
+			}
+		}
+		
 		Strength applied = harm.getAppliedStrength();
-		if (applied.strongerOrEqualTo(vulnerability)) {
+		if (hostPrefs.hasPref(Constants.HOUSE2_DENIZENS_WOUNDS) && applied.equalTo(vulnerability)) {
+			addWound();
+			RealmLogging.logMessage(getGameObject().getNameWithNumber(),"Wounded.");
+		}
+		else if (applied.strongerOrEqualTo(vulnerability)) {
 			// Dead horse!
 			CombatWrapper combat = new CombatWrapper(getGameObject());
 			combat.setKilledBy(attacker.getGameObject());
+			combat.setKilledLength(attacker.getLength());
+			combat.setKilledSpeed(attacker.getAttackSpeed());
 			combat.setHitByOrderNumber(attackOrderPos);
-			RealmLogging.logMessage(attacker.getGameObject().getName(),"Kills the "+getGameObject().getName());			
-			return true;
+			RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Kills the "+getGameObject().getNameWithNumber());
+			if (!hostPrefs.hasPref(Constants.SR_ENDING_COMBAT)) return true;
 		}
 		return false;
 	}
@@ -196,7 +472,7 @@ public class NativeSteedChitComponent extends SquareChitComponent implements Bat
 	public String getMissileType() {
 		return null;
 	}
-	public void changeWeaponState(boolean hit) {
+	public void changeWeaponState(HostPrefWrapper hostPrefs) {
 		// Do nothing
 	}
 	public boolean hitsOnTie() {
@@ -206,12 +482,41 @@ public class NativeSteedChitComponent extends SquareChitComponent implements Bat
 		return null;
 	}
 	public Strength getVulnerability() {
-		Strength strength = new Strength(getAttribute("this", "vulnerability"));
-		strength.modify(sizeModifier());
+		Strength strength = new Strength(getThisAttribute("vulnerability"));
+		int mod = vulnerabilityModifier();
+		if (getGameObject().hasThisAttribute(Constants.WEAKENED_VULNERABILITY)) {
+			mod--;
+		}
+		if (getGameObject().hasThisAttribute(Constants.STRENGTHENED_VULNERABILITY)) {
+			mod++;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_DECREASED_VULNERABILITY)) {
+			mod--;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_VULNERABILITY)) {
+			mod++;
+		}
+		if (getGameObject().hasThisAttribute(Constants.WOUNDS)) {
+			mod = mod - getWounds();
+		}
+		strength.modify(mod);
 		return strength;
 	}
 	public boolean isArmored() {
-		return getGameObject().hasThisAttribute(Constants.ARMORED);
+		if (getGameObject().hasThisAttribute(Constants.ARMORED)) {
+			return true;
+		}
+		RealmComponent owner = getHeldBy();
+		if (getGameObject().hasThisAttribute("horse") && this.isActivated() && getStrength().strongerOrEqualTo(new Strength("M")) && owner!=null) {
+			CharacterWrapper character = new CharacterWrapper(owner.getGameObject());
+			if (character.affectedByKey(Constants.HORSE_ARMOR)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	public boolean hasBarkskin() {
+		return getGameObject().hasThisAttribute(Constants.BARKSKIN);
 	}
 	public String getAttackString() {
 		Strength str = getStrength();
@@ -230,5 +535,14 @@ public class NativeSteedChitComponent extends SquareChitComponent implements Bat
 	}
 	public boolean isDead() {
 		return getGameObject().hasThisAttribute(Constants.DEAD);
+	}
+	public void addWound() {
+		addWounds(1);
+	}
+	public void addWounds(int i) {
+		getGameObject().setThisAttribute(Constants.WOUNDS,getWounds()+i); 
+	}
+	public int getWounds() {
+		return getGameObject().getThisInt(Constants.WOUNDS);
 	}
 }

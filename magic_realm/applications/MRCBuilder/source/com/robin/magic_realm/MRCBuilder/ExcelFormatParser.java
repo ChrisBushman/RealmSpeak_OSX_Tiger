@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.MRCBuilder;
 
 import java.io.*;
@@ -25,15 +8,15 @@ public class ExcelFormatParser {
 	public ExcelFormatParser(File file1) {
 		character = null;
 		file = file1;
-		Vector vector = readIt();
+		Vector<RecordParser> vector = readIt();
 		if (vector != null)
 			buildCharacter(vector);
 	}
 
-	public Vector readIt() {
+	public Vector<RecordParser> readIt() {
 		try {
 			BufferedReader bufferedreader = new BufferedReader(new FileReader(file));
-			Vector vector = new Vector();
+			Vector<RecordParser> vector = new Vector<RecordParser>();
 			String s;
 			while ((s = bufferedreader.readLine()) != null)
 				vector.addElement(new RecordParser(s, "\t"));
@@ -47,24 +30,24 @@ public class ExcelFormatParser {
 		return null;
 	}
 
-	public String getField(Vector vector, int i, int j) {
+	public String getField(Vector<RecordParser> vector, int i, int j) {
 		return getField(vector, new FieldPos(i, j));
 	}
 
-	public String getField(Vector vector, FieldPos fieldpos) {
+	public String getField(Vector<RecordParser> vector, FieldPos fieldpos) {
 		return getField(vector, fieldpos, 0);
 	}
 
-	public String getField(Vector vector, FieldPos fieldpos, int i) {
+	public String getField(Vector<RecordParser> vector, FieldPos fieldpos, int i) {
 		if (vector != null && fieldpos.getRow() < vector.size()) {
-			RecordParser recordparser = (RecordParser) vector.elementAt(fieldpos.getRow());
+			RecordParser recordparser = vector.elementAt(fieldpos.getRow());
 			if (fieldpos.getCol() < recordparser.totalFields())
 				return recordparser.getField(fieldpos.getCol() + i);
 		}
 		return null;
 	}
 
-	public String getNativeString(Vector vector, FieldPos fieldpos) {
+	public String getNativeString(Vector<RecordParser> vector, FieldPos fieldpos) {
 		StringBuffer stringbuffer = new StringBuffer();
 		for (int i = 0; i < 4; i++) {
 			String s = MRCBuilder.matchNat(getField(vector, fieldpos, i * 2));
@@ -78,7 +61,7 @@ public class ExcelFormatParser {
 		return stringbuffer.toString();
 	}
 
-	public void buildCharacter(Vector vector) {
+	public void buildCharacter(Vector<RecordParser> vector) {
 		if (vector != null) {
 			character = new MRCharacter();
 			character.setName(getField(vector, NAME));
@@ -92,7 +75,7 @@ public class ExcelFormatParser {
 			Chit achit[] = new Chit[12];
 			for (int j = 0; j < 12; j++) {
 				int k = 8 + j;
-				RecordParser recordparser = (RecordParser) vector.elementAt(k);
+				RecordParser recordparser = vector.elementAt(k);
 				achit[j] = new Chit(recordparser);
 				if (achit[j].getTextLine(0).toUpperCase().trim().equals("MAGIC")) {
 					String s = achit[j].getTextLine(1).toUpperCase().trim();
@@ -120,7 +103,7 @@ public class ExcelFormatParser {
 			character.setFriendly(getNativeString(vector, FRIENDLY).toString());
 			character.setUnfriendly(getNativeString(vector, UNFRIENDLY).toString());
 			character.setEnemy(getNativeString(vector, ENEMY).toString());
-			Vector vector1 = new Vector();
+			Vector<OutlineEntry> vector1 = new Vector<OutlineEntry>();
 			for (int l = 0; l < 2; l++) {
 				FieldPos fieldpos = new FieldPos(SPECIAL.getRow() + 1 + l, SPECIAL.getCol() + 1);
 				String s1 = getField(vector, fieldpos);
@@ -205,7 +188,7 @@ public class ExcelFormatParser {
 				String s5 = "";
 				String s6 = getField(vector, fieldpos1, 7);
 				try {
-					Integer integer = Integer.valueOf(s6);
+					Integer integer = Integer.parseInt(s6);
 					if (integer.intValue() > 0)
 						s5 = integer.toString().trim() + " <i>Spell" + plural(integer.intValue()) + "</i> " + s3;
 				}
@@ -226,10 +209,8 @@ public class ExcelFormatParser {
 	}
 
 	public String plural(int i) {
-		if (i > 1)
-			return "s";
-		else
-			return "";
+		if (i > 1) return "s";
+		return "";
 	}
 
 	public MRCharacter getCharacter() {

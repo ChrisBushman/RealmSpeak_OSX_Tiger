@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
 import java.awt.*;
@@ -70,7 +53,9 @@ public class PathDetail implements Comparable {
 				TileComponent connectedTile = parent.getAdjacentTile(edge);
 				if (connectedTile!=null) {
 					PathDetail connectedPath = connectedTile.getEdgePath(Tile.matchingEdge(edge));
-					return connectedPath.getEdgeClearing();
+					if (connectedPath!=null) {
+						return connectedPath.getEdgeClearing();
+					}
 				}
 			}
 			else {
@@ -176,20 +161,18 @@ public class PathDetail implements Comparable {
 		Point p2 = c2.getPosition();
 		if (arc!=null) {
 			return new QuadCurve2D.Float(
-					(float)p1.x,
-					(float)p1.y,
-					(float)arc.x,
-					(float)arc.y,
-					(float)p2.x,
-					(float)p2.y);
+					p1.x,
+					p1.y,
+					arc.x,
+					arc.y,
+					p2.x,
+					p2.y);
 		}
-		else {
-			return new Line2D.Float(
-					(float)p1.x,
-					(float)p1.y,
-					(float)p2.x,
-					(float)p2.y);
-		}
+		return new Line2D.Float(
+				p1.x,
+				p1.y,
+				p2.x,
+				p2.y);
 	}
 	public void setArcPoint(Point p) {
 		this.arc = p;
@@ -206,6 +189,9 @@ public class PathDetail implements Comparable {
 	public boolean isHidden() {
 		return type.equals("hidden");
 	}
+	public boolean isRiver() {
+		return type.equals("river");
+	}
 	public Color getColor() {
 		if (type.equals("caves")) {
 			return Color.black;
@@ -215,6 +201,9 @@ public class PathDetail implements Comparable {
 		}
 		else if (type.equals("hidden")) {
 			return MagicRealmColor.BROWN;
+		}
+		else if (type.equals("river")) {
+			return MagicRealmColor.BLUE;
 		}
 		return MagicRealmColor.TAN;
 	}

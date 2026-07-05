@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
@@ -28,12 +11,13 @@ import com.robin.game.objects.GameObject;
 import com.robin.game.objects.GamePool;
 import com.robin.general.swing.ComponentTools;
 import com.robin.magic_realm.components.swing.RelationshipTable;
+import com.robin.magic_realm.components.utility.Constants;
 
 public class CharacterRelationshipPanel extends CharacterFramePanel {
 
 	protected RelationshipTable relationshipTable;
-	protected Hashtable charIdBoxHash; // id:JCheckBox hash for characters
-	protected Hashtable charNameObjectHash; // name:GameObject hash for characters
+	protected Hashtable<String, JCheckBox> charIdBoxHash; // id:JCheckBox hash for characters
+	protected Hashtable<String, GameObject> charNameObjectHash; // name:GameObject hash for characters
 	
 	public CharacterRelationshipPanel(CharacterFrame parent) {
 		super(parent);
@@ -54,28 +38,53 @@ public class CharacterRelationshipPanel extends CharacterFramePanel {
 		add(sp);
 		
 		// one checkbox for every character
-		charIdBoxHash = new Hashtable();
-		charNameObjectHash = new Hashtable();
+		charIdBoxHash = new Hashtable<String, JCheckBox>();
+		charNameObjectHash = new Hashtable<String, GameObject>();
 		GamePool pool = getGameHandler().getGamePool();
-		ArrayList allChars = pool.find("character");
-		Collections.sort(allChars,new Comparator() {
-			public int compare(Object o1,Object o2) {
-				GameObject go1 = (GameObject)o1;
-				GameObject go2 = (GameObject)o2;
+		ArrayList<GameObject> allChars = pool.find("character");
+		Collections.sort(allChars,new Comparator<GameObject>() {
+			public int compare(GameObject go1,GameObject go2) {
 				return go1.getName().compareTo(go2.getName());
 			}
 		});
 		
+		boolean customCharacters = getHostPrefs().hasPref(Constants.EXP_CUSTOM_CHARS);
 		JPanel enemyPanel = new JPanel(new GridLayout(allChars.size()+1,1));
-		JLabel panelHeader = new JLabel("ENEMIES",JLabel.CENTER);
+		JLabel panelHeader = new JLabel("ENEMIES",SwingConstants.CENTER);
 		panelHeader.setBackground(Color.red);
 		panelHeader.setForeground(Color.white);
 		panelHeader.setOpaque(true);
 		enemyPanel.add(panelHeader);
 		ComponentTools.lockComponentSize(enemyPanel,100,allChars.size()*18);
-		for (Iterator i=allChars.iterator();i.hasNext();) {
-			GameObject aChar = (GameObject)i.next();
+		JButton noneButton = new JButton("none");
+		noneButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				for (GameObject otherCharacter : charNameObjectHash.values()) {
+					if(!otherCharacter.equals(getCharacter().getGameObject())) {
+						getCharacter().setEnemyCharacter(otherCharacter,false);
+					}
+				}
+				updatePanel();
+			}
+		});
+		enemyPanel.add(noneButton);
+		JButton allButton = new JButton("all");
+		allButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				for (GameObject otherCharacter : charNameObjectHash.values()) {
+					if(!otherCharacter.equals(getCharacter().getGameObject())) {
+						getCharacter().setEnemyCharacter(otherCharacter,true);
+					}
+				}
+				updatePanel();
+			}
+		});
+		enemyPanel.add(allButton);
+		for (GameObject aChar : allChars) {
 			if (!aChar.equals(getCharacter().getGameObject())) { // no checkbox option for self
+				if (aChar.hasThisAttribute(Constants.CUSTOM_CHARACTER) && !customCharacters) {
+					continue;
+				}
 				JCheckBox cb = new JCheckBox(aChar.getName(),false);
 				charIdBoxHash.put(aChar.getStringId(),cb);
 				charNameObjectHash.put(aChar.getName(),aChar);
@@ -83,7 +92,7 @@ public class CharacterRelationshipPanel extends CharacterFramePanel {
 					public void actionPerformed(ActionEvent ev) {
 						JCheckBox thisCb = (JCheckBox)ev.getSource();
 						boolean enemy = thisCb.isSelected();
-						GameObject theChar = (GameObject)charNameObjectHash.get(thisCb.getText());
+						GameObject theChar = charNameObjectHash.get(thisCb.getText());
 						getCharacter().setEnemyCharacter(theChar,enemy);
 					}
 				});
@@ -97,9 +106,8 @@ public class CharacterRelationshipPanel extends CharacterFramePanel {
 		add(sp);
 	}
 	public void updatePanel() {
-		for (Iterator i=charNameObjectHash.values().iterator();i.hasNext();) {
-			GameObject aChar = (GameObject)i.next();
-			JCheckBox cb = (JCheckBox)charIdBoxHash.get(aChar.getStringId());
+		for (GameObject aChar : charNameObjectHash.values()) {
+			JCheckBox cb = charIdBoxHash.get(aChar.getStringId());
 			cb.setSelected(getCharacter().isEnemy(aChar));
 		}
 		relationshipTable.fireTableDataChanged();

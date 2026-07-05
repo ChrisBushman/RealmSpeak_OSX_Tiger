@@ -1,22 +1,6 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 
@@ -28,12 +12,13 @@ import com.robin.magic_realm.components.attribute.*;
 import com.robin.magic_realm.components.utility.ClearingUtility;
 import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
+import com.robin.magic_realm.components.wrapper.CombatWrapper;
 
 public class WeaponChitComponent extends RoundChitComponent {
 	public static final String UNALERTED = LIGHT_SIDE_UP;
 	public static final String ALERTED = DARK_SIDE_UP;
 
-	protected WeaponChitComponent(GameObject obj) {
+	public WeaponChitComponent(GameObject obj) {
 		super(obj);
 		try {
 			lightColor = MagicRealmColor.getColor(getAttribute("unalerted","chit_color"));
@@ -62,16 +47,66 @@ public class WeaponChitComponent extends RoundChitComponent {
 		return 75;
 	}
 	public Strength getWeight() {
-		Strength strength = super.getWeight();
+		int mod = 0;
+		if (gameObject.hasThisAttribute(Constants.WEIGHT_NEGLIGIBLE)) return new Strength("N");
 		TileLocation tl = ClearingUtility.getTileLocation(getGameObject());
 		if (tl!=null && tl.isInClearing() && tl.clearing.hasSpellEffect(Constants.HEAVIED)) {
-			strength.modify(1);
+			mod++;
+		}
+		if (!affectedByKey(Constants.ENCHANTED_WEAPON)) {
+			if (affectedByKey(Constants.NO_WEIGHT)) return new Strength();
+			if (gameObject.hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) mod++;
+			if (gameObject.hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT)) mod--;
+			if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT)) {
+				return new Strength(getGameObject().getThisAttribute(Constants.ALTER_WEIGHT),mod);
+			}
+		}
+		
+		Strength strength = new Strength();
+		if(getGameObject().hasThisAttribute(Constants.WEIGHT)) {
+			strength = new Strength(getGameObject().getThisAttribute(Constants.WEIGHT),mod);
+		} else {
+			String val = getFaceAttributeString("strength");
+			if (val!=null && val.trim().length()>0) {
+				strength = new Strength(val,mod);
+			}
 		}
 		return strength;
 	}
 	
 	public int getLength() {
-		return gameObject.getThisInt("length");
+		CombatWrapper combatWeapon = new CombatWrapper(gameObject);
+		if (combatWeapon.wasThrown()) return 12;
+		if (getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON_LENGTH)) {
+			RealmComponent wielder = RealmComponent.getRealmComponent(getWielder().getGameObject());
+			if ((wielder.getTarget() == null || !wielder.getTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS))
+					&& (wielder.get2ndTarget() == null || !wielder.get2ndTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS))) {
+				return Integer.parseInt(getGameObject().getThisAttribute(Constants.ENCHANTED_WEAPON_LENGTH));
+			}
+		}
+		if (gameObject.hasThisAttribute(Constants.MAGIC_COLOR_BONUS_ACTIVE) && gameObject.hasThisAttribute(Constants.MAGIC_COLOR_BONUS_LENGTH)) {
+			return gameObject.getThisInt(Constants.MAGIC_COLOR_BONUS_LENGTH);
+		}
+		int mod = 0;
+		int length = gameObject.getThisInt("length");
+		if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT)) {
+			String baseWeight = gameObject.getThisAttribute(Constants.WEIGHT);
+			if (baseWeight==null) {
+				baseWeight = getFaceAttributeString("strength");
+			}
+			int difference = (new Strength(gameObject.getThisAttribute(Constants.ALTER_WEIGHT))).getLevels()-(new Strength((baseWeight))).getLevels();
+			mod = mod + difference;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT)) {
+			mod--;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) {
+			mod++;
+		}
+		length = length+mod;
+		if (length<=0) return 0;
+		if (length>=18) return 18;
+		return length;
 	}
 	public String getLightSideStat() {
 		return "unalerted";
@@ -80,22 +115,85 @@ public class WeaponChitComponent extends RoundChitComponent {
 		return "alerted";
 	}
 	public Speed getSpeed() {
+		if (getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON_SPEED)) {
+			RealmComponent wielder = RealmComponent.getRealmComponent(getWielder().getGameObject());
+			if ((wielder.getTarget() == null || !wielder.getTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS))
+					&& (wielder.get2ndTarget() == null || !wielder.get2ndTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS))) {
+				return new Speed(getGameObject().getThisAttribute(Constants.ENCHANTED_WEAPON_SPEED),0);
+			}
+		}
 		String val = getFaceAttributeString("attack_speed");
+		int mod = 0;
+		if (getWielder()!=null && new CombatWrapper(getWielder().getGameObject()).isFreezed()) {
+			mod = 1;
+		}
+		if (gameObject.hasThisAttribute(Constants.MAGIC_COLOR_BONUS_ACTIVE)) {
+			String magicSpeed = getFaceAttributeString(Constants.MAGIC_COLOR_BONUS_SPEED);
+			if (magicSpeed!=null && magicSpeed.trim().length()>0) return new Speed(magicSpeed,mod);
+		}
 		if (val!=null && val.trim().length()>0) {
-			return new Speed(val);
+			if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT) && !getFaceAttributeString("speed").matches(Constants.WEIGHT)) {
+				String baseWeight = gameObject.getThisAttribute(Constants.WEIGHT);
+				if (baseWeight==null) {
+					baseWeight = getFaceAttributeString("strength");
+				}
+				int difference = (new Strength(gameObject.getThisAttribute(Constants.ALTER_WEIGHT))).getLevels()-(new Strength((baseWeight))).getLevels();
+				int baseSpeed = Integer.parseInt(val);
+				if (!isMissile()) {
+					if (baseSpeed+difference<2) {
+						difference = 2-baseSpeed;
+					}
+				}
+				else {
+					if (baseSpeed+difference<1) {
+						difference = 1-baseSpeed;
+					}
+				}
+				mod = mod+difference;
+			}
+			if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT)) {
+				mod--;
+			}
+			if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) {
+				mod++;
+			}
+			return new Speed(val,mod);
 		}
 		return null;
 	}
 	public Strength getStrength() {
+		if (getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON_STRENGTH)) {
+			RealmComponent wielder = RealmComponent.getRealmComponent(getWielder().getGameObject());
+			if ((wielder.getTarget() == null || !wielder.getTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS))
+					&& (wielder.get2ndTarget() == null || !wielder.get2ndTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS))) {
+				return new Strength(getGameObject().getThisAttribute(Constants.ENCHANTED_WEAPON_STRENGTH));
+			}
+		}
 		Strength strength = new Strength();
 		String val = getFaceAttributeString("strength");
 		if (val!=null && val.trim().length()>0) {
 			strength = new Strength(val);
 		}
 		TileLocation tl = ClearingUtility.getTileLocation(getGameObject());
+		int mod = 0;
 		if (tl!=null && tl.isInClearing() && tl.clearing.hasSpellEffect(Constants.HEAVIED)) {
-			strength.modify(1);
+			mod++;
 		}
+		if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT)) {
+			String baseWeight = gameObject.getThisAttribute(Constants.WEIGHT);
+			if (baseWeight==null) {
+				baseWeight = getFaceAttributeString("strength");
+			}
+			int difference = (new Strength(gameObject.getThisAttribute(Constants.ALTER_WEIGHT))).getLevels()-(new Strength((baseWeight))).getLevels();
+			mod = mod+difference;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT)) {
+			mod--;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) {
+			mod++;
+		}
+		strength.modify(mod);
 		return strength;
 	}
 	public CharacterWrapper getWielder() {
@@ -109,12 +207,27 @@ public class WeaponChitComponent extends RoundChitComponent {
 		return null;
 	}
 	public int getSharpness() {
+		if (getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON_SHARPNESS)) {
+			RealmComponent wielder = RealmComponent.getRealmComponent(getWielder().getGameObject());
+			if ((wielder.getTarget() == null || !wielder.getTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS))
+					&& (wielder.get2ndTarget() == null || !wielder.get2ndTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS))) {
+				return Integer.parseInt(getGameObject().getThisAttribute(Constants.ENCHANTED_WEAPON_SHARPNESS));
+			}
+		}
 		int sharpness = getFaceAttributeInt("sharpness");
 		sharpness += getGameObject().getThisInt(Constants.ADD_SHARPNESS);
+		
+		if (gameObject.hasThisAttribute(Constants.MAGIC_COLOR_BONUS_ACTIVE)) {
+			sharpness += getFaceAttributeInt(Constants.MAGIC_COLOR_BONUS_SHARPNESS);
+		}
 		
 		CharacterWrapper wielder = getWielder();
 		if (wielder!=null && wielder.hasActiveInventoryThisKey(Constants.INCREASE_SHARP)) {
 			sharpness++;
+		}
+		
+		if (sharpness>0 && getGameObject().hasThisAttribute(Constants.BLUNT) && !getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON)) {
+			sharpness--;
 		}
 		
 		if (sharpness>0) {
@@ -137,7 +250,10 @@ public class WeaponChitComponent extends RoundChitComponent {
 		return light==null?dark==null:light.equals(dark);
 	}
 	public boolean isMissile() {
-		return gameObject.hasThisAttribute("missile");
+		return gameObject.hasThisAttribute("missile") && !gameObject.hasThisAttribute(Constants.ENCHANTED_WEAPON);
+	}
+	public boolean isThrowable() {
+		return gameObject.hasThisAttribute(Constants.THROWABLE);
 	}
 	public void paintComponent(Graphics g1) {
 		Graphics2D g = (Graphics2D)g1;
@@ -147,29 +263,52 @@ public class WeaponChitComponent extends RoundChitComponent {
 		String icon_type = gameObject.getThisAttribute(Constants.ICON_TYPE);
 		String icon_folder = gameObject.getThisAttribute(Constants.ICON_FOLDER);
 		if (icon_type!=null) {
-			drawIcon(g,icon_folder,icon_type,0.5);
+			double size = 0.5;
+			if(gameObject.hasThisAttribute(Constants.ICON_SIZE)) {
+				size = Double.parseDouble(gameObject.getThisAttribute(Constants.ICON_SIZE));
+			}
+			drawIcon(g,icon_folder,icon_type,size);
 		}
 		
 		// Draw Stats
 		String statSide = isAlerted()?"alerted":"unalerted";
 		String asterisk = isAlerted()?"*":"";
 		
-		String speed = getAttribute(statSide,"attack_speed");
-		String strength = getStrength().getChitString();
+		Speed speed = getSpeed();
+		String speedString = speed==null?"":speed.getSpeedString();
+		Strength strength = getStrength();
 		int sharpness = getSharpness();
 		
 		// Draw attack
-		TextType tt = new TextType(strength,getChitSize(),"BIG_BOLD");
+		String textType = "BIG_BOLD";
+		if (RealmComponent.displayColoredStats) {
+			Strength defaultStrength = new Strength(getAttribute(statSide,"strength"));
+			if (strength.strongerThan(defaultStrength)) {
+				textType = "BIG_BOLD_BLUE";
+			} else if(defaultStrength.strongerThan(strength)) {
+				textType = "BIG_BOLD_RED";
+			}			
+		}
+		TextType tt = new TextType(strength.getChitString(),getChitSize(),textType);
+		int deafaultSharpness = getFaceAttributeInt("sharpness");
 		int x = (getChitSize()>>1)-(getChitSize()>>3)-(5*sharpness);
 		int y = getChitSize()-15-tt.getHeight(g)+5;
 		tt.draw(g,x,y,Alignment.Left);
 		x += tt.getWidth(g)+5;
 		y += tt.getHeight(g)-8;
+		g.setColor(Color.black);
+		if (RealmComponent.displayColoredStats && deafaultSharpness>sharpness) {
+			g.setColor(Color.RED);
+		}
 		for (int i=0;i<sharpness;i++) {
+			if (RealmComponent.displayColoredStats && i==deafaultSharpness) {
+				g.setColor(Color.BLUE);
+			}
 			StarShape star = new StarShape(x,y,5,8);
 			g.fill(star);
 			x += 12;
 		}
+		g.setColor(Color.black);
 		
 		// Draw alert asterisk
 		tt = new TextType(asterisk,getChitSize(),"BIG_BOLD");
@@ -178,8 +317,34 @@ public class WeaponChitComponent extends RoundChitComponent {
 		// Draw speed
 		x = 15;
 		y = 5;
-		tt = new TextType(speed,getChitSize(),"BIG_BOLD");
+		textType = "BIG_BOLD";
+		if (RealmComponent.displayColoredStats) {
+			String defaultSpeed = getAttribute(statSide,"attack_speed");
+			if ((defaultSpeed==null || defaultSpeed.length() == 0) && speed!=null) {
+				textType = "BIG_BOLD_BLUE";
+			} else if(speed!=null && defaultSpeed!=null && defaultSpeed.length() > 0 && speed.getNum()<Integer.parseInt(defaultSpeed)) {
+				textType = "BIG_BOLD_BLUE";
+			} else if(speed!=null && defaultSpeed!=null && defaultSpeed.length() > 0 && speed.getNum()>Integer.parseInt(defaultSpeed)) {
+				textType = "BIG_BOLD_RED";
+			}
+		}
+		tt = new TextType(speedString,getChitSize(),textType);
 		tt.draw(g,x,y,Alignment.Left);
+		
+		// Draw length
+		int length = getLength();
+		String lengthString = String.valueOf(length);
+		textType = "BOLD";
+		if (RealmComponent.displayColoredStats) {
+			int defaultLength = gameObject.getThisInt("length");
+			if (length>defaultLength) {
+				textType = "BOLD_BLUE";
+			} else if(defaultLength>length) {
+				textType = "BOLD_RED";
+			}
+		}
+		tt = new TextType(lengthString,getChitSize(),textType);
+		tt.draw(g,x+13,y+7,Alignment.Left);
 		
 		// If magic, draw name
 		if (gameObject.hasKey("magic")) {

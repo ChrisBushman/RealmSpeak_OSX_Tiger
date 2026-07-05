@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmCharacterBuilder;
 
 import java.awt.*;
@@ -29,7 +12,9 @@ import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
 import com.robin.general.io.FileManager;
 import com.robin.general.swing.ComponentTools;
+import com.robin.general.swing.IconFactory;
 import com.robin.general.swing.ImageCache;
+import com.robin.magic_realm.components.CharacterInfoCard;
 import com.robin.magic_realm.components.utility.*;
 
 public class RealmCharacterBuilderFrame extends JFrame {
@@ -45,6 +30,7 @@ public class RealmCharacterBuilderFrame extends JFrame {
 	private JMenuItem exportCharacterCardWithoutPictureItem;
 	private JMenuItem exportCharacterChitsAndGearItem;
 	private JMenuItem exportAllCharacterGraphicsItem;
+	private JMenuItem loadGameDataFile;
 	private JMenuItem exitItem;
 	
 	private JMenu helpMenu;
@@ -76,8 +62,8 @@ public class RealmCharacterBuilderFrame extends JFrame {
 	}
 	private void initComponents() {
 		setTitle("Realm Character Builder");
-		setSize(1050,700);
-//		setResizable(false);
+		setIconImage(IconFactory.findIcon("images/actions/hire.gif").getImage());
+		setSize(1440,920);
 		
 		JMenuBar menuBar = new JMenuBar();
 		fileMenu = new JMenu("File");
@@ -161,6 +147,19 @@ public class RealmCharacterBuilderFrame extends JFrame {
 				}
 			});
 		fileMenu.add(exportAllCharacterGraphicsItem);
+		fileMenu.add(new JSeparator());
+		loadGameDataFile = new JMenuItem("Load GameData file");
+		loadGameDataFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				boolean gameLoaded = setGameDataFile();
+				if (!gameLoaded) return;
+				RealmLoader loader = new RealmLoader();
+				magicRealmData = loader.getData();
+				TemplateLibrary.reinitSingleton();
+				updateControls();
+			}
+		});
+		fileMenu.add(loadGameDataFile);
 		fileMenu.add(new JSeparator());
 			exitItem = new JMenuItem("Exit");
 			exitItem.addActionListener(new ActionListener() {
@@ -275,7 +274,7 @@ public class RealmCharacterBuilderFrame extends JFrame {
 			Window window = new Window(this);
 			window.setSize(160,80);
 			window.setLayout(new BorderLayout());
-			JLabel label = new JLabel("Saved",JLabel.CENTER);
+			JLabel label = new JLabel("Saved",SwingConstants.CENTER);
 			label.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createRaisedBevelBorder(),BorderFactory.createLineBorder(Color.green,4)));
 			label.setFont(new Font("Dialog",Font.BOLD,18));
 			window.add(label,"Center");
@@ -317,7 +316,7 @@ public class RealmCharacterBuilderFrame extends JFrame {
 		}
 		model.saveToFile(finalPath,true);
 	}
-	private void close() {
+	private static void close() {
 		System.exit(0);
 	}
 	private void startNewCharacter() {
@@ -340,6 +339,16 @@ public class RealmCharacterBuilderFrame extends JFrame {
 		buildPanel = null;
 		updateControls();
 	}
+	private boolean setGameDataFile() {
+		JFileChooser chooser = new JFileChooser(new File("./"));
+		chooser.setAcceptAllFileFilterUsed(false);
+		chooser.setFileFilter(GameFileFilters.createGameDataFileFilter());
+		if (chooser.showOpenDialog(this)==JFileChooser.APPROVE_OPTION) {
+			RealmLoader.DATA_PATH = chooser.getSelectedFile().getAbsolutePath();
+			return true;
+		}
+		return false;
+	}
 	public static void main(String[] args) {
 		ComponentTools.setSystemLookAndFeel();
 		RealmUtility.setupTextType();
@@ -347,11 +356,9 @@ public class RealmCharacterBuilderFrame extends JFrame {
 		frame.setLocationRelativeTo(null);
 		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent ev) {
-				frame.close();
+				RealmCharacterBuilderFrame.close();
 			}
 		});
 		frame.setVisible(true);
-//		frame.startNewCharacter();
-//		frame.updateControls();
 	}
 }

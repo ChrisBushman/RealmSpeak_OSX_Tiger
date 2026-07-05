@@ -1,25 +1,8 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest.requirement;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.logging.Logger;
-
 import javax.swing.JFrame;
 
 import com.robin.game.objects.GameObject;
@@ -48,12 +31,12 @@ public class QuestRequirementPath extends QuestRequirement {
 		}
 		path = path.trim();
 		
-		ArrayList history = character.getMoveHistory();
+		ArrayList<String> history = character.getMoveHistory();
 		if (history==null || history.size()==0) {
 			logger.fine("Character hasn't gone anywhere yet.");
 			return false;
 		}
-		ArrayList historyDays = character.getMoveHistoryDayKeys();
+		ArrayList<String> historyDays = character.getMoveHistoryDayKeys();
 		if (history.size()!=historyDays.size()) {
 			logger.fine("QUEST ERROR:  history is different size than historyDays.");
 			return false;
@@ -67,16 +50,23 @@ public class QuestRequirementPath extends QuestRequirement {
 			case Step:
 				startKey = getParentStep().getQuestStepStartTime();
 				break;
+			case Game:
+				startKey = new DayKey(1,1);
+				break;
+			case Day:
+			default:
+				startKey = new DayKey(character.getCurrentDayKey());
+				break;
 		}
 		
 		boolean ignoreJumps = isAllowTransport();
 		StringBuilder sb = new StringBuilder();
 		for (int i=0;i<history.size();i++) {
 			if (startKey!=null) {
-				DayKey dayKey = new DayKey((String)historyDays.get(i));
+				DayKey dayKey = new DayKey(historyDays.get(i));
 				if (dayKey.before(startKey)) continue;
 			}
-			String location = (String)history.get(i);
+			String location = history.get(i);
 			if (CharacterWrapper.MOVE_HISTORY_DAY.equals(location)) continue; // always ignore the days
 			if (ignoreJumps && CharacterWrapper.MOVE_HISTORY_JUMP.equals(location)) continue; // ignore the jumps only if transport is allowed
 			if (sb.length()>0) sb.append(" ");
@@ -97,8 +87,13 @@ public class QuestRequirementPath extends QuestRequirement {
 	
 	public static boolean testPath(String charPath,String testPath) {
 		
+		charPath = " "+charPath;
 		String[] each = testPath.split(" "); // "1 2 3 4 5"
-		String[] pathSections = new String[each.length - 1]; // "1 2" "2 3" "3 4" "4 5" 
+		String[] pathSections = new String[each.length - 1]; // "1 2" "2 3" "3 4" "4 5"
+		if (each.length == 1) {
+			String clearing = (String) Array.get(each, 0);
+			return charPath.contains(" "+clearing) == true;
+		}
 		
 		for (int i=0;i<pathSections.length;i++) {
 			StringBuilder sb = new StringBuilder(each[i]);
@@ -109,7 +104,7 @@ public class QuestRequirementPath extends QuestRequirement {
 		
 		int lastIndex = -1;
 		for(String section:pathSections) {
-			int index = charPath.lastIndexOf(section);
+			int index = charPath.lastIndexOf(" "+section);
 			if (index<0 || index<=lastIndex) return false;
 			lastIndex = index;
 		}
@@ -131,6 +126,10 @@ public class QuestRequirementPath extends QuestRequirement {
 				break;
 			case Step:
 				sb.append(" during the step");
+				break;
+			case Day:
+			default:
+				sb.append(" during the current day");
 				break;
 		}
 		if (!isAllowTransport()) {

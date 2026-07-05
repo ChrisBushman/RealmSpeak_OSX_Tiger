@@ -1,26 +1,9 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.Collection;
-import java.util.Iterator;
 
 import javax.swing.ImageIcon;
 
@@ -35,6 +18,8 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 import com.robin.magic_realm.components.wrapper.CombatWrapper;
 
 public abstract class ChitComponent extends RealmComponent {
+	public static boolean killedByOption = false;
+	
 	public static final Color BACKING = new Color(255,255,255,220);
 	protected static Color TRANSPARENT_RED = new Color(255,0,0,120);
 	protected static Color TRANSPARENT_BLUE = new Color(0,0,255,120);
@@ -45,6 +30,7 @@ public abstract class ChitComponent extends RealmComponent {
 	public static final String LIGHT_SIDE_UP = "light";
 	public static final String DARK_SIDE_UP = "dark";
 
+	public static final int X_CHIT_SIZE = 112;
 	public static final int T_CHIT_SIZE = 100;	// 1"
 	public static final int H_CHIT_SIZE = 88;	// 7/8"
 	public static final int M_CHIT_SIZE = 75;	// 3/4"
@@ -55,7 +41,6 @@ public abstract class ChitComponent extends RealmComponent {
 	protected Color lightColor = MagicRealmColor.TAN;
 	protected Color darkColor = MagicRealmColor.TAN;
 	
-	protected String imageExtension = ".gif";
 	private boolean showFlipSide = false;
 	private boolean ignoreDamage = false;
 	
@@ -65,7 +50,10 @@ public abstract class ChitComponent extends RealmComponent {
 		updateChit();
 	}
 	public static Dimension getDimensionForSize(String size) {
-		if ("T".equals(size)) {
+		if ("X".equals(size)) {
+			return new Dimension(X_CHIT_SIZE,X_CHIT_SIZE);
+		}
+		else if ("T".equals(size)) {
 			return new Dimension(T_CHIT_SIZE,T_CHIT_SIZE);
 		}
 		else if ("H".equals(size)) {
@@ -85,7 +73,7 @@ public abstract class ChitComponent extends RealmComponent {
 		}
 		throw new IllegalArgumentException("Invalid size: "+size);
 	}
-	private static int SHADOW_BORDER = 4;
+	public static int SHADOW_BORDER = 4;
 	protected void updateSize() {
 		if (getSize().width == getChitSize()+SHADOW_BORDER) return;
 		int chitSize = getChitSize()+SHADOW_BORDER;
@@ -183,27 +171,23 @@ public abstract class ChitComponent extends RealmComponent {
 		gameObject.getAttributeBlock("this").put(Constants.FACING_KEY,lightSide?LIGHT_SIDE_UP:DARK_SIDE_UP); // under the hood!
 		updateSize();
 		
-		// (whew!)
-		
 		return image;
 	}
 	protected void drawIcon(Graphics g,String type,String name,double size) {
 		drawIcon(g,type,name,size,0,0,null);
 	}
 	protected void drawIcon(Graphics g,String type,String name,double size,int offsetx,int offsety,Color backing) {
-//		Color backing = isLightSideUp()?lightColor:darkColor;
 		String filename = type+"/"+name;
 		ImageIcon icon = ImageCache.getIcon(filename);
-if (icon==null) {
-//	System.out.println(gameObject.getXMLString());
-	throw new IllegalArgumentException("icon can not be null: "+filename);
-}
+		if (icon==null) {
+				throw new IllegalArgumentException("icon can not be null: "+filename);
+		}
 		drawIcon(g,icon,size,offsetx,offsety,backing);
 	}
 	
 	protected void drawIcon(Graphics g,ImageIcon icon,double size,int offsetx,int offsety,Color backing) {
-		int sx = (int)((double)icon.getIconWidth()*size);
-		int sy = (int)((double)icon.getIconHeight()*size);
+		int sx = (int)(icon.getIconWidth()*size);
+		int sy = (int)(icon.getIconHeight()*size);
 		
 		int dx = ((getChitSize()-sx)>>1)+offsetx;
 		int dy = ((getChitSize()-sy)>>1)+offsety;
@@ -217,6 +201,11 @@ if (icon==null) {
 	}
 	
 	public void paintComponent(Graphics g1) {
+		paintComponent(g1, true);
+	}
+	
+	public void paintComponent(Graphics g1, boolean includeChitBacking) {
+		if (this.getGameObject().hasThisAttribute(Constants.OUT_OF_GAME)) return;
 		Graphics2D g = (Graphics2D)g1;
 		int chitSize = getChitSize();
 		
@@ -230,8 +219,8 @@ if (icon==null) {
 			
 			Color shadowColor = new Color(0,0,0,40);
 			g.setColor(shadowColor);
-			for (int i=0;i<4;i++) {
-				Shape shape = getShape(i+4,i+4,chitSize-(i<<1));
+			for (int i=0;i<SHADOW_BORDER;i++) {
+				Shape shape = getShape(i+SHADOW_BORDER,i+SHADOW_BORDER,chitSize-(i<<1));
 				g.fill(shape);
 			}
 		}
@@ -242,16 +231,18 @@ if (icon==null) {
 			g.draw(shape);
 		}
 		
-		// Draw Chit Backing
 		mainColor = isLightSideUp()?lightColor:darkColor;
 		edgeColor = GraphicsUtil.convertColor(mainColor,Color.black,10);
 		
-		for (int i=0;i<=BORDER_WIDTH;i++) {
-			Shape shape = getShape(i,i,chitSize-(i<<1));
-			Color color = GraphicsUtil.convertColor(edgeColor,mainColor,(i*100)/BORDER_WIDTH);
-			g.setColor(color);
-			g.fill(shape);
+		if (includeChitBacking) {
+			for (int i=0;i<=BORDER_WIDTH;i++) {
+				Shape shape = getShape(i,i,chitSize-(i<<1));
+				Color color = GraphicsUtil.convertColor(edgeColor,mainColor,(i*100)/BORDER_WIDTH);
+				g.setColor(color);
+				g.fill(shape);
+			}
 		}
+		
 		String extraShadingType = getExtraBoardShadingType();
 		if (extraShadingType!=null) {
 			g.setColor(edgeColor);
@@ -301,10 +292,9 @@ if (icon==null) {
 		Graphics2D g = (Graphics2D)g1;
 		if (CombatWrapper.hasCombatInfo(getGameObject())) {
 			int offset = (getChitSize()-32)>>1;
-			Collection attackers = (new CombatWrapper(getGameObject())).getAttackers();
+			Collection<GameObject> attackers = (new CombatWrapper(getGameObject())).getAttackers();
 			if (!attackers.isEmpty()) {
-				for (Iterator i=attackers.iterator();i.hasNext();) {
-					GameObject go = (GameObject)i.next();
+				for (GameObject go : attackers) {
 					RealmComponent rc = RealmComponent.getRealmComponent(go);
 					if (rc.isCharacter()) { // only show character markers (everything else is based on position on sheets)
 						CharacterWrapper character = new CharacterWrapper(go);
@@ -330,8 +320,27 @@ if (icon==null) {
 				g.drawLine(0,0,size,size);
 				g.drawLine(0,size,size,0);
 				
-				// TODO Could show who killed it...
-				// TODO Could show how much fame/notoriety was scored here... (if killed by character)
+				GameObject killedBy = combat.getKilledBy();
+				if (killedByOption && killedBy != null) {
+					g.setColor(Color.red);
+					Font killerFont = new Font("Dialog",Font.BOLD,size/7);
+					g.setFont(killerFont);
+					String killedByText = "";
+					RealmComponent rc = RealmComponent.getRealmComponent(getGameObject());
+					if (rc.isItem()) {
+						killedByText = "Destroyed by";
+					}
+					else {
+						killedByText = "Killed by";
+					}
+					AffineTransform at = new AffineTransform();
+					at.rotate(-Math.PI/4);
+					g.setTransform(at);
+					GraphicsUtil.drawCenteredString(g,0,size/2+6,0,12,killedByText);
+					GraphicsUtil.drawCenteredString(g,0,size/2+22,0,12,killedBy.getName());
+					at.rotate(+Math.PI/4);
+					g.setTransform(at);
+				}
 			}
 			else {
 				g.setColor(Color.red);

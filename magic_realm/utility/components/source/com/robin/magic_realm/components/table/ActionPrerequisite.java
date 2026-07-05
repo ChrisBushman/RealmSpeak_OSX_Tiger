@@ -1,24 +1,8 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.table;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Hashtable;
 import java.util.Iterator;
 
 import javax.swing.JFrame;
@@ -28,13 +12,22 @@ import javax.swing.event.ChangeListener;
 
 import com.robin.game.objects.GameObject;
 import com.robin.game.objects.GamePool;
+import com.robin.general.swing.DieRoller;
+import com.robin.general.util.HashLists;
 import com.robin.magic_realm.components.CharacterActionChitComponent;
+import com.robin.magic_realm.components.MagicChit;
 import com.robin.magic_realm.components.RealmComponent;
+import com.robin.magic_realm.components.attribute.SpellSet;
 import com.robin.magic_realm.components.attribute.Strength;
 import com.robin.magic_realm.components.swing.RealmComponentOptionChooser;
 import com.robin.magic_realm.components.utility.Constants;
+import com.robin.magic_realm.components.utility.DieRollBuilder;
+import com.robin.magic_realm.components.utility.RealmLogging;
 import com.robin.magic_realm.components.utility.RealmUtility;
+import com.robin.magic_realm.components.utility.TreasureUtility;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
+import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
+import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class ActionPrerequisite {
 	private GameObject source;
@@ -61,7 +54,7 @@ public class ActionPrerequisite {
 		return failReason.toString();
 	}
 	private boolean hasLostKeys(CharacterWrapper character) {
-		if (character.getGameObject().hasThisAttribute(Constants.PICKS_LOCKS)) {
+		if (character.affectedByKey(Constants.PICKS_LOCKS)) {
 			// this new custom ability can unlock anything
 			return true;
 		}
@@ -70,7 +63,7 @@ public class ActionPrerequisite {
 		GamePool pool = new GamePool();
 		pool.addAll(character.getActivatedTreasureObjects());
 		
-		ArrayList query = new ArrayList();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add("key");
 		if (source.hasThisAttribute(Constants.BOARD_NUMBER)) {
 			query.add(Constants.BOARD_NUMBER+"="+source.getThisAttribute(Constants.BOARD_NUMBER));
@@ -115,7 +108,7 @@ public class ActionPrerequisite {
 			if (source.hasThisAttribute(Constants.BOARD_NUMBER)) {
 				boardNum = " "+source.getThisAttribute(Constants.BOARD_NUMBER);
 			}
-			failReason.append("you don't have the Lost Keys"+boardNum+" activated");
+			failReason.append("You don't have the Lost Keys"+boardNum+" activated");
 		}
 		// else Perform and Non-perform success!
 		return success;
@@ -129,21 +122,46 @@ public class ActionPrerequisite {
 			// Having strength from horse,boots is enough to satisfy the requirement (see rule 9.3/3b)
 			success = true;
 		}
-		else {
+		if (!success) {
+			boolean optionalOpeningTreasureLocations = HostPrefWrapper.findHostPrefs(source.getGameData()).hasPref(Constants.SR_OPENING_TREASURE_LOCATIONS);
 			// Instead, you need to fatigue a T chit
-			ArrayList tremendousChits = new ArrayList();
-			Collection active = character.getActiveChits();
-			for (Iterator i=active.iterator();i.hasNext();) {
-				CharacterActionChitComponent chit = (CharacterActionChitComponent)i.next();
-				if ("T".equals(chit.getStrength().toString())) {
-					tremendousChits.add(chit);
+			ArrayList<CharacterActionChitComponent> tremendousChits = new ArrayList<CharacterActionChitComponent>();
+			Collection<CharacterActionChitComponent> active = character.getActiveChits();
+			for (CharacterActionChitComponent chit : active) {
+				if ("T".equals(chit.getStrength().toString()) || ("X".equals(chit.getStrength().toString()) && !chit.isFly())) {
+					if (!optionalOpeningTreasureLocations || !chit.isMove() || !character.isMistLike()) {
+						tremendousChits.add(chit);
+					}
 				}
 			}
+			ArrayList<RealmComponent> spells = new ArrayList<RealmComponent>();
+			HashLists<String, SpellSet> spellSetHashlists = new HashLists<String, SpellSet>();
+			ArrayList<RealmComponent> items  = new ArrayList<RealmComponent>();
+			if (optionalOpeningTreasureLocations && !source.hasThisAttribute(RealmComponent.TREASURE_WITHIN_TREASURE)) {
+				for (SpellSet spellSet : character.getCastableSpellSets()) {
+					if (spellSet.getSpell().hasThisAttribute(Constants.OPENS_TREASURE_LOCATION) && spellSet.canBeCast()) {
+						spells.add(RealmComponent.getRealmComponent(spellSet.getSpell()));
+						spellSetHashlists.put(spellSet.getSpell().getName(),spellSet);
+					}
+				}
+				for (GameObject item : character.getInventory()) {
+					RealmComponent rc = RealmComponent.getRealmComponent(item);
+					if (rc.isTreasure() && item.hasThisAttribute("attack") && item.hasThisAttribute(Constants.POTION)) {
+						items.add(rc);
+					}
+				}
+			}
+			//hurricaneWinds Spell and Lightning Bolt and Alchemists Mixture or Holy Handgrenade
+			
+			ArrayList<RealmComponent> allOptions  = new ArrayList<RealmComponent>();
+			allOptions.addAll(tremendousChits);
+			allOptions.addAll(spells);
+			allOptions.addAll(items);
 			boolean hasTWishStrength = wishStrength!=null && wishStrength.strongerOrEqualTo(tStrength);
-			if (!tremendousChits.isEmpty() || hasTWishStrength) {
+			if (!allOptions.isEmpty() || hasTWishStrength) {
 				if (performAction) {
 					RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,"Select a chit to fatigue:",true);
-					chooser.addRealmComponents(tremendousChits,false);
+					chooser.addRealmComponents(allOptions,false);
 					if (hasTWishStrength) {
 						chooser.addOption("WISH_","WISH Strength");
 					}
@@ -155,16 +173,109 @@ public class ActionPrerequisite {
 							character.clearWishStrength();
 						}
 						else {
-							GameObject toFatigue = chooser.getFirstSelectedComponent().getGameObject();
-							if (toFatigue!=null) {
-								CharacterActionChitComponent chit = (CharacterActionChitComponent)RealmComponent.getRealmComponent(toFatigue);
-								chit.makeFatigued();
-								RealmUtility.reportChitFatigue(character,chit,"Fatigued chit: ");
-								if (chit.isFight()) {
-									character.clearWishStrength(); // in case that was used
+							RealmComponent rc = chooser.getFirstSelectedComponent();
+							if (rc.isSpell() || rc.isTreasure()) {
+								int sharpness = rc.getGameObject().getThisInt("sharpness");
+								DieRoller roller = null;
+								if (rc.isSpell() && rc.getGameObject().hasThisAttribute("missile")) {
+									SpellWrapper spellWrapper = new SpellWrapper(rc.getGameObject());
+									roller = DieRollBuilder.getDieRollBuilder(frame,character,spellWrapper.getRedDieLock()).createRoller("magicmissil");
+								}
+								else if (rc.isTreasure() && rc.getGameObject().hasThisAttribute("missile")) {
+									roller = DieRollBuilder.getDieRollBuilder(frame,character).createRoller("missile");
+									TreasureUtility.doActivate(frame,character,rc.getGameObject(),listener,false);
+								}
+								int mod = 0;
+								if (roller!=null) {
+									int result = roller.getHighDieResult();
+									mod = RealmUtility.revisedMissileTable(result);
+									RealmLogging.logMessage(character.getName(),"Missile table result (using revised): "+result+" = "+RealmUtility.getLevelChangeString(mod));
+								}
+								String strengthString = rc.getGameObject().hasThisAttribute(Constants.STRENGTH)?rc.getGameObject().getThisAttribute(Constants.STRENGTH):rc.getGameObject().getThisAttribute(Constants.OPENS_TREASURE_LOCATION);
+								Strength strength = new Strength(strengthString,mod+sharpness);
+								RealmLogging.logMessage(character.getName(),"Final strength for opening "+source.getNameWithNumber()+" with "+rc.getGameObject().getNameWithNumber()+": "+strength.fullString());
+								
+								if (rc.isSpell()) {
+									SpellWrapper spellWrapper = new SpellWrapper(rc.getGameObject());
+									ArrayList<SpellSet> list = spellSetHashlists.getList(spellWrapper.getGameObject().getName());
+									RealmComponentOptionChooser spellChooser = new RealmComponentOptionChooser(frame,"Choose Casting Options for "+spellWrapper.getName()+":",true);
+									// Then choose a set
+									Hashtable<String, SpellSet> setHash = new Hashtable<String, SpellSet>();
+									int keyN = 0;
+									for (SpellSet set : list) { // by definition, the set is castable
+										for (GameObject type : set.getValidTypeObjects()) {
+											if (set.getInfiniteSource()!=null) {
+												String key = "P"+(keyN++);
+												spellChooser.addOption(key,"");
+												spellChooser.addRealmComponentToOption(key,RealmComponent.getRealmComponent(type));
+												setHash.put(key, set);
+											}
+											if (set.getInfiniteSource()==null || set.getColorMagic()==null) {
+												for (MagicChit chit:set.getValidColorChits()) {
+													String key = "P"+(keyN++);
+													spellChooser.addOption(key,"");
+													spellChooser.addRealmComponentToOption(key,RealmComponent.getRealmComponent(type));
+													spellChooser.addRealmComponentToOption(key,(RealmComponent)chit);
+													setHash.put(key, set);
+												}
+											}
+										}
+									}
+									spellChooser.setVisible(true);
+									if (spellChooser.getSelectedText()!=null) {
+										String key = chooser.getSelectedOptionKey();
+										SpellSet set = setHash.get(key);
+										Collection<RealmComponent> c = spellChooser.getSelectedComponents();
+										Iterator<RealmComponent> i=c.iterator();
+										RealmComponent incantationComponent = i.next();
+										if (!incantationComponent.isActionChit()) {
+											String dayKey = character.getCurrentDayKey();
+											String usedSpell = incantationComponent.getGameObject().getThisAttribute(Constants.USED_SPELL);
+											if (usedSpell!=null && !usedSpell.equals(dayKey)) {
+												incantationComponent.getGameObject().removeThisAttribute(Constants.USED_MAGIC_TYPE_LIST);
+											}
+											incantationComponent.getGameObject().setThisAttribute(Constants.USED_SPELL,dayKey);
+											incantationComponent.getGameObject().addThisAttributeListItem(Constants.USED_MAGIC_TYPE_LIST,set.getCastMagicType());
+										}
+										if (incantationComponent.isActionChit()) {
+											CharacterActionChitComponent chit = (CharacterActionChitComponent)incantationComponent;
+											chit.makeFatigued();
+											RealmUtility.reportChitFatigue(character,chit,"Fatigued chit: ");
+										}										
+										if (i.hasNext()) {
+											MagicChit colorChit = (MagicChit)i.next();
+											colorChit.makeFatigued();
+											RealmUtility.reportChitFatigue(character,colorChit,"Fatigued color chit: ");
+										}
+									}
+								}
+								
+								if (strength.strongerOrEqualTo(new Strength("T"))) {
+									success = true;
+								}				
+								else {
+									if (failReason.length()>0) {
+										failReason.append(" and");
+									}
+									failReason.append(" your attack wasn't strong enough (Strength: "+strength.toString()+")");
+								}
+								if (rc.getGameObject().hasThisAttribute(Constants.POTION)) {
+									character.expirePotion(rc.getGameObject());
 								}
 								listener.stateChanged(new ChangeEvent(this));
-								success = true;
+							}
+							else {
+								GameObject toFatigue = chooser.getFirstSelectedComponent().getGameObject();
+								if (toFatigue!=null) {
+									CharacterActionChitComponent chit = (CharacterActionChitComponent)RealmComponent.getRealmComponent(toFatigue);
+									chit.makeFatigued();
+									RealmUtility.reportChitFatigue(character,chit,"Fatigued chit: ");
+									if (chit.isFight()) {
+										character.clearWishStrength(); // in case that was used
+									}
+									listener.stateChanged(new ChangeEvent(this));
+									success = true;
+								}
 							}
 						}
 					}
@@ -226,15 +337,14 @@ public class ActionPrerequisite {
 		return success;
 	}
 	private boolean selectAndFatigueChit(JFrame frame,CharacterWrapper character) {
-		Collection active = character.getActiveEffortChits();
+		Collection<CharacterActionChitComponent> active = character.getActiveEffortChits();
 		if (active.isEmpty()) {
 			JOptionPane.showMessageDialog(frame,"You don't have any active chits to fatigue!","No Chits to Fatigue",JOptionPane.WARNING_MESSAGE);
 			return false;
 		}
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,"You must fatigue a chit to "+messageText+" this site:",false);
 		int keyN = 0;
-		for (Iterator i=active.iterator();i.hasNext();) {
-			CharacterActionChitComponent chit = (CharacterActionChitComponent)i.next();
+		for (CharacterActionChitComponent chit : active) {
 			String key = "N"+(keyN++);
 			chooser.addOption(key,"Fatigue");
 			chooser.addRealmComponentToOption(key,chit);
@@ -246,10 +356,9 @@ public class ActionPrerequisite {
 			
 			if (chit.getEffortAsterisks()==2) {
 				// Need to make change
-				Collection fatigued = character.getFatiguedChits(); // In case you need to make change
-				ArrayList singleAsteriskFatiguedChits = new ArrayList();
-				for (Iterator i=fatigued.iterator();i.hasNext();) {
-					CharacterActionChitComponent fatiguedChit = (CharacterActionChitComponent)i.next();
+				Collection<CharacterActionChitComponent> fatigued = character.getFatiguedChits(); // In case you need to make change
+				ArrayList<CharacterActionChitComponent> singleAsteriskFatiguedChits = new ArrayList<CharacterActionChitComponent>();
+				for (CharacterActionChitComponent fatiguedChit : fatigued) {
 					if (fatiguedChit.getEffortAsterisks()==1) {
 						singleAsteriskFatiguedChits.add(fatiguedChit);
 					}

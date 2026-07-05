@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.Color;
@@ -24,13 +7,18 @@ import java.util.*;
 
 import javax.swing.*;
 
+import com.robin.game.objects.GameObject;
 import com.robin.magic_realm.components.ClearingDetail;
+import com.robin.magic_realm.components.PathDetail;
 import com.robin.magic_realm.components.RealmComponent;
+import com.robin.magic_realm.components.TileComponent;
 import com.robin.magic_realm.components.attribute.*;
 import com.robin.magic_realm.components.attribute.DayAction.ActionId;
 import com.robin.magic_realm.components.swing.RealmComponentOptionChooser;
+import com.robin.magic_realm.components.utility.ClearingUtility;
 import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
+import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class CharacterActionControlManager {
 	private boolean recordingARed = false;
@@ -50,6 +38,8 @@ public class CharacterActionControlManager {
 	public Action flyAction;			// select a tile from a list of adjacent tiles
 	public Action remoteSpellAction;
 	public Action cacheAction;
+	public Action stealAction;
+	public Action offroadAction;
 	
 	public Action healAction;
 	public Action repairAction;
@@ -65,11 +55,13 @@ public class CharacterActionControlManager {
 	public ActionIcon alertIcon = new ActionIcon("alert","Alert",DayAction.ALERT_ACTION.getCode());
 	public ActionIcon hireIcon = new ActionIcon("hire","Hire",DayAction.HIRE_ACTION.getCode());
 	public ActionIcon followIcon = new ActionIcon("follow","Follow",DayAction.FOLLOW_ACTION.getCode());
-	public ActionIcon spellIcon = new ActionIcon("spell","Spell",DayAction.SPELL_ACTION.getCode());
+	public ActionIcon spellIcon = new ActionIcon("spell","Enchant",DayAction.SPELL_ACTION.getCode());
 	public ActionIcon peerIcon = new ActionIcon("peer","Peer",DayAction.ENH_PEER_ACTION.getCode());
 	public ActionIcon flyIcon = new ActionIcon("fly","Fly",DayAction.FLY_ACTION.getCode());
 	public ActionIcon remoteSpellIcon = new ActionIcon("remotespell","Remote SP",DayAction.REMOTE_SPELL_ACTION.getCode());
 	public ActionIcon cacheIcon = new ActionIcon("cache","Cache",DayAction.CACHE_ACTION.getCode());
+	public ActionIcon stealIcon = new ActionIcon("steal","Steal",DayAction.STEAL_ACTION.getCode());
+	public ActionIcon offroadIcon = new ActionIcon("offroad","Offroad",DayAction.OFFROAD_TRAVEL_ACTION.getCode());
 	
 	public ActionIcon healIcon = new ActionIcon("heal","Heal",DayAction.HEAL_ACTION.getCode());
 	public ActionIcon repairIcon = new ActionIcon("repair","Repair",DayAction.REPAIR_ACTION.getCode());
@@ -91,6 +83,7 @@ public class CharacterActionControlManager {
 			flyIcon,
 			remoteSpellIcon,
 			cacheIcon,
+			stealIcon,
 			healIcon,
 			repairIcon,
 			fortifyIcon,
@@ -189,7 +182,7 @@ public class CharacterActionControlManager {
 					}
 					int count = 0;
 					try {
-						count = Integer.valueOf(string).intValue();
+						count = Integer.parseInt(string);
 					}
 					catch(NumberFormatException ex) {
 						// ignore
@@ -262,6 +255,25 @@ public class CharacterActionControlManager {
 			}
 		};
 		cacheAction.putValue(Action.SHORT_DESCRIPTION,DayAction.CACHE_ACTION.getName());
+		stealAction = new AbstractAction("",stealIcon) {
+			public void actionPerformed(ActionEvent ev) {
+				recordingARed = stealIcon.isWarningOn();
+				doRecord(DayAction.STEAL_ACTION.getCode());
+			}
+		};
+		stealAction.putValue(Action.SHORT_DESCRIPTION,DayAction.STEAL_ACTION.getName());
+		offroadAction = new AbstractAction("",offroadIcon) {
+			public void actionPerformed(ActionEvent ev) {
+				recordingARed = offroadIcon.isWarningOn();
+				PhaseManager pm = getCharacter().getPhaseManager(true);
+				if (!recordingARed && pm!=null) {
+					character.updatePhaseManagerWithCurrentActions(pm);
+					recordingARed = !pm.canAddAction("O,O",character.isPonyActive());
+				}
+				doRecord(DayAction.OFFROAD_TRAVEL_ACTION.getCode(),null,2,1);
+			}
+		};
+		offroadAction.putValue(Action.SHORT_DESCRIPTION,DayAction.OFFROAD_TRAVEL_ACTION.getName());
 		healAction = new AbstractAction("",healIcon) {
 			public void actionPerformed(ActionEvent ev) {
 				recordingARed = healIcon.isWarningOn();
@@ -300,6 +312,8 @@ public class CharacterActionControlManager {
 		toolbar.add(remoteSpellAction).setToolTipText(remoteSpellIcon.getText());
 		toolbar.addSeparator();
 		toolbar.add(cacheAction).setToolTipText(cacheIcon.getText());
+		toolbar.add(stealAction).setToolTipText(stealIcon.getText());
+		toolbar.add(offroadAction).setToolTipText(offroadIcon.getText());
 		if (character.hasSpecialActions()) {
 			toolbar.addSeparator();
 			if (character.hasSpecialAction(ActionId.Heal)) {
@@ -327,6 +341,7 @@ public class CharacterActionControlManager {
 			getGameHandler().getInspector().setIcon(false);
 			getGameHandler().getInspector().toFront();
 			getGameHandler().getInspector().getMap().setMarkClearingAlertText(text);
+			getGameHandler().getInspector().getMap().setClearingSelectionInProgress(true);
 			getGameHandler().getInspector().getMap().addMouseListener(recordMapClickListener);
 			getGameHandler().getInspector().setSelected(true);
 		}
@@ -338,6 +353,7 @@ public class CharacterActionControlManager {
 	private void finishMapSelect(TileLocation tl) {
 		String theAction = currentlyRecordingAction;
 		currentlyRecordingAction = null;
+		getGameHandler().getInspector().getMap().setClearingSelectionInProgress(false);
 		getGameHandler().getInspector().getMap().removeMouseListener(recordMapClickListener);
 		if (!tl.hasClearing() || !tl.clearing.getMarkColor().equals(Color.red)) { // only record if not a "cancel" clearing
 			if (DayAction.MOVE_ACTION.getCode().equals(theAction) || DayAction.FLY_ACTION.getCode().equals(theAction)) {
@@ -345,11 +361,10 @@ public class CharacterActionControlManager {
 				if (DayAction.FLY_ACTION.getCode().equals(theAction)) {
 					tl.setFlying(true);
 				}
-				int cost = tl.hasClearing()?tl.clearing.moveCost(getCharacter()):1;
-				boolean continueWithRecord = true;
 				TileLocation current = getCharacter().getPlannedLocation();
+				int cost = tl.hasClearing()?tl.clearing.moveCost(getCharacter(),current):1;
+				boolean continueWithRecord = true;
 				if (current.isBetweenClearings() && tl.hasClearing() && !(current.contains(tl.clearing) && getCharacter().canMoveToClearing(tl.clearing))) {
-					
 					ArrayList<ClearingDetail> clearings = character.findAvailableClearingMoves();
 					if (clearings.size()!=1 || !clearings.get(0).equals(tl.clearing)) {
 						JOptionPane.showMessageDialog(
@@ -390,6 +405,34 @@ public class CharacterActionControlManager {
 						continueWithRecord = false;
 					}
 				}
+				HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(gameHandler.getClient().getGameData());
+				if (getGameHandler().isOption(RealmSpeakOptions.INVALID_PHASE_WARNING) && DayAction.MOVE_ACTION.getCode().equals(theAction)) {
+					PathDetail path = current.hasClearing()
+							? current.clearing.getConnectingPath(tl.clearing)
+							: null;
+					boolean overridePath = false;
+					if ((character.canWalkWoods(current.tile,current.clearing,tl.clearing) || character.affectedByKey(Constants.MAGIC_PATH_EFFECT) || (current.isTileOnly() && !current.isFlying()))
+							&& current.tile == tl.tile) {
+						overridePath = true;
+					}
+					if (current.isBetweenClearings() && ((character.canWalkWoods(current.tile,current.clearing,tl.clearing) && current.getOther().tile == tl.tile && !hostPrefs.hasPref(Constants.EXP_WALK_WOODS_NO_ROADWAYS)) || (current.contains(tl.tile) && current.contains(tl.clearing)))) {
+							overridePath = true;
+					}
+					if (ClearingUtility.canUseGates(character,tl.clearing)) {
+						overridePath = true;
+					}
+					if (path==null && !overridePath) {
+						int ret = JOptionPane.showConfirmDialog(
+								getGameHandler().getMainFrame(),
+								"You are planning an invalid move action.  Continue?",
+								"Invalid Record Warning!",
+								JOptionPane.YES_NO_OPTION,
+								JOptionPane.WARNING_MESSAGE);
+						if (ret==JOptionPane.NO_OPTION) {
+							continueWithRecord = false;
+						}
+					}
+				}
 				if (continueWithRecord) {
 					if (doRecord(theAction,tl,cost)) {
 						if (getCharacter().getClearingPlot()==null) {
@@ -400,7 +443,7 @@ public class CharacterActionControlManager {
 							updateControls(rtp.getPhaseManager(),true,false);
 						}
 						if (cap!=null) {
-							getGameHandler().getInspector().getMap().setClearingPlot(new ArrayList(getCharacter().getClearingPlot()));
+							getGameHandler().getInspector().getMap().setClearingPlot(new ArrayList<TileLocation>(getCharacter().getClearingPlot()));
 						}
 					}
 				}
@@ -435,7 +478,7 @@ public class CharacterActionControlManager {
 		}
 	}
 	private void doFinish() {
-		if (getGameHandler().isOption(RealmSpeakOptions.INCOMPLETE_PHASE_WARNING) && canStillRecord()) {
+		if (getGameHandler().isOption(RealmSpeakOptions.INCOMPLETE_PHASE_WARNING) && canStillRecord() && !getCharacter().affectedByKey(Constants.DAYTIME_ACTIONS)) {
 			int ret = JOptionPane.showConfirmDialog(
 					getGameHandler().getMainFrame(),
 					"You still have phases to record.  Send anyway?",
@@ -462,26 +505,36 @@ public class CharacterActionControlManager {
 		// cap better NOT be null here!
 		cap.scrollActionTableToVisible();
 		
-		ArrayList actions = new ArrayList();
-		Collection c = getCharacter().getCurrentActions();
+		ArrayList<String> actions = new ArrayList<String>();
+		Collection<String> c = getCharacter().getCurrentActions();
 		if (c!=null && !c.isEmpty()) {
 			actions.addAll(c);
-			String removed = (String)actions.remove(actions.size()-1);
+			String removed = actions.remove(actions.size()-1);
 			if (removed.startsWith(DayAction.MOVE_ACTION.getCode()) || removed.startsWith(DayAction.FLY_ACTION.getCode())) {
 				// deleting a move, so delete a clearing plot
 				getCharacter().chompClearingPlot();
+			}
+			if (removed.startsWith(DayAction.FOLLOW_ACTION.getCode())) {
+				CharacterWrapper guide = getCharacter().getCharacterImFollowing();
+				if (guide!=null) {
+					GameObject guideGo = guide.getGameObject();
+					guideGo.removeThisAttributeListItem(Constants.COMRADE_WILL_BE_FOLLOWED_TODAY, getCharacter().getGameObject().getStringId());
+					if (guideGo.getThisAttributeList(Constants.COMRADE_WILL_BE_FOLLOWED_TODAY).isEmpty()) {
+						guideGo.removeThisAttribute(Constants.COMRADE_WILL_BE_FOLLOWED_TODAY);
+					}
+				}
 			}
 		}
 		if (cap!=null) {
 			if (getCharacter().getClearingPlot()==null) {
 				getCharacter().rebuildClearingPlot();
 			}
-			getGameHandler().getInspector().getMap().setClearingPlot(new ArrayList(getCharacter().getClearingPlot()));
+			getGameHandler().getInspector().getMap().setClearingPlot(new ArrayList<TileLocation>(getCharacter().getClearingPlot()));
 		}
 		getCharacter().setCurrentActions(actions);
 		
 		// Don't forget to delete the actionTypeCode entry
-		ArrayList actionTypeCodes = new ArrayList();
+		ArrayList<String> actionTypeCodes = new ArrayList<String>();
 		c = getCharacter().getCurrentActionTypeCodes();
 		if (c!=null && !c.isEmpty()) {
 			actionTypeCodes.addAll(c);
@@ -490,7 +543,7 @@ public class CharacterActionControlManager {
 		getCharacter().setCurrentActionTypeCodes(actionTypeCodes);
 		
 		// And the valids (aigh)
-		ArrayList valids = new ArrayList();
+		ArrayList<String> valids = new ArrayList<String>();
 		c = getCharacter().getCurrentActionValids();
 		if (c!=null && !c.isEmpty()) {
 			valids.addAll(c);
@@ -533,7 +586,9 @@ public class CharacterActionControlManager {
 			cc.setMarkColor(Color.yellow);
 		}
 		startMapSelect(DayAction.MOVE_ACTION.getCode(),"MOVE to which clearing?");
-		getGameHandler().getInspector().getMap().centerOn(tl);
+		if (getGameHandler().isOption(RealmSpeakOptions.MAP_FOLLOW_CHARACTER)) {
+			getGameHandler().getInspector().getMap().centerOn(tl);
+		}
 	}
 	public void recordExternalMoveAction(TileLocation tl) {
 		if (currentlyRecordingAction==null && moveAction.isEnabled()) {
@@ -548,12 +603,12 @@ public class CharacterActionControlManager {
 	}
 	private void recordFollowAction() {
 		// Find all characters that are not this character in the clearing (no clearing validation needed here)
-		ArrayList list = new ArrayList();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		TileLocation current = getCharacter().getCurrentLocation(); // since FOLLOW must the first and only action, current is good
-		for (Iterator n=current.clearing.getClearingComponents().iterator();n.hasNext();) {
-			RealmComponent rc = (RealmComponent)n.next();
+		for (RealmComponent rc : current.clearing.getClearingComponents()) {
 			// Someone, that isn't yourself
-			if (rc.isPlayerControlledLeader() && !rc.getGameObject().equals(getCharacter().getGameObject())) {
+			if (rc.isPlayerControlledLeader() && !rc.getGameObject().equals(getCharacter().getGameObject())
+					&& !rc.getGameObject().hasThisAttribute(Constants.CAMOUFLAGE) && (!rc.isMistLike() || getCharacter().getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE))) {
 				list.add(rc);
 			}
 		}
@@ -563,7 +618,9 @@ public class CharacterActionControlManager {
 		chooser.setVisible(true);
 		String selText = chooser.getSelectedText();
 		if (selText!=null) {
-			String id = chooser.getFirstSelectedComponent().getGameObject().getStringId();
+			GameObject guide = chooser.getFirstSelectedComponent().getGameObject();
+			guide.addThisAttributeListItem(Constants.COMRADE_WILL_BE_FOLLOWED_TODAY,getCharacter().getGameObject().getStringId());
+			String id = guide.getStringId();
 			doRecord(DayAction.FOLLOW_ACTION.getCode()+"("+selText+")~"+id);
 		}
 	}
@@ -585,7 +642,9 @@ public class CharacterActionControlManager {
 //			planned.tile.doRepaint(); // LEAVE FOR AWHILE
 		}
 		startMapSelect(DayAction.FLY_ACTION.getCode(),"FLY to which tile?");
-		getGameHandler().getInspector().getMap().centerOn(planned);
+		if (getGameHandler().isOption(RealmSpeakOptions.MAP_FOLLOW_CHARACTER)) {
+			getGameHandler().getInspector().getMap().centerOn(planned);
+		}
 	}
 	private void recordEnhancedPeerAction() {
 		/* 
@@ -616,8 +675,10 @@ public class CharacterActionControlManager {
 			doRecord(DayAction.ENH_PEER_ACTION.getCode(),tl,1);
 		}
 		else {
+			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(gameHandler.getClient().getGameData());
 			boolean enhancedPeer = getCharacter().hasActiveInventoryThisKeyAndValue(Constants.SPECIAL_ACTION,"ENHANCED_PEER");
 			boolean mtToMtPeer = tl!=null && tl.hasClearing() && tl.clearing.isMountain() && getCharacter().hasActiveInventoryThisKey(Constants.MOUNTAIN_PEER);
+			boolean flyingActivity = hostPrefs.hasPref(Constants.ADV_FLYING_ACTIVITIES) && character.getCurrentActionsCodes().contains(DayAction.FLY_ACTION.getCode());
 			if (mtToMtPeer && enhancedPeer) {
 				// The player has the Crystal Ball AND Ancient Telescope.  Now its necessary to see what restrictions there
 				// are for this peer.  If the player has done nothing but non-mt-to-mt peers, we need to know if he/she
@@ -625,15 +686,13 @@ public class CharacterActionControlManager {
 				PhaseManager pm = getCharacter().getPhaseManager(true);
 				getCharacter().updatePhaseManagerWithCurrentActions(pm);
 				if (pm.getTotal()==1) {
-					// Must be on "free action" time, which means we need to see if a mt-to-mt peer was
-					// ever performed (only need one!)
+					// Must be on "free action" time, which means we need to see if a mt-to-mt peer was ever performed (only need one!)
 					Iterator atci = getCharacter().getCurrentActionTypeCodes().iterator();
 					for (Iterator i=getCharacter().getCurrentActions().iterator();i.hasNext();) {
 						String detailAction = (String)i.next();
 						String actionTypeCode = (String)atci.next();
 						if (detailAction.startsWith(DayAction.ENH_PEER_ACTION.getCode()) && "MM".equals(actionTypeCode)) {
-							// Yes, a mountain to mountain peer was used, so mountainPeer isn't require
-							// for the extra phase!
+							// Yes, a mountain to mountain peer was used, so mountainPeer isn't require for the extra phase!
 							mtToMtPeer = false;
 							break;
 						}
@@ -647,32 +706,49 @@ public class CharacterActionControlManager {
 			if (mtToMtPeer) {
 				getGameHandler().getInspector().getMap().markClearings("mountain",true);
 			}
+			else if (flyingActivity) {
+				getGameHandler().getInspector().getMap().markAllClearings(false);
+				Collection<TileComponent> adjTiles = tl.tile.getAllAdjacentTiles();
+				ArrayList<TileComponent> tiles = new ArrayList<TileComponent>();
+				tiles.add(tl.tile);
+				tiles.addAll(adjTiles);
+				for (TileComponent tile : tiles) {
+					for (ClearingDetail clearing : tile.getClearings()) {
+						if (!clearing.isCave()) {
+							clearing.setMarked(true);
+						}
+					}
+				}
+			}
 			else {
 				getGameHandler().getInspector().getMap().markAllClearings(true);
 			}
 			
-			if (tl.hasClearing()) {
+			if (tl.hasClearing() && !flyingActivity) {
 				tl.clearing.setMarked(false); // exclude current clearing
 			}
 			
 			for(ClearingDetail clearing:getGameHandler().getInspector().getMap().getAllMarkedClearings()) {
-				if (clearing.getParent().getGameObject().hasThisAttribute(Constants.SP_NO_PEER)) {
+				if (clearing.getParent().getGameObject().hasThisAttribute(Constants.SP_NO_PEER) || clearing.getParent().getGameObject().hasThisAttribute(Constants.EVENT_FOG)) {
 					clearing.setMarked(false);
 				}
-				else if (!enhancedPeer && !mtToMtPeer) {
+				else if (!enhancedPeer && !mtToMtPeer && !flyingActivity) {
 					clearing.setMarkColor(Color.red);
 				}
 			}
 			
 			startMapSelect(DayAction.ENH_PEER_ACTION.getCode(),"PEER in which clearing?");
-			getGameHandler().getInspector().getMap().centerOn(tl);
+			if (getGameHandler().isOption(RealmSpeakOptions.MAP_FOLLOW_CHARACTER)) {
+				getGameHandler().getInspector().getMap().centerOn(tl);
+			}
 		}
 	}
 	private void recordRemoteSpellAction() {
-		Collection c = getCharacter().getCurrentActions();
+		Collection<String> c = getCharacter().getCurrentActions();
 		if (!c.contains(DayAction.SPELL_PREP_ACTION.getCode())) {
 			boolean canSkipSpellPrep = getCharacter().getGameObject().hasAttribute(Constants.OPTIONAL_BLOCK,Constants.NO_SPX)
-										|| getCharacter().affectedByKey(Constants.NO_SPX);
+										|| getCharacter().affectedByKey(Constants.NO_SPX)
+										|| getCharacter().getGameObject().hasThisAttribute(Constants.MEDITATE_IMPROVED_ENCHANTING);
 			if (!canSkipSpellPrep) {
 				doRecord(DayAction.SPELL_PREP_ACTION.getCode());
 				return;
@@ -690,7 +766,9 @@ public class CharacterActionControlManager {
 		}
 		
 		startMapSelect(DayAction.REMOTE_SPELL_ACTION.getCode(),"REMOTE SPELL in which clearing?");
-		getGameHandler().getInspector().getMap().centerOn(tl);
+		if (getGameHandler().isOption(RealmSpeakOptions.MAP_FOLLOW_CHARACTER)) {
+			getGameHandler().getInspector().getMap().centerOn(tl);
+		}
 	}
 	private boolean doRecord(String action) {
 		return doRecord(action,null,1,1);
@@ -713,23 +791,24 @@ public class CharacterActionControlManager {
 			actionTypeCode = actionTypeCode+actionLocation.clearing.getTypeCode(); // ie., MM for mt-to-mt
 		}
 		
-		Collection c = getCharacter().getCurrentActions();
+		Collection<String> c = getCharacter().getCurrentActions();
 		if (c==null || c.isEmpty()) {
 			// Recording the first action?  Reset the clearingPlot.
-			ArrayList plot = new ArrayList();
+			ArrayList<TileLocation> plot = new ArrayList<TileLocation>();
 			plot.add(getCharacter().getCurrentLocation()); // start the plot off with the current location
 			getCharacter().setClearingPlot(plot);
-			c = new ArrayList();
+			c = new ArrayList<String>();
 		}
 		if (action.equals(DayAction.SPELL_ACTION.getCode()) && !c.contains(DayAction.SPELL_PREP_ACTION.getCode())) {
 			boolean canSkipSpellPrep = getCharacter().getGameObject().hasAttribute(Constants.OPTIONAL_BLOCK,Constants.NO_SPX)
-									|| getCharacter().affectedByKey(Constants.NO_SPX);
+									|| getCharacter().affectedByKey(Constants.NO_SPX)
+									|| getCharacter().getGameObject().hasThisAttribute(Constants.MEDITATE_IMPROVED_ENCHANTING);
 			if (!canSkipSpellPrep) {
 				action = DayAction.SPELL_PREP_ACTION.getCode();
 			}
 		}
 		String detailAction = action;
-		if (DayAction.MOVE_ACTION.getCode().equals(detailAction) && character.isPonyLock()) {
+		if ((DayAction.MOVE_ACTION.getCode().equals(detailAction) || DayAction.OFFROAD_TRAVEL_ACTION.getCode().equals(detailAction)) && character.isPonyLock()) {
 			detailAction = detailAction+"!";
 		}
 		if (actionLocation!=null) {
@@ -760,8 +839,18 @@ public class CharacterActionControlManager {
 			getCharacter().addCurrentActionTypeCode(actionTypeCode);
 			getCharacter().addCurrentAction(recordAction);
 			getCharacter().addCurrentActionValid(!recordingARed);
+			if (DayAction.MOVE_ACTION.getCode().equals(detailAction) && actionLocation.clearing!=null && actionLocation.clearing.isWater()) {
+				GameObject item = character.getActiveInventoryThisKey(Constants.SAILS);
+				if (item!=null) {
+					String lastLoc = character.getGameObject().getThisAttribute(Constants.SAILS_LAST_CLEARING);
+					if (lastLoc==null || !lastLoc.matches(actionLocation.toString())) {
+						character.getGameObject().setThisAttribute(Constants.SAILS_LAST_CLEARING,actionLocation.toString());
+						PhaseManager pm = getCharacter().getPhaseManager(true);
+						pm.addFreeAction("M",item,true);
+					}
+				}
+			}
 		}
-//System.out.println("Recording "+recordAction+" with warning "+(recordingARed?"on":"off"));
 		
 		PhaseManager pm = getCharacter().getPhaseManager(true);
 		getCharacter().updatePhaseManagerWithCurrentActions(pm);
@@ -772,22 +861,22 @@ public class CharacterActionControlManager {
 			cap.actionHistoryTable.repaint();
 			cap.getCharacterFrame().updateControls();
 		}
-//		else if (rtp!=null) {
-//			rtp.processNewAction(recordAction);
-//		}
+		
 		return true;
 	}
 	public void updateControls(PhaseManager pm,boolean recordingActions,boolean birdsong) {
+		boolean hasplannedOffroadMove = getCharacter().hasCurrentAction("O");
 		TileLocation planned = getCharacter().getPlannedLocation();
-		finishAction.setEnabled(getCharacter().isActive() && recordingActions && ((!planned.isBetweenClearings() && !planned.isBetweenTiles()) || getCharacter().canDoDaytimeRecord()));
+		finishAction.setEnabled(getCharacter().isActive() && recordingActions && planned != null && ((!planned.isBetweenClearings() && !planned.isBetweenTiles()) || hasplannedOffroadMove || (getCharacter().canDoDaytimeRecord() && pm.hasActionsLeft())));
 		boolean canBackspace = getCharacter().isActive() && recordingActions && getCharacter().getCurrentActionCount()>0;
 		boolean canUnsend = getCharacter().isActive() && birdsong && !getCharacter().isDoRecord();
 		backAction.setEnabled(canBackspace || canUnsend);
 		timeToSend = finishAction.isEnabled();
 		
 		boolean inCave = getCharacter().isActive() && planned!=null && planned.isInClearing() && planned.clearing.isCave();
+		boolean inWater = getCharacter().isActive() && planned!=null && planned.isInClearing() && planned.clearing.isWater();
 		boolean pony = getCharacter().isActive() && getCharacter().isPonyActive();
-		boolean usingPony = pony&&!inCave;
+		boolean usingPony = pony&&!inCave&&!inWater;
 		boolean followOk = !backAction.isEnabled();
 		if (birdsong) {
 			if (getCharacter().hasCurrentAction(DayAction.FOLLOW_ACTION.getCode())) {
@@ -798,6 +887,9 @@ public class CharacterActionControlManager {
 			}
 		}
 		else if (character.isBlocked()) {
+			recordingActions = false;
+		}
+		else if (character.canDoDaytimeRecord() && !pm.hasActionsLeft()) {
 			recordingActions = false;
 		}
 		
@@ -813,6 +905,8 @@ public class CharacterActionControlManager {
 		handleInvalidAction(flyAction,flyIcon,willBeRed(pm,DayAction.FLY_ACTION,usingPony,planned),birdsong,recordingActions);
 		handleInvalidAction(remoteSpellAction,remoteSpellIcon,willBeRed(pm,DayAction.REMOTE_SPELL_ACTION,usingPony,planned),birdsong,recordingActions);
 		handleInvalidAction(cacheAction,cacheIcon,willBeRed(pm,DayAction.CACHE_ACTION,usingPony,planned),birdsong,recordingActions);
+		handleInvalidAction(stealAction,stealIcon,willBeRed(pm,DayAction.STEAL_ACTION,usingPony,planned),birdsong,recordingActions);
+		handleInvalidAction(offroadAction,offroadIcon,willBeRed(pm,DayAction.OFFROAD_TRAVEL_ACTION,usingPony,planned),birdsong,recordingActions);
 		
 		handleInvalidAction(healAction,healIcon,willBeRed(pm,DayAction.HEAL_ACTION,usingPony,planned),birdsong,recordingActions);
 		handleInvalidAction(repairAction,repairIcon,willBeRed(pm,DayAction.REPAIR_ACTION,usingPony,planned),birdsong,recordingActions);
@@ -862,11 +956,10 @@ public class CharacterActionControlManager {
 		if (getGameHandler().isOption(RealmSpeakOptions.UNASSIGNED_HIRELINGS_WARNING)) {
 			boolean unassignedHirelings = false;
 			
-			for (Iterator i=getCharacter().getAllHirelings().iterator();i.hasNext();) {
-				RealmComponent hireling = (RealmComponent)i.next();
+			for (RealmComponent hireling : getCharacter().getAllHirelings()) {
 				if (!hireling.isHiredLeader()) {
 					RealmComponent heldBy = hireling.getHeldBy();
-					if (heldBy.isTile()) {
+					if (heldBy != null && heldBy.isTile()) {
 						unassignedHirelings = true;
 						break;
 					}

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmCharacterBuilder;
 
 import java.awt.*;
@@ -56,22 +39,9 @@ public class WeaponEditDialog extends AggressiveDialog {
 	private IntegerField lengthField;
 	private IntegerField priceField;
 	private ButtonPanel rangedOption;
+	private ButtonPanel throwingOption;
+	private ButtonPanel twoHandedOption;
 	
-	private static final String[] STARTING_LOCATION_OPTION = {
-		"Guard",
-		"House",
-		"Bashkar Dwelling",
-		"Inn",
-		"Company Dwelling",
-		"Woodfolk Dwelling",
-		"Chapel",
-		"Lancer Dwelling",
-		"Patrol Dwelling",
-		"Scholar",
-		"Shaman",
-		"Warlock",
-		"Crone",
-	};
 	private ArrayList<JRadioButton> slButtons;
 	
 	private FileManager graphicsManager;
@@ -85,7 +55,7 @@ public class WeaponEditDialog extends AggressiveDialog {
 		setWeapon(weaponName);
 	}
 	private void initComponents() {
-		setSize(500,490);
+		setSize(800,640);
 		setLayout(new BorderLayout());
 		
 		JPanel mainPanel = new JPanel(new GridLayout(2,1));
@@ -167,7 +137,27 @@ public class WeaponEditDialog extends AggressiveDialog {
 			ComponentTools.lockComponentSize(priceField,40,25);
 			line.add(priceField);
 			line.add(Box.createHorizontalStrut(10));
-			line.add(new JLabel("Missile Weapon:"));
+			line.add(new JLabel("Two-handed Weapon:"));
+			line.add(Box.createHorizontalStrut(5));
+			twoHandedOption = new ButtonPanel(RealmCharacterConstants.YESNO);
+			twoHandedOption.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ev) {
+					boolean ranged = "YES".equals(twoHandedOption.getSelectedItem());
+					if (ranged) {
+						weapon.setThisAttribute(Constants.TWO_HANDED);
+					}
+					else {
+						weapon.removeThisAttribute(Constants.TWO_HANDED);
+					}
+				}
+			});
+			ComponentTools.lockComponentSize(twoHandedOption,100,25);
+			line.add(twoHandedOption);			
+			line.add(Box.createHorizontalGlue());
+		infoPanel.add(line);
+		infoPanel.add(Box.createVerticalStrut(5));
+		infoPanel.add(Box.createVerticalGlue());
+			line = group.createLabelLine("Missile Weapon");
 			line.add(Box.createHorizontalStrut(5));
 			rangedOption = new ButtonPanel(RealmCharacterConstants.YESNO);
 			rangedOption.addActionListener(new ActionListener() {
@@ -183,10 +173,27 @@ public class WeaponEditDialog extends AggressiveDialog {
 			});
 			ComponentTools.lockComponentSize(rangedOption,100,25);
 			line.add(rangedOption);
+			line.add(Box.createHorizontalStrut(68));
+			line.add(new JLabel("Throwing Weapon:"));
+			line.add(Box.createHorizontalStrut(5));
+			throwingOption = new ButtonPanel(RealmCharacterConstants.YESNO);
+			throwingOption.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ev) {
+					boolean ranged = "YES".equals(throwingOption.getSelectedItem());
+					if (ranged) {
+						weapon.setThisAttribute(Constants.THROWABLE);
+					}
+					else {
+						weapon.removeThisAttribute(Constants.THROWABLE);
+					}
+				}
+			});
+			ComponentTools.lockComponentSize(throwingOption,100,25);
+			line.add(throwingOption);
 			line.add(Box.createHorizontalGlue());
 		infoPanel.add(line);
 			ButtonGroup slGroup = new ButtonGroup();
-			JPanel startingLocationPanel = new JPanel(new GridLayout(5,3));
+			JPanel startingLocationPanel = new JPanel(new GridLayout(7,5));
 			ActionListener al = new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
 					JRadioButton button = (JRadioButton)ev.getSource();
@@ -194,8 +201,8 @@ public class WeaponEditDialog extends AggressiveDialog {
 				}
 			};
 			slButtons = new ArrayList<JRadioButton>();
-			for (int i=0;i<STARTING_LOCATION_OPTION.length;i++) {
-				JRadioButton button = new JRadioButton(STARTING_LOCATION_OPTION[i],i==0);
+			for (int i=0;i<RealmCharacterConstants.STARTING_LOCATION_OPTION.length;i++) {
+				JRadioButton button = new JRadioButton(RealmCharacterConstants.STARTING_LOCATION_OPTION[i],i==0);
 				startingLocationPanel.add(button);
 				slGroup.add(button);
 				button.addActionListener(al);
@@ -268,7 +275,7 @@ public class WeaponEditDialog extends AggressiveDialog {
 		buttonsPanel.add(Box.createHorizontalGlue());
 		add(buttonsPanel,"South");
 		
-		nameField = new JLabel("",JLabel.CENTER);
+		nameField = new JLabel("",SwingConstants.CENTER);
 		ComponentTools.lockComponentSize(nameField,450,35);
 		nameField.setFont(new Font("Dialog",Font.BOLD,32));
 		add(nameField,"North");
@@ -280,7 +287,7 @@ public class WeaponEditDialog extends AggressiveDialog {
 		if (file!=null) {
 			ImageIcon icon = IconFactory.findIcon(file.getAbsolutePath());
 			if (icon!=null) {
-				model.updateWeaponIcon(weapon,icon);
+				RealmCharacterBuilderModel.updateWeaponIcon(weapon,icon);
 				repaint();
 			}
 		}
@@ -328,6 +335,7 @@ public class WeaponEditDialog extends AggressiveDialog {
 				weapon = model.getData().createNewObject();
 				weapon.setName(name);
 				weapon.setThisAttribute("weapon");
+				weapon.setThisAttribute("item");
 				weapon.setThisAttribute("icon_type","question");
 				weapon.setThisAttribute("icon_folder",RealmCharacterConstants.CUSTOM_ICON_BASE_PATH+"weapons");
 				weapon.setThisAttribute(Constants.WEIGHT,"L");

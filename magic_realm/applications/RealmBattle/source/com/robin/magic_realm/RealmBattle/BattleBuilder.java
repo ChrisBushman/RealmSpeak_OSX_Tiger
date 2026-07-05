@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle;
 
 import java.awt.BorderLayout;
@@ -28,6 +11,10 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import com.robin.game.objects.*;
+import com.robin.general.io.PreferenceManager;
+import com.robin.general.swing.IconFactory;
+import com.robin.general.util.RandomNumber;
+import com.robin.general.util.RandomNumberType;
 import com.robin.magic_realm.RealmCharacterBuilder.RealmCharacterBuilderModel;
 import com.robin.magic_realm.components.*;
 import com.robin.magic_realm.components.attribute.TileLocation;
@@ -44,17 +31,26 @@ public class BattleBuilder extends JFrame {
 	public static final String BATTLE_CLEARING_KEY = "___BATTLE__Clearing_";
 	public static final String CHARACTER_PRESENT = "_CHAR_PRES_";
 	
-	private static final String testPlayerName = "test";
+	public static final String BATTLE_BUILDER_CLEARING = "bb_clearing";
+	public static final String BATTLE_BUILDER_TILE = "bb_tile";
+	public static final String BATTLE_BUILDER_TILE_IS_ENCHANTED = "bb_tile_is_enchanted";
+	
+	private static final String testPlayerName = "Player";
+	private static final String defaultTileName = "Borderland";
+	private static final int defaultClearingNumber = 1;
 	
 	private GameData gameData;
 	private GamePool pool;
 	private HostPrefWrapper hostPrefs;
+	private PreferenceManager prefs;
 	
 	private JTabbedPane tabbedPane;
 	
 	private JButton changeClearingButton;
 	private JLabel clearingTitle;
 	private JCheckBox makeDuplicatesOption;
+	private JCheckBox skipRepositioningOption;
+	private JCheckBox forceMonsterFlipOption;
 	private JButton addCharacterButton;
 	private JButton castSpellButton;
 	
@@ -71,7 +67,6 @@ public class BattleBuilder extends JFrame {
 	
 	// Info
 	private ClearingDetail battleClearing;
-//	private ClearingDetail alternateClearing; // for handling character "away"
 	
 	private boolean cancelled = false;
 	
@@ -88,15 +83,17 @@ public class BattleBuilder extends JFrame {
 	public GamePool getPool() {
 		return pool;
 	}
-	private boolean saidYes(String message) {
+	private static boolean saidYes(String message) {
 		int ret = JOptionPane.showConfirmDialog(null,message,"Realm Battle",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
 		return ret==JOptionPane.YES_OPTION;
 	}
 	private void initComponents() {
-		setSize(800,650);
+		setSize(1000,800);
 		setLocationRelativeTo(null);
 		setTitle("RealmSpeak Battle Builder");
+		setIconImage(IconFactory.findIcon("images/combat/combatsummary.gif").getImage());
 		getContentPane().setLayout(new BorderLayout());
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		
 		Box box;
 		JPanel panel;
@@ -117,6 +114,12 @@ public class BattleBuilder extends JFrame {
 		
 		makeDuplicatesOption = new JCheckBox("Make Duplicates",false);
 		box.add(makeDuplicatesOption);
+		
+		skipRepositioningOption = new JCheckBox("Skip repositioning",false);
+		box.add(skipRepositioningOption);
+		
+		forceMonsterFlipOption = new JCheckBox("Force flipping monsters",false);
+		box.add(forceMonsterFlipOption);
 		
 		box.add(Box.createHorizontalGlue());
 		addCharacterButton = new JButton("Add Character Tab");
@@ -206,6 +209,9 @@ public class BattleBuilder extends JFrame {
 				CombatFrame.saveBattle(new JFrame(),gameData);
 				cancelled = false;
 				setVisible(false);
+				if (skipRepositioningOption.isSelected()) BattleModel.SKIP_REPOSITIONING = true;
+				if (forceMonsterFlipOption.isSelected()) BattleModel.FORCE_MONSTER_FLIP = true;
+				setupRandomNumberGenerator(hostPrefs);
 				CombatFrame.startCombat(gameData);
 			}
 		});
@@ -218,13 +224,39 @@ public class BattleBuilder extends JFrame {
 				doFinish();
 				cancelled = false;
 				setVisible(false);
+				if (skipRepositioningOption.isSelected()) BattleModel.SKIP_REPOSITIONING = true;
+				if (forceMonsterFlipOption.isSelected()) BattleModel.FORCE_MONSTER_FLIP = true;
+				setupRandomNumberGenerator(hostPrefs);
 				CombatFrame.startCombat(gameData);
 			}
 		});
 		box.add(finishButton);
 		getContentPane().add(box,"South");
 	}
+	public static void setupRandomNumberGenerator(HostPrefWrapper hostPrefs) {
+		if (hostPrefs.hasPref(Constants.RANDOM_R250_521)) {
+			RandomNumber.setRandomNumberGenerator(RandomNumberType.R250_521);
+		}
+		else if (hostPrefs.hasPref(Constants.RANDOM_MERSENNE_TWISTER)) {
+			RandomNumber.setRandomNumberGenerator(RandomNumberType.MersenneTwister);
+		}
+		else if (hostPrefs.hasPref(Constants.RANDOM_ON_THE_FLY)) {
+			RandomNumber.setRandomNumberGenerator(RandomNumberType.RandomOnTheFly);
+		}
+		else {
+			RandomNumber.setRandomNumberGenerator(RandomNumberType.System);
+		}
+	}
 	public boolean initialize(GameData data) {
+		prefs = new PreferenceManager("BattleBuilder","BattleBuilder.cfg") {
+			protected void createDefaultPreferences(Properties props) {
+				props.put(BATTLE_BUILDER_CLEARING,defaultClearingNumber);
+				props.put(BATTLE_BUILDER_TILE,defaultTileName);
+				props.put(BATTLE_BUILDER_TILE_IS_ENCHANTED,true);
+			}
+		};
+		prefs.loadPreferences();
+		
 		if (data==null) {
 			// Building a new battle
 			System.out.print("Loading data...");
@@ -232,11 +264,23 @@ public class BattleBuilder extends JFrame {
 			System.out.println("Done.");
 			gameData = loader.getData();
 			
-			// Set default starting clearing
-			GameObject selectedTile = gameData.getGameObjectByName("Crag");
+			int clearing = prefs.getInt(BATTLE_BUILDER_CLEARING);
+			if (clearing == 0) clearing = defaultClearingNumber;
+			String tileName = prefs.get(BATTLE_BUILDER_TILE);
+			boolean tileIsEnchanted = prefs.getBoolean(BATTLE_BUILDER_TILE_IS_ENCHANTED);
+			RealmUtility.prepMonsterNumbers(gameData);
+			
+			// Set starting clearing
+			GameObject selectedTile = gameData.getGameObjectByName(tileName);
+			if (selectedTile == null) selectedTile = gameData.getGameObjectByName(defaultTileName);
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(selectedTile);
-			tile.setDarkSideUp();
-			battleClearing = tile.getClearing(2);
+			if (tileIsEnchanted) {
+				tile.setLightSideUp();
+			}
+			else {
+				tile.setDarkSideUp();
+			}
+			battleClearing = tile.getClearing(clearing);
 			
 			// Select game prefs...
 			HostGameSetupDialog setup = new HostGameSetupDialog(new JFrame(),"Game Options for Battle",gameData);
@@ -247,21 +291,55 @@ public class BattleBuilder extends JFrame {
 			if (setup.getDidStart()) {
 				setup.savePrefsToLocalConfiguration();
 				hostPrefs = HostPrefWrapper.findHostPrefs(gameData);
+				
+				// load spells
+				if (hostPrefs.getIncludeExpansionSpells()) {
+					prepExpansionSpells("rw_expansion_1", gameData);
+				}
+				if(hostPrefs.getIncludeNewSpells()){
+					prepExpansionSpells("new_spells_1", gameData);
+				}
+				if(hostPrefs.getIncludeNewSpells2()){
+					prepExpansionSpells("new_spells_2", gameData);
+				}
+				if(hostPrefs.getIncludeSrSpells()){
+					prepExpansionSpells("super_realm_spell", gameData);
+				}
+				if(hostPrefs.getSwitchDaySpells()){
+					prepExpansionSpells("upg_day_spells", gameData);
+					removeSpells("upg_swap_out", gameData);
+				}
+				if(hostPrefs.hasPref(Constants.HOUSE2_ORGRE_WEAPON_LENGTH)){
+					alternateOgreWeaponLength("4", gameData);
+				}
+				if(hostPrefs.getIncludeExpansionTreasures()){
+					prepExpansionTreasures("rw_expansion_1", gameData);
+				}
+				if(hostPrefs.getIncludeSrTreasures()){
+					prepExpansionTreasures("super_realm_treasure", gameData);
+				}
+				if (hostPrefs.hasPref(Constants.OPT_POWER_OF_THE_PIT_ATTACK)) {
+					GamePool pool = new GamePool(gameData.getGameObjects());
+					ArrayList<GameObject> popSpells = pool.find("powerofthepit");
+					for (GameObject go:popSpells) {
+						go.setThisAttribute("duration","attack");
+						go.setThisAttribute("strength","");
+					}
+				}
+				
 				updatePool();
 				
 				// Add a custom character keylist
 				RealmCharacterBuilderModel.addCustomCharacters(hostPrefs,gameData);
 						
 				// Some items require a spell be cast (Flying Carpet)
-				ArrayList keyVals = new ArrayList();
+				ArrayList<String> keyVals = new ArrayList<String>();
 				keyVals.add(hostPrefs.getGameKeyVals());
 				keyVals.add(Constants.CAST_SPELL_ON_INIT);
 				SpellMasterWrapper.getSpellMaster(gameData); // make sure SpellMaster is created
-				Collection needsSpellInit = pool.find(keyVals);
-				for (Iterator i=needsSpellInit.iterator();i.hasNext();) {
-					GameObject go = (GameObject)i.next();
-					for (Iterator n=go.getHold().iterator();n.hasNext();) {
-						GameObject sgo = (GameObject)n.next();
+				Collection<GameObject> needsSpellInit = pool.find(keyVals);
+				for (GameObject go : needsSpellInit) {
+					for (GameObject sgo : go.getHold()) {
 						if (sgo.hasThisAttribute("spell")) {
 							SpellWrapper spell = new SpellWrapper(sgo);
 							spell.castSpellNoEnhancedMagic(go);
@@ -270,6 +348,8 @@ public class BattleBuilder extends JFrame {
 						}
 					}
 				}
+				
+				battleClearing.energizeItems();
 				
 				// Convert all traveler templates to travelers, so they can be tested here
 				ArrayList<GameObject> travelerChits = pool.find("traveler");
@@ -288,9 +368,7 @@ public class BattleBuilder extends JFrame {
 				updateControls();
 				return true;
 			}
-			else {
-				CombatFrame.close();
-			}
+			CombatFrame.close();
 		}
 		else {
 			// Editing an existing battle
@@ -311,6 +389,36 @@ public class BattleBuilder extends JFrame {
 		pool = new GamePool(gameData.getGameObjects());
 		pool = new GamePool(pool.find(hostPrefs.getGameKeyVals()));
 	}
+	private void prepExpansionSpells(String spellKey, GameData data) {
+		GamePool pool = new GamePool(data.getGameObjects());
+		ArrayList<GameObject> expansionSpells = pool.find("spell," + spellKey);
+		for (GameObject go:expansionSpells) {
+			go.setThisKeyVals(hostPrefs.getGameKeyVals());
+		}
+	}
+	private void removeSpells(String spellKey, GameData data){
+		GamePool pool = new GamePool(data.getGameObjects());
+		ArrayList<GameObject> toRemove = pool.find("spell," + spellKey);
+		for (GameObject go:toRemove) {
+			go.stripThisKeyVals(hostPrefs.getGameKeyVals());
+		}	
+	}
+	private static void alternateOgreWeaponLength(String length, GameData data) {
+		GamePool pool = new GamePool(data.getGameObjects());
+		ArrayList<GameObject> ogres = pool.find(Constants.OGRE);
+		for (GameObject go:ogres) {
+			go.setAttribute("light","length",length);
+			go.setAttribute("dark","length",length);
+			go.setThisKeyVals(Constants.WEAPON_USE_CHIT);
+		}
+	}
+	private void prepExpansionTreasures(String gameKey, GameData data) {
+		GamePool pool = new GamePool(data.getGameObjects());
+		ArrayList<GameObject> expansionSpells = pool.find("!original_game,treasure,!treasure_within_treasure,!ts_section," + gameKey);
+		for (GameObject go:expansionSpells) {
+			go.setThisKeyVals(hostPrefs.getGameKeyVals());
+		}
+	}
 	private boolean setupBuilderWithData() {
 		// Fetch battleClearing
 		GameObject bcObj = getBattleClearingReferenceObject(gameData);
@@ -329,9 +437,8 @@ public class BattleBuilder extends JFrame {
 		// Denizens...
 		BattleGroup denGroup = model.getDenizenBattleGroup();
 		if (denGroup!=null) {
-			ArrayList toAdd = new ArrayList();
-			for (Iterator i=denGroup.getBattleParticipants().iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
+			ArrayList<GameObject> toAdd = new ArrayList<GameObject>();
+			for (RealmComponent rc : denGroup.getBattleParticipants()) {
 				GameObject go = rc.getGameObject();
 				go.setThisAttribute(BATTLE_BUILDER_KEY);
 				toAdd.add(go);
@@ -340,8 +447,7 @@ public class BattleBuilder extends JFrame {
 		}
 		
 		// Characters...
-		for (Iterator b=model.getAllBattleGroups(false).iterator();b.hasNext();) {
-			BattleGroup group = (BattleGroup)b.next();
+		for (BattleGroup group : model.getAllBattleGroups(false)) {
 			RealmComponent rc = group.getOwningCharacter();
 			
 			// Add tab
@@ -355,8 +461,7 @@ public class BattleBuilder extends JFrame {
 			}
 			
 			// Tag everyone else
-			for (Iterator i=group.getBattleParticipants().iterator();i.hasNext();) {
-				RealmComponent bp = (RealmComponent)i.next();
+			for (RealmComponent bp : group.getBattleParticipants()) {
 				if (bp!=rc) {
 					bp.getGameObject().setThisAttribute(BATTLE_BUILDER_KEY);
 				}
@@ -375,13 +480,12 @@ public class BattleBuilder extends JFrame {
 	}
 	private void changeClearing() {
 		// Choose a tile and clearing
-		Collection tiles = pool.find("tile,"+hostPrefs.getGameKeyVals());
-		Hashtable tileHash = new Hashtable();
-		for (Iterator i=tiles.iterator();i.hasNext();) {
-			GameObject tile = (GameObject)i.next();
+		Collection<GameObject> tiles = pool.find("tile,"+hostPrefs.getGameKeyVals());
+		Hashtable<String, GameObject> tileHash = new Hashtable<String, GameObject>();
+		for (GameObject tile : tiles) {
 			tileHash.put(tile.getName(),tile);
 		}
-		ArrayList tileNames = new ArrayList(tileHash.keySet());
+		ArrayList<String> tileNames = new ArrayList<String>(tileHash.keySet());
 		Collections.sort(tileNames);
 		String tileName = (String)JOptionPane.showInputDialog(
 				null,
@@ -395,18 +499,20 @@ public class BattleBuilder extends JFrame {
 		if (tileName==null) {
 			return;
 		}
-		GameObject selectedTile = (GameObject)tileHash.get(tileName);
+		GameObject selectedTile = tileHash.get(tileName);
 		
 		TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(selectedTile);
+		boolean enchanted = false;
 		if (saidYes("Do you want to use the Enchanted side of the "+selectedTile.getName()+"?")) {
 			tile.setDarkSideUp();
+			enchanted = true;
 		}
 		else {
 			tile.setLightSideUp();
 		}
 		
-		ArrayList clearingNames = new ArrayList();
-		Hashtable clearingHash = new Hashtable();
+		ArrayList<String> clearingNames = new ArrayList<String>();
+		Hashtable<String, ClearingDetail> clearingHash = new Hashtable<String, ClearingDetail>();
 		for (int i=1;i<=6;i++) {
 			ClearingDetail clearing = tile.getClearing(i);
 			if (clearing!=null) {
@@ -425,13 +531,19 @@ public class BattleBuilder extends JFrame {
 		if (clearingName==null) {
 			return;
 		}
-		battleClearing = (ClearingDetail)clearingHash.get(clearingName);
+		
+		battleClearing = clearingHash.get(clearingName);
+		
+		prefs.set(BATTLE_BUILDER_CLEARING,clearingHash.get(clearingName).getNum());
+		prefs.set(BATTLE_BUILDER_TILE,tileName);
+		prefs.set(BATTLE_BUILDER_TILE_IS_ENCHANTED,enchanted);
+		prefs.savePreferences();
+		
 		updateControls();
 	}
-	protected void checkHorses(Collection denizens) {
-		ArrayList horses = new ArrayList();
-		for (Iterator i=denizens.iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+	protected void checkHorses(Collection<GameObject> denizens) {
+		ArrayList<GameObject> horses = new ArrayList<GameObject>();
+		for (GameObject go : denizens) {
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			BattleHorse horse = rc.getHorse();
 			if (horse!=null) {
@@ -442,8 +554,7 @@ public class BattleBuilder extends JFrame {
 		if (!horses.isEmpty()) {
 			int ret = JOptionPane.showConfirmDialog(this,"Include horses?","",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
 			boolean includeHorses = ret==JOptionPane.YES_OPTION;
-			for (Iterator i=horses.iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
+			for (GameObject go : horses) {
 				if (includeHorses) {
 					go.removeThisAttribute(Constants.DEAD);
 				}
@@ -454,19 +565,18 @@ public class BattleBuilder extends JFrame {
 		}
 	}
 	private void addDenizens() {
-		Collection monsters = pool.find("monster,!part,"+hostPrefs.getGameKeyVals()+",!"+BATTLE_BUILDER_KEY);
-		Collection natives = pool.find("native,!horse,!treasure,"+hostPrefs.getGameKeyVals()+",!"+BATTLE_BUILDER_KEY);
+		Collection<GameObject> monsters = pool.find("monster,!part,!treasure,"+hostPrefs.getGameKeyVals()+",!"+BATTLE_BUILDER_KEY);
+		Collection<GameObject> natives = pool.find("native,!horse,!treasure,!dwelling,!virtual_dwelling"+hostPrefs.getGameKeyVals()+",!"+BATTLE_BUILDER_KEY);
 		RealmObjectChooser denizenChooser = new RealmObjectChooser("Choose Denizens to Add:",gameData,false);
 		denizenChooser.addObjectsToChoose(monsters);
 		denizenChooser.addObjectsToChoose(natives);
 		denizenChooser.setVisible(true);
 		if (denizenChooser.pressedOkay()) {
-			Collection chosenDenizens = denizenChooser.getChosenObjects();
+			Collection<GameObject> chosenDenizens = denizenChooser.getChosenObjects();
 			if (chosenDenizens!=null && chosenDenizens.size()>0) {
 				chosenDenizens = makeDuplicates(chosenDenizens); // only if the option is selected
 				checkHorses(chosenDenizens);
-				for (Iterator i=chosenDenizens.iterator();i.hasNext();) {
-					GameObject go = (GameObject)i.next();
+				for (GameObject go : chosenDenizens) {
 					go.setThisAttribute(BATTLE_BUILDER_KEY);
 				}
 				denizenPanel.clearSelected();
@@ -475,13 +585,12 @@ public class BattleBuilder extends JFrame {
 			}
 		}
 	}
-	public Collection makeDuplicates(Collection in) {
+	public Collection<GameObject> makeDuplicates(Collection<GameObject> in) {
 		if (makeDuplicatesOption.isSelected()) {
-			ArrayList dups = new ArrayList();
-			for (Iterator i=in.iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
+			ArrayList<GameObject> dups = new ArrayList<GameObject>();
+			for (GameObject go :  in) {
 				GameObject dup = gameData.createNewObject(go);
-				Collection hold = go.getHold();
+				Collection<GameObject> hold = go.getHold();
 				if (!hold.isEmpty()) {
 					// This recursive behavior will guarantee that the duplication goes deep
 					dup.addAll(makeDuplicates(hold));
@@ -496,9 +605,8 @@ public class BattleBuilder extends JFrame {
 	}
 	private void removeDenizens() {
 		ArrayList all = new ArrayList(Arrays.asList(denizenPanel.getComponents()));
-		Collection selDenizens = denizenPanel.getSelectedComponents();
-		for (Iterator i=selDenizens.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+		Collection<RealmComponent> selDenizens = denizenPanel.getSelectedComponents();
+		for (RealmComponent rc : selDenizens) {
 			rc.getGameObject().removeThisAttribute(BATTLE_BUILDER_KEY);
 			all.remove(rc);
 			battleClearing.remove(rc.getGameObject());
@@ -515,7 +623,7 @@ public class BattleBuilder extends JFrame {
 			lastCharacter = panel.getCharacter();
 		}
 		
-		ArrayList<GameObject> characters = pool.find("character,!"+CharacterWrapper.NAME_KEY);
+		ArrayList<GameObject> characters = pool.find("character,!"+CharacterWrapper.NAME_KEY+",!"+Constants.CUSTOM_CHARACTER);
 		characters.addAll(CustomCharacterLibrary.getSingleton().getCharacterTemplateList());
 		Collections.sort(characters,new Comparator<GameObject>() {
 			public int compare(GameObject go1,GameObject go2) {
@@ -533,8 +641,7 @@ public class BattleBuilder extends JFrame {
 				newChar.copyAttributesFrom(chosen);
 				RealmComponent.clearOwner(newChar);
 				newChar.setThisKeyVals(hostPrefs.getGameKeyVals());
-				for (Iterator i=chosen.getHold().iterator();i.hasNext();) {
-					GameObject go = (GameObject)i.next();
+				for (GameObject go : chosen.getHold()) {
 					if (go.hasThisAttribute("character_chit")) {
 						GameObject newChit = gameData.createNewObject();
 						newChit.copyAttributesFrom(go);
@@ -547,7 +654,6 @@ public class BattleBuilder extends JFrame {
 			}
 			
 			CharacterWrapper character = new CharacterWrapper(chosen);
-			battleClearing.add(character.getGameObject(),null);
 			character.setPlayerName(testPlayerName);
 			character.setPlayerPassword("");
 			character.setPlayerEmail(""); // no e-mail for battle tests
@@ -559,6 +665,7 @@ public class BattleBuilder extends JFrame {
 			character.initRelationships(hostPrefs);
 			character.setGold(50);
 			chosen.setThisAttribute(BATTLE_BUILDER_KEY);
+			chosen.setThisAttribute(CHARACTER_PRESENT);
 			if (lastCharacter!=null) {
 				character.setEnemyCharacter(lastCharacter.getGameObject(),true);
 			}
@@ -623,9 +730,9 @@ public class BattleBuilder extends JFrame {
 		// Cast the spell
 		spell.castSpellNoEnhancedMagic(incantation);
 		spell.addTarget(hostPrefs,target.getGameObject());
-		caster.addThisAttributeListItem("diemod","1d:all:all");
-		spell.affectTargets(this,GameWrapper.findGame(gameData),false);
-		caster.removeThisAttributeListItem("diemod","1d:all:all");
+		caster.addThisAttributeListItem(Constants.DIEMOD,"1d:all:all");
+		spell.affectTargets(this,GameWrapper.findGame(gameData),false,null);
+		caster.removeThisAttributeListItem(Constants.DIEMOD,"1d:all:all");
 		if (ret==JOptionPane.NO_OPTION) {
 			spell.unaffectTargets();
 			spell.makeInert();
@@ -662,7 +769,6 @@ public class BattleBuilder extends JFrame {
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Permanent Spell to Cast:",true);
 		chooser.addGameObjects(spells,false);
 		chooser.setMaxGroupSize(spells.size());
-		//chooser.setForceColumns(5);
 		chooser.setVisible(true);
 		if (chooser.getSelectedText()!=null) {
 			RealmComponent rc = chooser.getFirstSelectedComponent();
@@ -757,12 +863,14 @@ public class BattleBuilder extends JFrame {
 		repaint();
 	}
 	private void doFinish() {
-		Collection everything = pool.find(BATTLE_BUILDER_KEY);
-		for (Iterator i=everything.iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		Collection<GameObject> everything = pool.find(BATTLE_BUILDER_KEY);
+		for (GameObject go : everything) {
 			go.removeThisAttribute(BATTLE_BUILDER_KEY);
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
-			if (rc.isCharacter() || rc.isNative() || rc.isMonster() || rc.isTraveler()) {
+			if (rc.isCharacter() && !rc.getGameObject().hasThisAttribute(CHARACTER_PRESENT)) {
+				battleClearing.remove(rc.getGameObject());
+			}
+			if ((rc.isCharacter() && rc.getGameObject().hasThisAttribute(CHARACTER_PRESENT)) || rc.isNative() || rc.isMonster() || rc.isTraveler()) {
 				battleClearing.add(go,null);
 			}
 		}
@@ -776,14 +884,14 @@ public class BattleBuilder extends JFrame {
 	
 	public static GameObject getBattleClearingReferenceObject(GameData data) {
 		GamePool thePool = new GamePool(data.getGameObjects());
-		Collection bc = thePool.find(BATTLE_CLEARING_KEY);
+		Collection<GameObject> bc = thePool.find(BATTLE_CLEARING_KEY);
 		GameObject bcObj = null;
 		if (bc.isEmpty()) {
 			bcObj = data.createNewObject();
 			bcObj.setThisAttribute(BATTLE_CLEARING_KEY);
 		}
 		else {
-			bcObj = (GameObject)bc.iterator().next();
+			bcObj = bc.iterator().next();
 		}
 		return bcObj;
 	}
