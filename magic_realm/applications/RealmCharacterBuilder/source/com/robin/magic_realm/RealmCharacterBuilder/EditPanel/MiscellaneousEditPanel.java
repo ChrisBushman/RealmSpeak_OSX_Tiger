@@ -101,7 +101,7 @@ public class MiscellaneousEditPanel extends AdvantageEditPanel {
 		super(pChar,levelKey);
 		
 		group = new ButtonGroup();
-		buttonList = new ArrayList<>();
+		buttonList = new ArrayList<JRadioButton>();
 		
 		setLayout(new GridLayout(1,2));
 		

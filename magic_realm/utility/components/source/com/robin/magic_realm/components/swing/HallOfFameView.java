@@ -128,7 +128,7 @@ public class HallOfFameView extends JPanel {
 		StringBuffer sb = new StringBuffer();
 		sb.append("<tr>");
 		
-		ArrayList<String> list = new ArrayList<>(hash.orderedKeys());
+		ArrayList<String> list = new ArrayList<String>(hash.orderedKeys());
 		int n = list.size();
 		
 		for (int i=0;i<Math.min(n,2);i++) {
@@ -160,7 +160,7 @@ public class HallOfFameView extends JPanel {
 		
 		sb.append("<table cellpadding=\"0\">");
 		
-		OrderedHashtable<String, String> hash = new OrderedHashtable<>();
+		OrderedHashtable<String, String> hash = new OrderedHashtable<String, String>();
 		
 		// Do this one separately, so it gets centered on top
 		hash.put(HallOfFame.CAT_OVERALL,"Overall");

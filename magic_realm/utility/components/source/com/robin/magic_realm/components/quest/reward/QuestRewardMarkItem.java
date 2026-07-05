@@ -34,7 +34,7 @@ public class QuestRewardMarkItem extends QuestReward {
 			objects = QuestRewardItem.getObjectList(character.getGameData().getGameObjects(),getChitTypes(),getItemRegex());
 		}
 
-		ArrayList<GameObject> availableObjects = new ArrayList<>();
+		ArrayList<GameObject> availableObjects = new ArrayList<GameObject>();
 		for (GameObject item : objects) {
 			if (removeMark() && !item.hasThisAttribute(QuestConstants.QUEST_MARK)) continue;
 			if (mustBeActive() && !item.hasThisAttribute(Constants.ACTIVATED)) continue;

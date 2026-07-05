@@ -228,7 +228,7 @@ public class RealmCalendar {
 		// Magic is a bit more involved
 		String magic = currentSeason.getThisAttribute("magic");
 		StringTokenizer tokens = new StringTokenizer(magic,",");
-		seventhDayColors = new ArrayList<>();
+		seventhDayColors = new ArrayList<ColorMagic>();
 		if (hostPrefs.hasPref(Constants.SR_ALTERNATING_7TH_DAY_MAGIC) && currentSeason.getThisInt("season")==0) {
 			String color = null;
 			if(tokens.hasMoreTokens()) {
@@ -261,7 +261,7 @@ public class RealmCalendar {
 		}
 	}
 	private void loadSeasonsHash() {
-		seasonsHash = new Hashtable<>();
+		seasonsHash = new Hashtable<Integer,GameObject>();
 		GamePool pool = new GamePool(gameData.getGameObjects());
 		ArrayList<GameObject> list = pool.find("season");
 		for (GameObject go : list) {
@@ -280,7 +280,7 @@ public class RealmCalendar {
 		throw new IllegalArgumentException("Invalid argument: "+seasonName);
 	}
 	public ArrayList<GameObject> getAllSeasons() {
-		ArrayList<GameObject> list = new ArrayList<>(seasonsHash.values());
+		ArrayList<GameObject> list = new ArrayList<GameObject>(seasonsHash.values());
 		Collections.sort(list,seasonComparator);
 		return list;
 	}
@@ -413,7 +413,7 @@ public class RealmCalendar {
 	}
 	public ArrayList<ColorMagic> getColorMagic(int month,int day) {
 		updateSeason(month);
-		ArrayList<ColorMagic> colors = new ArrayList<>();
+		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
 		
 		if (day==7) {
 			colors.addAll(seventhDayColors);

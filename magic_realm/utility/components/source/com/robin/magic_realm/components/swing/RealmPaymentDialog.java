@@ -67,7 +67,7 @@ public class RealmPaymentDialog extends AggressiveDialog {
 		hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameObject().getGameData());
 		mc = RealmComponent.getRealmComponent(merchandise);
 		repair = mc.isArmor() && ((ArmorChitComponent)mc).isDamaged();
-		onTheTable = new ArrayList<>();
+		onTheTable = new ArrayList<GameObject>();
 		initComponents();
 		setLocationRelativeTo(parent);
 	}
@@ -317,7 +317,7 @@ public class RealmPaymentDialog extends AggressiveDialog {
 		QuestRequirementParams params = new QuestRequirementParams();
 		params.actionType = CharacterActionType.Trading;
 		params.actionName = TradeType.Buy.toString();
-		params.objectList = new ArrayList<>();
+		params.objectList = new ArrayList<GameObject>();
 		params.objectList.add(merchandise);
 		params.targetOfSearch = tradeInfo.getGameObject();
 		character.testQuestRequirements(frame,params);
@@ -346,7 +346,7 @@ public class RealmPaymentDialog extends AggressiveDialog {
 		return characterNeedsToRunAway;
 	}
 	private void doAdd() {
-		ArrayList<GameObject> unpresentedInventory = new ArrayList<>();
+		ArrayList<GameObject> unpresentedInventory = new ArrayList<GameObject>();
 		for (GameObject item : character.getInventory()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(item);
 			if (rc.isItem() && !rc.isNativeHorse() && !item.hasThisAttribute(Constants.CONTROLLED_HORSE)) {
@@ -374,7 +374,7 @@ public class RealmPaymentDialog extends AggressiveDialog {
 	private void doRemove() {
 		GameObject[] selGo = invTradeView.getSelectedGameObjects();
 		if (selGo.length>0) {
-			Collection<GameObject> toRemove = new ArrayList<>(Arrays.asList(selGo));
+			Collection<GameObject> toRemove = new ArrayList<GameObject>(Arrays.asList(selGo));
 			removeInventory(toRemove);
 		}
 	}

@@ -290,7 +290,7 @@ public class TileLocation {
 			}
 		}
 		if (horse!=null) {
-			ArrayList<ClearingDetail> possibleClearings = new ArrayList<>();
+			ArrayList<ClearingDetail> possibleClearings = new ArrayList<ClearingDetail>();
 			for (ClearingDetail cl : tile.getClearings()) {
 				if (!cl.isCave() || horse.hasThisAttribute(Constants.STEED_SURVIVES_CAVES)) {
 					possibleClearings.add(cl);

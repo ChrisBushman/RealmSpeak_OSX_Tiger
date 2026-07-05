@@ -16,7 +16,7 @@ public class ExcelFormatParser {
 	public Vector<RecordParser> readIt() {
 		try {
 			BufferedReader bufferedreader = new BufferedReader(new FileReader(file));
-			Vector<RecordParser> vector = new Vector<>();
+			Vector<RecordParser> vector = new Vector<RecordParser>();
 			String s;
 			while ((s = bufferedreader.readLine()) != null)
 				vector.addElement(new RecordParser(s, "\t"));
@@ -103,7 +103,7 @@ public class ExcelFormatParser {
 			character.setFriendly(getNativeString(vector, FRIENDLY).toString());
 			character.setUnfriendly(getNativeString(vector, UNFRIENDLY).toString());
 			character.setEnemy(getNativeString(vector, ENEMY).toString());
-			Vector<OutlineEntry> vector1 = new Vector<>();
+			Vector<OutlineEntry> vector1 = new Vector<OutlineEntry>();
 			for (int l = 0; l < 2; l++) {
 				FieldPos fieldpos = new FieldPos(SPECIAL.getRow() + 1 + l, SPECIAL.getCol() + 1);
 				String s1 = getField(vector, fieldpos);

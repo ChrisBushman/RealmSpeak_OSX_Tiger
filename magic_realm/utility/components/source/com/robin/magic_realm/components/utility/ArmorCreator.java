@@ -18,13 +18,13 @@ public class ArmorCreator {
 	
 	public ArmorCreator(String key){
 		armorKey = key;
-		armorCreated = new ArrayList<>();
+		armorCreated = new ArrayList<GameObject>();
 	}
 	
 	public GameObject createOrReuseArmor(GameData data){
 		GamePool pool = new GamePool(data.getGameObjects());
 			
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add(armorKey);
 		query.add(Constants.DESTROYED);
 		GameObject go = pool.findFirst(query);

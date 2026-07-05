@@ -123,7 +123,7 @@ public class FastMapView extends JComponent {
 		});
 	}
 	public void updateGrid() {
-		mapGrid = new Hashtable<>();
+		mapGrid = new Hashtable<Point, TileComponent>();
 		Collection<GameObject> tileObjects = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
 		for (GameObject go : tileObjects) {
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);

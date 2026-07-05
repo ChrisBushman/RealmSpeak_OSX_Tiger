@@ -135,7 +135,7 @@ public class ApproveInventoryDialog extends AggressiveDialog {
 		private ArrayList<GameObject> inventory;
 		
 		public ItemTableModel(ArrayList<GameObject> items) {
-			inventory = new ArrayList<>();
+			inventory = new ArrayList<GameObject>();
 			for (GameObject go:items) {
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (rc.isItem()) {

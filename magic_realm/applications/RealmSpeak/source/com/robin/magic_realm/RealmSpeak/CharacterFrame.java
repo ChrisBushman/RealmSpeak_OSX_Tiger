@@ -572,7 +572,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	 * This is really only for the Book of Quests game play
 	 */
 	private void chooseQuest() {
-		ArrayList<Quest> quests = new ArrayList<>();
+		ArrayList<Quest> quests = new ArrayList<Quest>();
 		if (hostPrefs.isUsingGuildQuests()) {
 			String guildName = character.getCurrentLocation().clearing.getGuild().getGameObject().getThisAttribute("guild");
 			for (Quest quest : QuestLoader.findAvailableQuests(character,hostPrefs)) {
@@ -660,7 +660,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 			// Return the object to the original owner
 			GameObject originalOwner = go.getGameObjectFromThisAttribute(Constants.REQUIRES_APPROVAL);
 			CharacterWrapper owningCharacter = new CharacterWrapper(originalOwner);
-			ArrayList<GameObject> stuff = new ArrayList<>();
+			ArrayList<GameObject> stuff = new ArrayList<GameObject>();
 			stuff.add(go);
 			go.removeThisAttribute(Constants.REQUIRES_APPROVAL);
 			RealmUtility.transferInventory(gameHandler.getMainFrame(),getCharacter(),owningCharacter,stuff,gameHandler.getUpdateFrameListener(),false);
@@ -676,7 +676,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 
 	private void pickupGoldSpecial() {
 		RealmComponent chosenGS = null;
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		TileLocation tl = getCharacter().getCurrentLocation();
 		if (tl.isInClearing()) {
 			for (RealmComponent rc : tl.clearing.getClearingComponents()) {
@@ -713,8 +713,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					if (gsrc.isCampaign() && hostPrefs.hasPref(Constants.SR_ADV_BOUNTY_HUNTER)) {
 						GamePool pool = new GamePool(character.getGameData().getGameObjects());
 						ArrayList<GameObject> nativeLeaders = pool.find("native,rank=HQ");
-						ArrayList<String> enemyClansToCharacter = new ArrayList<>();
-						ArrayList<String> notEnemyClansToCharacter = new ArrayList<>();
+						ArrayList<String> enemyClansToCharacter = new ArrayList<String>();
+						ArrayList<String> notEnemyClansToCharacter = new ArrayList<String>();
 						for (GameObject nativeLeader : nativeLeaders) {
 							if (!nativeLeader.hasThisAttribute(Constants.CLAN)) continue;
 							if (character.getRelationship(nativeLeader)<=-2) {
@@ -729,15 +729,15 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 							enemyClansToCharacter.remove(clan);
 						}
 						if (enemyClansToCharacter.isEmpty()) {	
-							ArrayList<RealmComponent> foes = new ArrayList<>();
-							ArrayList<RealmComponent> foesToClan1 = new ArrayList<>();
+							ArrayList<RealmComponent> foes = new ArrayList<RealmComponent>();
+							ArrayList<RealmComponent> foesToClan1 = new ArrayList<RealmComponent>();
 							ArrayList<GameObject> livingCharacters = RealmUtility.getLivingCharacters(character.getGameData());
 							for (GameObject livingCharacter : livingCharacters) {
 								if (livingCharacter.getStringId().matches(character.getGameObject().getStringId())) continue;
 								CharacterWrapper livingCharacterWrapper = new CharacterWrapper(livingCharacter);
 								if (livingCharacterWrapper.isHiredLeader() || livingCharacterWrapper.isMinion()) continue;
-								ArrayList<String> enemyClans = new ArrayList<>();
-								ArrayList<String> notEnemyClans = new ArrayList<>();
+								ArrayList<String> enemyClans = new ArrayList<String>();
+								ArrayList<String> notEnemyClans = new ArrayList<String>();
 								for (GameObject nativeLeader : nativeLeaders) {
 									if (!nativeLeader.hasThisAttribute(Constants.CLAN)) continue;
 									if (livingCharacterWrapper.getRelationship(nativeLeader)<=-2) {
@@ -818,7 +818,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 									gsrc.getGameObject().removeThisAttribute("partner");
 								}
 								CharacterWrapper targetedCharacter = new CharacterWrapper(target.getGameObject());
-								ArrayList<String> foeNatives = new ArrayList<>();
+								ArrayList<String> foeNatives = new ArrayList<String>();
 								for (GameObject nativeLeader : nativeLeaders) {
 									if (!nativeLeader.hasThisAttribute(Constants.CLAN)) continue;
 									if (targetedCharacter.getRelationship(nativeLeader)<=-2) {
@@ -1126,7 +1126,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		tabs.addTab(null, ImageCache.getIcon("tab/chat"), getChatPanel(),"Chat");
 
 		boolean[] tabChangedByThisPress = {false};
-		tabs.addChangeListener(e -> tabChangedByThisPress[0] = true);
+		tabs.addChangeListener(new javax.swing.event.ChangeListener() { public void stateChanged(javax.swing.event.ChangeEvent e) { tabChangedByThisPress[0] = true; } });
 		tabs.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
 				int clicked = tabs.indexAtLocation(e.getX(), e.getY());
@@ -2203,8 +2203,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					JOptionPane.showMessageDialog(gameHandler.getMainFrame(), pane);
 				}
 				else if (thingName.equals("manifest")) {
-					Hashtable<String, String> hash = new Hashtable<>();
-					ArrayList<String> list = new ArrayList<>();
+					Hashtable<String, String> hash = new Hashtable<String, String>();
+					ArrayList<String> list = new ArrayList<String>();
 					Collection<GameObject> all = gameHandler.getGamePool().find("print");
 					for (GameObject site : all) {
 						for (GameObject item : site.getHold()) {
@@ -2296,7 +2296,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					ClearingUtility.markBorderlandConnectedClearings(hostPrefs,gameHandler.getClient().getGameData());
 				}
 				else if (thingName.equals("help")) {
-					ArrayList<String> list = new ArrayList<>();
+					ArrayList<String> list = new ArrayList<String>();
 					list.add("manifest    - Shows where everything is hidden");
 					list.add("seeall      - Shows each site, and what it contains");
 					list.add("discoverall - Discover all treasure locations in the current clearing");
@@ -2639,7 +2639,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		// If the character is not playing a turn, then they may only trade with the one character currently playing
 		if (!activePlayer) {
 			// Now we need to filter out those characters that are not playing their turn
-			ArrayList<RealmComponent> toKeep = new ArrayList<>();
+			ArrayList<RealmComponent> toKeep = new ArrayList<RealmComponent>();
 			for (RealmComponent rc:chars) {
 				CharacterWrapper trader = new CharacterWrapper(rc.getGameObject());
 				if (trader.isPlayingTurn() || trader.isFollowingCharacterPlayingTurn() || trader.isDayEndTradingActive() || character.isDayEndTradingActive()) {
@@ -2698,7 +2698,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		if (character.needsLevelUp()) {
 			int newLevel = character.getCharacterLevel()+1;
 			AbstractAction action = null;
-			ArrayList<String> specialGains = new ArrayList<>();
+			ArrayList<String> specialGains = new ArrayList<String>();
 			if (hostPrefs.hasPref(Constants.HOUSE1_ALLOW_LEVEL_GAINS_PAST_FOUR)) {
 				switch(newLevel) {
 					case 5:

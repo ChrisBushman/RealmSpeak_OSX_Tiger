@@ -21,14 +21,14 @@ public class GameOptionPane extends JPanel implements ActionListener {
 	}
 	public GameOptionPane(int tabPlacement) {
 		super(new BorderLayout());
-		keyHash = new OrderedHashtable<>();
-		tabHash = new OrderedHashtable<>();
-		tabDescriptionHash = new Hashtable<>();
+		keyHash = new OrderedHashtable<String, String>();
+		tabHash = new OrderedHashtable();
+		tabDescriptionHash = new Hashtable<String, String>();
 		this.tabPlacement = tabPlacement;
 	}
 	public void addActionListener(ActionListener actionListener) {
 		if (actionListeners==null) {
-			actionListeners = new ArrayList<>();
+			actionListeners = new ArrayList<ActionListener>();
 		}
 		if (!actionListeners.contains(actionListener)) {
 			actionListeners.add(actionListener);
@@ -48,7 +48,7 @@ public class GameOptionPane extends JPanel implements ActionListener {
 	public String[] getOptionDescriptions(String tabKey,boolean active) {
 		Object obj = tabHash.get(tabKey);
 		if (obj instanceof OrderedHashtable) {
-			ArrayList<String> rules = new ArrayList<>();
+			ArrayList<String> rules = new ArrayList<String>();
 			OrderedHashtable<String,GameOption> options = (OrderedHashtable)obj;
 			for (String key : options.orderedKeys()) {
 				GameOption option = options.get(key);
@@ -76,7 +76,7 @@ public class GameOptionPane extends JPanel implements ActionListener {
 		if (!keyHash.containsKey(option.getKey())) {
 			OrderedHashtable<String, GameOption> options = (OrderedHashtable)tabHash.get(tabKey);
 			if (options==null) {
-				options = new OrderedHashtable<>();
+				options = new OrderedHashtable<String, GameOption>();
 				tabHash.put(tabKey,options);
 			}
 			options.put(option.getKey(),option);

@@ -532,7 +532,7 @@ public class CombatWrapper extends GameObjectWrapper {
 		ArrayList<String> list = getList(HIT_BY_IDS);
 		if (list!=null && !list.isEmpty()) {
 			GameData data = getGameObject().getGameData();
-			ArrayList<GameObject> ret = new ArrayList<>();
+			ArrayList<GameObject> ret = new ArrayList<GameObject>();
 			for (String id : list) {
 				ret.add(data.getGameObject(Long.valueOf(id)));
 			}
@@ -616,7 +616,7 @@ public class CombatWrapper extends GameObjectWrapper {
 	public ArrayList<Integer> getAllRounds() {
 		ArrayList<Integer> rounds = null;
 		if (getBoolean(COMBAT_ROUND_RESULT_LIST)) {
-			rounds = new ArrayList<>();
+			rounds = new ArrayList<Integer>();
 			for (String i : getList(COMBAT_ROUND_RESULT_LIST)) {
 				rounds.add(Integer.valueOf(i));
 			}
@@ -625,7 +625,7 @@ public class CombatWrapper extends GameObjectWrapper {
 	}
 	public ArrayList<GameObject> getAllKills() {
 		GameData gameData = getGameObject().getGameData();
-		ArrayList<GameObject> kills = new ArrayList<>();
+		ArrayList<GameObject> kills = new ArrayList<GameObject>();
 		if (getBoolean(COMBAT_KILL_RESULT_LIST)) {
 			for (String i : getList(COMBAT_KILL_RESULT_LIST)) {
 				kills.add(gameData.getGameObject(Long.valueOf(i)));
@@ -636,7 +636,7 @@ public class CombatWrapper extends GameObjectWrapper {
 	public ArrayList<Spoils> getAllSpoils() {
 		ArrayList<Spoils> spoils = null;
 		if (getBoolean(COMBAT_SPOILS_RESULT_LIST)) {
-			spoils = new ArrayList<>();
+			spoils = new ArrayList<Spoils>();
 			for (String i : getList(COMBAT_SPOILS_RESULT_LIST)) {
 				spoils.add(new Spoils(i));
 			}
@@ -659,7 +659,7 @@ public class CombatWrapper extends GameObjectWrapper {
 	public int getRoundsOfMissing() {
 		ArrayList<String> list = getList(COMBAT_HIT_RESULT_LIST);
 		if (list!=null) {
-			ArrayList<String> results = new ArrayList<>(list);
+			ArrayList<String> results = new ArrayList<String>(list);
 			int count = 0;
 			for (int i=results.size()-1;i>=0;i--) {
 				String result = results.get(i);
@@ -677,7 +677,7 @@ public class CombatWrapper extends GameObjectWrapper {
 	public boolean lastTwoAreMisses() {
 		ArrayList<String> list = getList(COMBAT_HIT_RESULT_LIST);
 		if (list!=null) {
-			ArrayList<String> results = new ArrayList<>(list);
+			ArrayList<String> results = new ArrayList<String>(list);
 			if (results.size()>=2) {
 				String val1 = results.remove(results.size()-1);
 				String val2 = results.remove(results.size()-1);
@@ -742,7 +742,7 @@ public class CombatWrapper extends GameObjectWrapper {
 	}
 	public Collection<GameObject> getChargeChits() {
 		GameData data = getGameObject().getGameData();
-		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
 		ArrayList<String> ids = getList(CHARGED_BY_IDS);
 		if (ids!=null) {
 			for (String id : ids) {
@@ -765,7 +765,7 @@ public class CombatWrapper extends GameObjectWrapper {
 	}
 	public ArrayList<GameObject> getUsedChits() {
 		GameData data = getGameObject().getGameData();
-		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
 		ArrayList<String> ids = getList(USED_IDS);
 		if (ids!=null) {
 			for (String id : ids) {
@@ -807,7 +807,7 @@ public class CombatWrapper extends GameObjectWrapper {
 	}
 	public ArrayList<GameObject> getAttackers() {
 		GameData data = getGameObject().getGameData();
-		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
 		ArrayList<String> ids = getList(ATTACKER_IDS);
 		if (ids!=null) {
 			for (String id : ids) {
@@ -818,7 +818,7 @@ public class CombatWrapper extends GameObjectWrapper {
 		return list;
 	}
 	public ArrayList<RealmComponent> getAttackersAsComponents() {
-		ArrayList<RealmComponent> ret = new ArrayList<>();
+		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
 		for (GameObject go:getAttackers()) {
 			ret.add(RealmComponent.getRealmComponent(go));
 		}
@@ -838,7 +838,7 @@ public class CombatWrapper extends GameObjectWrapper {
 	
 	public ArrayList<GameObject> getRaisedUndeads() {
 		GameData data = getGameObject().getGameData();
-		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
 		ArrayList<String> ids = getList(RAISED_UNDEADS_IN_COMBAT);
 		if (ids!=null) {
 			for (String id : ids) {

@@ -268,14 +268,14 @@ public class TreasureUtility {
 				}
 			}
 			else if (thing.hasThisAttribute(Constants.NEEDS_OPEN)) {
-				Collection<GameObject> openable = new ArrayList<>();
+				Collection<GameObject> openable = new ArrayList<GameObject>();
 				openable.add(thing);
 				
 				boolean success = TreasureUtility.openOneObject(parentFrame,character,openable,listener,false)!=null;
 				if (success) {
 					QuestRequirementParams qp = new QuestRequirementParams();
 					qp.actionType = CharacterActionType.ActivatingItem;
-					qp.objectList = new ArrayList<>();
+					qp.objectList = new ArrayList<GameObject>();
 					qp.objectList.add(thing);
 					character.testQuestRequirements(parentFrame,qp);
 				}
@@ -376,7 +376,7 @@ public class TreasureUtility {
 				companion.setThisAttribute(Constants.DESTROY_TREASURE_WHEN_KILLED,thing.getStringId());
 			}
 			if (thing.hasThisAttribute(Constants.COMPANION_FROM_HOLD)) {
-				ArrayList<GameObject> companions = new ArrayList<>(thing.getHold());
+				ArrayList<GameObject> companions = new ArrayList<GameObject>(thing.getHold());
 				StringBufferedList list = new StringBufferedList();
 				IconGroup group = new IconGroup(rc.getIcon(),IconGroup.VERTICAL,5);
 				for(GameObject companion : companions) {
@@ -428,7 +428,7 @@ public class TreasureUtility {
 		}
 		QuestRequirementParams qp = new QuestRequirementParams();
 		qp.actionType = CharacterActionType.ActivatingItem;
-		qp.objectList = new ArrayList<>();
+		qp.objectList = new ArrayList<GameObject>();
 		qp.objectList.add(thing);
 		character.testQuestRequirements(parentFrame,qp);
 		return true;
@@ -436,7 +436,7 @@ public class TreasureUtility {
 	
 	private static boolean doColorCapture(JFrame parentFrame,CharacterWrapper character,GameObject thing) {
 		ArrayList<ColorMagic> permColor = character.getInfiniteColorSources();
-		ArrayList<String> permColorNames = new ArrayList<>();
+		ArrayList<String> permColorNames = new ArrayList<String>();
 		for (ColorMagic cm:permColor) {
 			if (!permColorNames.contains(cm.getColorName())) {
 				permColorNames.add(cm.getColorName());
@@ -523,7 +523,7 @@ public class TreasureUtility {
 			}
 		}
 		if (thing.hasThisAttribute(Constants.REPAIR_ONE)) {
-			ArrayList<ArmorChitComponent> list = new ArrayList<>();
+			ArrayList<ArmorChitComponent> list = new ArrayList<ArmorChitComponent>();
 			for(GameObject go:character.getInventory()) {
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (rc.isArmor()) {
@@ -725,7 +725,7 @@ public class TreasureUtility {
 		}
 		
 		if (thing.hasThisAttribute(Constants.STICKS_TO_ARMOR)) {
-			ArrayList<ArmorChitComponent> list = new ArrayList<>();
+			ArrayList<ArmorChitComponent> list = new ArrayList<ArmorChitComponent>();
 			for(GameObject go:character.getInventory()) {
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (rc.isArmor()) {
@@ -820,7 +820,7 @@ public class TreasureUtility {
 		}
 	}
 	public static void enchantChit(JFrame frame, CharacterWrapper character) {
-		ArrayList<MagicChit> enchantable = new ArrayList<>();
+		ArrayList<MagicChit> enchantable = new ArrayList<MagicChit>();
 		ArrayList<CharacterActionChitComponent> enchantableChits = character.getEnchantableChits();
 		Collections.sort(enchantableChits);
 		enchantable.addAll(enchantableChits);
@@ -1016,7 +1016,7 @@ public class TreasureUtility {
 		
 		QuestRequirementParams qp = new QuestRequirementParams();
 		qp.actionType = CharacterActionType.DeactivatingItem;
-		qp.objectList = new ArrayList<>();
+		qp.objectList = new ArrayList<GameObject>();
 		qp.objectList.add(thing);
 		character.testQuestRequirements(frame,qp);
 		
@@ -1166,7 +1166,7 @@ public class TreasureUtility {
 	public static void applyChitEffects(Collection<CharacterActionChitComponent> allChits,GameObject thing) {
 		if (thing.hasThisAttribute(Constants.CHIT_STRENGTH)) {
 			String val = thing.getThisAttribute(Constants.CHIT_STRENGTH);
-			ArrayList<String> changes = new ArrayList<>(StringUtilities.stringToCollection(val,","));
+			ArrayList<String> changes = new ArrayList<String>(StringUtilities.stringToCollection(val,","));
 			if (changes.size()==3) { // there MUST be three to indicate 0,1,2 asterisks
 				for (CharacterActionChitComponent chit : allChits) {
 					if (!chit.isMagic() && !chit.isTreasureChit()) {
@@ -1184,7 +1184,7 @@ public class TreasureUtility {
 		}
 		if (thing.hasThisAttribute(Constants.CHIT_SPEED)) {
 			String val = thing.getThisAttribute(Constants.CHIT_SPEED);
-			ArrayList<?> changes = new ArrayList<>(StringUtilities.stringToCollection(val,","));
+			ArrayList<?> changes = new ArrayList<?>(StringUtilities.stringToCollection(val,","));
 			if (changes.size()==3) { // there MUST be three to indicate 0,1,2 asterisks
 				for (CharacterActionChitComponent chit : allChits) {
 					if (!chit.isMoveFight() && !chit.isTreasureChit()) { // MOVE/FIGHT and treasure-based chits are not affected
@@ -1236,7 +1236,7 @@ public class TreasureUtility {
 	}
 	
 	public static ArrayList<GameObject> getTreasures(GameObject treasureLocation,CharacterWrapper character) {
-		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
 		for (GameObject obj : treasureLocation.getHold()) {
 			if (character!=null && hasSeen(character,obj)) continue;
 			RealmComponent rc = RealmComponent.getRealmComponent(obj);
@@ -1261,7 +1261,7 @@ public class TreasureUtility {
 	}
 
 	public static Collection<GameObject> getTreasureCards(GameObject treasureLocation) {
-		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
 		for (GameObject obj : treasureLocation.getHold()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(obj);
 			if (rc.isTreasure()) {
@@ -1467,7 +1467,7 @@ public class TreasureUtility {
 	}
 	
 	public static GameObject getSleepObject(TileLocation current) {
-		ArrayList<RealmComponent> seen = new ArrayList<>();
+		ArrayList<RealmComponent> seen = new ArrayList<RealmComponent>();
 		if (current.isInClearing()) {
 			for (RealmComponent rc:current.clearing.getClearingComponents()) {
 				seen.addAll(ClearingUtility.dissolveIntoSeenStuff(rc));
@@ -1483,7 +1483,7 @@ public class TreasureUtility {
 	}
 	
 	public static ArrayList<GameObject> getDamagedArmor(ArrayList<GameObject> stuff) {
-		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
 		for (GameObject go:stuff) {
 			RealmComponent inv = RealmComponent.getRealmComponent(go);
 			if (inv.isArmor()) {
@@ -1511,7 +1511,7 @@ public class TreasureUtility {
 		
 		// Destroy ALL monster pods
 		GamePool pool = new GamePool(generator.getGameData().getGameObjects());
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add(Constants.GENERATED);
 		query.add(Constants.GENERATOR_ID+"="+generator.getStringId());
 		query.add("!"+Constants.DEAD);

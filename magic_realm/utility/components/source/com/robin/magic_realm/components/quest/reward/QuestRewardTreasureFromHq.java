@@ -34,7 +34,7 @@ public class QuestRewardTreasureFromHq extends QuestReward {
 		GamePool pool = new GamePool(getGameData().getGameObjects());
 		ArrayList<GameObject> sourceObjects = pool.find("rank=HQ");
 		ArrayList<GameObject> objects = getObjectList(sourceObjects,getHqRegex(),character);
-		ArrayList<GameObject> validObjects = new ArrayList<>();
+		ArrayList<GameObject> validObjects = new ArrayList<GameObject>();
 		for (GameObject object : objects) {
 			if (!object.hasThisAttribute(Constants.CLONED)) {
 				validObjects.add(object);
@@ -56,8 +56,8 @@ public class QuestRewardTreasureFromHq extends QuestReward {
 		}
 		
 		GameObject holder = SetupCardUtility.getDenizenHolder(selected);
-		ArrayList<GameObject> hold = new ArrayList<>(holder.getHold());
-		ArrayList<GameObject> treasures = new ArrayList<>();
+		ArrayList<GameObject> hold = new ArrayList<GameObject>(holder.getHold());
+		ArrayList<GameObject> treasures = new ArrayList<GameObject>();
 		for(Object o:hold) {
 			RealmComponent rc = RealmComponent.getRealmComponent((GameObject)o);
 			if (rc.isTreasure()) {
@@ -131,7 +131,7 @@ public class QuestRewardTreasureFromHq extends QuestReward {
 	}
 	
 	private ArrayList<GameObject> getObjectList(ArrayList<GameObject> sourceObjects,String regEx, CharacterWrapper character) {
-		ArrayList<GameObject> objects = new ArrayList<>();
+		ArrayList<GameObject> objects = new ArrayList<GameObject>();
 		TileLocation loc = null;
 		if (sameClearing()) {
 			loc = character.getCurrentLocation();

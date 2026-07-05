@@ -16,8 +16,8 @@ public class Encoder {
 	protected static final String LINE_END = "\r\n";
 	
 	public Encoder() {
-		printGroupings = new ArrayList<>();
-		codings = new ArrayList<>();
+		printGroupings = new ArrayList<PrintGrouping>();
+		codings = new ArrayList<Coding>();
 	}
 	public GameData getGameData() {
 		return data;
@@ -46,7 +46,7 @@ public class Encoder {
 	public boolean writeFile(String setupName,String filename) {
 		StringBuffer printString = new StringBuffer();
 
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add("original_game");
 	
 		ArrayList<GameObject> list = data.doSetup(setupName,query);

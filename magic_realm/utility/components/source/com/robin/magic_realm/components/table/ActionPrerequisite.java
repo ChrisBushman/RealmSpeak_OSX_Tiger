@@ -63,7 +63,7 @@ public class ActionPrerequisite {
 		GamePool pool = new GamePool();
 		pool.addAll(character.getActivatedTreasureObjects());
 		
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add("key");
 		if (source.hasThisAttribute(Constants.BOARD_NUMBER)) {
 			query.add(Constants.BOARD_NUMBER+"="+source.getThisAttribute(Constants.BOARD_NUMBER));
@@ -125,7 +125,7 @@ public class ActionPrerequisite {
 		if (!success) {
 			boolean optionalOpeningTreasureLocations = HostPrefWrapper.findHostPrefs(source.getGameData()).hasPref(Constants.SR_OPENING_TREASURE_LOCATIONS);
 			// Instead, you need to fatigue a T chit
-			ArrayList<CharacterActionChitComponent> tremendousChits = new ArrayList<>();
+			ArrayList<CharacterActionChitComponent> tremendousChits = new ArrayList<CharacterActionChitComponent>();
 			Collection<CharacterActionChitComponent> active = character.getActiveChits();
 			for (CharacterActionChitComponent chit : active) {
 				if ("T".equals(chit.getStrength().toString()) || ("X".equals(chit.getStrength().toString()) && !chit.isFly())) {
@@ -134,9 +134,9 @@ public class ActionPrerequisite {
 					}
 				}
 			}
-			ArrayList<RealmComponent> spells = new ArrayList<>();
-			HashLists<String, SpellSet> spellSetHashlists = new HashLists<>();
-			ArrayList<RealmComponent> items  = new ArrayList<>();
+			ArrayList<RealmComponent> spells = new ArrayList<RealmComponent>();
+			HashLists<String, SpellSet> spellSetHashlists = new HashLists<String, SpellSet>();
+			ArrayList<RealmComponent> items  = new ArrayList<RealmComponent>();
 			if (optionalOpeningTreasureLocations && !source.hasThisAttribute(RealmComponent.TREASURE_WITHIN_TREASURE)) {
 				for (SpellSet spellSet : character.getCastableSpellSets()) {
 					if (spellSet.getSpell().hasThisAttribute(Constants.OPENS_TREASURE_LOCATION) && spellSet.canBeCast()) {
@@ -153,7 +153,7 @@ public class ActionPrerequisite {
 			}
 			//hurricaneWinds Spell and Lightning Bolt and Alchemists Mixture or Holy Handgrenade
 			
-			ArrayList<RealmComponent> allOptions  = new ArrayList<>();
+			ArrayList<RealmComponent> allOptions  = new ArrayList<RealmComponent>();
 			allOptions.addAll(tremendousChits);
 			allOptions.addAll(spells);
 			allOptions.addAll(items);
@@ -200,7 +200,7 @@ public class ActionPrerequisite {
 									ArrayList<SpellSet> list = spellSetHashlists.getList(spellWrapper.getGameObject().getName());
 									RealmComponentOptionChooser spellChooser = new RealmComponentOptionChooser(frame,"Choose Casting Options for "+spellWrapper.getName()+":",true);
 									// Then choose a set
-									Hashtable<String, SpellSet> setHash = new Hashtable<>();
+									Hashtable<String, SpellSet> setHash = new Hashtable<String, SpellSet>();
 									int keyN = 0;
 									for (SpellSet set : list) { // by definition, the set is castable
 										for (GameObject type : set.getValidTypeObjects()) {
@@ -357,7 +357,7 @@ public class ActionPrerequisite {
 			if (chit.getEffortAsterisks()==2) {
 				// Need to make change
 				Collection<CharacterActionChitComponent> fatigued = character.getFatiguedChits(); // In case you need to make change
-				ArrayList<CharacterActionChitComponent> singleAsteriskFatiguedChits = new ArrayList<>();
+				ArrayList<CharacterActionChitComponent> singleAsteriskFatiguedChits = new ArrayList<CharacterActionChitComponent>();
 				for (CharacterActionChitComponent fatiguedChit : fatigued) {
 					if (fatiguedChit.getEffortAsterisks()==1) {
 						singleAsteriskFatiguedChits.add(fatiguedChit);

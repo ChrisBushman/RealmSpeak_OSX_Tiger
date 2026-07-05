@@ -65,7 +65,7 @@ public abstract class RealmTable {
 		return null;
 	}
 	protected void sendMessage(GameData data,String clientName,String title,String message) {
-		ArrayList<String> strings = new ArrayList<>();
+		ArrayList<String> strings = new ArrayList<String>();
 		strings.add(title);
 		strings.add(message);
 		strings.add(roller==null?"":roller.getStringResult());

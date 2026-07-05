@@ -18,7 +18,7 @@ import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class SpellTargetingBewitched extends SpellTargetingSingle {
 	
-	private ArrayList<GameObject> possibleSecondaryTargets = new ArrayList<>();
+	private ArrayList<GameObject> possibleSecondaryTargets = new ArrayList<GameObject>();
 	private BattleModel battleModel = null;
 	
 	public SpellTargetingBewitched(CombatFrame combatFrame, SpellWrapper spell) {

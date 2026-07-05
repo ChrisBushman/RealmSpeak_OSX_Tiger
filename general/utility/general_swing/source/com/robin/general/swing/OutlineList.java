@@ -30,7 +30,7 @@ public class OutlineList extends JPanel implements ActionListener {
 		((AbstractTableModel)table.getModel()).fireTableDataChanged();
 	}
 	public void reset() {
-		setData(new Vector<>());
+		setData(new Vector<OutlineEntry>());
 	}
 	public void init() {
 		table = new JTable();

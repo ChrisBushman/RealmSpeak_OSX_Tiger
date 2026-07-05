@@ -64,7 +64,7 @@ public class GameHost {
 		this.connector = null;
 		this.gameTitle = title;
 		this.password = pass;
-		servers = new ArrayList<>();
+		servers = new ArrayList<GameServer>();
 	}
 	public String getGameTitle() {
 		return gameTitle;
@@ -74,7 +74,7 @@ public class GameHost {
 	}
 	public void addGameHostListener(GameHostListener listener) {
 		if (gameHostListeners == null) {
-			gameHostListeners = new ArrayList<>();
+			gameHostListeners = new ArrayList<GameHostListener>();
 		}
 		gameHostListeners.add(listener);
 	}
@@ -169,7 +169,7 @@ public class GameHost {
 	}
 	public void killAllOutsideConnections() {
 		// Assume that the first connection is the host's player, and shut down all the rest.
-		ArrayList<GameServer> list = new ArrayList<>();
+		ArrayList<GameServer> list = new ArrayList<GameServer>();
 		list.add(servers.remove(0));
 		shutdown();
 		servers = list;
@@ -223,7 +223,7 @@ public class GameHost {
 				logger.fine("Host apply changes: DONE.");
 
 				// Update all servers (except the originating server) with the changes
-				ArrayList<GameServer> serversToUpdate = new ArrayList<>();
+				ArrayList<GameServer> serversToUpdate = new ArrayList<GameServer>();
 				serversToUpdate.addAll(servers);
 				for (GameServer server:serversToUpdate) {
 					logger.fine("activeServer="+activeServer);

@@ -31,8 +31,8 @@ public class QuestRewardSummonTraveler extends QuestReward {
 	}
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
-		ArrayList<GameObject> travelersToSummone = new ArrayList<>();
-		ArrayList<GameObject> travelerTemplatesToSummon = new ArrayList<>();
+		ArrayList<GameObject> travelersToSummone = new ArrayList<GameObject>();
+		ArrayList<GameObject> travelerTemplatesToSummon = new ArrayList<GameObject>();
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());
 		ArrayList<GameObject> allTravelerTemplates = pool.find(Constants.TRAVELER_TEMPLATE+",!"+Constants.USED);
 		if (allTravelerTemplates==null || allTravelerTemplates.isEmpty()) {
@@ -71,7 +71,7 @@ public class QuestRewardSummonTraveler extends QuestReward {
 			if (locationOnly()) {
 				QuestLocation loc = getQuestLocation();
 				if (loc == null) return;
-				ArrayList<TileLocation> validLocations = new ArrayList<>();
+				ArrayList<TileLocation> validLocations = new ArrayList<TileLocation>();
 				validLocations = loc.fetchAllLocations(frame, character, getGameData());
 				if(validLocations.isEmpty()) {
 					logger.fine("QuestLocation "+loc.getName()+" doesn't have any valid locations!");

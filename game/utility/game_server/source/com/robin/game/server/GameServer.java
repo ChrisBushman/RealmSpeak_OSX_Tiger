@@ -49,8 +49,8 @@ public class GameServer extends GameNet {
 		this.host = host;
 		this.connection = connection;
 		objectChanges = null;
-		infoDirects = new ArrayList<>(10);
-		broadcasts = new ArrayList<>(50);
+		infoDirects = new ArrayList<InfoObject>(10);
+		broadcasts = new ArrayList<String[]>(50);
 		setName(THREAD_NAME);
 	}
 	public void broadcast(String key,String message) {
@@ -111,7 +111,7 @@ public class GameServer extends GameNet {
 	public void addObjectChanges(Collection<GameObjectChange> inChanges) {
 		if (objectChanges==null) {
 			// If objectChanges is null, then we haven't grabbed the master-to-game changes.  Do that now!
-			objectChanges = new ArrayList<>(host.getMasterToGameChanges());
+			objectChanges = new ArrayList<GameObjectChange>(host.getMasterToGameChanges());
 		}
 		objectChanges.addAll(inChanges);
 	}
@@ -156,10 +156,10 @@ public class GameServer extends GameNet {
 					getOutputStream().writeInt(RESPOND_NEED_UPDATE);
 					if (objectChanges==null) {
 						// If objectChanges is null, then we haven't grabbed the master-to-game changes.  Do that now!
-						objectChanges = new ArrayList<>(host.getMasterToGameChanges());
+						objectChanges = new ArrayList<GameObjectChange>(host.getMasterToGameChanges());
 					}
 					logger.fine("Server for "+clientName+" sending update with "+objectChanges.size()+" changes.");
-					ArrayList<GameObjectChange> toSend = new ArrayList<>();
+					ArrayList<GameObjectChange> toSend = new ArrayList<GameObjectChange>();
 					while(!objectChanges.isEmpty()) {
 						toSend.add(objectChanges.remove(0));
 					}

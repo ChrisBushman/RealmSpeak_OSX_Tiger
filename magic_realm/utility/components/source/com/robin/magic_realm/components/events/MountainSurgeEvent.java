@@ -18,7 +18,7 @@ public class MountainSurgeEvent implements IEvent {
 	private static final String description = "At sunset in a random hex Mountain Surge is cast and lasts until the seventh day of the week.";
 	public void applyBirdsong(GameData data) {
 		TileComponent tile = RealmEvents.chooseRandomTile(data);
-		ArrayList<ClearingDetail> clearings = new ArrayList<>();
+		ArrayList<ClearingDetail> clearings = new ArrayList<ClearingDetail>();
 		if (tile!=null) {
 			for (ClearingDetail cl : tile.getClearings()) {
 				for (RealmComponent rc : cl.getClearingComponents()) {

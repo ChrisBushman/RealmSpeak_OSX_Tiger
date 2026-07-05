@@ -482,8 +482,8 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 	
 	public void updatePanel() {
 		boolean hiredLeader = getCharacter().isHiredLeader();
-		ArrayList<GameObject> activeInv = new ArrayList<>();
-		ArrayList<GameObject> inactiveInv = new ArrayList<>();
+		ArrayList<GameObject> activeInv = new ArrayList<GameObject>();
+		ArrayList<GameObject> inactiveInv = new ArrayList<GameObject>();
 		for (GameObject item : getCharacter().getInventory()) {
 			if (!item.hasThisAttribute(Constants.DEAD)) { // Native horses!
 				RealmComponent rc = RealmComponent.getRealmComponent(item);

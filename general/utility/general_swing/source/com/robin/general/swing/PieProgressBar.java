@@ -68,7 +68,7 @@ public class PieProgressBar extends JComponent {
 	}
 	public void setColor(int wedge,Color c) {
 		if (colorChange==null) {
-			colorChange = new Hashtable<>();
+			colorChange = new Hashtable<Integer, Color>();
 		}
 		colorChange.put(Integer.valueOf(wedge),c);
 	}

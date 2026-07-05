@@ -30,7 +30,7 @@ public class QuestRequirementKillDenizenSummonedByChit extends QuestRequirement 
 				return false;
 			}
 		}
-		ArrayList<String> chitNames = new ArrayList<>();
+		ArrayList<String> chitNames = new ArrayList<String>();
 		if (sameClearing()) {			
 			if (getChit().matches(QuestRequirement.NONE)) {
 				if (loc==null || loc.clearing==null) {

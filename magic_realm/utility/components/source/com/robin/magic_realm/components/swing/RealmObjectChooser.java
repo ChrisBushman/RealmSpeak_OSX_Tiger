@@ -149,7 +149,7 @@ public class RealmObjectChooser extends JDialog {
 		setSize(640,500);
 	}
 	public void addObjectsToChoose(Collection<GameObject> objects) {
-		ArrayList<GameObject> list = new ArrayList<>(objects);
+		ArrayList<GameObject> list = new ArrayList<GameObject>(objects);
 		for (GameObject object : list) {
 			panel.addObject(object);
 		}
@@ -170,7 +170,7 @@ public class RealmObjectChooser extends JDialog {
 		
 		if (object.length>0) {
 			okay = true;
-			chosenObjects = new ArrayList<>();
+			chosenObjects = new ArrayList<GameObject>();
 			for (int i=0;i<object.length;i++) {
 				// quickly verify that the chosenObject is still in gameData!
 				if (validateChosenObjects && !gameData.validate(object[i])) {

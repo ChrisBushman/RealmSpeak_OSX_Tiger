@@ -43,7 +43,7 @@ public class QuestRewardHireling extends QuestReward {
 		ArrayList<GameObject> objects;
 		if (at == ChitAcquisitionType.Lose) {
 			actionDescription = ": Select ONE hireling to lose.";
-			objects = new ArrayList<>();
+			objects = new ArrayList<GameObject>();
 			for (RealmComponent rc : character.getAllHirelings()) {
 				objects.add(rc.getGameObject());
 			}
@@ -124,7 +124,7 @@ public class QuestRewardHireling extends QuestReward {
 			if (locationOnly()) {
 				QuestLocation loc = getQuestLocation();
 				if (loc == null) return;
-				ArrayList<TileLocation> validLocations = new ArrayList<>();
+				ArrayList<TileLocation> validLocations = new ArrayList<TileLocation>();
 				validLocations = loc.fetchAllLocations(frame, character, getGameData());
 				if(validLocations.isEmpty()) {
 					logger.fine("QuestLocation "+loc.getName()+" doesn't have any valid locations!");
@@ -140,7 +140,7 @@ public class QuestRewardHireling extends QuestReward {
 	private static ArrayList<GameObject> getObjectList(ArrayList<GameObject> sourceObjects, ChitAcquisitionType at, String regEx, boolean excludeCloned) {
 		Pattern pattern = (regEx == null || regEx.length() == 0) ? null : Pattern.compile(regEx);
 		GamePool pool = new GamePool(sourceObjects);
-		ArrayList<GameObject> objects = new ArrayList<>();
+		ArrayList<GameObject> objects = new ArrayList<GameObject>();
 		for (GameObject go : pool.find("native,rank")) {
 			if (pattern == null || pattern.matcher(go.getName()).find()) {
 				RealmComponent rc = RealmComponent.getRealmComponent(go);

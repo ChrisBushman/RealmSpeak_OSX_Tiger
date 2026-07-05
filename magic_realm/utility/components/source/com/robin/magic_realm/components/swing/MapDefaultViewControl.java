@@ -34,10 +34,10 @@ public class MapDefaultViewControl extends JPanel {
 		JPanel buttons = new JPanel(new GridLayout(1,2,4,0));
 		JButton defaultViewButton = new JButton("Default View");
 		defaultViewButton.setToolTipText("Recall the saved default view");
-		defaultViewButton.addActionListener(ev -> map.restoreDefaultView());
+		defaultViewButton.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent ev) { map.restoreDefaultView(); } });
 		JButton setDefaultButton = new JButton("Set Default");
 		setDefaultButton.setToolTipText("Save the current pan/zoom as the default view");
-		setDefaultButton.addActionListener(ev -> map.setAsDefaultView());
+		setDefaultButton.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent ev) { map.setAsDefaultView(); } });
 		buttons.add(defaultViewButton);
 		buttons.add(setDefaultButton);
 		add(buttons,BorderLayout.CENTER);

@@ -80,7 +80,7 @@ public class GameWrapper extends GameObjectWrapper {
 		return getState()==GAME_STATE_GAMEOVER;
 	}
 	public static Collection<String> getKeyVals() {
-		ArrayList<String> keyVals = new ArrayList<>();
+		ArrayList<String> keyVals = new ArrayList<String>();
 		keyVals.add(GAME_STATE);
 		return keyVals;
 	}
@@ -304,7 +304,7 @@ public class GameWrapper extends GameObjectWrapper {
 		ArrayList<String> ids = getList(GAME_LAST_REGEN);
 		if (ids!=null) {
 			if (!ids.isEmpty()) {
-				ArrayList<GameObject> list = new ArrayList<>();
+				ArrayList<GameObject> list = new ArrayList<GameObject>();
 				for (String id : ids) {
 					list.add(getGameObject().getGameData().getGameObject(Long.valueOf(id)));
 				}
@@ -329,7 +329,7 @@ public class GameWrapper extends GameObjectWrapper {
 		return hasListItem(GAME_TRAVELERS,traveler.getStringId());
 	}
 	public ArrayList<GameObject> getTravelerKnowledge() {
-		ArrayList<GameObject> travelers = new ArrayList<>();
+		ArrayList<GameObject> travelers = new ArrayList<GameObject>();
 		ArrayList<String> list = getList(GAME_TRAVELERS);
 		if (list!=null) {
 			for(String i : list) {

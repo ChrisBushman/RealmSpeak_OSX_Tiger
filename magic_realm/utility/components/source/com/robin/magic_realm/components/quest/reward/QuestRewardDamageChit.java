@@ -35,7 +35,7 @@ public class QuestRewardDamageChit extends QuestReward {
 
 	public void processReward(JFrame frame, CharacterWrapper character) {
 		ArrayList<CharacterActionChitComponent> chitsToCheck = character.getAllChits();
-		ArrayList<CharacterActionChitComponent> chits = new ArrayList<>();
+		ArrayList<CharacterActionChitComponent> chits = new ArrayList<CharacterActionChitComponent>();
 		switch(getType()) {
 		case Move:
 			for (CharacterActionChitComponent chit : chitsToCheck) {

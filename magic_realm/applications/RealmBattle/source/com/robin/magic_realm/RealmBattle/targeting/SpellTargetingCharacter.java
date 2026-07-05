@@ -51,7 +51,7 @@ public class SpellTargetingCharacter extends SpellTargetingSingle {
 		}
 		
 		ArrayList<ColorMagic> colors = loc.clearing.getAllSourcesOfColor(true);
-		ArrayList<String> colorNames = new ArrayList<>();
+		ArrayList<String> colorNames = new ArrayList<String>();
 		for (ColorMagic color : colors) {
 			colorNames.add(color.getColorName());
 		}

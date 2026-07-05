@@ -39,8 +39,9 @@ public class ExorciseEffect implements ISpellEffect {
 			targChar.removeAllCurses();
 			
 			// Fatigue Color Chits
-			targChar.getColorChits().stream()
-				.forEach(chit -> chit.makeFatigued());
+			for (com.robin.magic_realm.components.CharacterActionChitComponent chit : targChar.getColorChits()) {
+					chit.makeFatigued();
+				}
 		}
 		else if (context.Target.isSpell()) {
 			SpellWrapper otherSpell = new SpellWrapper(context.Target.getGameObject());

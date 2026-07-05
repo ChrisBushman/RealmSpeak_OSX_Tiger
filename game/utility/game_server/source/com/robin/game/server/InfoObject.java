@@ -9,7 +9,7 @@ public class InfoObject {
 
 	public InfoObject(String destClientName, ArrayList<String> info) {
 		this.destClientName = destClientName;
-		this.info = new ArrayList<>(info);
+		this.info = new ArrayList<String>(info);
 		this.forHost = destClientName==null;
 	}
 	public boolean isForHost() {

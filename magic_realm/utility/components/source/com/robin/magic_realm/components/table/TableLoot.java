@@ -326,7 +326,7 @@ public class TableLoot extends Loot {
 			// Clues in a chosen tile
 			ArrayList<GameObject> tiles = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
 			RealmComponentOptionChooser chooseSearch = new RealmComponentOptionChooser(getParentFrame(),"Clues for which tile:",false);
-			Hashtable<String,GameObject> hash = new Hashtable<>();
+			Hashtable<String,GameObject> hash = new Hashtable<String,GameObject>();
 			for(GameObject tile:tiles) {
 				chooseSearch.addOption(chooseSearch.generateOption(),tile.getName());
 				hash.put(tile.getName(),tile);
@@ -355,8 +355,8 @@ public class TableLoot extends Loot {
 			qp.searchHadAnEffect = true;
 		}
 		else if ("read_runes_any".equals(result)) {
-			ArrayList<String> treasureLocationOptions = new ArrayList<>();
-			Hashtable<String, GameObject> hash = new Hashtable<>();
+			ArrayList<String> treasureLocationOptions = new ArrayList<String>();
+			Hashtable<String, GameObject> hash = new Hashtable<String, GameObject>();
 			GamePool pool = new GamePool(data.getGameObjects());
 			for (GameObject treasureLocation : pool.find("treasure_location")) {
 				for (GameObject item : treasureLocation.getHold()) {

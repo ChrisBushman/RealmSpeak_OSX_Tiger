@@ -26,7 +26,7 @@ public class MultiFormatString {
 	}
 	
 	private void init(String formattedText) {
-		formattedStrings = new Vector<>();
+		formattedStrings = new Vector();
 		addFormattedText(formattedText);
 		initFonts();
 	}
@@ -200,7 +200,7 @@ public class MultiFormatString {
 	}
 	
 	public static String[] breakupString(String text) {
-		Vector<String> v = new Vector<>();
+		Vector<String> v = new Vector<String>();
 		String string = new String(text);
 		int space = string.indexOf(" ");
 		while(space>=0) {

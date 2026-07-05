@@ -38,7 +38,7 @@ public class SpellTargetingSound extends SpellTargetingSingle {
 				SoundChitComponent soundChit = (SoundChitComponent)RealmComponent.getRealmComponent(soundChitObject);
 				if (soundChit.isFaceUp()) {
 					int clearing = soundChitObject.getThisInt("clearing");
-					ArrayList<GameObject> tileChoices = new ArrayList<>();
+					ArrayList<GameObject> tileChoices = new ArrayList<GameObject>();
 					if (here.tile.getGameObject().equals(tile)) {
 						gameObjects.add(soundChitObject);
 						identifiers.add(tile.getName());
@@ -76,7 +76,7 @@ public class SpellTargetingSound extends SpellTargetingSingle {
 		secondaryTargets.clear();
 		int clearing = soundChitObject.getThisInt("clearing");
 		Collection<GameObject> clearingTiles = getFilteredTiles();
-		ArrayList<GameObject> tileChoices = new ArrayList<>();
+		ArrayList<GameObject> tileChoices = new ArrayList<GameObject>();
 		for (GameObject t : clearingTiles) {
 			TileComponent tc = new TileComponent(t);
 			if (tc.getClearing(clearing)!=null) {
@@ -90,7 +90,7 @@ public class SpellTargetingSound extends SpellTargetingSingle {
 	private ArrayList<GameObject> getFilteredTiles() {
 		GameData gameData = spell.getGameObject().getGameData();	
 		Collection<GameObject> tiles = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
-		ArrayList<GameObject> clearingTiles = new ArrayList<>();
+		ArrayList<GameObject> clearingTiles = new ArrayList<GameObject>();
 		for (GameObject tile : tiles) {
 			TileComponent tc = (TileComponent)RealmComponent.getRealmComponent(tile);
 			int clearingReq = spell.getGameObject().getThisInt("tile_req");

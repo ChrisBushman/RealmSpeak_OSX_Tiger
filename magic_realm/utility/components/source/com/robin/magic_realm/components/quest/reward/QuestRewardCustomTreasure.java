@@ -74,7 +74,7 @@ public class QuestRewardCustomTreasure extends QuestReward {
 		if (locationOnly()) {
 			QuestLocation loc = getQuestLocation();
 			if (loc == null) return;
-			ArrayList<TileLocation> validLocations = new ArrayList<>();
+			ArrayList<TileLocation> validLocations = new ArrayList<TileLocation>();
 			validLocations = loc.fetchAllLocations(frame, character, getGameData());
 			if(validLocations.isEmpty()) {
 				logger.fine("QuestLocation "+loc.getName()+" doesn't have any valid locations!");

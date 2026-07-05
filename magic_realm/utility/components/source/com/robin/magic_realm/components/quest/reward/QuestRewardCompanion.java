@@ -56,7 +56,7 @@ public class QuestRewardCompanion extends QuestReward {
 			if (locationOnly()) {
 				QuestLocation loc = getQuestLocation();
 				if (loc == null) return;
-				ArrayList<TileLocation> validLocations = new ArrayList<>();
+				ArrayList<TileLocation> validLocations = new ArrayList<TileLocation>();
 				validLocations = loc.fetchAllLocations(frame, character, getGameData());
 				if(validLocations.isEmpty()) {
 					logger.fine("QuestLocation "+loc.getName()+" doesn't have any valid locations!");
@@ -69,7 +69,7 @@ public class QuestRewardCompanion extends QuestReward {
 		}
 		else {
 			GamePool pool = new GamePool(character.getGameData().getGameObjects());
-			ArrayList<GameObject> companionsExisting = new ArrayList<>();
+			ArrayList<GameObject> companionsExisting = new ArrayList<GameObject>();
 			companionsExisting.addAll(pool.find(getCompanionQuery()));
 			companionsExisting.addAll(pool.find("name="+getCompanionKeyName()));
 			for (GameObject companion : companionsExisting ) {

@@ -82,7 +82,7 @@ public class QuestRequirementKill extends QuestRequirement {
 			return true;
 		}
 		
-		ArrayList<GameObject> validKills = new ArrayList<>();
+		ArrayList<GameObject> validKills = new ArrayList<GameObject>();
 		ArrayList<String> allDayKeys = character.getAllDayKeys();
 		if (allDayKeys==null) {
 			logger.fine("Character hasn't had a turn yet.");

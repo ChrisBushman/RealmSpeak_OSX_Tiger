@@ -55,9 +55,9 @@ public class CharacterChooser extends AggressiveDialog {
 		setLocationRelativeTo(frame);
 	}
 	private void buildLists() {
-		availableCharacterObjects = new ArrayList<>();
-		availableFighters = new ArrayList<>();
-		availableMagicUsers = new ArrayList<>();
+		availableCharacterObjects = new ArrayList<GameObject>();
+		availableFighters = new ArrayList<GameObject>();
+		availableMagicUsers = new ArrayList<GameObject>();
 		for (GameObject go:allCharacterObjects) {
 			boolean custom = go.hasThisAttribute(Constants.CUSTOM_CHARACTER);
 			boolean okayToAdd = false;

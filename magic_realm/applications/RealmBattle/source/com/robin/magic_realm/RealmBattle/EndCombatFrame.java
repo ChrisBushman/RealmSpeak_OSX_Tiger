@@ -30,7 +30,7 @@ public class EndCombatFrame extends JFrame {
 		this.id = cum_id++;
 		this.parent = parent;
 		this.playersToRespond = playersToRespond;
-		responseHash = new Hashtable<>();
+		responseHash = new Hashtable<String, String>();
 		initComponents();
 	}
 	public long getId() {
@@ -103,7 +103,7 @@ public class EndCombatFrame extends JFrame {
 		}
 	}
 	private String getUnanimousResponse() {
-		ArrayList<String> all = new ArrayList<>();
+		ArrayList<String> all = new ArrayList<String>();
 		for (String response : responseHash.values()) {
 			if (!all.contains(response)) {
 				all.add(response);

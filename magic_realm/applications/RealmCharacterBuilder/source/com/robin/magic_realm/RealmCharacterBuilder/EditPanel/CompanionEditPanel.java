@@ -178,9 +178,9 @@ public class CompanionEditPanel extends AdvantageEditPanel {
 	public CompanionEditPanel(CharacterWrapper pChar, String levelKey) {
 		super(pChar, levelKey);
 		
-		hash = new Hashtable<>();
-		allPanels = new ArrayList<>();
-		panelLookup = new Hashtable<>();
+		hash = new Hashtable<String,RealmComponent>();
+		allPanels = new ArrayList<RealmObjectPanel>();
+		panelLookup = new Hashtable<String,RealmObjectPanel>();
 		
 		setLayout(new BorderLayout());
 		
@@ -237,7 +237,7 @@ public class CompanionEditPanel extends AdvantageEditPanel {
 					panel.setSelected(rc);
 					
 					GamePool pool = new GamePool(getGameData().getGameObjects());
-					ArrayList<String> query = new ArrayList<>();
+					ArrayList<String> query = new ArrayList<String>();
 					query.add("Name="+name);
 					query.add(Constants.COMPANION);
 					
@@ -300,7 +300,7 @@ public class CompanionEditPanel extends AdvantageEditPanel {
 		String name = getOptionName();
 		if (selected!=null) {
 			int cc =getCompanionCount();
-			ArrayList<String> list = new ArrayList<>();
+			ArrayList<String> list = new ArrayList<String>();
 			for (int n=0;n<cc;n++) {
 				list.add(name);
 				TemplateLibrary.getSingleton().createCompanionFromTemplate(getGameData(),selected.getGameObject());

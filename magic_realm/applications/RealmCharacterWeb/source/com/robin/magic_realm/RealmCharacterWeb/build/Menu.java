@@ -68,7 +68,7 @@ public class Menu extends Builder {
 		"</div></div>",
 	};
 
-	private HashLists<String,Page> hash = new HashLists<>();
+	private HashLists<String,Page> hash = new HashLists<String,Page>();
 	
 	public Menu() {
 	}
@@ -86,7 +86,7 @@ public class Menu extends Builder {
 			sb.append(HTML_HEAD[i]);
 			sb.append("\n");
 		}
-		ArrayList<String> folders = new ArrayList<>(hash.keySet());
+		ArrayList<String> folders = new ArrayList<String>(hash.keySet());
 		Collections.sort(folders);
 		for (String folder : folders) {
 			String personKey = createPersonKey(folder);

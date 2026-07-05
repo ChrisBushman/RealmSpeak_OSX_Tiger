@@ -26,7 +26,7 @@ public class CharacterDiscoveriesPanel extends CharacterFramePanel {
 	private void init() {
 		// Build the discovery lists
 		GamePool pool = getGameHandler().getGamePool();
-		ArrayList<GameObject> treasureLocations = new ArrayList<>();
+		ArrayList<GameObject> treasureLocations = new ArrayList<GameObject>();
 		treasureLocations.addAll(pool.find("treasure_location,discovery"));
 		
 		// If questing is turn on, show lost city and castle?
@@ -34,8 +34,8 @@ public class CharacterDiscoveriesPanel extends CharacterFramePanel {
 			treasureLocations.addAll(pool.find("red_special"));
 		}
 		
-		ArrayList<PathDetail> hiddenPathList = new ArrayList<>();
-		ArrayList<PathDetail> secretPassageList =  new ArrayList<>();
+		ArrayList<PathDetail> hiddenPathList = new ArrayList<PathDetail>();
+		ArrayList<PathDetail> secretPassageList =  new ArrayList<PathDetail>();
 		for (GameObject go : pool.find("tile")) {
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
 			hiddenPathList.addAll(tile.getHiddenPaths());
@@ -84,7 +84,7 @@ public class CharacterDiscoveriesPanel extends CharacterFramePanel {
 		private ArrayList<String> discoveryNamesList;
 		public TreasureLocationDiscoveryModel(ArrayList<GameObject> list) {
 			this.list = list;
-			discoveryNamesList = new ArrayList<>();
+			discoveryNamesList = new ArrayList<String>();
 			for (GameObject go : list) {
 				discoveryNamesList.add(go.getName());
 			}

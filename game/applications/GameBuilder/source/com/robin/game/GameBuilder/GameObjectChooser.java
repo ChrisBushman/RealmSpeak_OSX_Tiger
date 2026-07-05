@@ -112,7 +112,7 @@ public class GameObjectChooser extends JDialog {
 	}
 	private ArrayList<GameObject> getSelectedObjects() {
 		ArrayList<GameObject> objects = data.getFilteredGameObjects();
-		ArrayList<GameObject> selObjects = new ArrayList<>();
+		ArrayList<GameObject> selObjects = new ArrayList<GameObject>();
 		int[] row = objectsPane.getSelectedRows();
 		for (int i=0;i<row.length;i++) {
 			selObjects.add(objects.get(row[i]));

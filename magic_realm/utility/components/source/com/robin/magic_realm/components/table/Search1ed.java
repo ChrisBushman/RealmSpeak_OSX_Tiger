@@ -55,7 +55,7 @@ public class Search1ed extends Search {
 	
 	@Override
 	protected ArrayList<ImageIcon> getHintIcons(CharacterWrapper character) {
-		ArrayList<ImageIcon> list = new ArrayList<>();
+		ArrayList<ImageIcon> list = new ArrayList<ImageIcon>();
 		for(PathDetail path:getAllUndiscoveredPassages(character)) {
 			list.add(new PathIcon(path));
 		}

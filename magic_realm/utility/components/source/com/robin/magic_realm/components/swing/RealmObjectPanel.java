@@ -13,7 +13,7 @@ import com.robin.general.swing.ImageCache;
 import com.robin.magic_realm.components.*;
 
 public class RealmObjectPanel extends JPanel implements Scrollable {
-	private static final ArrayList<RealmComponent> EMPTY_LIST = new ArrayList<>();
+	private static final ArrayList<RealmComponent> EMPTY_LIST = new ArrayList<RealmComponent>();
 	public static final int SINGLE_SELECTION = 1;
 	public static final int MULTIPLE_SELECTION = 2;
 	
@@ -32,7 +32,7 @@ public class RealmObjectPanel extends JPanel implements Scrollable {
 	
 	private FlowLayout layout;
 	
-	private ArrayList<RealmComponent> flipped = new ArrayList<>();
+	private ArrayList<RealmComponent> flipped = new ArrayList<RealmComponent>();
 	
 	public RealmObjectPanel() {
 		this(false,false); // default panel is non-interactive
@@ -101,7 +101,7 @@ public class RealmObjectPanel extends JPanel implements Scrollable {
 	public ArrayList<RealmComponent> getAllRealmComponents() {
 		Component[] c = getComponents();
 		if (c!=null && c.length>0) {
-			ArrayList<RealmComponent> list = new ArrayList<>();
+			ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 			for (int i=0;i<c.length;i++) {
 				if (c[i] instanceof RealmComponent) {
 					list.add((RealmComponent)c[i]);
@@ -120,7 +120,7 @@ public class RealmObjectPanel extends JPanel implements Scrollable {
 	}
 	public void addSelectionListener(ListSelectionListener listener) {
 		if (listSelectionListeners == null) {
-			listSelectionListeners = new ArrayList<>();
+			listSelectionListeners = new ArrayList<ListSelectionListener>();
 		}
 		if (!listSelectionListeners.contains(listener)) {
 			listSelectionListeners.add(listener);
@@ -168,7 +168,7 @@ public class RealmObjectPanel extends JPanel implements Scrollable {
 		fireSelectionChanged();
 	}
 	public GameObject[] getSelectedGameObjects() {
-		ArrayList<GameObject> gameObjects = new ArrayList<>();
+		ArrayList<GameObject> gameObjects = new ArrayList<GameObject>();
 		for (Iterator i=selected.iterator();i.hasNext();) {
 			RealmComponent comp = (RealmComponent)i.next();
 			gameObjects.add(comp.getGameObject());

@@ -56,7 +56,7 @@ public class RealmViewer extends JFrame {
 	}
 	private void addData() {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> list = new ArrayList<>(pool.find(keyVals));
+		ArrayList<GameObject> list = new ArrayList<GameObject>(pool.find(keyVals));
 		
 		// Add the summonables
 		JFrame dummy = new JFrame();
@@ -70,8 +70,8 @@ public class RealmViewer extends JFrame {
 		list.add(SetupCardUtility.createBlob(mc,data));
 		list.add(SetupCardUtility.createWasp(mc,data));
 		
-		ArrayList<GameObject> treasureList = new ArrayList<>();
-		ArrayList<GameObject> spellList = new ArrayList<>();
+		ArrayList<GameObject> treasureList = new ArrayList<GameObject>();
+		ArrayList<GameObject> spellList = new ArrayList<GameObject>();
 		for (GameObject obj:list) {
 			RealmComponent rc = RealmComponent.getRealmComponent(obj);
 			if (rc!=null) {
@@ -186,7 +186,7 @@ public class RealmViewer extends JFrame {
 		hostPrefs.setGameKeyVals("super_realm");
 		hostPrefs.setStartingSeason("No Seasons");
 		data.doSetup(result,"super_realm_setup",query);
-		ArrayList<String> keyVals = new ArrayList<>();
+		ArrayList<String> keyVals = new ArrayList<String>();
 		keyVals.add("super_realm");
 		while(!MapBuilder.autoBuildMap(data,keyVals));
 		

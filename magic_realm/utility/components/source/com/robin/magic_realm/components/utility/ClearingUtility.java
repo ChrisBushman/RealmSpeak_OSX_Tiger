@@ -29,7 +29,7 @@ public class ClearingUtility {
 	}
 	public static GameObject findDwellingInClearing(GameObject tile,int clearing) {
 		GamePool pool = new GamePool(tile.getHold());
-		ArrayList<String> keyVals = new ArrayList<>();
+		ArrayList<String> keyVals = new ArrayList<String>();
 		keyVals.add("dwelling");
 		keyVals.add("tile_type");
 		keyVals.add("clearing="+clearing);
@@ -121,7 +121,7 @@ public class ClearingUtility {
 		if (hostPrefs.hasPref(Constants.SR_REVEAL_TRAVELERS)) {
 			return ClearingUtility.dumpHoldToTile(tile,gameObject,clearing,null,true,true,false);
 		}
-		return new ArrayList<>();
+		return new ArrayList<GameObject>();
 	}
 	
 	/**
@@ -132,7 +132,7 @@ public class ClearingUtility {
 		if (hostPrefs.hasPref(Constants.SR_REVEAL_TRAVELERS)) {
 			return ClearingUtility.dumpHoldToTile(tile,gameObject,clearing,null,true,true,true);
 		}
-		return new ArrayList<>();
+		return new ArrayList<GameObject>();
 	}
 	
 	/**
@@ -142,8 +142,8 @@ public class ClearingUtility {
 		if (clearing==-1) {
 			clearing = recommendedClearing(tile);
 		}
-		ArrayList<GameObject> added = new ArrayList<>();
-		Collection<GameObject> hold = new ArrayList<>(gameObject.getHold()); // this construction is necessary to prevent concurrent modification errors
+		ArrayList<GameObject> added = new ArrayList<GameObject>();
+		Collection<GameObject> hold = new ArrayList<GameObject>(gameObject.getHold()); // this construction is necessary to prevent concurrent modification errors
 		boolean itemsAndSpells = !gameObject.hasThisAttribute(Constants.ROVING_NATIVE);
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(gameObject.getGameData());
 		for (GameObject go : hold) {
@@ -177,7 +177,7 @@ public class ClearingUtility {
 	}
 
 	public static Collection<GameObject> getAbandonedItems(TileLocation tileLocation) {
-		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
 		Collection<RealmComponent> stuff = tileLocation.clearing.getClearingComponents();
 		for (RealmComponent rc : stuff) {
 			GameObject obj = rc.getGameObject();
@@ -214,7 +214,7 @@ public class ClearingUtility {
 	 * If the provided component can hold inventory, then the inventory is deduced and broken down into individual "seen" items.
 	 */
 	public static ArrayList<RealmComponent> dissolveIntoSeenStuff(RealmComponent rc) {
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		if (rc.isAnyLeader() || rc.isVisitor() || rc.isCacheChit()) {
 			// check all character and native leader treasures
 			for (GameObject go : rc.getGameObject().getHold()) {
@@ -357,7 +357,7 @@ public class ClearingUtility {
 	public static int getClearingDieMod(TileLocation tl) {
 		int mod = 0;
 		if (tl!=null && tl.hasClearing()) {
-			ArrayList<RealmComponent> seen = new ArrayList<>();
+			ArrayList<RealmComponent> seen = new ArrayList<RealmComponent>();
 			// Check for presence of cloven hoof (the only plus_one item at present) in the clearing
 			for (RealmComponent rc : tl.clearing.getClearingComponents()) {
 				seen.addAll(dissolveIntoSeenStuff(rc));
@@ -374,7 +374,7 @@ public class ClearingUtility {
 	
 	public static GameObject getItemInClearingWithKey(TileLocation tl,String key) {
 		if (tl!=null && tl.hasClearing()) {
-			ArrayList<RealmComponent> seen = new ArrayList<>();
+			ArrayList<RealmComponent> seen = new ArrayList<RealmComponent>();
 			// Check for presence of cloven hoof (the only plus_one item at present) in the clearing
 			for (RealmComponent rc : tl.clearing.getClearingComponents()) {
 				seen.addAll(dissolveIntoSeenStuff(rc));
@@ -404,7 +404,7 @@ public class ClearingUtility {
 		TileComponent tile = null;
 		RealmComponent parent = null;
 		
-		ArrayList<GameObject> searched = new ArrayList<>();
+		ArrayList<GameObject> searched = new ArrayList<GameObject>();
 		
 		// Find the top level parent, that isn't a tile
 		while(parent==null && go.getHeldBy()!=null) {
@@ -476,13 +476,13 @@ public class ClearingUtility {
 	public static int calculateClearingCount(TileLocation tl1,TileLocation tl2) {
 		int val = 0;
 		if (tl1!=null && tl2!=null && !tl1.equals(tl2)) {
-			ArrayList<ClearingDetail> all = new ArrayList<>();
-			ArrayList<ClearingDetail> list = new ArrayList<>();
+			ArrayList<ClearingDetail> all = new ArrayList<ClearingDetail>();
+			ArrayList<ClearingDetail> list = new ArrayList<ClearingDetail>();
 			list.add(tl1.clearing);
 			int count = 0;
 			while(!list.isEmpty()) {
 				count++;
-				ArrayList<ClearingDetail> found = new ArrayList<>();
+				ArrayList<ClearingDetail> found = new ArrayList<ClearingDetail>();
 				for (ClearingDetail clearing : list) {
 					if (!all.contains(clearing)) {
 						all.add(clearing);
@@ -516,7 +516,7 @@ public class ClearingUtility {
 	 * Returns all native leaders, visitors, and travelers w/stores that are in the clearing.
 	 */
 	public static ArrayList<RealmComponent> getAllTraders(CharacterWrapper character,ClearingDetail clearing) {
-		ArrayList<RealmComponent> traders = new ArrayList<>();
+		ArrayList<RealmComponent> traders = new ArrayList<RealmComponent>();
 		for (RealmComponent rc:clearing.getClearingComponents()) {
 			if (character.hasDamagedRelations(rc.getGameObject())) {
 				continue;
@@ -541,7 +541,7 @@ public class ClearingUtility {
 	}
 	
 	public static ArrayList<RealmComponent> getAllVictimsForStealing(CharacterWrapper character,ClearingDetail clearing) {
-		ArrayList<RealmComponent> victims = new ArrayList<>();
+		ArrayList<RealmComponent> victims = new ArrayList<RealmComponent>();
 		for (RealmComponent rc:clearing.getClearingComponents()) {
 			if (rc.isNative() && rc.getOwnerId()==null) {
 				String rank = rc.getGameObject().getThisAttribute("rank");
@@ -557,7 +557,7 @@ public class ClearingUtility {
 	 * @return		A collection of unhired natives in the clearing
 	 */
 	public static ArrayList<RealmComponent> getAllHireables(CharacterWrapper character,ClearingDetail clearing) {
-		ArrayList<RealmComponent> hireables = new ArrayList<>();
+		ArrayList<RealmComponent> hireables = new ArrayList<RealmComponent>();
 		Collection<RealmComponent> c = clearing.getClearingComponents();
 		for (RealmComponent rc : c) {
 			if (character.hasDamagedRelations(rc.getGameObject())) {
@@ -585,7 +585,7 @@ public class ClearingUtility {
 	}
 
 	public static ArrayList<RealmComponent> getGuidesInClearing(TileLocation location) {
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		if (location.isInClearing()) {
 			Collection<RealmComponent> c = location.clearing.getClearingComponents();
 			for (RealmComponent rc : c) {
@@ -599,7 +599,7 @@ public class ClearingUtility {
 	}
 
 	public static Collection<RealmComponent> getCombatantsInClearing(TileLocation location, GameData data) {
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		if (location!=null && location.isInClearing()) {
 			for (RealmComponent rc:location.clearing.getClearingComponents()) {
 				if (rc.isCharacter() || rc.isMonster() || rc.isNative() || rc.isCombativeTraveler() || rc.isCompanion() || rc instanceof EventSpellCardComponent) {
@@ -613,7 +613,7 @@ public class ClearingUtility {
 	}
 
 	public static ArrayList<CharacterWrapper> getCharactersInClearing(TileLocation location) {
-		ArrayList<CharacterWrapper> list = new ArrayList<>();
+		ArrayList<CharacterWrapper> list = new ArrayList<CharacterWrapper>();
 		if (location.hasClearing()) {
 			for (RealmComponent rc:location.clearing.getClearingComponents()) {
 				if (rc.isCharacter()) {
@@ -656,7 +656,7 @@ public class ClearingUtility {
 	 * Finds all characters and hired leaders that are not your character, and that are not blocked and are awake.
 	 */
 	public static ArrayList<RealmComponent> findAllAwakeUnblockedCharactersInClearing(CharacterWrapper character) {
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		TileLocation current = character.getCurrentLocation();
 		for (RealmComponent rc : current.clearing.getClearingComponents()) {
 			// Someone, that isn't yourself
@@ -699,8 +699,8 @@ public class ClearingUtility {
 			
 			// Make sure all chits have a valid clearing
 			TileComponent tileC = (TileComponent)RealmComponent.getRealmComponent(tile);
-			ArrayList<GameObject> chits = new ArrayList<>();
-			ArrayList<ClearingDetail> connectedClearings = new ArrayList<>();
+			ArrayList<GameObject> chits = new ArrayList<GameObject>();
+			ArrayList<ClearingDetail> connectedClearings = new ArrayList<ClearingDetail>();
 			for (ClearingDetail clearing:tileC.getClearings()){
 				if (clearing.isConnectsToBorderland()) {
 					connectedClearings.add(clearing);
@@ -722,7 +722,7 @@ public class ClearingUtility {
 		}
 	}
 	public static void initAdjacentTiles(GameData data) {
-		Hashtable<Point,TileComponent> mapGrid = new Hashtable<>();
+		Hashtable<Point,TileComponent> mapGrid = new Hashtable<Point,TileComponent>();
 		for(GameObject go:RealmObjectMaster.getRealmObjectMaster(data).getTileObjects()) {
 			TileComponent tc = (TileComponent)RealmComponent.getRealmComponent(go);
 			String pos = go.getAttribute("mapGrid","mapPosition");

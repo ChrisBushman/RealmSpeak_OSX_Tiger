@@ -20,7 +20,7 @@ public class DieRollBuilder {
 	}
 	public static DieRollBuilder getDieRollBuilder(JFrame parent,CharacterWrapper character,int redDie) {
 		if (builderHash==null) {
-			builderHash = new Hashtable<>();
+			builderHash = new Hashtable<Long,DieRollBuilder>();
 		}
 		DieRollBuilder drb = builderHash.get(character.getGameObject().getId());
 		if (drb == null) {
@@ -71,7 +71,7 @@ public class DieRollBuilder {
 		ArrayList<String> chitDescriptionList = tl.tile.getChitDescriptionList();
 		
 		// Cycle through all activated treasures, bewitching spells, and character to determine modifiers
-		ArrayList<GameObject> objectsToTest = new ArrayList<>();
+		ArrayList<GameObject> objectsToTest = new ArrayList<GameObject>();
 		if (character!=null) {
 			objectsToTest.add(character.getGameObject());
 			if (character.isCharacter()) {
@@ -95,11 +95,11 @@ public class DieRollBuilder {
 		for (GameObject go : objectsToTest) {			
 			ArrayList<String> list = null;
 			if (go.hasThisAttribute(Constants.DIEMOD)) {
-				list = new ArrayList<>(go.getThisAttributeList(Constants.DIEMOD));
+				list = new ArrayList<String>(go.getThisAttributeList(Constants.DIEMOD));
 			}
 			if (go.hasAttribute(Constants.OPTIONAL_BLOCK,Constants.DIEMOD)) {
 				if (list==null) {
-					list = new ArrayList<>();
+					list = new ArrayList<String>();
 				}
 				list.addAll(go.getAttributeList(Constants.OPTIONAL_BLOCK,Constants.DIEMOD));
 			}

@@ -34,6 +34,6 @@ public class MountainPeer1ed extends Peer1ed {
 	}
 	@Override
 	protected ArrayList<ImageIcon> getHintIcons(CharacterWrapper character) {
-		return new ArrayList<>();
+		return new ArrayList<ImageIcon>();
 	}
 }

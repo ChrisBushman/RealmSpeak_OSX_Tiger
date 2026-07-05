@@ -38,8 +38,8 @@ public class CharacterRelationshipPanel extends CharacterFramePanel {
 		add(sp);
 		
 		// one checkbox for every character
-		charIdBoxHash = new Hashtable<>();
-		charNameObjectHash = new Hashtable<>();
+		charIdBoxHash = new Hashtable<String, JCheckBox>();
+		charNameObjectHash = new Hashtable<String, GameObject>();
 		GamePool pool = getGameHandler().getGamePool();
 		ArrayList<GameObject> allChars = pool.find("character");
 		Collections.sort(allChars,new Comparator<GameObject>() {

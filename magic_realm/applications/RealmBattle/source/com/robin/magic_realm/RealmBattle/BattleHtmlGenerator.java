@@ -112,7 +112,7 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 		return action+" in "+current.clearing.getDescription();
 	}
 	private ArrayList<RealmComponent> getUnassignedDenizens() {
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		BattleGroup denizenGroup = battleModel.getDenizenBattleGroup();
 		if (denizenGroup!=null && denizenGroup.size()>0) {
 			for (RealmComponent denizen : denizenGroup.getBattleParticipants()) {
@@ -156,7 +156,7 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 		sb.append("</tr></table>");
 		
 		TileLocation current = battleModel.getBattleLocation();
-		ArrayList<Integer> color = new ArrayList<>(); // only need to show one instance of each
+		ArrayList<Integer> color = new ArrayList<Integer>(); // only need to show one instance of each
 		for (ColorMagic cm:current.clearing.getAllSourcesOfColor(true)) {
 			if (color.contains(Integer.valueOf(cm.getColorNumber()))) continue;
 			color.add(Integer.valueOf(cm.getColorNumber()));

@@ -17,7 +17,7 @@ public class CaveInEvent implements IEvent {
 	public void applyBirdsong(GameData data) {
 	}
 	public void applySunset(GameData data) {
-		ArrayList<String> clearingTypes = new ArrayList<>(Arrays.asList("caves"));
+		ArrayList<String> clearingTypes = new ArrayList<String>(Arrays.asList("caves"));
 		ClearingDetail clearing = RealmEvents.chooseRandomClearing(data,clearingTypes);
 		if (clearing!=null) {
 			TileComponent tile = clearing.getTileLocation().tile;

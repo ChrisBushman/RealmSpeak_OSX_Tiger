@@ -2,7 +2,6 @@ package com.robin.magic_realm.components.wrapper;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -122,7 +121,10 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	}
 	public boolean targetsCharacterOrDenizen() {
 		if(targetsClearing()) return false;
-		return getTargets().stream().anyMatch(t -> t.isCharacter() || t.isMonster() || t.isNative());
+		for (RealmComponent t : getTargets()) {
+			if (t.isCharacter() || t.isMonster() || t.isNative()) return true;
+		}
+		return false;
 	}
 	/**
 	 * This method is here to help differentiate spells that target individuals versus those that
@@ -148,7 +150,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	 * Finds the spellcaster for a spell
 	 */
 	private CharacterWrapper findSpellCasterToCastSpell() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		GameObject caster = getGameObject().getHeldBy();
 		GameObject lastNonNull = caster; 
 		while (caster!=null && !caster.hasThisAttribute("character") && !Constants.STORE_SPELLCAST.equals(caster.getThisAttribute(Constants.STORE))) {
@@ -357,7 +359,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 			TileLocation loc = getCaster().getCurrentLocation(); // might be null if character is dead!
 			boolean casterIsDead = (new CombatWrapper(getCaster().getGameObject())).getKilledBy()!=null;
 				
-			ArrayList<GameObject> hold = new ArrayList<>();
+			ArrayList<GameObject> hold = new ArrayList<GameObject>();
 			hold.addAll(getGameObject().getHold()); 
 			for (GameObject go : hold) {
 				restoreAbsorbedMonster(go, loc, casterIsDead);
@@ -404,7 +406,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 			TileLocation loc = getCaster().getCurrentLocation(); // might be null if character is dead!
 			boolean casterIsDead = (new CombatWrapper(getCaster().getGameObject())).getKilledBy()!=null;
 				
-			ArrayList<GameObject> hold = new ArrayList<>();
+			ArrayList<GameObject> hold = new ArrayList<GameObject>();
 			hold.addAll(getGameObject().getHold());
 			for (GameObject go : hold) {
 				restoreAbsorbedMonster(go, loc, casterIsDead);
@@ -607,15 +609,15 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	}
 	
 	public ArrayList<RealmComponent> getTargets() {
-		ArrayList<?> targetids = getList(TARGET_IDS);
-		
-		return targetids != null
-				? targetids.stream()
-						.mapToLong(id -> Long.valueOf((String)id))
-						.mapToObj(id -> getGameObject().getGameData().getGameObject(id))
-						.map(go -> RealmComponent.getRealmComponent(go))
-						.collect(Collectors.toCollection(ArrayList::new))
-				: new ArrayList<>();
+		ArrayList<String> targetids = getList(TARGET_IDS);
+		if (targetids == null) return new ArrayList<RealmComponent>();
+		ArrayList<RealmComponent> result = new ArrayList<RealmComponent>();
+		for (String id : targetids) {
+			long lid = Long.valueOf(id).longValue();
+			GameObject go = getGameObject().getGameData().getGameObject(lid);
+			result.add(RealmComponent.getRealmComponent(go));
+		}
+		return result;
 	}
 	/**
 	 * This returns the number of actual targets.  If a single target is listed more than once (i.e., Stones Fly), it still is only
@@ -623,12 +625,11 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	 */
 	public int getTargetCount() {
 		ArrayList<String> targetids = getList(TARGET_IDS);
-		
-		return targetids != null
-				? (int) targetids.stream().distinct().count()
-				: 0;
+		if (targetids == null) return 0;
+		HashSet<String> unique = new HashSet<String>(targetids);
+		return unique.size();
 	}
-	
+
 	public boolean targetsGameObject(GameObject go) {
 		boolean ret = false;
 		ArrayList<String> targetids = getList(TARGET_IDS);
@@ -647,21 +648,24 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	public boolean targetsRealmComponents(Collection<?> components) {
 		ArrayList<String> targetids = getList(TARGET_IDS);
 		if(targetids == null) return false;
-		
-		return components.stream()
-			.map(c -> (RealmComponent)c)
-			.anyMatch(rc -> targetids.contains(rc.getGameObject().getStringId()));
+		for (Object c : components) {
+			RealmComponent rc = (RealmComponent) c;
+			if (targetids.contains(rc.getGameObject().getStringId())) return true;
+		}
+		return false;
 	}
-	
+
 	public ArrayList<RealmComponent> getTargetedRealmComponents(Collection<?> components) {
 		ArrayList<String> targetids = getList(TARGET_IDS);
-		
-		return targetids != null
-				? components.stream()
-						.map(c -> (RealmComponent)c)
-						.filter(rc -> targetids.contains(rc.getGameObject().getStringId()))
-						.collect(Collectors.toCollection(ArrayList::new))
-				: new ArrayList<>();
+		ArrayList<RealmComponent> result = new ArrayList<RealmComponent>();
+		if (targetids == null) return result;
+		for (Object c : components) {
+			RealmComponent rc = (RealmComponent) c;
+			if (targetids.contains(rc.getGameObject().getStringId())) {
+				result.add(rc);
+			}
+		}
+		return result;
 	}
 	
 	/**
@@ -969,12 +973,12 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 			// If we get here, then it's okay to proceed
 			energize();
 			
-			ArrayList<String> logs = new ArrayList<>();
+			ArrayList<String> logs = new ArrayList<String>();
 			ISpellEffect[] effects = SpellEffectFactory.create(getName().toLowerCase(),getAlternativeSpellEffect());
 			int ignoredTargets = 0;
 			
 			if (!includeNullifyEffects && effects!=null) {
-				ArrayList<ISpellEffect> effectsFiltered = new ArrayList<>();
+				ArrayList<ISpellEffect> effectsFiltered = new ArrayList<ISpellEffect>();
 				for (ISpellEffect effect : effects) {
 					if (!(effect instanceof NullifyEffect)) {
 						effectsFiltered.add(effect);
@@ -1092,7 +1096,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		
 		GameWrapper theGame = GameWrapper.findGame(getCaster().getGameData());
 		if (!includeNullifyEffects) {
-			ArrayList<ISpellEffect> effectsFiltered = new ArrayList<>();
+			ArrayList<ISpellEffect> effectsFiltered = new ArrayList<ISpellEffect>();
 			if (effects != null) {
 				for (ISpellEffect effect : effects) {
 					if (!(effect instanceof NullifyEffect)) {
@@ -1107,7 +1111,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 			}
 		}
 		else {
-			getTargets().stream().forEach(t -> unaffect(effects, theGame, t));
+			for (RealmComponent t : getTargets()) { unaffect(effects, theGame, t); }
 		}
 		setBoolean(SPELL_AFFECTED,false);
 	}
@@ -1138,10 +1142,10 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		return getFirstTarget(); // Not real fond of this, but it will work in all cases where it matters
 	}
 	public GameObject getTransformAnimalOrStatue() {
-		Optional<GameObject> animal = getGameObject().getHold().stream()
-										.filter(t -> t.hasThisAttribute("animal") || t.hasThisAttribute("statue"))
-										.findFirst();						
-		return animal.isPresent() ? animal.get() : null;
+		for (GameObject t : getGameObject().getHold()) {
+			if (t.hasThisAttribute("animal") || t.hasThisAttribute("statue")) return t;
+		}
+		return null;
 	}
 	
 	public boolean isImmuneTo(RealmComponent rc) {
@@ -1168,7 +1172,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	public static void copyMonsterAttributesToObject(GameObject source,String blockName,GameObject dest) {
 		// Ignore these attributes
 		String[] ignorVars = {"light_color","dark_color"};
-		ArrayList<String> ignoreTest = new ArrayList<>(Arrays.asList(ignorVars));
+		ArrayList<String> ignoreTest = new ArrayList<String>(Arrays.asList(ignorVars));
 		
 		// Earmark some attributes for the "this" block
 		String[] thisVars = {"vulnerability",Constants.ICON_FOLDER,Constants.ICON_TYPE,Constants.FLYING,Constants.WALK_WOODS,Constants.ARMORED,"name",Constants.MIST_LIKE,Constants.SMALL,"animal",
@@ -1182,7 +1186,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 				Constants.NO_CHANGE_TACTICS,Constants.KILLS_HORSE,Constants.DESTROYS_ARMOR,Constants.CHANGE_TACTICS_AFTER_CASTING,Constants.CHANGE_TACTICS_FOR_NON_SPELL_ATTACK,Constants.ATTACK_AFTER_CASTING,Constants.SPELL_TARGETS_SELF,Constants.FAST_CASTER,Constants.SPELL_PRE_BATTLE,
 				Constants.SUPER_REALM
 			};
-		ArrayList<String> thisTest = new ArrayList<>(Arrays.asList(thisVars));
+		ArrayList<String> thisTest = new ArrayList<String>(Arrays.asList(thisVars));
 		Hashtable<String,Object> hash = source.getAttributeBlock(blockName);
 		for (String key : hash.keySet()) {
 			if (!ignoreTest.contains(key)) {

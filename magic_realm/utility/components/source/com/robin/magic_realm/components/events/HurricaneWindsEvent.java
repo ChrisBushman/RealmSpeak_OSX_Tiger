@@ -17,7 +17,7 @@ public class HurricaneWindsEvent implements IEvent {
 	public void applyBirdsong(GameData data) {
 	}
 	public void applySunset(GameData data) {
-		ArrayList<String> clearingTypes = new ArrayList<>(Arrays.asList("mountain"));
+		ArrayList<String> clearingTypes = new ArrayList<String>(Arrays.asList("mountain"));
 		ClearingDetail clearing = RealmEvents.chooseRandomClearing(data,clearingTypes);
 		if (clearing!=null) {
 			TileComponent tile = clearing.getTileLocation().tile;

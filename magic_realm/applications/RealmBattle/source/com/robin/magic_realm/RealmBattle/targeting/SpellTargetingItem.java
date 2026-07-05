@@ -28,7 +28,7 @@ public class SpellTargetingItem extends SpellTargetingSingle {
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
 		for (RealmComponent participant : combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true)) {
-			ArrayList<GameObject> items = new ArrayList<>();
+			ArrayList<GameObject> items = new ArrayList<GameObject>();
 			if (participant.isCharacter()) {
 				CharacterWrapper character = new CharacterWrapper(participant.getGameObject());
 				if (character.isMistLike()) continue;

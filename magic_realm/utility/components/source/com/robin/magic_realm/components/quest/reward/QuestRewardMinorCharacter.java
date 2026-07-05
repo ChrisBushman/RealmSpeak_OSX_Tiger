@@ -46,7 +46,7 @@ public class QuestRewardMinorCharacter extends QuestReward {
 			character.getGameObject().add(minorCharacter.getGameObject());
 		}
 		else {
-			ArrayList<String> controls = new ArrayList<>();
+			ArrayList<String> controls = new ArrayList<String>();
 			if (minorCharacter.getGameObject().hasThisAttribute(Constants.MONSTER_CONTROL_VALIDATE_CONTROL)) {
 				if (minorCharacter.getGameObject().hasThisAttribute(Constants.MONSTER_CONTROL)) {
 					controls.addAll(minorCharacter.getGameObject().getThisAttributeList(Constants.MONSTER_CONTROL));
@@ -92,11 +92,11 @@ public class QuestRewardMinorCharacter extends QuestReward {
 		CharacterWrapper character = getParentQuest().getOwner();
 		if (character==null) return null; // what to do here?  shouldn't ever happen - the reward shouldn't be given while this quest is still a template!
 		
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add(Quest.QUEST_MINOR_CHARS);
 		query.add("name="+id);
 		
-		ArrayList<GameObject> mcs = new ArrayList<>();
+		ArrayList<GameObject> mcs = new ArrayList<GameObject>();
 		// Try the quest FIRST
 		GamePool pool = new GamePool(getParentQuest().getGameObject().getHold());
 		mcs.addAll(pool.find(query));

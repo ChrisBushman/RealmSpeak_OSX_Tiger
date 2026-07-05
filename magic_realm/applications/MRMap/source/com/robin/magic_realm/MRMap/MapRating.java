@@ -30,13 +30,13 @@ public class MapRating {
 	private static int getTileRating(GameObject go) {
 		TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
 		int clearingNum = ClearingUtility.recommendedClearing(go);
-		ArrayList<ClearingDetail> search = new ArrayList<>();
+		ArrayList<ClearingDetail> search = new ArrayList<ClearingDetail>();
 		search.add(tile.getClearing(clearingNum)); // seed clearing
 		
 		// First, find ALL connected clearings to the start point
-		ArrayList<ClearingDetail> found = new ArrayList<>();
+		ArrayList<ClearingDetail> found = new ArrayList<ClearingDetail>();
 		while(!search.isEmpty()) {
-			ArrayList<ClearingDetail> next = new ArrayList<>();
+			ArrayList<ClearingDetail> next = new ArrayList<ClearingDetail>();
 			for (ClearingDetail clearing:search) {
 				for (PathDetail path:clearing.getAllConnectedPaths()) {
 					if (path.isHidden() || path.isSecret()) continue;

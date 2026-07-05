@@ -21,7 +21,7 @@ public class SpellTargetingIndividualPlusHex extends SpellTargetingIndividual {
 		secondaryTargetChoiceString = "Select a tile to FLY the target to:";
 		TileLocation here = battleModel.getBattleLocation();
 		
-		ArrayList<GameObject> adjTiles = new ArrayList<>();
+		ArrayList<GameObject> adjTiles = new ArrayList<GameObject>();
 		for (TileComponent tile : here.tile.getAllAdjacentTiles()) {
 			adjTiles.add(tile.getGameObject());
 		}

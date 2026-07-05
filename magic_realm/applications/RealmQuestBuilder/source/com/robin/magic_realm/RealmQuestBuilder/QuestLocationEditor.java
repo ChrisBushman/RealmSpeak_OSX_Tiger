@@ -41,7 +41,7 @@ public class QuestLocationEditor extends GenericEditor {
 	private static String [] travelers = null;
 	
 	private static String[] getAllCompanionNames() {
-		ArrayList<String> companions = new ArrayList<>();
+		ArrayList<String> companions = new ArrayList<String>();
 		String[] people = CompanionEditPanel.COMPANIONS[3];
 			boolean first = true;
 			for (String name : people) {
@@ -57,7 +57,7 @@ public class QuestLocationEditor extends GenericEditor {
 	}
 	
 	private static String[] getAllTravelerNames(GameData realmSpeakData) {
-		ArrayList<String> travelers = new ArrayList<>();
+		ArrayList<String> travelers = new ArrayList<String>();
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
 		ArrayList<GameObject> templates = pool.find(Constants.TRAVELER_TEMPLATE);
 		for (GameObject t : templates) {
@@ -80,7 +80,7 @@ public class QuestLocationEditor extends GenericEditor {
 	}
 	
 	private static void initSuggestionWords(GameData realmSpeakData) {
-		suggestionWords = new ArrayList<>();
+		suggestionWords = new ArrayList<String>();
 		travelers = getAllTravelerNames(realmSpeakData);
 		Collections.addAll(suggestionWords, QuestConstants.wolfs);
 		Collections.addAll(suggestionWords, QuestConstants.transforms);
@@ -183,7 +183,7 @@ public class QuestLocationEditor extends GenericEditor {
 		locationList.setText(sb.toString());
 	}
 	private ArrayList<String> getLocationList() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		String text = locationList.getText();
 		text = text.replaceAll(INVALID,"");
 		StringTokenizer tokens = new StringTokenizer(text,",;:\t\n\r\f");
@@ -251,7 +251,7 @@ public class QuestLocationEditor extends GenericEditor {
 		form.add(Box.createVerticalStrut(10));
 		
 		line = group.createLabelLine("Clearing Type");
-		clearingType = new JComboBox<>(LocationClearingType.values());
+		clearingType = new JComboBox<LocationClearingType>(LocationClearingType.values());
 		ComponentTools.lockComponentSize(clearingType,100,25);
 		clearingType.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
@@ -264,7 +264,7 @@ public class QuestLocationEditor extends GenericEditor {
 		form.add(Box.createVerticalStrut(10));
 		
 		line = group.createLabelLine("Tile Side");
-		tileSideType = new JComboBox<>(LocationTileSideType.values());
+		tileSideType = new JComboBox<LocationTileSideType>(LocationTileSideType.values());
 		ComponentTools.lockComponentSize(tileSideType,100,25);
 		tileSideType.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
@@ -289,7 +289,7 @@ public class QuestLocationEditor extends GenericEditor {
 		form.add(Box.createVerticalStrut(10));
 		
 		line = group.createLabelLine("Type");
-		type = new JComboBox<>(LocationType.values());
+		type = new JComboBox<LocationType>(LocationType.values());
 		ComponentTools.lockComponentSize(type,100,25);
 		type.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {

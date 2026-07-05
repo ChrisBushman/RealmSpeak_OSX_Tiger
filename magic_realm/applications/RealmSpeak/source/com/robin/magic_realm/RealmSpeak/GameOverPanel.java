@@ -34,7 +34,7 @@ public class GameOverPanel extends JPanel {
 		initComponents();
 	}
 	private void buildResults() {
-		results = new ArrayList<>();
+		results = new ArrayList<CharacterResult>();
 		ArrayList<GameObject> c = RealmObjectMaster.getRealmObjectMaster(owningChar.getGameData()).getPlayerCharacterObjects();
 		for (GameObject go : c) {
 			CharacterWrapper cw = new CharacterWrapper(go);

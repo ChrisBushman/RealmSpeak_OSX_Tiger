@@ -34,7 +34,7 @@ public class SpellTargetingWarningChits extends SpellTargeting {
 		}
 		String type = warningChit.getThisAttribute(RealmComponent.TILE_TYPE);
 		GamePool pool = new GamePool(activeCharacter.getGameData().getGameObjects());
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add(RealmComponent.WARNING);
 		query.add("!"+RealmComponent.DWELLING);
 		query.add(RealmComponent.TILE_TYPE+"="+type);
@@ -58,7 +58,7 @@ public class SpellTargetingWarningChits extends SpellTargeting {
 		gameObjects.clear();
 		TileLocation loc = battleModel.getBattleLocation();
 		if (loc == null || loc.tile == null) return false;
-		ArrayList<String> invalidTypes = new ArrayList<>();
+		ArrayList<String> invalidTypes = new ArrayList<String>();
 		if (spell.getGameObject().hasThisAttribute(Constants.TARGET_INVALID_CHIT_TYPES)) {
 			StringTokenizer types = new StringTokenizer(spell.getGameObject().getThisAttribute(Constants.TARGET_INVALID_CHIT_TYPES),",");
 			while(types.hasMoreTokens()) {

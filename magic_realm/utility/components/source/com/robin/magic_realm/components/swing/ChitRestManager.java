@@ -175,7 +175,7 @@ public class ChitRestManager extends ChitManager {
 		wrapper.setCharacterLevel(4);
 		wrapper.updateLevelAttributes(hostPrefs);
 		wrapper.initChits();
-		ArrayList<CharacterActionChitComponent> list = new ArrayList<>(wrapper.getAllChits());
+		ArrayList<CharacterActionChitComponent> list = new ArrayList<CharacterActionChitComponent>(wrapper.getAllChits());
 		for (int i=2;i<5;i+=2) {
 			CharacterActionChitComponent aChit = list.get(i);
 			aChit.makeFatigued();

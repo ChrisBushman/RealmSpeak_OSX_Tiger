@@ -99,8 +99,8 @@ public class SpellViewer extends JPanel {
 	}
 	private void initView(GameData data) {
 		GamePool pool = new GamePool(data.getGameObjects());
-		spells = new ArrayList<>();
-		ArrayList<String> spellNames = new ArrayList<>();
+		spells = new ArrayList<GameObject>();
+		ArrayList<String> spellNames = new ArrayList<String>();
 		
 		for (GameObject go:pool.find("spell")) {
 			String type = go.getThisAttribute("spell");

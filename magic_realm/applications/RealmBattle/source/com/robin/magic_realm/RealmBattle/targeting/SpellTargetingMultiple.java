@@ -35,7 +35,7 @@ public abstract class SpellTargetingMultiple extends SpellTargeting {
 		}
 		chooser.setVisible(true);
 		if (chooser.pressedOkay()) {
-			ArrayList<GameObject> chosen = new ArrayList<>(chooser.getChosenObjects());
+			ArrayList<GameObject> chosen = new ArrayList<GameObject>(chooser.getChosenObjects());
 			
 			// This is lazy, but there is really only ONE spell that has such a rule, so I'm not going generalize
 			if (requiredTargets==4 && chosen.size()<requiredTargets) {

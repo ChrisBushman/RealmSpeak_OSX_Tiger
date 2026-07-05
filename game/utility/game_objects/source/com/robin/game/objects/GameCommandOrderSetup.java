@@ -18,7 +18,7 @@ public class GameCommandOrderSetup extends GameCommand {
 		return orderSetup(allGameObjects);
 	}
 	public static String orderSetup(ArrayList<GameObject> allGameObjects) {
-		ArrayList<GameObject> sortedObjects = new ArrayList<>();
+		ArrayList<GameObject> sortedObjects = new ArrayList<GameObject>();
 		for (GameObject go : allGameObjects) {
 			if (go.hasThisAttribute("dwelling") || go.hasThisAttribute("treasure_location")) {
 				ArrayList<GameObject> hold = new ArrayList<GameObject>();

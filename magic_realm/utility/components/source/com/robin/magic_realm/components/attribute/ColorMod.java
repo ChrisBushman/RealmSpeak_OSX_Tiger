@@ -19,7 +19,7 @@ public class ColorMod {
 	private void setMod(String mod) {
 		// Like 1.2;1.3 (means white->grey, white->gold)
 		boolean error = false;
-		conversions = new HashLists<>();
+		conversions = new HashLists<Integer,Integer>();
 		StringTokenizer changes = new StringTokenizer(mod,";");
 		try {
 			while(changes.hasMoreTokens()) {
@@ -64,7 +64,7 @@ public class ColorMod {
 	}
 
 	private ArrayList<ColorMagic> stripConvertedColors(ArrayList<ColorMagic> colors) {
-		ArrayList<ColorMagic> filteredColors = new ArrayList<>();
+		ArrayList<ColorMagic> filteredColors = new ArrayList<ColorMagic>();
 		for(ColorMagic magic:colors) {
 			if (!conversions.containsKey(magic.getColorNumber())) {
 				filteredColors.add(magic);
@@ -76,7 +76,7 @@ public class ColorMod {
 	public static ArrayList<ColorMagic> getConvertedColorsForThings(ArrayList<GameObject> things,ArrayList<ColorMagic> colors) {
 		ArrayList<ColorMod> list = createColorMods(things);
 		if (!list.isEmpty()) {
-			ArrayList<ColorMagic> modified = new ArrayList<>();
+			ArrayList<ColorMagic> modified = new ArrayList<ColorMagic>();
 			for (ColorMod mod:list) {
 				for (ColorMagic magic:mod.getModifiedColors(colors)) {
 					if (!magic.isInfinite() || !modified.contains(magic)) {
@@ -92,7 +92,7 @@ public class ColorMod {
 		return colors;
 	}
 	private static ArrayList<ColorMod> createColorMods(ArrayList<GameObject> things) {
-		ArrayList<ColorMod> list = new ArrayList<>();
+		ArrayList<ColorMod> list = new ArrayList<ColorMod>();
 		for (GameObject thing:things) {
 			ColorMod mod = createColorMod(thing);
 			if (mod!=null) {

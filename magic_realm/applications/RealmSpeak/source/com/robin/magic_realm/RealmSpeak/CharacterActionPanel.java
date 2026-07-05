@@ -218,7 +218,7 @@ public class CharacterActionPanel extends CharacterFramePanel {
 						DieRoller roller = getCharacter().getMonsterRoll(dayKey);
 						if (roller!=null) {
 							if (dieIconHash==null) {
-								dieIconHash = new Hashtable<>();
+								dieIconHash = new Hashtable<Integer, ImageIcon>();
 								for (int i=1;i<=6;i++) {
 									DieRoller dr = new DieRoller(String.valueOf(i),16,4);
 									dr.setAllRed();
@@ -250,7 +250,7 @@ public class CharacterActionPanel extends CharacterFramePanel {
 					sb.append("<html>");
 					Collection<String> v = getCharacter().getCurrentActionValids();
 					if (v==null) {
-						v = new ArrayList<>();
+						v = new ArrayList<String>();
 					}
 					vai = v.iterator();
 				}

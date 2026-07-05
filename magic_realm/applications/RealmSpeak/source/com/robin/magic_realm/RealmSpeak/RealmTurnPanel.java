@@ -217,13 +217,13 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			
 		// Now init
 		ActionRow.askAboutAbandoningFollowers = true;
-		actionRows = new ArrayList<>();
+		actionRows = new ArrayList<ActionRow>();
 		ArrayList<String> actions = getCharacter().getCurrentActions();
 		if (actions!=null) {
 			ArrayList<String> actionTypeCodes = getCharacter().getCurrentActionTypeCodes();
 			ArrayList<String> actionTypeValids = (ArrayList<String>) getCharacter().getCurrentActionValids();
 			if (actionTypeCodes==null) {
-				actionTypeCodes = new ArrayList<>();
+				actionTypeCodes = new ArrayList<String>();
 			}
 			isFollowing = false; // followers are exempt from blocking rules because the action is simultaneous with the guide.
 			for (int i=0;i<actions.size();i++) {
@@ -875,7 +875,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			}
 		
 			// Collect any newActions that may have spawned (ie., Curse as the result of a search)
-			ArrayList<ActionRow> newActions = new ArrayList<>();
+			ArrayList<ActionRow> newActions = new ArrayList<ActionRow>();
 			ActionRow newAction = ar.getNewAction();
 			while(newAction!=null) {
 				newAction.setSpawned(true);
@@ -921,7 +921,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 					// Separate phases in case there is a mountain move or rest block
 					String phase = ar.getAction();
 					if (phase!=null) {
-						ArrayList<String> separatePhases = new ArrayList<>();
+						ArrayList<String> separatePhases = new ArrayList<String>();
 						for (int i=0;i<ar.getCount();i++) {
 							if (phase.indexOf(",")>=0) {
 								StringTokenizer phases = new StringTokenizer(phase,",");
@@ -1031,7 +1031,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 	private Collection<RealmComponent> getUnavailableManeuverOptions() {
 		// Limit maneuver choices to those that can handle the heaviest piece of inventory
 		Strength heaviestInventory = getCharacter().getNeededSupportWeight();
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		for (CharacterActionChitComponent chit : getCharacter().getActiveMoveChits()) {
 			if (!chit.getStrength().strongerOrEqualTo(heaviestInventory)) {
 				list.add(chit);
@@ -1079,7 +1079,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			// NOTE:  current action type codes will be off, but I don't think it matters anymore...
 			// Actually, it does, so keep these up to date
 			Collection<String> atc = getCharacter().getCurrentActionTypeCodes();
-			Collection<String> oldCodes = new ArrayList<>();
+			Collection<String> oldCodes = new ArrayList<String>();
 			if (atc!=null) {
 				oldCodes.addAll(atc);
 			}
@@ -1180,7 +1180,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			}
 			DieRoller monsterDieRoller = game.getMonsterDie();
 			DieRoller nativeDieRoller = game.getNativeDie();
-			ArrayList<GameObject> summoned = new ArrayList<>();
+			ArrayList<GameObject> summoned = new ArrayList<GameObject>();
 			if (!hostPrefs.hasPref(Constants.SR_NO_SUMMONING_FOR_FOLLOWERS) || getCharacter().getCharacterImFollowing()==null || getCharacter().isStopFollowing()) {
 				SetupCardUtility.summonMonsters(hostPrefs,summoned,getCharacter(),monsterDieRoller,nativeDieRoller);
 			}
@@ -1288,7 +1288,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		}
 	}
 	public void verifyAbandonActionFollowers() {
-		ArrayList<CharacterWrapper> canLeaveBehind = new ArrayList<>();
+		ArrayList<CharacterWrapper> canLeaveBehind = new ArrayList<CharacterWrapper>();
 		for (CharacterWrapper follower:actionFollowers) {
 			if (!follower.foundHiddenEnemy(getCharacter().getGameObject())) {
 				canLeaveBehind.add(follower);
@@ -1320,12 +1320,12 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		}
 	}
 	public void doAbandonActionFollowers() {
-		ArrayList<CharacterWrapper> toRemove = new ArrayList<>();
+		ArrayList<CharacterWrapper> toRemove = new ArrayList<CharacterWrapper>();
 		if (actionFollowers.size()==1) {
 			toRemove.add(actionFollowers.get(0));
 		}
 		else {
-			ArrayList<GameObject> list = new ArrayList<>();
+			ArrayList<GameObject> list = new ArrayList<GameObject>();
 			for (CharacterWrapper aFollower:actionFollowers) {
 				list.add(aFollower.getGameObject());
 			}
@@ -1395,13 +1395,13 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		ActionRow ar = actionRows.get(currentActionRow);
 		String removedAction = ar.getAction();
 		actionRows.remove(ar);
-		ArrayList<String> actions = new ArrayList<>(getCharacter().getCurrentActions());
+		ArrayList<String> actions = new ArrayList<String>(getCharacter().getCurrentActions());
 		actions.remove(currentActionRow);
 		getCharacter().setCurrentActions(actions);
 		if (removedAction.startsWith(DayAction.MOVE_ACTION.getCode()) || removedAction.startsWith(DayAction.FLY_ACTION.getCode())) {
 			getCharacter().rebuildClearingPlot();
 		}
-		ArrayList<String> actionTypeCodes = new ArrayList<>();
+		ArrayList<String> actionTypeCodes = new ArrayList<String>();
 		Collection<String> c = getCharacter().getCurrentActionTypeCodes();
 		if (c!=null && !c.isEmpty()) {
 			actionTypeCodes.addAll(c);
@@ -1414,13 +1414,13 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		if (!isFollowing) {
 			// First, remove all pending actions
 			Collection<String> atcOld = getCharacter().getCurrentActionTypeCodes();
-			ArrayList<String> atc = new ArrayList<>();
+			ArrayList<String> atc = new ArrayList<String>();
 			if (atcOld!=null) {
 				atc.addAll(atcOld);
 			}
 			Iterator<String> n=atc.iterator();
 			getCharacter().clearCurrentActions();
-			ArrayList<ActionRow> toRemove = new ArrayList<>();
+			ArrayList<ActionRow> toRemove = new ArrayList<ActionRow>();
 			for (ActionRow ar:actionRows) {
 				if (ar.getAction()!=null) { // ignore null action rows
 					if (ar.isPending()) {
@@ -1476,7 +1476,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		getCharacter().addLostPhases(getCharacter().getLostPhases()+phases);
 		// Find pending phases
 		int pendingCount = 0;
-		ArrayList<ActionRow> pendingPhases = new ArrayList<>();
+		ArrayList<ActionRow> pendingPhases = new ArrayList<ActionRow>();
 		for (ActionRow ar:actionRows) {
 			if (ar.isInvalidPlannedPhase()) {
 				ar.setActionState(ActionState.Invalid);

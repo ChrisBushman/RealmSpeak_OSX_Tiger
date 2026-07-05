@@ -55,7 +55,7 @@ public class SpellTargetingAskDemon extends SpellTargetingSpecial {
 		
 		// Pick a Player
 		GamePool pool = new GamePool(RealmObjectMaster.getRealmObjectMaster(battleModel.getGameData()).getPlayerCharacterObjects());
-		ArrayList<String> playerNames = new ArrayList<>();
+		ArrayList<String> playerNames = new ArrayList<String>();
 		ArrayList<GameObject> list = pool.find(CharacterWrapper.NAME_KEY);
 		for (GameObject go:list) {
 			CharacterWrapper character = new CharacterWrapper(go);

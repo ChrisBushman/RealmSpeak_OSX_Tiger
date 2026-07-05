@@ -29,8 +29,8 @@ public class ActionRowChooser extends AggressiveDialog {
 		super(parent,title,true);
 		this.toLose = toLose;
 		lost = 0;
-		keepList = new ArrayList<>();
-		loseList = new ArrayList<>();
+		keepList = new ArrayList<ActionRow>();
+		loseList = new ArrayList<ActionRow>();
 		initComponents();
 		updateTally();
 	}
@@ -211,7 +211,7 @@ public class ActionRowChooser extends AggressiveDialog {
 	public static void main(String[] args) {
 		ActionRowChooser chooser = new ActionRowChooser(new JFrame(),"Test",2);
 		chooser.setLocationRelativeTo(null);
-		ArrayList<ActionRow> list = new ArrayList<>();
+		ArrayList<ActionRow> list = new ArrayList<ActionRow>();
 		list.add(new ActionRow("H",""));
 		ActionRow ar = new ActionRow("R","");
 		ar.setCount(4);

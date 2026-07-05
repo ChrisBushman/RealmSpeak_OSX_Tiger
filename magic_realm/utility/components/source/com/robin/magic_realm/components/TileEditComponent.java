@@ -47,7 +47,7 @@ public class TileEditComponent extends TileComponent {
 		
 		// First, rip out all clearing/path keys from the side
 		OrderedHashtable<String, Object> hash = gameObject.getAttributeBlock(blockName);
-		ArrayList<String> keysToRemove = new ArrayList<>();
+		ArrayList<String> keysToRemove = new ArrayList<String>();
 		for (Enumeration<String> e=hash.keys();e.hasMoreElements();) {
 			String key = e.nextElement();
 			if (key.startsWith("path") || key.startsWith("clearing")) {

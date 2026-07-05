@@ -27,7 +27,7 @@ public class ImageCache {
 		new ImagePath("images",".gif")
 	};
 	
-	private static Hashtable<String, ImageIcon> cache = new Hashtable<>();
+	private static Hashtable<String, ImageIcon> cache = new Hashtable<String, ImageIcon>();
 	
 	/**
 	 * This method is a sneaky way to trick the cache into believing the icon has already been fetched.
@@ -38,7 +38,7 @@ public class ImageCache {
 	
 	public static void resetCache() {
 		cache.clear();
-		cache = new Hashtable<>();
+		cache = new Hashtable<String, ImageIcon>();
 	}
 	
 	public static boolean iconExists(String name) {

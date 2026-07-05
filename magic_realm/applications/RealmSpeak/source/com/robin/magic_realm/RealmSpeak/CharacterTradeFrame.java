@@ -298,7 +298,7 @@ public class CharacterTradeFrame extends JFrame {
 		
 		public TradePanel(String clientName,CharacterWrapper character,boolean useApprove) {
 			super(new BorderLayout());
-			onTheTable = new ArrayList<>();
+			onTheTable = new ArrayList<GameObject>();
 			setBorder(BorderFactory.createLoweredBevelBorder());
 			this.character = character;
 			JLabel title = new JLabel(this.character.getGameObject().getName());
@@ -312,7 +312,7 @@ public class CharacterTradeFrame extends JFrame {
 			view = new RealmObjectPanel(hasControl,false);
 			add(new JScrollPane(view),"Center");
 			
-			discoveries = new ArrayList<>();
+			discoveries = new ArrayList<String>();
 			discoveryModel = new DiscoveryListModel(discoveries);
 			discoveryList = new JList<DiscoveryListModel>(discoveryModel);
 			discoveryList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
@@ -430,7 +430,7 @@ public class CharacterTradeFrame extends JFrame {
 			}
 		}
 		private void addInventory() {
-			ArrayList<GameObject> unpresentedInventory = new ArrayList<>();
+			ArrayList<GameObject> unpresentedInventory = new ArrayList<GameObject>();
 			for (GameObject item : character.getInventory()) {
 				Inventory inventory = new Inventory(item);
 				if (inventory.canDrop() && !item.hasThisAttribute(Constants.CONTROLLED_HORSE)) {
@@ -444,7 +444,7 @@ public class CharacterTradeFrame extends JFrame {
 				chooser.setVisible(true);
 				ArrayList<GameObject> newInventory = chooser.getSelectedObjects();
 				if (newInventory!=null && !newInventory.isEmpty()) {
-					ArrayList<GameObject> mustDeactivate = new ArrayList<>();
+					ArrayList<GameObject> mustDeactivate = new ArrayList<GameObject>();
 					for (GameObject go:newInventory) {
 						if (go.hasThisAttribute(Constants.MUST_DEACTIVATE) && go.hasThisAttribute(Constants.ACTIVATED)) {
 							mustDeactivate.add(go);
@@ -468,7 +468,7 @@ public class CharacterTradeFrame extends JFrame {
 		private void removeInventory() {
 			GameObject[] selGo = view.getSelectedGameObjects();
 			if (selGo.length>0) {
-				ArrayList<GameObject> toRemove = new ArrayList<>(Arrays.asList(selGo));
+				ArrayList<GameObject> toRemove = new ArrayList<GameObject>(Arrays.asList(selGo));
 				removeInventory(toRemove);
 				sendMessage(RealmDirectInfoHolder.TRADE_REMOVE_OBJECTS,toRemove);
 			}
@@ -485,7 +485,7 @@ public class CharacterTradeFrame extends JFrame {
 			CharacterWrapper from = activeTransfer?active:include;
 			CharacterWrapper to = activeTransfer?include:active;
 			
-			ArrayList<String> dees = new ArrayList<>();
+			ArrayList<String> dees = new ArrayList<String>();
 			
 			// Treasure Locations
 			ArrayList<String> temp = from.getCurrentClearingKnownTreasureLocations(true);
@@ -553,7 +553,7 @@ public class CharacterTradeFrame extends JFrame {
 			discoveryList.repaint();
 		}
 		public void removeDiscoveries() {
-			ArrayList<String> toRemove = new ArrayList<>();
+			ArrayList<String> toRemove = new ArrayList<String>();
 			int[] sel = discoveryList.getSelectedIndices();
 			for (int i=0;i<sel.length;i++) {
 				toRemove.add(discoveries.get(sel[i]));

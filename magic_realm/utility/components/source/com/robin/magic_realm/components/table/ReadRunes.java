@@ -143,7 +143,7 @@ public class ReadRunes extends RealmTable {
 		return ret;
 	}
 	private GameObject selectFromAllAwakenedSpells(CharacterWrapper character) {
-		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
 		for (GameObject spell : spellLocation.getHold()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(spell);
 			if (rc.isSpell() && ((character.canLearn(spell) && rc.getGameObject().hasThisAttribute(Constants.SPELL_AWAKENED)) || character.affectedByKey(Constants.MAGE_DIARY))) {

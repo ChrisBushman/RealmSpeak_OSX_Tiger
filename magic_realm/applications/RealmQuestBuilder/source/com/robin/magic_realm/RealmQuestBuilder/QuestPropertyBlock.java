@@ -63,7 +63,7 @@ public class QuestPropertyBlock {
 		return selections;
 	}
 	public ArrayList<String> getSelectionsAsStrings() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		if (selections!=null) {
 			for (Object val:selections) {
 				list.add(val.toString());

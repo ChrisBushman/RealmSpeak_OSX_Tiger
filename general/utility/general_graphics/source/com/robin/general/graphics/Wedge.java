@@ -46,7 +46,7 @@ public class Wedge {
 	public ArrayList<Wedge> makeWedges(int divisions, boolean moveCenter) {
 		if (divisions <= 0)
 			throw new IllegalArgumentException("Wedge divisions must be greater than zero.");
-		ArrayList<Wedge> wedges = new ArrayList<>();
+		ArrayList<Wedge> wedges = new ArrayList<Wedge>();
 		Point newCenter = center;
 		double st = start;
 		double fin = finish;

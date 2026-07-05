@@ -8,10 +8,9 @@ public class DiscoverRoadEffect implements ISpellEffect {
 	public void apply(SpellEffectContext context) {
 		CharacterWrapper character = context.getCharacterTarget();
 	
-		character
-			.getCurrentClearing()
-			.getConnectedPaths()
-			.forEach(path -> character.addPathKnowledge(path));
+		for (com.robin.magic_realm.components.PathDetail path : character.getCurrentClearing().getConnectedPaths()) {
+			character.addPathKnowledge(path);
+		}
 	}
 
 	@Override

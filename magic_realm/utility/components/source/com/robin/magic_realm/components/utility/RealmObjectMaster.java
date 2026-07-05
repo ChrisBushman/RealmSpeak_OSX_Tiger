@@ -70,7 +70,7 @@ public class RealmObjectMaster {
 			playerCharacterObjects = null;
 		}
 		if (playerCharacterObjects==null) {
-			playerCharacterObjects = new ArrayList<>();
+			playerCharacterObjects = new ArrayList<GameObject>();
 			playerCharacterObjects.addAll(findObjects("character"));
 			playerCharacterObjects.addAll(findObjects("native,rank")); // not just leaders anymore, due to Hypnotize spell!
 			playerCharacterObjects.addAll(findObjects("monster,!part"));
@@ -84,7 +84,7 @@ public class RealmObjectMaster {
 	 */
 	public ArrayList<GameObject> getDenizenObjects() {
 		if (denizenObjects==null) {
-			denizenObjects = new ArrayList<>();
+			denizenObjects = new ArrayList<GameObject>();
 			denizenObjects.addAll(findObjects("native,rank"));
 			denizenObjects.addAll(findObjects("monster,!part"));
 		}
@@ -96,7 +96,7 @@ public class RealmObjectMaster {
 	 */
 	public ArrayList<GameObject> getTileObjects() {
 		if (tileObjects==null) {
-			tileObjects = new ArrayList<>();
+			tileObjects = new ArrayList<GameObject>();
 			tileObjects.addAll(findObjects("tile"));
 		}
 		return tileObjects;
@@ -110,7 +110,7 @@ public class RealmObjectMaster {
 	 */
 	public ArrayList<GameObject> getDwellingObjects() {
 		if (dwellingObjects==null) {
-			dwellingObjects = new ArrayList<>();
+			dwellingObjects = new ArrayList<GameObject>();
 			dwellingObjects.addAll(findObjects("dwelling"));
 			dwellingObjects.addAll(findObjects("guild"));
 		}
@@ -122,7 +122,7 @@ public class RealmObjectMaster {
 	 */
 	public static RealmObjectMaster getRealmObjectMaster(GameData data) {
 		if (map==null) {
-			map = new HashMap<>();
+			map = new HashMap<Long, RealmObjectMaster>();
 		}
 		Long id = Long.valueOf(data.getDataId());
 		RealmObjectMaster rom = map.get(id);

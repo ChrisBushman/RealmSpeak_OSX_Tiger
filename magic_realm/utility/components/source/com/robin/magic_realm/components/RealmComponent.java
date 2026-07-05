@@ -386,7 +386,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 			return false;
 		}
 		
-		ArrayList<ColorMagic> colors = new ArrayList<>();
+		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
 		colors.addAll((new CharacterWrapper(getGameObject()).getInfiniteColorSources()));
 		for (ColorMagic color : colors) {
 			if ((cm!=null && !cm.sameColorAs(color)) || (protection.matches("prism") && !color.isPrismColor())) return false;
@@ -1030,7 +1030,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		Long dataid = Long.valueOf(data.getDataId());
 		Hashtable componentHash = (Hashtable) dataComponentHash.get(dataid);
 		if (componentHash == null) {
-			componentHash = new Hashtable<>();
+			componentHash = new Hashtable<Comparable, Serializable>();
 			dataComponentHash.put(dataid, componentHash);
 			
 			// Make sure there is a master object to handle things like a target index counter
@@ -1046,7 +1046,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	}
 
 	public static ArrayList<RealmComponent> getRealmComponents(Collection<GameObject> objects) {
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		for (GameObject go: objects) {
 			list.add(RealmComponent.getRealmComponent(go));
 		}
@@ -1173,7 +1173,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		return false;
 	}
 	private ArrayList<String> getImmunities() {
-		ArrayList<String> immunities = new ArrayList<>();
+		ArrayList<String> immunities = new ArrayList<String>();
 		if (getGameObject().hasThisAttribute(Constants.MONSTER_IMMUNITY)) {
 			immunities.addAll(getGameObject().getThisAttributeList(Constants.MONSTER_IMMUNITY));
 		}
@@ -1200,7 +1200,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		return getControllableMonsters(true);
 	}
 	public Hashtable<String,Integer[]> getControllableMonsters(boolean enhancedOnly) {
-		Hashtable<String,Integer[]> controls = new Hashtable<>();
+		Hashtable<String,Integer[]> controls = new Hashtable<String,Integer[]>();
 		if (getGameObject().hasThisAttribute(Constants.MONSTER_CONTROL) && (!enhancedOnly || getGameObject().hasThisAttribute(Constants.MONSTER_CONTROL_ENHANCED))) {
 			int duration = getGameObject().getThisInt(Constants.MONSTER_CONTROL_DURATION);
 			int limit = getGameObject().getThisInt(Constants.MONSTER_CONTROL_LIMIT);
@@ -1260,7 +1260,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		return false;
 	}
 	private ArrayList<String> getFears() {
-		ArrayList<String> fears = new ArrayList<>();
+		ArrayList<String> fears = new ArrayList<String>();
 		if (getGameObject().hasThisAttribute(Constants.MONSTER_FEAR)) {
 			fears.addAll(getGameObject().getThisAttributeList(Constants.MONSTER_FEAR));
 		}

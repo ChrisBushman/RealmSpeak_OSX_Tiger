@@ -24,11 +24,11 @@ public class QuestLoader {
 
 	public static ArrayList<Quest> findAvailableQuests(CharacterWrapper character, HostPrefWrapper hostPrefs) {
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add(RealmComponent.QUEST);
 		query.add("!"+Quest.STATE);
 		ArrayList<GameObject> allUnassingedQuests = pool.find(query);
-		ArrayList<Quest> quests = new ArrayList<>();
+		ArrayList<Quest> quests = new ArrayList<Quest>();
 		for (GameObject go : allUnassingedQuests) {
 			Quest quest = new Quest(go);
 			if (quest.canChooseQuest(character, hostPrefs)) {
@@ -56,7 +56,7 @@ public class QuestLoader {
 	}
 
 	public static ArrayList<Quest> loadAllQuestsFromQuestFolder() {
-		ArrayList<Quest> quests = new ArrayList<>();
+		ArrayList<Quest> quests = new ArrayList<Quest>();
 		File questFolder = new File(getQuestFolderPath());
 		if (questFolder.isDirectory() && questFolder.exists()) {
 			File[] questFile = questFolder.listFiles();

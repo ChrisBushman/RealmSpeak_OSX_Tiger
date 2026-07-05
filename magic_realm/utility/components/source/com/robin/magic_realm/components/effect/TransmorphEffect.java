@@ -199,7 +199,7 @@ public class TransmorphEffect implements ISpellEffect {
 					character.addGold(gold); // add gold, in case transmorphed character picked up some gold!
 				}
 				
-				ArrayList<GameObject> hold = new ArrayList<>();
+				ArrayList<GameObject> hold = new ArrayList<GameObject>();
 				hold.addAll(spell.getGameObject().getHold());
 				for (GameObject go : hold) {
 					if (RealmComponent.getRealmComponent(go).isItem()) {
@@ -297,9 +297,11 @@ public class TransmorphEffect implements ISpellEffect {
 			// Move all inventory to the spell, so it doesn't appear in window anymore,
 			// but will on double-click of the spell.  This should also disable inventory
 			// without changing its active/inactive location			
-			character.getInventory().stream()
-				.filter(go -> RealmComponent.getRealmComponent(go).isItem())
-				.forEach(i -> spell.getGameObject().add(i));
+			for (GameObject i : character.getInventory()) {
+				if (RealmComponent.getRealmComponent(i).isItem()) {
+					spell.getGameObject().add(i);
+				}
+			}
 			}
 			else {
 				for (GameObject item : character.getInventory()) {

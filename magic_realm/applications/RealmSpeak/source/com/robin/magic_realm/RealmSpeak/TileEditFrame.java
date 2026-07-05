@@ -110,7 +110,7 @@ public class TileEditFrame extends JFrame {
 		Box box;
 		JScrollPane sp;
 		
-		tileList = new JList<>(getTiles());
+		tileList = new JList<GameObject>(getTiles());
 		tileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		tileList.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent ev) {
@@ -133,7 +133,7 @@ public class TileEditFrame extends JFrame {
 			JPanel editPanel = new JPanel(new GridLayout(2,1));
 				JPanel clearingEditPanel = new JPanel(new BorderLayout());
 				clearingEditPanel.add(new JLabel("CLEARINGS:"),"North");
-					clearingList = new JList<>();
+					clearingList = new JList<ClearingDetail>();
 					clearingList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 					clearingList.addListSelectionListener(new ListSelectionListener() {
 						public void valueChanged(ListSelectionEvent ev) {
@@ -264,7 +264,7 @@ public class TileEditFrame extends JFrame {
 			editPanel.add(clearingEditPanel);
 				JPanel pathEditPanel = new JPanel(new BorderLayout());
 				pathEditPanel.add(new JLabel("PATHS:"),"North");
-					pathList = new JList<>();
+					pathList = new JList<PathDetail>();
 					pathList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 					pathList.addListSelectionListener(new ListSelectionListener() {
 						public void valueChanged(ListSelectionEvent ev) {
@@ -511,10 +511,10 @@ public class TileEditFrame extends JFrame {
 	}
 	public void updateClearingList() {
 		if (activeTile!=null) {
-			clearingList.setListData(new Vector<>(activeTile.getClearingDetail()));
+			clearingList.setListData(new Vector<ClearingDetail>(activeTile.getClearingDetail()));
 		}
 		else {
-			clearingList.setListData(new Vector<>());
+			clearingList.setListData(new Vector<ClearingDetail>());
 		}
 		clearingList.revalidate();
 		clearingList.repaint();
@@ -619,7 +619,7 @@ public class TileEditFrame extends JFrame {
 		if (activeTile.isDarkSideUp()) {
 			side = 1;
 		}
-		ArrayList<Integer> allClearingsNums = new ArrayList<>();
+		ArrayList<Integer> allClearingsNums = new ArrayList<Integer>();
 		int num = 1;
 		for (ClearingDetail cl : allClearings) {
 			allClearingsNums.add(cl.getNum());
@@ -650,8 +650,8 @@ public class TileEditFrame extends JFrame {
 				break;
 			}
 		}
-		ArrayList<PathDetail> paths = new ArrayList<>(activeTile.getPathDetail());
-		ArrayList<PathDetail> validPaths = new ArrayList<>();
+		ArrayList<PathDetail> paths = new ArrayList<PathDetail>(activeTile.getPathDetail());
+		ArrayList<PathDetail> validPaths = new ArrayList<PathDetail>();
 		for (PathDetail path : paths) {
 			if (path.getTo().getNum()!=selected.getNum() && path.getFrom().getNum()!=selected.getNum()) {
 				validPaths.add(path);
@@ -672,10 +672,10 @@ public class TileEditFrame extends JFrame {
 	}
 	public void updatePathList(int newIndex) {
 		if (activeTile!=null) {
-			pathList.setListData(new Vector<>(activeTile.getPathDetail()));
+			pathList.setListData(new Vector<PathDetail>(activeTile.getPathDetail()));
 		}
 		else {
-			pathList.setListData(new Vector<>());
+			pathList.setListData(new Vector<PathDetail>());
 		}
 		if (newIndex>=0) {
 			pathList.setSelectedIndex(newIndex);
@@ -745,7 +745,7 @@ public class TileEditFrame extends JFrame {
 	}
 	public void addPath() {
 		if (activeTile!=null) {
-			ArrayList<Object> list = new ArrayList<>(activeTile.getClearingDetail());
+			ArrayList<Object> list = new ArrayList<Object>(activeTile.getClearingDetail());
 			ButtonOptionDialog chooser = new ButtonOptionDialog(this,null,"From which clearing?","");
 			chooser.addSelectionObjects(list);
 			chooser.setVisible(true);
@@ -774,7 +774,7 @@ public class TileEditFrame extends JFrame {
 						Hashtable<String, Point> edgePositionHash = TileComponent.getEdgePositionHash();
 						c2 = new ClearingDetail(activeTile,edge,edgePositionHash.get(edge),activeTile.getFacingIndex());
 					}
-					ArrayList<PathDetail> paths = new ArrayList<>(activeTile.getPathDetail());
+					ArrayList<PathDetail> paths = new ArrayList<PathDetail>(activeTile.getPathDetail());
 					PathDetail path = new PathDetail(activeTile,paths.size()+1,c1.getName(),c2Name,c1,c2,null,"normal",activeTile.getFacingName());
 					paths.add(path);
 					activeTile.setPathDetail(paths);
@@ -787,7 +787,7 @@ public class TileEditFrame extends JFrame {
 		if (activeTile!=null) {
 			int index = pathList.getSelectedIndex();
 			if (index>=0) {
-				ArrayList<PathDetail> list = new ArrayList<>(activeTile.getPathDetail());
+				ArrayList<PathDetail> list = new ArrayList<PathDetail>(activeTile.getPathDetail());
 				list.remove(index);
 				activeTile.setPathDetail(list);
 				updatePathList(index);
@@ -799,7 +799,7 @@ public class TileEditFrame extends JFrame {
 			int index = pathList.getSelectedIndex();
 			
 			if (index>0) {
-				ArrayList<PathDetail> list = new ArrayList<>(activeTile.getPathDetail());
+				ArrayList<PathDetail> list = new ArrayList<PathDetail>(activeTile.getPathDetail());
 				
 				PathDetail selected = list.get(index);
 				PathDetail toSwap = list.get(index-1);
@@ -818,7 +818,7 @@ public class TileEditFrame extends JFrame {
 			int index = pathList.getSelectedIndex();
 			
 			if ((index+1)<pathList.getModel().getSize()) {
-				ArrayList<PathDetail> list = new ArrayList<>(activeTile.getPathDetail());
+				ArrayList<PathDetail> list = new ArrayList<PathDetail>(activeTile.getPathDetail());
 				
 				PathDetail selected = list.get(index);
 				PathDetail toSwap = list.get(index+1);
@@ -844,7 +844,7 @@ public class TileEditFrame extends JFrame {
 		}
 	}
 	public Vector<GameObject> getTiles() {
-		Vector<GameObject> tiles = new Vector<>();
+		Vector<GameObject> tiles = new Vector<GameObject>();
 		for (GameObject go : data.getGameObjects()) {
 			if (go.hasKey("tile") || go.hasKey("a_tile")) {
 				tiles.addElement(go);

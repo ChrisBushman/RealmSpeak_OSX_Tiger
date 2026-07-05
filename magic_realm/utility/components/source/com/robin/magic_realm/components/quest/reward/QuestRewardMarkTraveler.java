@@ -29,7 +29,7 @@ public class QuestRewardMarkTraveler extends QuestReward {
 		if (charactersClearingOnly()) {
 			TileLocation current = character.getCurrentLocation();
 			if (!current.isInClearing()) return;
-			travelers = new ArrayList<>();
+			travelers = new ArrayList<GameObject>();
 			for (RealmComponent rc : current.clearing.getClearingComponents()) {
 				travelers.add(rc.getGameObject());
 			}
@@ -39,7 +39,7 @@ public class QuestRewardMarkTraveler extends QuestReward {
 		}
 		String regex = getTravelerRegEx().trim();
 		Pattern pattern = regex.length()==0?null:Pattern.compile(regex);
-		ArrayList<GameObject> allTravelers = new ArrayList<>();
+		ArrayList<GameObject> allTravelers = new ArrayList<GameObject>();
 		for (GameObject go:travelers) {
 			if (pattern==null || pattern.matcher(go.getName()).find()) {
 				if (randomTraveler()) {

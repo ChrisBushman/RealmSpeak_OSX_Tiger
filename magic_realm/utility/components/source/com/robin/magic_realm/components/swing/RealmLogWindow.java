@@ -57,7 +57,7 @@ public class RealmLogWindow extends JFrame {
 
 	private RealmLogWindow() {
 		initComponents();
-		list = new ArrayList<>();
+		list = new ArrayList<String[]>();
 	}
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -82,7 +82,7 @@ public class RealmLogWindow extends JFrame {
 			FileOutputStream fileStream = new FileOutputStream(saveFilePath);
 			DeflaterOutputStream deflater = new DeflaterOutputStream(fileStream);
 			PrintStream stream = new PrintStream(deflater);
-			ArrayList<String[]> safeList = new ArrayList<>(list);
+			ArrayList<String[]> safeList = new ArrayList<String[]>(list);
 			stream.println(safeList.size());
 			for (String[] line:safeList) {
 				stream.println(line[0]);

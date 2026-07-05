@@ -371,7 +371,7 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 		return getList("foe");
 	}
 	private ArrayList<String> getList(String key) {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		String val = getGameObject().getThisAttribute(key);
 		if (val!=null) {
 			StringTokenizer tokens = new StringTokenizer(val,",");

@@ -60,7 +60,7 @@ public class HallOfFame {
 	}
 	
 	public ArrayList<String> getAllCharacterNames() {
-		ArrayList<String> names = new ArrayList<>();
+		ArrayList<String> names = new ArrayList<String>();
 		for (GameObject go : hallData.getGameObjects()) {
 			if (go.getHeldBy()!=null && !names.contains(go.getName())) {
 				names.add(go.getName());

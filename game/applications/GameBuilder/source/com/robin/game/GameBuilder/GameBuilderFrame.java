@@ -42,8 +42,8 @@ public class GameBuilderFrame extends JFrame {
 	protected File lastPath;
 	
 	public GameBuilderFrame() {
-		gameDataFrames = new ArrayList<>();
-		openGameNames = new ArrayList<>();
+		gameDataFrames = new ArrayList<GameDataFrame>();
+		openGameNames = new ArrayList<String>();
 		prefs = new PreferenceManager("GameBuilder","GameBuilder.cfg") {
 			protected void createDefaultPreferences(Properties props) {
 				props.put(LAST_DIR,System.getProperty("user.home"));
@@ -185,7 +185,7 @@ public class GameBuilderFrame extends JFrame {
 
 						if (setup==null) return;
 						StringBuffer result = new StringBuffer();
-						ArrayList<String> keyVals = new ArrayList<>();
+						ArrayList<String> keyVals = new ArrayList<String>();
 						String game = (String)JOptionPane.showInputDialog(
 								GameBuilderFrame.this,
 								"Game Name",

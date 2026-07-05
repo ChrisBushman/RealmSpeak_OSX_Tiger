@@ -11,14 +11,14 @@ public class MonsterCreator {
 	
 	public MonsterCreator(String monsterKey) {
 		this.monsterKey = monsterKey;
-		monstersCreated = new ArrayList<>();
+		monstersCreated = new ArrayList<GameObject>();
 	}
 	public ArrayList<GameObject> getMonstersCreated() {
 		return monstersCreated;
 	}
 	public GameObject createOrReuseMonster(GameData data) {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add(monsterKey);
 		query.add(Constants.DEAD);
 		GameObject go = pool.findFirst(query);

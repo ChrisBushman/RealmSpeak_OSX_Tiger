@@ -23,7 +23,7 @@ public class BattleSummaryWrapper extends GameObjectWrapper {
 	public void initFromBattleChits(ArrayList<BattleChit> battleChits) {
 		clearBattleSummary();
 		
-		ArrayList<GameObject> battleChitsAdded = new ArrayList<>();
+		ArrayList<GameObject> battleChitsAdded = new ArrayList<GameObject>();
 		for (BattleChit bp : battleChits) {
 			if (battleChitsAdded.contains(bp.getGameObject())) continue;
 			if (bp instanceof SpellWrapper) {

@@ -220,7 +220,7 @@ public abstract class ChitBinPanel extends JComponent {
 		CharacterWrapper character = new CharacterWrapper(go);
 		GameObject f1 = data.getGameObjectByName("Test Fly Chit 1");
 		go.add(f1);
-		ArrayList<StateChitComponent> chits = new ArrayList<>(character.getCompleteChitList());
+		ArrayList<StateChitComponent> chits = new ArrayList<StateChitComponent>(character.getCompleteChitList());
 		ChitBinLayout layout = new ChitBinLayout(chits);
 		ChitBinPanel panel = new ChitBinPanel(layout) {
 			public boolean canClickChit(ChitComponent aChit) {

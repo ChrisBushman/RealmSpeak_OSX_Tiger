@@ -42,7 +42,7 @@ public class QuestRewardEditor extends QuestBlockEditor {
 	}
 
 	protected ArrayList<QuestPropertyBlock> createPropertyBlocks() {
-		ArrayList<QuestPropertyBlock> list = new ArrayList<>();
+		ArrayList<QuestPropertyBlock> list = new ArrayList<QuestPropertyBlock>();
 		list.add(new QuestPropertyBlock(QuestReward.REWARD_GROUP, "Reward group", FieldType.StringSelector, RewardGroups));
 		switch (reward.getRewardType()) {
 			case ActivateQuest:
@@ -449,7 +449,7 @@ public class QuestRewardEditor extends QuestBlockEditor {
 	}
 
 	private static KeyValuePair[] getAllCompanionKeyValues() {
-		ArrayList<KeyValuePair> companions = new ArrayList<>();
+		ArrayList<KeyValuePair> companions = new ArrayList<KeyValuePair>();
 		for (String[] section : CompanionEditPanel.COMPANIONS) {
 			boolean first = true;
 			for (String name : section) {
@@ -471,7 +471,7 @@ public class QuestRewardEditor extends QuestBlockEditor {
 	}
 
 	private String[] getRelationshipNames() {
-		ArrayList<String> names = new ArrayList<>();
+		ArrayList<String> names = new ArrayList<String>();
 		names.add("Clearing");
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
 		for (GameObject go : pool.find("native,rank=HQ")) {
@@ -484,7 +484,7 @@ public class QuestRewardEditor extends QuestBlockEditor {
 	}
 	
 	private String[] getGuildNames() {
-		ArrayList<String> names = new ArrayList<>();
+		ArrayList<String> names = new ArrayList<String>();
 		names.add(QuestConstants.CURRENT);
 		names.add(QuestConstants.REMOVE);
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());

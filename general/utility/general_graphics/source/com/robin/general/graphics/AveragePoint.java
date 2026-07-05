@@ -11,12 +11,12 @@ public class AveragePoint extends Point {
 	protected ArrayList<Point> points;
 	public AveragePoint(int x,int y) {
 		super(x,y);
-		points = new ArrayList<>();
+		points = new ArrayList<Point>();
 		addPoint(x,y);
 	}
 	public AveragePoint(Point p) {
 		super(p);
-		points = new ArrayList<>();
+		points = new ArrayList<Point>();
 		addPoint(p);
 	}
 	public void addPoint(int valX,int valY) {

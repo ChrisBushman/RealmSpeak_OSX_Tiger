@@ -51,10 +51,10 @@ public class GameObject extends ModifyableObject implements Serializable {
 		if (parent != null) {
 			addChangeListener(parent.getModifyListener());
 		}
-		attributeBlocks = new OrderedHashtable<>();
+		attributeBlocks = new OrderedHashtable<String, OrderedHashtable>();
 		heldBy = null;
-		hold = new ArrayList<>();
-		holdIds = new ArrayList<>();
+		hold = new ArrayList<GameObject>();
+		holdIds = new ArrayList<Long>();
 		reset();
 		revertNameToDefault();
 		setModified(true);
@@ -190,7 +190,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 		if (needHoldResolved) {
 			throw new IllegalArgumentException("Cannot add object:  needHoldResolved is true");
 		}
-		ArrayList<GameObject> list = new ArrayList<>(c);
+		ArrayList<GameObject> list = new ArrayList<GameObject>(c);
 		for (GameObject obj : list) {
 			add(obj);
 		}
@@ -204,7 +204,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 		if (uncommitted != null) {
 			throw new IllegalStateException("Cannot buildChanges with uncommitted changes");
 		}
-		ArrayList<GameObjectChange> changes = new ArrayList<>();
+		ArrayList<GameObjectChange> changes = new ArrayList<GameObjectChange>();
 		for (String blockName : getAttributeBlockNames()) {
 			OrderedHashtable<String, Object> block = getAttributeBlock(blockName);
 			for (String attributeName : block.keySet()) {
@@ -242,7 +242,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 		 * Assumptions:
 		 * 		1)  Each game object with the same id in each data object has the same blockNames
 		 */
-		ArrayList<GameObjectChange> changes = new ArrayList<>();
+		ArrayList<GameObjectChange> changes = new ArrayList<GameObjectChange>();
 		for (String blockName : getAttributeBlockNames()) {
 			OrderedHashtable<String, Object> block = getAttributeBlock(blockName);
 			OrderedHashtable<String, Object> otherBlock = other.getAttributeBlock(blockName);
@@ -409,7 +409,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 	 */
 	private OrderedHashtable<String, Object> createAttributeBlock(String blockName) {
 		if (!hasAttributeBlock(blockName)) {
-			attributeBlocks.put(blockName, new OrderedHashtable<>());
+			attributeBlocks.put(blockName, new OrderedHashtable<String, Object>());
 		}
 		return attributeBlocks.get(blockName);
 	}
@@ -737,8 +737,8 @@ public class GameObject extends ModifyableObject implements Serializable {
 			return uncommitted.hasAllKeyVals(keyVals);
 		}
 		// First, cleanup the keys and keyVals
-		ArrayList<String> fixedKeyVals = new ArrayList<>();
-		ArrayList<String> fixedNegativeKeyVals = new ArrayList<>();
+		ArrayList<String> fixedKeyVals = new ArrayList<String>();
+		ArrayList<String> fixedNegativeKeyVals = new ArrayList<String>();
 		for (String string : keyVals) {
 			if (string.contains("|")) {
 				StringTokenizer tokens = new StringTokenizer(string, "|");
@@ -779,7 +779,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 		}
 
 		// Now collect prepped keyVals from the attributeBlocks
-		HashSet<String> attributes = new HashSet<>();
+		HashSet<String> attributes = new HashSet<String>();
 		attributes.add("name=" + name); // name is always one of the choices
 		ArrayList<String> absOrderedKeys = attributeBlocks.orderedKeys();
 		for (int i=0;i<absOrderedKeys.size();i++) {
@@ -1000,7 +1000,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 			for (String key : block.keySet()) {
 				Object val = block.get(key);
 				if (val instanceof ArrayList) {
-					ArrayList<String> copy = new ArrayList<>((ArrayList<String>)val);
+					ArrayList<String> copy = new ArrayList<String>((ArrayList<String>)val);
 					_setAttributeList(blockName,key,copy);
 				}
 				else {
@@ -1020,7 +1020,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 			String key = (String)ok;
 			Object val = block.get(key);
 			if (val instanceof ArrayList) {
-				ArrayList<String> copy = new ArrayList<>((ArrayList<String>)val);
+				ArrayList<String> copy = new ArrayList<String>((ArrayList<String>)val);
 				setAttributeList(toBlockName,key,copy);
 			}
 			else {
@@ -1097,7 +1097,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 		if (needHoldResolved) {
 			needHoldResolved = false;
 			// Fix hold
-			hold = new ArrayList<>();
+			hold = new ArrayList<GameObject>();
 			for (Long number : holdIds) {
 				GameObject obj = objectHash.get(number);
 				if (obj==null) {
@@ -1284,7 +1284,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 		stopUncommitted();
 		ArrayList<String> c = getAttributeList(blockName, key);
 		if (c == null) {
-			c = new ArrayList<>();
+			c = new ArrayList<String>();
 			_setAttributeList(blockName, key, c);
 		}
 		if (item==null) {

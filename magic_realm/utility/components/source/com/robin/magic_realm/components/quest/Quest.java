@@ -57,11 +57,11 @@ public class Quest extends GameObjectWrapper {
 	
 	public Quest(GameObject go) {
 		super(go);
-		steps = new ArrayList<>();
-		questRules = new ArrayList<>();
-		locations = new ArrayList<>();
-		minorCharacters = new ArrayList<>();
-		counters = new ArrayList<>();
+		steps = new ArrayList<QuestStep>();
+		questRules = new ArrayList<QuestRule>();
+		locations = new ArrayList<QuestLocation>();
+		minorCharacters = new ArrayList<QuestMinorCharacter>();
+		counters = new ArrayList<QuestCounter>();
 		
 
 		for (GameObject held : go.getHold()) {
@@ -108,7 +108,7 @@ public class Quest extends GameObjectWrapper {
 		// Remove unused objects (but only when quest is in a gamedata by itself)
 		if (!getGameData().getGameName().equals(GAME_DATA_NAME))
 			return;
-		ArrayList<GameObject> toRemove = new ArrayList<>();
+		ArrayList<GameObject> toRemove = new ArrayList<GameObject>();
 		for (GameObject go : getGameData().getGameObjects()) {
 			if (go.getId() > 0 && go.getHeldBy() == null) { // Not the quest, and not held by anything... get rid of it!!
 				toRemove.add(go);
@@ -140,7 +140,7 @@ public class Quest extends GameObjectWrapper {
 	}
 
 	private ArrayList<QuestStep> filterMissingSteps(ArrayList<String> ids) {
-		ArrayList<QuestStep> found = new ArrayList<>();
+		ArrayList<QuestStep> found = new ArrayList<QuestStep>();
 		if (ids != null) {
 			for (String id : ids) {
 				for (QuestStep step : steps) {
@@ -249,7 +249,7 @@ public class Quest extends GameObjectWrapper {
 	}
 
 	public ArrayList<String> getLocationTags() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		for (QuestLocation loc : getLocations()) {
 			list.add(loc.getTagName());
 		}
@@ -272,7 +272,7 @@ public class Quest extends GameObjectWrapper {
 	}
 
 	public ArrayList<String> getCounterTags() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		for (QuestCounter counter : getCounters()) {
 			list.add(counter.getTagName());
 		}
@@ -358,7 +358,7 @@ public class Quest extends GameObjectWrapper {
 	}
 
 	public ArrayList<GameObject> findClones(ArrayList<GameObject> objects) {
-		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
 		GamePool pool = new GamePool(objects);
 		for (GameObject go : pool.find(Quest.QUEST_UNIQUE_ID + "=" + getInt(Quest.QUEST_UNIQUE_ID))) {
 			if (go.equals(getGameObject()))
@@ -670,7 +670,7 @@ public class Quest extends GameObjectWrapper {
 	}
 
 	public void updateStepStates(String dayKey) {
-		Hashtable<String, QuestStep> lookup = new Hashtable<>();
+		Hashtable<String, QuestStep> lookup = new Hashtable<String, QuestStep>();
 		for (QuestStep step : steps) {
 			lookup.put(step.getGameObject().getStringId(), step);
 		}
@@ -806,7 +806,7 @@ public class Quest extends GameObjectWrapper {
 	public Quest copyQuestToGameData(GameData gameData) {
 		// Duplicate all the objects in the quest
 		ArrayList<GameObject> allQuestObjects = getGameObject().getAllContainedGameObjects();
-		Hashtable<Long, GameObject> lookup = new Hashtable<>();
+		Hashtable<Long, GameObject> lookup = new Hashtable<Long, GameObject>();
 		for (GameObject questGo : allQuestObjects) {
 			GameObject go = gameData.createNewObject(questGo);
 			lookup.put(questGo.getId(), go);

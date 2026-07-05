@@ -367,7 +367,7 @@ public class ChitFatigueManager extends ChitManager {
 		wrapper.initChits();
 		
 		// artifically fatigue and wound some chits
-		ArrayList<CharacterActionChitComponent> list = new ArrayList<>(wrapper.getAllChits());
+		ArrayList<CharacterActionChitComponent> list = new ArrayList<CharacterActionChitComponent>(wrapper.getAllChits());
 		Collections.sort(list);
 		int n=0;
 		for (CharacterActionChitComponent aChit : list) {
@@ -397,7 +397,7 @@ public class ChitFatigueManager extends ChitManager {
 		wrapper.initChits();
 		
 		// artifically fatigue and wound some chits
-		ArrayList<CharacterActionChitComponent> list = new ArrayList<>(wrapper.getAllChits());
+		ArrayList<CharacterActionChitComponent> list = new ArrayList<CharacterActionChitComponent>(wrapper.getAllChits());
 		Collections.sort(list);
 		if (preFatigue) {
 			CharacterActionChitComponent aChit = list.get(3);

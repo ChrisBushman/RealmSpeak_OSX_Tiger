@@ -35,7 +35,7 @@ public class QuestRequirementChit extends QuestRequirement {
 
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
 		ArrayList<CharacterActionChitComponent> chitsToCheck = character.getAllChits();
-		ArrayList<CharacterActionChitComponent> chits = new ArrayList<>();
+		ArrayList<CharacterActionChitComponent> chits = new ArrayList<CharacterActionChitComponent>();
 		switch(getType()) {
 		case Move:
 			for (CharacterActionChitComponent chit : chitsToCheck) {

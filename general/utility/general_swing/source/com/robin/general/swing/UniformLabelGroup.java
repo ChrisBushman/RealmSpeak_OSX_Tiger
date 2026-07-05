@@ -34,7 +34,7 @@ public class UniformLabelGroup {
 	
 	public void add(JLabel jLabel) {
 		if (labelGroup==null) {
-			labelGroup = new Vector<>();
+			labelGroup = new Vector<JLabel>();
 		}
 		labelGroup.addElement(jLabel);
 		

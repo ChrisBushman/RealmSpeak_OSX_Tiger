@@ -102,7 +102,7 @@ public class HexMap extends JComponent implements Scrollable {
 		return allHexPositions;
 	}
 	public Collection<HexMapPoint> getAllTokenPositions() {
-		ArrayList<HexMapPoint> positions = new ArrayList<>();
+		ArrayList<HexMapPoint> positions = new ArrayList<HexMapPoint>();
 		for (Token token:tokens) {
 			HexMapPoint pos = token.getPosition();
 			if (!positions.contains(pos)) {
@@ -114,11 +114,11 @@ public class HexMap extends JComponent implements Scrollable {
 	public void reset() {
 		setDimensions();
 		initHexPositions();
-		sets = new Hashtable<>();
-		hexes = new Hashtable<>();
+		sets = new Hashtable<HexMapPoint, HexSet>();
+		hexes = new Hashtable<HexMapPoint, Hex>();
 		selectionRules = new Hashtable<HexMapPoint, MoveRule>();
 		selectionBorder = new Hashtable<HexMapPoint, Comparable>();
-		tokens = new ArrayList<>();
+		tokens = new ArrayList<Token>();
 		clearTags();
 		clearGuides();
 		setMapBackground(getMapBackground());
@@ -160,8 +160,8 @@ public class HexMap extends JComponent implements Scrollable {
 		return mapSize;
 	}
 	public void initHexPositions() {
-		hexDrawCoordinates = new Hashtable<>();
-		allHexPositions = new ArrayList<>();
+		hexDrawCoordinates = new Hashtable<HexMapPoint,Rectangle>();
+		allHexPositions = new ArrayList<HexMapPoint>();
 		for (int gx=0;gx<width;gx++) {
 			int offset = gx/2;
 			int shortCol = gx%2!=0?1:0;
@@ -194,8 +194,8 @@ public class HexMap extends JComponent implements Scrollable {
 	}
 	
 	public boolean addSet(Vector<HexMapPoint> positionChoices,HexSet set,int placementStyle) {
-		Vector<HexMapPoint> overlapping = new Vector<>();
-		Vector<HexMapPoint> allGoodCenters = new Vector<>();
+		Vector<HexMapPoint> overlapping = new Vector<HexMapPoint>();
+		Vector<HexMapPoint> allGoodCenters = new Vector<HexMapPoint>();
 		for (int i=0;i<positionChoices.size();i++) {
 			boolean isGood = false;
 			HexMapPoint pos = positionChoices.elementAt(i);
@@ -248,7 +248,7 @@ public class HexMap extends JComponent implements Scrollable {
 		return false;
 	}
 	public Collection<HexMapPoint> getActiveLandPoints() {
-		ArrayList<HexMapPoint> landPoints = new ArrayList<>();
+		ArrayList<HexMapPoint> landPoints = new ArrayList<HexMapPoint>();
 		for (HexMapPoint pos : hexes.keySet()) {
 			Hex hex = hexes.get(pos);
 			if (hex.isActive()) {
@@ -331,7 +331,7 @@ public class HexMap extends JComponent implements Scrollable {
 		return distanceHash;
 	}
 	public ArrayList<HexMapPoint> getAllEdgePositions() {
-		ArrayList<HexMapPoint> edge = new ArrayList<>();
+		ArrayList<HexMapPoint> edge = new ArrayList<HexMapPoint>();
 		for (HexMapPoint pos : hexDrawCoordinates.keySet()) {
 			HexMapPoint[] adj = pos.getAdjacentPoints();
 			for (int n=0;n<adj.length;n++) {
@@ -348,7 +348,7 @@ public class HexMap extends JComponent implements Scrollable {
 	 */
 	protected void calculateDistances() {
 		// First, cycle through every coordinate, and identify land
-		Collection<HexMapPoint> toMark = new ArrayList<>();
+		Collection<HexMapPoint> toMark = new ArrayList<HexMapPoint>();
 		for (HexMapPoint pos : hexDrawCoordinates.keySet()) {
 			if (hexes.get(pos)!=null) {
 				toMark.add(pos);
@@ -357,7 +357,7 @@ public class HexMap extends JComponent implements Scrollable {
 		distanceHash = markDistances(toMark,hexDrawCoordinates.keySet());
 	}
 	public Hashtable<HexMapPoint, Integer> markDistances(Collection<HexMapPoint> toMark,Collection<HexMapPoint> searchSet) {
-		Hashtable<HexMapPoint, Integer> markHash = new Hashtable<>();
+		Hashtable<HexMapPoint, Integer> markHash = new Hashtable<HexMapPoint, Integer>();
 		
 		// Now iteratively search for non-occupied hexes adjacent to a distance
 		Integer distance = Integer.valueOf(0);
@@ -368,7 +368,7 @@ public class HexMap extends JComponent implements Scrollable {
 			}
 			
 			// Find the next layer
-			toMark = new ArrayList<>();
+			toMark = new ArrayList<HexMapPoint>();
 			for (HexMapPoint pos : searchSet) {
 				if (!markHash.containsKey(pos)) { // only check hexes not already marked
 					HexMapPoint[] adj = pos.getAdjacentPoints();
@@ -390,21 +390,21 @@ public class HexMap extends JComponent implements Scrollable {
 	 * Finds all contiguous bodies of empty hexes (water in this case)
 	 */
 	protected void findWaterBodies() {
-		ArrayList<HexMapPoint> allEmpty = new ArrayList<>();
+		ArrayList<HexMapPoint> allEmpty = new ArrayList<HexMapPoint>();
 		for (HexMapPoint pos:allHexPositions) {
 			if (hexes.get(pos)==null) {
 				allEmpty.add(pos);
 			}
 		}
 		
-		waterBodies = new ArrayList<>();
+		waterBodies = new ArrayList<Collection<HexMapPoint>>();
 		while(allEmpty.size()>0) {
 			// Start a new water body
-			ArrayList<HexMapPoint> waterBody = new ArrayList<>();
+			ArrayList<HexMapPoint> waterBody = new ArrayList<HexMapPoint>();
 			
 			// Pick the first empty hex from allEmpty, and add to a search
 			HexMapPoint start = allEmpty.iterator().next();
-			ArrayList<HexMapPoint> search = new ArrayList<>();
+			ArrayList<HexMapPoint> search = new ArrayList<HexMapPoint>();
 			search.add(start);
 			
 			// Do search
@@ -412,7 +412,7 @@ public class HexMap extends JComponent implements Scrollable {
 				// remove search from allEmpty before starting
 				allEmpty.removeAll(search);
 				
-				ArrayList<HexMapPoint> nextSearch = new ArrayList<>();
+				ArrayList<HexMapPoint> nextSearch = new ArrayList<HexMapPoint>();
 				for (HexMapPoint pos : search) {				
 					// remove the search hex from allEmpty, so it is not searched again
 					allEmpty.remove(pos);
@@ -446,7 +446,7 @@ public class HexMap extends JComponent implements Scrollable {
 				// now, find the shortest path
 				if (!from.equals(lastWaterMarkStart)) {
 					// only recalculate if a new starting point
-					ArrayList<HexMapPoint> toMark = new ArrayList<>();
+					ArrayList<HexMapPoint> toMark = new ArrayList<HexMapPoint>();
 					toMark.add(from);
 					lastWaterMarkStart = from;
 					lastMarkHash = markDistances(toMark,waterBody);
@@ -475,7 +475,7 @@ public class HexMap extends JComponent implements Scrollable {
 			}
 			
 			// Exclude max water body from the return collection
-			ArrayList<Collection<HexMapPoint>> ret = new ArrayList<>();
+			ArrayList<Collection<HexMapPoint>> ret = new ArrayList<Collection<HexMapPoint>>();
 			for (Collection<HexMapPoint> waterBody : waterBodies) {
 				if (waterBody.size()<maxWaterBodySize) {
 					ret.add(waterBody);
@@ -500,7 +500,7 @@ public class HexMap extends JComponent implements Scrollable {
 		return hexDrawCoordinates.get(pos)!=null;
 	}
 	public void clearTags() {
-		hexTags = new Hashtable<>();
+		hexTags = new Hashtable<HexMapPoint, HexTag>();
 		repaint();
 	}
 	public void addTag(HexMapPoint pos,HexTag newTag) {
@@ -514,7 +514,7 @@ public class HexMap extends JComponent implements Scrollable {
 		repaint();
 	}
 	public void clearGuides() {
-		hexGuides = new ArrayList<>();
+		hexGuides = new ArrayList<HexGuide>();
 		repaint();
 	}
 	public void addGuide(HexGuide guide) {
@@ -615,10 +615,10 @@ public class HexMap extends JComponent implements Scrollable {
 		// Draw the map
 		g.setColor(getMapBackground());
 		g.fillRect(view.x,view.y,view.width,view.height);
-		Hashtable<Rectangle, String> labelsToDraw = new Hashtable<>();
-		ArrayList<HexMapPoint> moveRulePos = new ArrayList<>();
-		ArrayList<MoveRule> moveRules = new ArrayList<>();
-		ArrayList<Rectangle> moveRuleRects = new ArrayList<>();
+		Hashtable<Rectangle, String> labelsToDraw = new Hashtable<Rectangle, String>();
+		ArrayList<HexMapPoint> moveRulePos = new ArrayList<HexMapPoint>();
+		ArrayList<MoveRule> moveRules = new ArrayList<MoveRule>();
+		ArrayList<Rectangle> moveRuleRects = new ArrayList<Rectangle>();
 		for (Enumeration e=hexDrawCoordinates.keys();e.hasMoreElements();) {
 			HexMapPoint pos = (HexMapPoint)e.nextElement();
 			Rectangle r = hexDrawCoordinates.get(pos);
@@ -763,9 +763,9 @@ public class HexMap extends JComponent implements Scrollable {
 		
 		// Setup token count, so that the number of tokens in each occupied hex is known
 		// right now this isn't used, but will be
-		Hashtable<HexMapPoint, HexTokenDistribution> tokenCountHash = new Hashtable<>();
-		ArrayList<Token> badTokens = new ArrayList<>(); // this is only necessary to guarantee that my bug is fixed - keep gettin a demon token off map
-		for (Token token:new ArrayList<>(tokens)) {
+		Hashtable<HexMapPoint, HexTokenDistribution> tokenCountHash = new Hashtable<HexMapPoint, HexTokenDistribution>();
+		ArrayList<Token> badTokens = new ArrayList<Token>(); // this is only necessary to guarantee that my bug is fixed - keep gettin a demon token off map
+		for (Token token:new ArrayList<Token>(tokens)) {
 			HexMapPoint pos = token.getPosition();
 			if (pos==null){
 				badTokens.add(token);
@@ -796,7 +796,7 @@ public class HexMap extends JComponent implements Scrollable {
 		tokens.removeAll(badTokens);
 		
 		// Draw tokens
-		for (Token token:new ArrayList<>(tokens)) {
+		for (Token token:new ArrayList<Token>(tokens)) {
 			HexMapPoint pos = token.getPosition();
 			HexTokenDistribution dist = tokenCountHash.get(pos);
 			if (dist!=null) {
@@ -855,8 +855,8 @@ public class HexMap extends JComponent implements Scrollable {
 		repaint();
 	}
 	public void setSelectedPositions(HexMapPoint[] pos) {
-		selectionRules = new Hashtable<>();
-		selectionBorder = new Hashtable<>();
+		selectionRules = new Hashtable<HexMapPoint, MoveRule>();
+		selectionBorder = new Hashtable<HexMapPoint, Comparable>();
 		if (pos!=null) {
 			for (int i=0;i<pos.length;i++) {
 				selectionBorder.put(pos[i],""); // placeholder
@@ -900,8 +900,8 @@ public class HexMap extends JComponent implements Scrollable {
 		return selectionBorder.get(pos)!=null;
 	}
 	public void clearSelection() {
-		selectionRules = new Hashtable<>();
-		selectionBorder = new Hashtable<>();
+		selectionRules = new Hashtable<HexMapPoint, MoveRule>();
+		selectionBorder = new Hashtable<HexMapPoint, Comparable>();
 		repaint();
 	}
 	public Dimension getPreferredScrollableViewportSize() {
@@ -960,7 +960,7 @@ public class HexMap extends JComponent implements Scrollable {
 		return tokens;
 	}
 	public HashLists<HexMapPoint,Token> getMappedTokens() {
-		HashLists<HexMapPoint,Token> hl = new HashLists<>();
+		HashLists<HexMapPoint,Token> hl = new HashLists<HexMapPoint,Token>();
 		for (Token token:tokens) {
 			HexMapPoint pos = token.getPosition();
 			hl.put(pos,token);
@@ -979,7 +979,7 @@ public class HexMap extends JComponent implements Scrollable {
 		return false;
 	}
 	public ArrayList<Token> getTokens(HexMapPoint pos) {
-		ArrayList<Token> ret = new ArrayList<>();
+		ArrayList<Token> ret = new ArrayList<Token>();
 		for (Token token:tokens) {
 			if (token.getPosition().equals(pos)) {
 				ret.add(token);

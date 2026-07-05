@@ -578,7 +578,7 @@ public class Loot extends RealmTable {
 			// Gain all treasures immediately
 			RealmComponentDisplayDialog dialog = new RealmComponentDisplayDialog(getParentFrame(),"Found "+thing.getName(),"The "+thing.getName()+" contained the following items:");
 			ArrayList<GameObject> inside = new ArrayList<GameObject>(thing.getHold());
-			ArrayList<GameObject> gain = new ArrayList<>();
+			ArrayList<GameObject> gain = new ArrayList<GameObject>();
 			for (GameObject go : inside) {
 				RealmComponent goRc = RealmComponent.getRealmComponent(go);
 				dialog.addRealmComponent(goRc);
@@ -631,7 +631,7 @@ public class Loot extends RealmTable {
 	}
 	@Override
 	protected ArrayList<ImageIcon> getHintIcons(CharacterWrapper character) {
-		ArrayList<ImageIcon> list = new ArrayList<>();
+		ArrayList<ImageIcon> list = new ArrayList<ImageIcon>();
 		list.add(getIconForSearch(RealmComponent.getRealmComponent(treasureLocation)));
 		return list;
 	}

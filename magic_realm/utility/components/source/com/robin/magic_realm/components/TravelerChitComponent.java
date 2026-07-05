@@ -59,7 +59,7 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 	public void assignTravelerTemplate() {
 		if (getGameObject().hasThisAttribute(Constants.TEMPLATE_ASSIGNED)) return;
 		GamePool pool = new GamePool(getGameObject().getGameData().getGameObjects());
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add(Constants.TRAVELER_TEMPLATE);
 		query.add("!"+Constants.USED);
 		query.add("!notready");
@@ -89,7 +89,7 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 	}
 	private static ImageIcon getDieIcon(int val){
 		if (dieIconHash==null) {
-			dieIconHash = new Hashtable<>();
+			dieIconHash = new Hashtable<Integer,ImageIcon>();
 			for (int i=1;i<=6;i++) {
 				DieRoller dr = new DieRoller(String.valueOf(i),16,4);
 				dr.setAllRed();

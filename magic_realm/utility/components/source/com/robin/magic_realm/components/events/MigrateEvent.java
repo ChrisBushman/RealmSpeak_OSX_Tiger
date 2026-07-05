@@ -18,7 +18,7 @@ public class MigrateEvent implements IEvent {
 	public void applyBirdsong(GameData data) {
 	}
 	public void applySunset(GameData data) {
-		ArrayList<String> tileTypes = new ArrayList<>(Arrays.asList("M","C","F","R","W","S"));
+		ArrayList<String> tileTypes = new ArrayList<String>(Arrays.asList("M","C","F","R","W","S"));
 		TileComponent tile = RealmEvents.chooseRandomTile(data, tileTypes);
 		if (tile!=null) {
 			String type = tile.getTileType();
@@ -26,7 +26,7 @@ public class MigrateEvent implements IEvent {
 			ArrayList<GameObject> tiles = pool.find("tile,tile_type="+type);
 			GameObject tile2 = tiles.get(RandomNumber.getRandom(tiles.size()));
 			GameObject chit1 = null;
-			ArrayList<GameObject> possibleChit1 = new ArrayList<>();
+			ArrayList<GameObject> possibleChit1 = new ArrayList<GameObject>();
 			for (GameObject go : tile.getHold()) {
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (rc.isWarning()) {
@@ -37,7 +37,7 @@ public class MigrateEvent implements IEvent {
 				chit1 = possibleChit1.get(RandomNumber.getRandom(possibleChit1.size()));
 			}
 			GameObject chit2 = null;
-			ArrayList<GameObject> possibleChit2 = new ArrayList<>();
+			ArrayList<GameObject> possibleChit2 = new ArrayList<GameObject>();
 			for (GameObject go : tile2.getHold()) {
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (rc.isWarning()) {

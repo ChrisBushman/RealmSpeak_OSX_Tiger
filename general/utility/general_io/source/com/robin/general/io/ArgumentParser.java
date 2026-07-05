@@ -20,7 +20,7 @@ public class ArgumentParser {
 	}
 	private void parseArgs(String[] args) {
 		props = new Properties();
-		errors = new Vector<>();
+		errors = new Vector<String>();
 		if (args!=null) {
 			for (int i=0;i<args.length;i++) {
 				KeyValuePair kvp = new KeyValuePair(args[i]);

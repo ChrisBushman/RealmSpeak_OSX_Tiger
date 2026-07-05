@@ -25,7 +25,7 @@ public class TreasureLocationEditPanel extends AdvantageEditPanel {
 		super(pChar, levelKey);
 		setBorder(BorderFactory.createTitledBorder(toString())); // update name
 		
-		hash = new Hashtable<>();
+		hash = new Hashtable<String,JCheckBox>();
 		setLayout(new BorderLayout());
 		JPanel main = new JPanel(new GridLayout(TREASURES.length,1));
 		
@@ -54,7 +54,7 @@ public class TreasureLocationEditPanel extends AdvantageEditPanel {
 	}
 
 	protected void applyAdvantage() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		for (String key:hash.keySet()) {
 			JCheckBox option = hash.get(key);
 			if (option.isSelected()) {

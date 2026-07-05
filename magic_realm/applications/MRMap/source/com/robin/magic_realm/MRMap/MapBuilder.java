@@ -14,7 +14,7 @@ import com.robin.magic_realm.map.Tile;
 public class MapBuilder {
 	
 	public static ArrayList<Tile> startTileList(GameData data,Collection keyVals) {
-		ArrayList<Tile> tiles = new ArrayList<>();
+		ArrayList<Tile> tiles = new ArrayList<Tile>();
 		Collection<GameObject> c = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
 		for (GameObject obj : c) {
 			tiles.add(new Tile(obj));
@@ -39,7 +39,7 @@ public class MapBuilder {
 		ArrayList<Tile> tiles = startTileList(data,keyVals);
 		
 		// Find the Borderland tile, and start it at position 0,0 with a random rotation
-		Hashtable<Point, Tile> mapGrid = new Hashtable<>();
+		Hashtable<Point, Tile> mapGrid = new Hashtable<Point, Tile>();
 		Tile anchor = findAnchorTile(tiles);
 		mapGrid.put(new Point(0,0),anchor);
 		anchor.setMapPosition(new Point(0,0));
@@ -62,9 +62,9 @@ public class MapBuilder {
 			ArrayList<Point> availableMapPositions = Tile.findAvailableMapPositions(mapGrid,anchor.getGameObject().getName(),autoBuildRiver,hostPrefs.hasPref(Constants.MAP_BUILDING_HILL_TILES));
 			
 			// Cycle through every available (unplaced) tile
-			ArrayList<ArrayList<TileMappingPossibility>> allTileResults = new ArrayList<>();
-			ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio1 = new ArrayList<>();
-			ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio2 = new ArrayList<>();
+			ArrayList<ArrayList<TileMappingPossibility>> allTileResults = new ArrayList<ArrayList<TileMappingPossibility>>();
+			ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio1 = new ArrayList<ArrayList<TileMappingPossibility>>();
+			ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio2 = new ArrayList<ArrayList<TileMappingPossibility>>();
 			for (Tile tile : tiles) {
 				addPossibleTilePlacements(mapGrid,tile,anchor,hostPrefs,availableMapPositions,allTileResults,tileResultsPrio1,tileResultsPrio2);
 			}
@@ -137,7 +137,7 @@ public class MapBuilder {
 	private static void addPossibleTilePlacements(Hashtable<Point, Tile> mapGrid, Tile tile, Tile anchor, HostPrefWrapper hostPrefs, ArrayList<Point> availableMapPositions, ArrayList<ArrayList<TileMappingPossibility>> allTileResults, ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio1, ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio2, boolean rangeSetup, boolean rangeSetupVariant) {
 		// Only use unmapped tiles
 		if (!mapGrid.contains(tile)) {
-			ArrayList<TileMappingPossibility> tileResults = new ArrayList<>();					
+			ArrayList<TileMappingPossibility> tileResults = new ArrayList<TileMappingPossibility>();					
 			// Try the tile in every available position
 			for (Point pos : availableMapPositions) {						
 				// Try every rotation
@@ -222,7 +222,7 @@ public class MapBuilder {
 		return true;
 	}
 	public static Hashtable<Point, Tile> getMapGrid(GameData data, HostPrefWrapper hostPrefs) {
-		Hashtable<Point, Tile> mapGrid = new Hashtable<>();
+		Hashtable<Point, Tile> mapGrid = new Hashtable<Point, Tile>();
 		Collection<String> keyVals = GamePool.makeKeyVals(hostPrefs.getGameKeyVals());
 		ArrayList<Tile> tiles = startTileList(data,keyVals);
 		for (Tile tile : tiles) {
@@ -235,7 +235,7 @@ public class MapBuilder {
 	    RealmLoader loader = new RealmLoader();
 		GameData data = loader.getData();
 		System.out.println("loaded "+data.getGameObjects().size());
-		ArrayList<String> keyVals = new ArrayList<>();
+		ArrayList<String> keyVals = new ArrayList<String>();
 		keyVals.add("super_realm");
 		while(!MapBuilder.autoBuildMap(data,keyVals))
 		for (GameObject obj : data.getGameObjects()) {

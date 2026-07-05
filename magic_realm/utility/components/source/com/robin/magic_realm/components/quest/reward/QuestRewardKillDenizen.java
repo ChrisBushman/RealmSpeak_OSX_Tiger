@@ -40,13 +40,13 @@ public class QuestRewardKillDenizen extends QuestReward {
 	}
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
-		ArrayList<GameObject> denizens = new ArrayList<>();
+		ArrayList<GameObject> denizens = new ArrayList<GameObject>();
 		if (!getDenizenNameRegex().isEmpty()) {
 			denizens = character.getGameData().getGameObjectsByNameRegex(getDenizenNameRegex());
 		}
 		else {
 			GamePool pool = new GamePool(getGameData().getGameObjects());
-			ArrayList<String> query = new ArrayList<>();
+			ArrayList<String> query = new ArrayList<String>();
 			query.add("vulnerability");
 			query.add("denizen");
 			denizens.addAll(pool.find(query));

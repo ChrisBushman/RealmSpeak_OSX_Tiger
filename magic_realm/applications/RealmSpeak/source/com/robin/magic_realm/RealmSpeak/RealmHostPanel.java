@@ -79,8 +79,8 @@ public class RealmHostPanel extends JPanel {
 		logger.fine("New Host Started");
 		this.host = host;
 		this.listen = listen;
-		connections = new ArrayList<>(host.getServers());
-		playerEmails = new Hashtable<>();
+		connections = new ArrayList<GameServer>(host.getServers());
+		playerEmails = new Hashtable<String,String>();
 		setup();
 		initComponents();
 	}
@@ -155,7 +155,7 @@ public class RealmHostPanel extends JPanel {
 					
 					// New connections need a copy of the detail log!
 					ArrayList<String[]> aList = RealmLogWindow.getSingleton().getStringArrayList();
-					ArrayList<String> list = new ArrayList<>();
+					ArrayList<String> list = new ArrayList<String>();
 					for (String[] line:aList) {
 						list.add(line[0]);
 						list.add(line[1]);
@@ -184,7 +184,7 @@ public class RealmHostPanel extends JPanel {
 
 				// Find all characters belonging to that server
 				GamePool pool = new GamePool(RealmObjectMaster.getRealmObjectMaster(host.getGameData()).getPlayerCharacterObjects());
-				ArrayList<String> keyVals = new ArrayList<>();
+				ArrayList<String> keyVals = new ArrayList<String>();
 				keyVals.add(CharacterWrapper.NAME_KEY + "=" + server.getClientName());
 				ArrayList<GameObject> chars = pool.find(keyVals);
 				if (chars != null && !chars.isEmpty()) {
@@ -238,7 +238,7 @@ public class RealmHostPanel extends JPanel {
 
 	public void addChangeListener(ChangeListener listener) {
 		if (changeListeners == null) {
-			changeListeners = new ArrayList<>();
+			changeListeners = new ArrayList<ChangeListener>();
 		}
 		changeListeners.add(listener);
 	}
@@ -346,7 +346,7 @@ public class RealmHostPanel extends JPanel {
 					TileLocation current = rc.getCurrentLocation();
 					if (current!=null) {
 						int clearingCount = current.tile.getClearingCount();
-						ArrayList<Integer> clearingsTriedToLand = new ArrayList<>();
+						ArrayList<Integer> clearingsTriedToLand = new ArrayList<Integer>();
 						while(current.clearing==null) {
 							int r = RandomNumber.getHighLow(1,6);
 							if (!current.tile.getClearing(r).isAffectedByViolentWinds()) {
@@ -436,7 +436,7 @@ public class RealmHostPanel extends JPanel {
 		}
 		
 		// Extract active characters, so we don't get stuck in an infinite loop
-		ArrayList<CharacterWrapper> activeCharacters = new ArrayList<>();
+		ArrayList<CharacterWrapper> activeCharacters = new ArrayList<CharacterWrapper>();
 		for (GameObject characterGo : livingCharacters) {
 			CharacterWrapper character = new CharacterWrapper(characterGo);
 			if (character.isActive()) {
@@ -513,10 +513,10 @@ public class RealmHostPanel extends JPanel {
 			}
 
 			// Figure out who is following who, and determine which characters actually get to move here
-			ArrayList<GameObject> allChars = new ArrayList<>(getLivingCharacters());
-			HashMap<String,String> followHash = new HashMap<>(); // to identify follow cycles
-			HashMap<String,CharacterWrapper> charHash = new HashMap<>(); // to identify all characters quickly
-			ArrayList<CharacterWrapper> charPool = new ArrayList<>(); // the ultimate list of characters that perform actions
+			ArrayList<GameObject> allChars = new ArrayList<GameObject>(getLivingCharacters());
+			HashMap<String,String> followHash = new HashMap<String,String>(); // to identify follow cycles
+			HashMap<String,CharacterWrapper> charHash = new HashMap<String,CharacterWrapper>(); // to identify all characters quickly
+			ArrayList<CharacterWrapper> charPool = new ArrayList<CharacterWrapper>(); // the ultimate list of characters that perform actions
 			for (GameObject characterGo : allChars) {
 				characterGo.removeThisAttribute(Constants.COMRADE_WILL_BE_FOLLOWED_TODAY);
 				CharacterWrapper character = new CharacterWrapper(characterGo);
@@ -531,7 +531,7 @@ public class RealmHostPanel extends JPanel {
 				}
 			}
 			if (followHash.size() > 0) {
-				ArrayList<String> keys = new ArrayList<>(charHash.keySet());
+				ArrayList<String> keys = new ArrayList<String>(charHash.keySet());
 				for (String id : keys) {
 					CharacterWrapper character = charHash.get(id);
 					String nextFollowId = id;
@@ -562,7 +562,7 @@ public class RealmHostPanel extends JPanel {
 			}
 			
 			// Randomize the character order
-			ArrayList<CharacterWrapper> randPool = new ArrayList<>();
+			ArrayList<CharacterWrapper> randPool = new ArrayList<CharacterWrapper>();
 			while (!charPool.isEmpty()) {
 				int r = RandomNumber.getRandom(charPool.size());
 				randPool.add(charPool.remove(r));
@@ -570,7 +570,7 @@ public class RealmHostPanel extends JPanel {
 			charPool = randPool;
 			
 			// Strip out characters that have an ability to choose which turn to take
-			ArrayList<CharacterWrapper> prefCharPool = new ArrayList<>(); // the characters who will get to go before anyone else
+			ArrayList<CharacterWrapper> prefCharPool = new ArrayList<CharacterWrapper>(); // the characters who will get to go before anyone else
 			for (CharacterWrapper character : charPool) {
 				if (character.affectedByKey(Constants.CHOOSE_TURN)) {
 					prefCharPool.add(character);
@@ -659,7 +659,7 @@ public class RealmHostPanel extends JPanel {
 		ArrayList<GameObject> activeCharacters = getLivingCharacters();
 		int min = Integer.MAX_VALUE;
 		CharacterWrapper postponedChar = null;
-		ArrayList<CharacterWrapper> chars = new ArrayList<>();
+		ArrayList<CharacterWrapper> chars = new ArrayList<CharacterWrapper>();
 		for (GameObject characterGo : activeCharacters) {
 			CharacterWrapper character = new CharacterWrapper(characterGo);
 			if (!character.isJustUnhired()) { // In case a Native HQ is returned to the setup card after a wish result
@@ -966,7 +966,7 @@ public class RealmHostPanel extends JPanel {
 			for (GameObject go:pool.find(hostPrefs.getGameKeyVals() + ",dwelling,warning,general_dwelling,tile_type=W")) {
 				GameObject tile = go.getHeldBy();
 				if (tile!=null && tile.hasThisAttribute("tile")) {
-					ArrayList<GameObject> chits = new ArrayList<>();
+					ArrayList<GameObject> chits = new ArrayList<GameObject>();
 					for (GameObject chit : tile.getHold()) {
 						if (RealmComponent.getRealmComponent(chit).isWarning()) {
 							chits.add(chit);
@@ -978,7 +978,7 @@ public class RealmHostPanel extends JPanel {
 				}
 			}
 			
-			ArrayList<WarningChitComponent> chits = new ArrayList<>();
+			ArrayList<WarningChitComponent> chits = new ArrayList<WarningChitComponent>();
 			for (GameObject go:pool.find(hostPrefs.getGameKeyVals() + ",chit,warning,tile_type=W")) {
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (!rc.isDwelling() && go.hasThisAttribute(RealmComponent.WARNING) && rc instanceof WarningChitComponent) {
@@ -986,7 +986,7 @@ public class RealmHostPanel extends JPanel {
 					chits.add(chit);
 				}
 			}
-			ArrayList<RealmComponent> tiles = new ArrayList<>();
+			ArrayList<RealmComponent> tiles = new ArrayList<RealmComponent>();
 			for (WarningChitComponent chit : chits) {
 				chit.setFaceDown();
 				chit.getGameObject().removeThisAttribute("seen");
@@ -1082,7 +1082,7 @@ public class RealmHostPanel extends JPanel {
 	}
 	private void sendEmail(String message,String charName) {
 		// Should only send e-mail to those that are offline!
-		ArrayList<String> offlineEmails = new ArrayList<>();
+		ArrayList<String> offlineEmails = new ArrayList<String>();
 		for (GameObject go:getLivingCharacters()) {
 			CharacterWrapper character = new CharacterWrapper(go);
 			if (charName==null || charName.equals(character.getPlayerName())) { // specific character or all
@@ -1098,7 +1098,7 @@ public class RealmHostPanel extends JPanel {
 		sendEmail(subtitle,message,offlineEmails);
 	}
 	private void sendEmailCombat(String message) {
-		ArrayList<String> offlineEmails = new ArrayList<>();
+		ArrayList<String> offlineEmails = new ArrayList<String>();
 		TileLocation tl = RealmBattle.getCurrentCombatLocation(host.getGameData());
 		BattleModel model = RealmBattle.buildBattleModel(tl,host.getGameData());
 		for (RealmComponent rc:model.getAllOwningCharacters()) {
@@ -1173,7 +1173,7 @@ public class RealmHostPanel extends JPanel {
 		return RealmUtility.getLivingCharacters(host.getGameData());
 	}
 	public ArrayList<String> getPlayerNames() {
-		ArrayList<String> names = new ArrayList<>();
+		ArrayList<String> names = new ArrayList<String>();
 		for (GameServer server:connections) {
 			names.add(server.getClientName());
 		}

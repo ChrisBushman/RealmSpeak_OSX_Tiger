@@ -99,7 +99,7 @@ public class Wish extends RealmTable {
 		// Okay, first locate all possible targets in the clearing
 		TileLocation here = character.getCurrentLocation();
 		if (here.isInClearing()) {
-			ArrayList<RealmComponent> livingThings = new ArrayList<>();
+			ArrayList<RealmComponent> livingThings = new ArrayList<RealmComponent>();
 			for (RealmComponent rc : here.clearing.getClearingComponents()) {
 				if (rc.isPlayerControlledLeader()) {
 					livingThings.add(rc);
@@ -203,9 +203,9 @@ public class Wish extends RealmTable {
 		pool.addAll(data.getGameObjects());
 		String gameKeyVals = hostPref.getGameKeyVals();
 		
-		placeHash = new Hashtable<>();
+		placeHash = new Hashtable<String,GameObject>();
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(getParentFrame(),"Vision - Select one box to examine treasure:",false);
-		ArrayList<GameObject> examine = new ArrayList<>();
+		ArrayList<GameObject> examine = new ArrayList<GameObject>();
 		examine.addAll(pool.find(gameKeyVals+",dwelling"));
 		examine.addAll(pool.find(gameKeyVals+",treasure_location"));
 		examine.addAll(pool.find(gameKeyVals+",visitor"));
@@ -232,7 +232,7 @@ public class Wish extends RealmTable {
 	private void showVision(String target) {
 		GameObject place = placeHash.get(target);
 		RealmComponentDisplayDialog viewPanel = new RealmComponentDisplayDialog(getParentFrame(),"I wish for a vision","Vision of the "+place.getName());
-		Hashtable<GameObject, String> old = new Hashtable<>();
+		Hashtable<GameObject, String> old = new Hashtable<GameObject, String>();
 		Collection<GameObject> c = TreasureUtility.getTreasureCards(place);
 		StringBufferedList list = new StringBufferedList();
 		for (GameObject treasure : c) {
@@ -270,7 +270,7 @@ public class Wish extends RealmTable {
 	public String applyFive(CharacterWrapper character) {
 		JOptionPane.showMessageDialog(getParentFrame(),"\"I wish for health\"",getWishTitle(character),JOptionPane.INFORMATION_MESSAGE,getRollerImage());
 		// Heal all fatigued and wounded chits
-		ArrayList<CharacterActionChitComponent> toHeal = new ArrayList<>();
+		ArrayList<CharacterActionChitComponent> toHeal = new ArrayList<CharacterActionChitComponent>();
 		toHeal.addAll(character.getFatiguedChits());
 		toHeal.addAll(character.getWoundedChits());
 		CombatWrapper combat = new CombatWrapper(character.getGameObject());

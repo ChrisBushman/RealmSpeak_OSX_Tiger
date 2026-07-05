@@ -315,7 +315,7 @@ public abstract class Meeting extends Trade {
 			}
 			character.updateChitEffects();
 			character.addHireling(last.getGameObject());
-			sucessfullyHiredGroup=new ArrayList<>();
+			sucessfullyHiredGroup=new ArrayList<RealmComponent>();
 			sucessfullyHiredGroup.add(last);
 			return;
 		}
@@ -405,7 +405,7 @@ public abstract class Meeting extends Trade {
 					else {
 						character.addFame(-askingPrice);
 						character.addCreditFame(tradeInfo.getTrader().getGameObject(),askingPrice);
-						sucessfullyHiredGroup=new ArrayList<>();
+						sucessfullyHiredGroup=new ArrayList<RealmComponent>();
 						for (RealmComponent rc : hireGroup) {
 							character.addHireling(rc.getGameObject());
 							sucessfullyHiredGroup.add(rc);
@@ -419,7 +419,7 @@ public abstract class Meeting extends Trade {
 					character.addGold(-askingPrice);
 					
 					// Hire the group!
-					sucessfullyHiredGroup=new ArrayList<>();
+					sucessfullyHiredGroup=new ArrayList<RealmComponent>();
 					for (RealmComponent rc : hireGroup) {
 						character.addHireling(rc.getGameObject());
 						sucessfullyHiredGroup.add(rc);

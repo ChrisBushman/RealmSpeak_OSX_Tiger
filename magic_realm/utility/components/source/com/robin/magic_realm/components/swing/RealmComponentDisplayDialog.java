@@ -33,7 +33,7 @@ public class RealmComponentDisplayDialog extends AggressiveDialog {
 
 	public RealmComponentDisplayDialog(JFrame parent, String title,String message) {
 		super(parent, title, true);
-		components = new ArrayList<>();
+		components = new ArrayList<RealmComponent>();
 		initComponents(message);
 //		updateLayout();
 	}
@@ -127,7 +127,7 @@ public class RealmComponentDisplayDialog extends AggressiveDialog {
 		// artifically fatigue and wound some chits
 		CharacterWrapper wrapper = new CharacterWrapper(character);
 		RealmComponentDisplayDialog display = new RealmComponentDisplayDialog(new JFrame(), "Hey!","Look at these:");
-		ArrayList<CharacterActionChitComponent> list = new ArrayList<>(wrapper.getAllChits());
+		ArrayList<CharacterActionChitComponent> list = new ArrayList<CharacterActionChitComponent>(wrapper.getAllChits());
 		for (int i = 0; i < 10; i += 2) {
 			CharacterActionChitComponent c1 = list.get(i);
 			CharacterActionChitComponent c2 = list.get(i + 1);

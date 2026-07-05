@@ -232,8 +232,8 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 	public RealmSpeakFrame() {
 		initComponents();
 		CustomUiUtility.initColors();
-		gameControlFrames = new ArrayList<>();
-		characterFrames = new ArrayList<>();
+		gameControlFrames = new ArrayList<RealmSpeakInternalFrame>();
+		characterFrames = new ArrayList<CharacterFrame>();
 		addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent e) {
 				int lastLayout = windowLayoutManager.getLastLayout();
@@ -2313,7 +2313,7 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 		return null;
 	}
 	public ArrayList<String> getAllServerNames() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		if (host!=null) {
 			for (GameServer server:host.getServers()) {
 				list.add(server.getClientName());

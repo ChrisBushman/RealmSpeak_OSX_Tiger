@@ -68,7 +68,7 @@ public class CharacterExpansionOnePanel extends CharacterFramePanel {
 		public ChitDiscoveryModel(String name,ArrayList<GameObject> list) {
 			this.name = name;
 			this.list = list;
-			discoveryNamesList = new ArrayList<>();
+			discoveryNamesList = new ArrayList<String>();
 			for (GameObject go : list) {
 				discoveryNamesList.add(go.getName());
 			}

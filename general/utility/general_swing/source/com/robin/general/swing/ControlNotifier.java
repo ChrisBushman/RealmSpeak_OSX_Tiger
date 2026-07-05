@@ -15,7 +15,7 @@ public class ControlNotifier implements ActionListener,CaretListener,ChangeListe
 	}
 	public void addActionListener(ActionListener actionListener) {
 		if (actionListeners==null) {
-			actionListeners = new ArrayList<>();
+			actionListeners = new ArrayList<ActionListener>();
 		}
 		if (!actionListeners.contains(actionListener)) {
 			actionListeners.add(actionListener);

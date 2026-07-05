@@ -32,7 +32,7 @@ public class SpellCast extends Store {
 	public String doService(JFrame frame) {
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,"Which Service?",true);
 		SpellWrapper spell = new SpellWrapper(trader.getHold().iterator().next());
-		Hashtable<String,String[]> optionKeyToPrice = new Hashtable<>();
+		Hashtable<String,String[]> optionKeyToPrice = new Hashtable<String,String[]>();
 		ArrayList<String> prices = trader.getGameObject().getThisAttributeList("prices");
 		for (String price:prices) {
 			String[] keyVal = price.split("=");

@@ -136,14 +136,14 @@ public class HexMapPoint {
 	}
 	
 	public static ArrayList<String> getKeyCollection(Collection<HexMapPoint> hexMapPoints) {
-		ArrayList<String> keys = new ArrayList<>();
+		ArrayList<String> keys = new ArrayList<String>();
 		for (HexMapPoint pos : hexMapPoints) {
 			keys.add(pos.getKey());
 		}
 		return keys;
 	}
 	public static Collection<HexMapPoint> getHexMapPoints(Collection<String> keys) {
-		ArrayList<HexMapPoint> hexMapPoints = new ArrayList<>();
+		ArrayList<HexMapPoint> hexMapPoints = new ArrayList<HexMapPoint>();
 		for (String key : keys) {
 			hexMapPoints.add(readKey(key));
 		}

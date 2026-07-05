@@ -25,9 +25,9 @@ public class ChitBinLayout {
 	
 	public ChitBinLayout(ArrayList<StateChitComponent> chits) {
 		Collections.sort(chits);
-		groups = new ArrayList<>();
-		chitBins = new ArrayList<>();
-		hashLists = new HashLists<>();
+		groups = new ArrayList<String>();
+		chitBins = new ArrayList<ChitBin>();
+		hashLists = new HashLists<String,ChitBin>();
 		for (ChitComponent chit : chits) {
 			if (chit.isActionChit()) {
 				CharacterActionChitComponent achit = (CharacterActionChitComponent)chit;
@@ -56,7 +56,7 @@ public class ChitBinLayout {
 			}
 		}
 		
-		ArrayList<String> sorted = new ArrayList<>(Arrays.asList(GROUP));
+		ArrayList<String> sorted = new ArrayList<String>(Arrays.asList(GROUP));
 		sorted.retainAll(groups);
 		groups = sorted;
 	}
@@ -81,7 +81,7 @@ public class ChitBinLayout {
 		bin.setChit(chit);
 	}
 	public ArrayList<ChitComponent> getAllChits() {
-		ArrayList<ChitComponent> list = new ArrayList<>();
+		ArrayList<ChitComponent> list = new ArrayList<ChitComponent>();
 		for (ChitBin bin : chitBins) {
 			ChitComponent chit = bin.getChit();
 			if (chit!=null) {
@@ -91,7 +91,7 @@ public class ChitBinLayout {
 		return list;
 	}
 	public ArrayList<ChitComponent> getColorChits() {
-		ArrayList<ChitComponent> list = new ArrayList<>();
+		ArrayList<ChitComponent> list = new ArrayList<ChitComponent>();
 		for (ChitBin bin : chitBins) {
 			ChitComponent chit = bin.getChit();
 			if (chit!=null && chit instanceof CharacterActionChitComponent && ((CharacterActionChitComponent)chit).isColorOnlyChit()) {

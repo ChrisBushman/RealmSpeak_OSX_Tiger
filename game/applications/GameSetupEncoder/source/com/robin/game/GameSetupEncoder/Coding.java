@@ -20,7 +20,7 @@ public class Coding extends Properties {
 		this.numLength = numLength;
 	}
 	public Collection<String> getKeyVals() {
-		ArrayList<String> keyVals = new ArrayList<>();
+		ArrayList<String> keyVals = new ArrayList<String>();
 		for (Enumeration e=keys();e.hasMoreElements();) {
 			String key = (String)e.nextElement();
 			String val = getProperty(key);

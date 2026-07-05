@@ -452,7 +452,7 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 	 */
 	public ArrayList<GameObject> getActiveWeaponsObjects() {
 		CharacterWrapper character = new CharacterWrapper(getGameObject());
-		ArrayList<GameObject> weaponsGameObjects = new ArrayList<>();
+		ArrayList<GameObject> weaponsGameObjects = new ArrayList<GameObject>();
 		ArrayList<WeaponChitComponent> weapons = character.getActiveWeapons();
 		if (weapons != null) {
 			for (WeaponChitComponent weapon : weapons) {
@@ -468,7 +468,7 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 	}
 	
 	public ArrayList<GameObject> getTreasureWeaponObjects() {
-		ArrayList<GameObject> items = new ArrayList<>();
+		ArrayList<GameObject> items = new ArrayList<GameObject>();
 		CharacterWrapper character = new CharacterWrapper(getGameObject());
 		for (GameObject item : character.getActiveInventory()) {
 			if (item.hasThisAttribute("attack")) {
@@ -599,7 +599,7 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 	}
 	private ArrayList<RealmComponent> getArmors(Speed attackerSpeed,int box,int attackOrderPos) {
 		CharacterWrapper character = new CharacterWrapper(getGameObject());
-		ArrayList<RealmComponent> armors = new ArrayList<>();
+		ArrayList<RealmComponent> armors = new ArrayList<RealmComponent>();
 		
 		ArrayList<WeaponChitComponent> activeWeapons = character.getActiveWeapons();
 		ArrayList<GameObject> treasures = character.getActiveTreasureWeaponObjects();
@@ -628,7 +628,7 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 			}
 		}
 		
-		ArrayList<GameObject> search = new ArrayList<>();
+		ArrayList<GameObject> search = new ArrayList<GameObject>();
 		search.addAll(character.getActiveInventory());
 		if (character.isFortified()) {
 			search.add(character.getGameObject());

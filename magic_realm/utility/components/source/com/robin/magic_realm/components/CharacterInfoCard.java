@@ -271,7 +271,7 @@ public class CharacterInfoCard {
 		i = addPoliticsToImage(g, "ENEMY", character.getRelationshipList(Constants.GAME_RELATIONSHIP,RelationshipType.ENEMY), i);
 	}
 	private ArrayList<String> getAllLevelList(String key) {
-		ArrayList<String> allList = new ArrayList<>();
+		ArrayList<String> allList = new ArrayList<String>();
 		for (int n=1;n<=4;n++) {
 			String levelKey = "level_"+n;
 			ArrayList<String> list = character.getGameObject().getAttributeList(levelKey,key);

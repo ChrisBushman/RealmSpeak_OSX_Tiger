@@ -306,7 +306,7 @@ public class CombatFrame extends JFrame {
 		suggestionAi = new CombatSuggestionAi(this);
 		
 		this.playerName = playerName;
-		this.allParticipants = new ArrayList<>();
+		this.allParticipants = new ArrayList<RealmComponent>();
 		this.finishedActionListener = listener;
 		if (lastKnownLocation==null) {
 			lastKnownLocation = ComponentTools.findPreferredRectangle(970,Integer.MAX_VALUE);
@@ -372,8 +372,8 @@ public class CombatFrame extends JFrame {
 	public void refreshParticipants() {
 		allParticipants.clear();
 		// Build BattleParticipant list by examining flag for sheetOwner
-		ArrayList<RealmComponent> chars = new ArrayList<>();
-		ArrayList<RealmComponent> everyoneElse = new ArrayList<>();
+		ArrayList<RealmComponent> chars = new ArrayList<RealmComponent>();
+		ArrayList<RealmComponent> everyoneElse = new ArrayList<RealmComponent>();
 		for (RealmComponent rc : currentBattleModel.getAllBattleParticipants(true)) {
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 			if (rc.isCharacter()) {
@@ -428,7 +428,7 @@ public class CombatFrame extends JFrame {
 	}
 	public void updateHotspotIndicators() {
 		int n=0;
-		for (RealmComponent rc:new ArrayList<>(allParticipants)) {
+		for (RealmComponent rc:new ArrayList<RealmComponent>(allParticipants)) {
 			CombatSheet cs = CombatSheet.createCombatSheet(this,currentBattleModel,rc,interactiveFrame,hostPrefs);
 			participantHasHotspots[n++] = cs.hasHotspots();
 		}
@@ -485,7 +485,7 @@ public class CombatFrame extends JFrame {
 				// Not sure why, but doing a "return" here solves the problem.
 				return;
 			}
-			ArrayList<Integer> states = new ArrayList<>(lists.keySet());
+			ArrayList<Integer> states = new ArrayList<Integer>(lists.keySet());
 			Collections.sort(states);
 			
 			Integer firstState = states.iterator().next();
@@ -674,7 +674,7 @@ public class CombatFrame extends JFrame {
 	public void updateRandomAssignment() {
 		ArrayList<String> list = activeCharacter.getGameObject().getThisAttributeList(Constants.RANDOM_ASSIGNMENT_WINNER);
 		if (list!=null) {
-			list = new ArrayList<>(list);
+			list = new ArrayList<RealmComponent>(list);
 			if (list.size()>0) {
 				String denizenId = list.remove(0);
 				activeCharacter.getGameObject().setThisAttributeList(Constants.RANDOM_ASSIGNMENT_WINNER,list);
@@ -884,7 +884,7 @@ public class CombatFrame extends JFrame {
 			selectTargetFromUnassignedButton = new JButton("Select Unassigned Target");
 			selectTargetFromUnassignedButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
-					ArrayList<RealmComponent> targetList = new ArrayList<>();
+					ArrayList<RealmComponent> targetList = new ArrayList<RealmComponent>();
 					Component[] c = denizenPanel.getComponents();
 					for (int i=0;i<c.length;i++) {
 						if (c[i] instanceof RealmComponent) {
@@ -1070,7 +1070,7 @@ public class CombatFrame extends JFrame {
 	}
 	
 	private ArrayList<JComponent> createControls() {
-		ArrayList<JComponent> list = new ArrayList<>();
+		ArrayList<JComponent> list = new ArrayList<JComponent>();
 		roundLabel = new JLabel("Round "+getCurrentRound(),SwingConstants.CENTER);
 		roundLabel.setFont(COMBAT_ROUND_FONT);
 		roundLabel.setForeground(Color.blue);
@@ -1531,7 +1531,7 @@ public class CombatFrame extends JFrame {
 					if (!showAttackWarning) {
 						boolean attacksTarget1 = false;
 						boolean attacksTarget2 = false;
-						ArrayList<CombatWrapper> combatChits = new ArrayList<>();
+						ArrayList<CombatWrapper> combatChits = new ArrayList<CombatWrapper>();
 						for (CharacterActionChitComponent chit : character.getActiveFightChits()) {
 							CombatWrapper combat = new CombatWrapper(chit.getGameObject());
 							combatChits.add(combat);
@@ -2009,7 +2009,7 @@ public class CombatFrame extends JFrame {
 		return getAvailableManeuverOptions(box,includeHorses,true);
 	}
 	public Collection<RealmComponent> getAvailableManeuverOptions(int box,boolean includeHorses,boolean limitEffort) {
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		GameObject transmorph = activeCharacter.getTransmorph();
 		if (transmorph==null) {
 			int effortLeft = limitEffort?getAvailableEffort():2;
@@ -2092,7 +2092,7 @@ public class CombatFrame extends JFrame {
 		return getAvailableFightOptions(box,true);
 	}
 	public Collection<RealmComponent> getAvailableFightOptions(int box,boolean limitEffort) {
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		GameObject transmorph = activeCharacter.getTransmorph();
 		if (transmorph==null) {
 			int effortLeft = limitEffort?getAvailableEffort():2;
@@ -2179,9 +2179,9 @@ public class CombatFrame extends JFrame {
 		return denizenPanel.getSelectedComponents().size();
 	}
 	private ArrayList<RealmComponent> findCharactersWithDenizenAttackers() {
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		if (currentBattleModel.areDenizens()) {
-			ArrayList<RealmComponent> denizens = new ArrayList<>(currentBattleModel.getDenizenBattleGroup().getBattleParticipants());
+			ArrayList<RealmComponent> denizens = new ArrayList<RealmComponent>(currentBattleModel.getDenizenBattleGroup().getBattleParticipants());
 			for (RealmComponent rc : currentBattleModel.getAllParticipatingCharacters()) {
 				for (RealmComponent den : denizens) {
 					if (den.targeting(rc)) {
@@ -2223,10 +2223,10 @@ public class CombatFrame extends JFrame {
 				if (chooser.getSelectedText()!=null) {
 					RealmComponent rc = chooser.getFirstSelectedComponent();
 					ArrayList<RealmComponent> attackers = currentBattleModel.getAttackersFor(rc);
-					ArrayList<RealmComponent> denizens = new ArrayList<>(currentBattleModel.getDenizenBattleGroup().getBattleParticipants());
+					ArrayList<RealmComponent> denizens = new ArrayList<RealmComponent>(currentBattleModel.getDenizenBattleGroup().getBattleParticipants());
 					denizens.retainAll(attackers); // intersection to find all denizen attackers
 					// Be sure to strip out any red-side-up monsters and natives of same group for extended treachery
-					ArrayList<RealmComponent> remove = new ArrayList<>();
+					ArrayList<RealmComponent> remove = new ArrayList<RealmComponent>();
 					for (RealmComponent dc : denizens) {
 						if (dc.isMonster() && ((MonsterChitComponent)dc).isPinningOpponent()) {
 							remove.add(dc);
@@ -2394,7 +2394,7 @@ public class CombatFrame extends JFrame {
 		updateSelection();
 	}
 	private ArrayList<RealmComponent> getSelectedCombatSheetParticipants() {
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		for (RealmComponent rc : activeCombatSheet.getAllParticipantsOnSheet()) {
 			if (!rc.equals(activeParticipant) && (rc.isMonster() || rc.isNative())) {
 				list.add(rc);
@@ -2506,7 +2506,7 @@ public class CombatFrame extends JFrame {
 	 * @return			The list of RealmComponents that can be seen by the activeCharacter.
 	 */
 	public ArrayList<RealmComponent> findCanBeSeen(Collection<RealmComponent> list,boolean magicAttack,boolean canTargetMistLike) {
-		ArrayList<RealmComponent> ret = new ArrayList<>();
+		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
 		for (RealmComponent rc : list) {
 			// Make sure participant is "visible" to attacker
 			if (canBeSeen(rc,magicAttack,canTargetMistLike)) {
@@ -2660,7 +2660,7 @@ public class CombatFrame extends JFrame {
 			BattleGroup group = currentBattleModel.getDenizenBattleGroup();
 			if (group!=null) {
 				// Determine available hirelings
-				ArrayList<RealmComponent> availableHirelings = new ArrayList<>();
+				ArrayList<RealmComponent> availableHirelings = new ArrayList<RealmComponent>();
 				ArrayList<RealmComponent> hirelings = getHirelings();
 				for (RealmComponent rc : hirelings) {
 					if (!rc.isHidden()) {
@@ -2816,7 +2816,7 @@ public class CombatFrame extends JFrame {
 			if (hostPrefs.hasPref(Constants.OPT_RIDING_HORSES)) {
 				BattleHorse horse  = activeCharacter.getActiveSteed();
 				if (horse!=null) {
-					ArrayList<BattleHorse> horseOnly = new ArrayList<>();
+					ArrayList<BattleHorse> horseOnly = new ArrayList<BattleHorse>();
 					horseOnly.add(horse);
 					RealmComponent chit = playManeuver(box,horseOnly);
 					if (chit==null) {
@@ -3447,7 +3447,7 @@ public class CombatFrame extends JFrame {
 			if (chooser.getSelectedText()!=null) {
 				if ("ALL".equals(chooser.getSelectedText())) {
 					for (RealmComponent rc : targets) {
-						ArrayList<RealmComponent> targs = new ArrayList<>();
+						ArrayList<RealmComponent> targs = new ArrayList<RealmComponent>();
 						targs.add(rc);
 						positionTarget(boxA,boxD,targs,includeFlipside,horseSameBox); // recursive
 					}
@@ -3709,7 +3709,7 @@ public class CombatFrame extends JFrame {
 		CombatFrame.broadcastMessage(activeCharacter.getGameObject().getName(),"Presses the END combat button.");
 		endButton.setEnabled(false);
 		nextButton.setEnabled(false);
-		ArrayList<String> playersToRespond = new ArrayList<>();
+		ArrayList<String> playersToRespond = new ArrayList<String>();
 		Collection<RealmComponent> chars = currentBattleModel.getAllOwningCharacters();
 		for (RealmComponent rc : chars) {
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
@@ -3848,7 +3848,7 @@ public class CombatFrame extends JFrame {
 	public ArrayList<TileLocation> findClearingsToRunTo(CharacterWrapper activeCharacter,TileLocation from,boolean isFly) {
 		// Find all clearing options for running to
 		GameData gameData = activeCharacter.getGameObject().getGameData();
-		ArrayList<TileLocation> runToClearingOptions = new ArrayList<>();
+		ArrayList<TileLocation> runToClearingOptions = new ArrayList<TileLocation>();
 		
 		// First check the special condition that the character can walk the woods
 		boolean walkingWoods = false;
@@ -4146,8 +4146,8 @@ public class CombatFrame extends JFrame {
 			Speed fastest = activator.getFastestAttackerMoveSpeed();
 			
 			// create a hash list of spells (filtering on speed)
-			Hashtable<String, GameObject> spellHash = new Hashtable<>();
-			HashLists<String, SpellSet> spellSetHashlists = new HashLists<>();
+			Hashtable<String, GameObject> spellHash = new Hashtable<String, GameObject>();
+			HashLists<String, SpellSet> spellSetHashlists = new HashLists<String, SpellSet>();
 			for (SpellSet set : castableSpellSets) { // by definition, the set is castable, but we need to test the speed
 				// Speed must be equal to or faster than all move speeds on sheet
 				set.filterSpeed(fastest);
@@ -4167,7 +4167,7 @@ public class CombatFrame extends JFrame {
 					ArrayList<SpellSet> list = spellSetHashlists.getList(spell.getGameObject().getName());
 					chooser = new RealmComponentOptionChooser(this,"Choose Casting Options for "+spell.getName()+":",true);
 					// Then choose a set
-					Hashtable<String, SpellSet> setHash = new Hashtable<>();
+					Hashtable<String, SpellSet> setHash = new Hashtable<String, SpellSet>();
 					int keyN = 0;
 					for (SpellSet set : list) { // by definition, the set is castable
 						for (GameObject type : set.getValidTypeObjects()) {
@@ -4491,7 +4491,7 @@ public class CombatFrame extends JFrame {
 		String title = (plainSight?"Drop":"Abandon")+" Belongings";
 		RealmObjectChooser chooser = new RealmObjectChooser(title,gameData,false);
 		
-		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
 		for (GameObject go : activeCharacter.getInventory()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc.isItem()) { // not a boon or phase chit!
@@ -4619,7 +4619,7 @@ public class CombatFrame extends JFrame {
 	 */
 	public ArrayList<RealmComponent> getHirelings() {
 		BattleGroup battleGroup = currentBattleModel.getBattleGroup(activeParticipant);
-		ArrayList<RealmComponent> hirelings = new ArrayList<>();
+		ArrayList<RealmComponent> hirelings = new ArrayList<RealmComponent>();
 		if (battleGroup!=null) {
 			hirelings.addAll(battleGroup.getHirelings());
 		}
@@ -4635,7 +4635,7 @@ public class CombatFrame extends JFrame {
 		return participantHasHotspots[row];
 	}
 	public ArrayList<CombatSheet> getAllCombatSheets() {
-		ArrayList<CombatSheet> sheets = new ArrayList<>();
+		ArrayList<CombatSheet> sheets = new ArrayList<CombatSheet>();
 		// Actually creates them
 		for (RealmComponent rc:allParticipants) {
 			sheets.add(CombatSheet.createCombatSheet(this,currentBattleModel,rc,interactiveFrame, hostPrefs));
@@ -4784,7 +4784,7 @@ public class CombatFrame extends JFrame {
 		HashLists<Integer,CharacterWrapper> lists = RealmBattle.currentCombatHashLists(data);
 		Integer firstState = null;
 		if (lists!=null && !lists.isEmpty()) {
-			ArrayList<Integer> states = new ArrayList<>(lists.keySet());
+			ArrayList<Integer> states = new ArrayList<Integer>(lists.keySet());
 			Collections.sort(states);
 			firstState = states.iterator().next();
 		}
@@ -4836,7 +4836,7 @@ public class CombatFrame extends JFrame {
 				RealmComponent firstNative  = list.get(0);
 				Meeting meeting = Meeting.createMeetingTable(parent,character,current,firstNative,null,null,RelationshipType.FRIENDLY);
 				
-				ArrayList<RollerResult> rolls = new ArrayList<>();
+				ArrayList<RollerResult> rolls = new ArrayList<RollerResult>();
 				while(meeting!=null) {
 					
 					DieRoller roller = DieRollBuilder.getDieRollBuilder(parent,character).createRoller(meeting.getTableKey(),current);

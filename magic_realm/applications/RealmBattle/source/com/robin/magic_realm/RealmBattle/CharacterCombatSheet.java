@@ -214,8 +214,8 @@ public class CharacterCombatSheet extends CombatSheet {
 	public CharacterCombatSheet(CombatFrame frame,BattleModel model,RealmComponent participant,boolean interactiveFrame, HostPrefWrapper hostPrefs) {
 		super(frame,model,participant,interactiveFrame,hostPrefs);
 		this.hostPrefs = hostPrefs;
-		spellRegions = new ArrayList<>();
-		spellRegionHash = new Hashtable<>();
+		spellRegions = new ArrayList<Rectangle>();
+		spellRegionHash = new Hashtable<Rectangle,SpellCardComponent>();
 		updateLayout();
 	}
 	
@@ -420,7 +420,7 @@ public class CharacterCombatSheet extends CombatSheet {
 					}
 				}
 				// Have to have a target to attack!  (Not really:  see rule 22.4/2a)
-				ArrayList<RealmComponent> allSheetParticipants = new ArrayList<>(sheetParticipants);
+				ArrayList<RealmComponent> allSheetParticipants = new ArrayList<RealmComponent>(sheetParticipants);
 				allSheetParticipants.add(sheetOwner);
 				RealmComponent target = combatFrame.getActiveParticipant().getTarget();
 				RealmComponent target2 = combatFrame.getActiveParticipant().get2ndTarget();
@@ -524,8 +524,8 @@ public class CharacterCombatSheet extends CombatSheet {
 		 * Cycle through all monsters and natives (not characters) that are in the model, that
 		 * are targeting the sheetOwner.  (go into target boxes)
 		 */
-		sheetParticipants = new ArrayList<>();
-		ArrayList<RealmComponent> exclude = new ArrayList<>();
+		sheetParticipants = new ArrayList<RealmComponent>();
+		ArrayList<RealmComponent> exclude = new ArrayList<RealmComponent>();
 		ArrayList<RealmComponent> all = model.getAllBattleParticipants(true);
 		for (RealmComponent rc : all) {
 			CombatWrapper rcCombat = new CombatWrapper(rc.getGameObject());
@@ -619,7 +619,7 @@ public class CharacterCombatSheet extends CombatSheet {
 								}
 							}
 						}
-						ArrayList<RealmComponent> allWeapons = new ArrayList<>();
+						ArrayList<RealmComponent> allWeapons = new ArrayList<RealmComponent>();
 						ArrayList<WeaponChitComponent> weapons = character.getActiveWeapons();
 						if (weapons!=null) {
 							allWeapons.addAll(weapons);
@@ -741,7 +741,7 @@ public class CharacterCombatSheet extends CombatSheet {
 		switch(index) {
 			case POS_OWNER:
 				if (combatFrame.getActionState()==Constants.COMBAT_ASSIGN) {
-					ArrayList<RealmComponent> list = new ArrayList<>();
+					ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 					list.add(sheetOwner);
 					combatFrame.assignTarget(list);
 				}
@@ -767,7 +767,7 @@ public class CharacterCombatSheet extends CombatSheet {
 							|| layoutHash.get(Integer.valueOf(POS_TARGET_DUCK_SWING))!=null
 							|| layoutHash.get(Integer.valueOf(POS_TARGET_DUCK_THRUST))!=null) {
 						// reset ALL when targets have already been placed, and the target hotspot is clicked
-						ArrayList<RealmComponent> toReset = new ArrayList<>();
+						ArrayList<RealmComponent> toReset = new ArrayList<RealmComponent>();
 						for (int i=0;i<3;i++) {
 							ArrayList<RealmComponent> list = layoutHash.getList(Integer.valueOf(POS_TARGET_BOX1+i));
 							if (list!=null) {
@@ -775,7 +775,7 @@ public class CharacterCombatSheet extends CombatSheet {
 							}
 						}
 						
-						ArrayList<RealmComponent> listToAdd = new ArrayList<>();
+						ArrayList<RealmComponent> listToAdd = new ArrayList<RealmComponent>();
 						listToAdd=layoutHash.getList(Integer.valueOf(POS_TARGET_CHARGE_SMASH));
 						if (listToAdd!=null) {
 							toReset.addAll(listToAdd);
@@ -1091,7 +1091,7 @@ public class CharacterCombatSheet extends CombatSheet {
 			if (isMe && !alwaysSecret) {
 				ArrayList<SpellSet> spellSets = character.getCastableSpellSets();
 				if (!spellSets.isEmpty()) {
-					ArrayList<SpellCardComponent> spells = new ArrayList<>();
+					ArrayList<SpellCardComponent> spells = new ArrayList<SpellCardComponent>();
 					for (SpellSet ss:spellSets) {
 						SpellCardComponent spell = (SpellCardComponent)RealmComponent.getRealmComponent(ss.getSpell());
 						if (!spells.contains(spell)) {

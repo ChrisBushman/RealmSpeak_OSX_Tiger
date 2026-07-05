@@ -45,8 +45,8 @@ public class QuestStep extends GameObjectWrapper {
 	}
 
 	public void refresh() {
-		requirements = new ArrayList<>();
-		rewards = new ArrayList<>();
+		requirements = new ArrayList<QuestRequirement>();
+		rewards = new ArrayList<QuestReward>();
 		for (GameObject held : getGameObject().getHold()) {
 			if (held.hasThisAttribute(Quest.QUEST_REQUIREMENT)) {
 				String val = held.getThisAttribute(Quest.QUEST_REQUIREMENT);
@@ -368,7 +368,7 @@ public class QuestStep extends GameObjectWrapper {
 		ArrayList<String> preempt = getPreemptedSteps();
 		if (preempt == null)
 			return;
-		Hashtable<String, QuestStep> lookup = new Hashtable<>();
+		Hashtable<String, QuestStep> lookup = new Hashtable<String, QuestStep>();
 		for (QuestStep step : steps) {
 			lookup.put(step.getGameObject().getStringId(), step);
 		}
@@ -379,7 +379,7 @@ public class QuestStep extends GameObjectWrapper {
 	}
 
 	public void doRewards(JFrame frame, CharacterWrapper character) {
-		HashLists<String, QuestReward> rewardGroups = new HashLists<>();
+		HashLists<String, QuestReward> rewardGroups = new HashLists<String, QuestReward>();
 		for (QuestReward reward : getRewards()) {
 			rewardGroups.put(reward.getRewardGroup(), reward);
 		}
@@ -396,7 +396,7 @@ public class QuestStep extends GameObjectWrapper {
 		
 		// If there are any group choice awards, get a choice (if needed) and proceed.
 		String selectedRewardGroup = chooseReward(frame, rewardGroups);
-		ArrayList<QuestReward> list = new ArrayList<>();
+		ArrayList<QuestReward> list = new ArrayList<QuestReward>();
 		if (selectedRewardGroup != QuestReward.ALL_REWARD_GROUP) {
 			list.addAll(rewardGroups.getList(selectedRewardGroup));
 		}
@@ -407,7 +407,7 @@ public class QuestStep extends GameObjectWrapper {
 
 	private static String chooseReward(JFrame frame, HashLists<String, QuestReward> rewardGroups) {
 		// First see if the choice is obvious
-		ArrayList<String> keys = new ArrayList<>(rewardGroups.keySet());
+		ArrayList<String> keys = new ArrayList<String>(rewardGroups.keySet());
 		keys.remove(QuestReward.ALL_REWARD_GROUP);
 		if (keys.size() == 1)
 			return keys.get(0);
@@ -417,13 +417,13 @@ public class QuestStep extends GameObjectWrapper {
 		// Nope! Better ask the player then
 		int columns = (int) Math.ceil(rewardGroups.size()/5.0);
 		ButtonOptionDialog chooser = new ButtonOptionDialog(frame, null, "Select a reward group:", "Reward Chooser", false, columns);
-		keys = new ArrayList<>(rewardGroups.keySet());
+		keys = new ArrayList<String>(rewardGroups.keySet());
 		Collections.sort(keys);
-		Hashtable<String, String> reverseLookup = new Hashtable<>();
+		Hashtable<String, String> reverseLookup = new Hashtable<String, String>();
 		for (String key : keys) {
 			if (QuestReward.ALL_REWARD_GROUP.equals(key))
 				continue;
-			ArrayList<QuestReward> rewards = new ArrayList<>();
+			ArrayList<QuestReward> rewards = new ArrayList<QuestReward>();
 			rewards.addAll(rewardGroups.getList(key));
 			StringBuilder sb = new StringBuilder();
 			IconGroup icon = null;
@@ -454,7 +454,7 @@ public class QuestStep extends GameObjectWrapper {
 	 */
 	public ArrayList<QuestStep> findPendingFailTriggeredSteps(ArrayList<QuestStep> steps) {
 		String id = getGameObject().getStringId();
-		ArrayList<QuestStep> ret = new ArrayList<>();
+		ArrayList<QuestStep> ret = new ArrayList<QuestStep>();
 		for(QuestStep step:steps) {
 			if (step.getState()!=QuestStepState.Pending) continue;
 			ArrayList<String> list = step.getFailSteps();

@@ -22,8 +22,8 @@ import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public abstract class SpellTargetingSingle extends SpellTargeting {
 	
-	protected ArrayList<String> identifiers = new ArrayList<>();
-	protected Hashtable<String, ArrayList> secondaryTargets = new Hashtable<>(); // A hash of lists by identifier
+	protected ArrayList<String> identifiers = new ArrayList<String>();
+	protected Hashtable<String, ArrayList> secondaryTargets = new Hashtable<String, ArrayList>(); // A hash of lists by identifier
 	protected String secondaryTargetChoiceString = "";
 
 	protected SpellTargetingSingle(CombatFrame combatFrame, SpellWrapper spell) {
@@ -36,13 +36,13 @@ public abstract class SpellTargetingSingle extends SpellTargeting {
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(combatFrame,"Select a Target for "+spell.getName()+":",true);
 		if (identifiers.isEmpty()) {
 			if (gameObjects.isEmpty()) {
-				ArrayList<String> list = new ArrayList<>(secondaryTargets.keySet());
+				ArrayList<String> list = new ArrayList<String>(secondaryTargets.keySet());
 				Collections.sort(list);
 				chooser.addStrings(list);
 			}
 			else {
 				// Rather than just dump them in, there should be a small icon indicating which sheet they are on
-				Hashtable<RealmComponent, RealmComponent> hash = new Hashtable<>();
+				Hashtable<RealmComponent, RealmComponent> hash = new Hashtable<RealmComponent, RealmComponent>();
 				ArrayList<CombatSheet> combatSheets = combatFrame.getAllCombatSheets();
 				for (CombatSheet sheet : combatSheets) {
 					RealmComponent aSheetOwner = sheet.getSheetOwner();
@@ -126,7 +126,7 @@ public abstract class SpellTargetingSingle extends SpellTargeting {
 				}
 				if (!secondaryTargets.isEmpty()) {
 					chooser = new RealmComponentOptionChooser(combatFrame,secondaryTargetChoiceString,false);
-					Hashtable<String, GameObject> hash = new Hashtable<>();
+					Hashtable<String, GameObject> hash = new Hashtable<String, GameObject>();
 					ArrayList<GameObject> list = secondaryTargets.get(selText);
 					if (list.isEmpty()) {
 						return true;

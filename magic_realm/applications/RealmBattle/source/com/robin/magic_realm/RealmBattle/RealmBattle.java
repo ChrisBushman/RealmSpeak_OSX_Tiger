@@ -76,7 +76,7 @@ public class RealmBattle {
 		
 		BattlesWrapper battles = getBattles(data);
 		
-		ArrayList<TileLocation> battleLocations = new ArrayList<>();
+		ArrayList<TileLocation> battleLocations = new ArrayList<TileLocation>();
 		
 		// Find all combat clearings by locating all active characters and leaders
 		GamePool pool = new GamePool(RealmObjectMaster.getRealmObjectMaster(data).getPlayerCharacterObjects());
@@ -154,7 +154,7 @@ public class RealmBattle {
 		// Get all characters involved in battle
 		BattleModel model = buildBattleModel(currentCombatLocation,data);
 		Collection<RealmComponent> c = model.getAllOwningCharacters();
-		HashLists<Integer,CharacterWrapper> lists = new HashLists<>();
+		HashLists<Integer,CharacterWrapper> lists = new HashLists<Integer,CharacterWrapper>();
 		for (RealmComponent rc : c) {
 			CharacterWrapper aChar = new CharacterWrapper(rc.getGameObject());
 			int astate = aChar.getCombatStatus();
@@ -211,7 +211,7 @@ public class RealmBattle {
 			checkForHurricaneWinds(currentCombatLocation,data);
 			
 			HashLists<Integer,CharacterWrapper> lists = findCharacterStates(currentCombatLocation,data);
-			ArrayList<Integer> states = new ArrayList<>(lists.keySet());
+			ArrayList<Integer> states = new ArrayList<Integer>(lists.keySet());
 			
 			if (states.isEmpty()) { // this can happen when a character runs!  (I think...)
 				updateClearingOrder(data);
@@ -404,7 +404,7 @@ public class RealmBattle {
 		BattleModel model = buildBattleModel(current,character.getGameObject().getGameData());
 		boolean canSkipCombat = model.canSkipCombat(character.getCombatStatus());
 		BattleGroup denizens = model.getDenizenBattleGroup();
-		ArrayList<RealmComponent> sheetOwners = new ArrayList<>();
+		ArrayList<RealmComponent> sheetOwners = new ArrayList<RealmComponent>();
 		for (RealmComponent rc : model.getAllBattleParticipants(true)) {
 			CombatWrapper rcCombat = new CombatWrapper(rc.getGameObject());
 			if (rcCombat.isSheetOwner()) {
@@ -581,7 +581,7 @@ public class RealmBattle {
 	 * @param data			The GameData
 	 */
 	public static BattleModel buildBattleModel(TileLocation tl,GameData data) {
-		HashLists<String,RealmComponent> lists = new HashLists<>();
+		HashLists<String,RealmComponent> lists = new HashLists<String,RealmComponent>();
 		Collection<RealmComponent> c = ClearingUtility.getCombatantsInClearing(tl,data);
 		
 		// Hash all combatants by ownerid - uncontrolled denizens will be owned by UNCONTROLLED

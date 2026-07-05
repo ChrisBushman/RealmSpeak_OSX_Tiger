@@ -131,10 +131,10 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 				if (magic!=null) {
 					ArrayList<String> tiedMagic = readTiedMagicTypes(getGameObject());
 					ArrayList<String> enchantedMagic = gameObject.getThisAttributeList(Constants.ARTIFACT_ENHANCED_MAGIC);
-					ArrayList<String> finalList = new ArrayList<>();
+					ArrayList<String> finalList = new ArrayList<String>();
 					finalList.add(magic);
 					if (enchantedMagic!=null) {
-						TreeSet<String> unique = new TreeSet<>();
+						TreeSet<String> unique = new TreeSet<String>();
 						unique.addAll(enchantedMagic);
 						finalList.addAll(unique);
 					}
@@ -363,7 +363,7 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 		return getAllMagicNumbers(5);
 	}
 	public ArrayList<Integer> getAllMagicNumbers(int maximum) {
-		ArrayList<Integer> list = new ArrayList<>();
+		ArrayList<Integer> list = new ArrayList<Integer>();
 		
 		ArrayList<String> types = readAvailableMagicTypes(null,getGameObject());
 		for(String type:types) {
@@ -399,13 +399,13 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 	}
 	
 	private static ArrayList<String> readTiedMagicTypes(GameObject treasure) {
-		ArrayList<String> magicTypes = new ArrayList<>();
+		ArrayList<String> magicTypes = new ArrayList<String>();
 		
 		// for backward compatibility
 		Object test = treasure.getThisAttributeBlock().get(SpellWrapper.INCANTATION_TIE); 
 		if (test instanceof String) {
 			SpellWrapper spell = new SpellWrapper(treasure.getGameObjectFromThisAttribute(SpellWrapper.INCANTATION_TIE));
-			ArrayList<String> newList = new ArrayList<>();
+			ArrayList<String> newList = new ArrayList<String>();
 			newList.add(spell.getCastMagicType());
 			treasure.removeThisAttribute(SpellWrapper.INCANTATION_TIE);
 			treasure.setThisAttributeList(SpellWrapper.INCANTATION_TIE,newList);
@@ -420,7 +420,7 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 	}
 
 	public static ArrayList<String> readAvailableMagicTypes(String dayKey,GameObject treasure) {
-		ArrayList<String> possMagicTypes = new ArrayList<>();
+		ArrayList<String> possMagicTypes = new ArrayList<String>();
 		
 		String magic = treasure.getThisAttribute("magic");
 		if (magic!=null) {

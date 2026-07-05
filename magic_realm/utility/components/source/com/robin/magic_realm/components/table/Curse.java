@@ -108,7 +108,7 @@ public class Curse extends RealmTable {
 			// Cannot have ANY active effort asterisks
 			character.applyCurse(Constants.WITHER);
 			
-			ArrayList<CharacterActionChitComponent> toFatigue = new ArrayList<>();
+			ArrayList<CharacterActionChitComponent> toFatigue = new ArrayList<CharacterActionChitComponent>();
 			toFatigue.addAll(character.getActiveEffortChits());
 			toFatigue.addAll(character.getAlertedChits());
 			toFatigue.addAll(character.getColorChits());

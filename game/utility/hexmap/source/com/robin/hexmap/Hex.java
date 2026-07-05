@@ -51,7 +51,7 @@ public class Hex {
 		this.icon = ImageCache.getIcon(name);
 		this.suppressID = suppressID;
 		this.label = null;
-		keywords = new ArrayList<>();
+		keywords = new ArrayList<String>();
 		resetWalls();
 	}
 	private static long _newHexId() {
@@ -141,7 +141,7 @@ public class Hex {
 	 * would indicate no walls.
 	 */
 	public int[] getWallPositions() {
-		ArrayList<Integer> walls = new ArrayList<>();
+		ArrayList<Integer> walls = new ArrayList<Integer>();
 		
 		for (int i=0;i<wallPosition.length;i++) {
 			if (wallPosition[i]==true) {

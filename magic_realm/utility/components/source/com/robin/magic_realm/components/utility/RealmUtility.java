@@ -121,7 +121,7 @@ public class RealmUtility {
 	}
 	public static void revealAll(GameData data,HostPrefWrapper hostPrefs) {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.addAll(GamePool.makeKeyVals(hostPrefs.getGameKeyVals()));
 		query.add(RealmComponent.TREASURE);
 		ArrayList<GameObject> treasureCards = pool.find(query);
@@ -150,7 +150,7 @@ public class RealmUtility {
 //		}
 		
 		// Need to refresh map
-		query = new ArrayList<>();
+		query = new ArrayList<String>();
 		query.addAll(GamePool.makeKeyVals(hostPrefs.getGameKeyVals()));
 		query.add(RealmComponent.TILE);
 		ArrayList<GameObject> tiles = pool.find(query);
@@ -222,7 +222,7 @@ public class RealmUtility {
 	 * @param c			A Collection of GameObjects that have already been identified as natives
 	 */
 	public static HashLists<String, RealmComponent> hashNativesByGroupName(Collection<RealmComponent> c) {
-		HashLists<String, RealmComponent> hash = new HashLists<>();
+		HashLists<String, RealmComponent> hash = new HashLists<String, RealmComponent>();
 		for (RealmComponent rc : c) {
 			hash.put(getGroupName(rc),rc);
 		}
@@ -257,7 +257,7 @@ public class RealmUtility {
 			code = code.substring(0,bracket);
 		}
 		
-		ArrayList<String> keyVals = new ArrayList<>();
+		ArrayList<String> keyVals = new ArrayList<String>();
 		keyVals.add("tile");
 		keyVals.add("code="+code);
 		if (boardNumber!=null) {
@@ -300,9 +300,9 @@ public class RealmUtility {
 		Collection<String> types = character.getGameObject().getAttributeList(levelKey,"spelltypes"); // like [I,VII] (for example)
 		if (types!=null && !types.isEmpty()) {
 			int spellCount = character.getGameObject().getAttributeInt(levelKey,"spellcount");
-			ArrayList<GameObject> choiceSpells = new ArrayList<>();
+			ArrayList<GameObject> choiceSpells = new ArrayList<GameObject>();
 			for (String type : types) {
-				ArrayList<String> keyVals = new ArrayList<>();
+				ArrayList<String> keyVals = new ArrayList<String>();
 				keyVals.add(hostKeyVals);
 				keyVals.add("spell="+type);
 				keyVals.add("!"+Constants.BOARD_NUMBER); // no need to show duplicate spells
@@ -347,7 +347,7 @@ public class RealmUtility {
 	 * @return		Returns a HashLists object, where RealmComponent lists are keyed by groupName (lowercase)
 	 */
 	public static HashLists<String, RealmComponent> getUnhiredNatives(Collection<RealmComponent> denizens) {
-		HashLists<String, RealmComponent> hash = new HashLists<>();
+		HashLists<String, RealmComponent> hash = new HashLists<String, RealmComponent>();
 		for (RealmComponent rc : denizens) {
 			if (rc.isNative() && rc.getOwner()==null) {
 				String groupName = rc.getGameObject().getThisAttribute("native").toLowerCase();
@@ -520,7 +520,7 @@ public class RealmUtility {
 			}
 			
 			// Check to see if there were any hirelings following this guide
-			ArrayList<GameObject> stuff = new ArrayList<>(rc.getGameObject().getHold());
+			ArrayList<GameObject> stuff = new ArrayList<GameObject>(rc.getGameObject().getHold());
 			for (GameObject go : stuff) {
 				RealmComponent test = RealmComponent.getRealmComponent(go);
 				if (test.isNative() || test.isMonster()) {
@@ -612,7 +612,7 @@ public class RealmUtility {
 			if (character.getCurrentGuild()!=null && (character.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT+"_3") || character.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT_SUCESSOR))) {
 				character.getGameObject().removeThisAttribute(Constants.GUILD_BENEFIT_SUCESSOR);
 				String guild = character.getCurrentGuild();
-				HashLists<CharacterWrapper,Integer> possibleSuccessors = new HashLists<>();
+				HashLists<CharacterWrapper,Integer> possibleSuccessors = new HashLists<CharacterWrapper,Integer>();
 				int maxLevel = 0;
 				for (GameObject livingChar : getLivingCharacters(character.getGameObject().getGameData())) {
 					CharacterWrapper livingCharacter = new CharacterWrapper(livingChar);
@@ -624,7 +624,7 @@ public class RealmUtility {
 					}
 				}
 				if (!possibleSuccessors.isEmpty()) {
-					ArrayList<CharacterWrapper> charactersWithMaxLevel = new ArrayList<>();
+					ArrayList<CharacterWrapper> charactersWithMaxLevel = new ArrayList<CharacterWrapper>();
 					for (CharacterWrapper livingCharacter : possibleSuccessors.keySet()) {
 						if (livingCharacter.getCurrentGuildLevel()==maxLevel) {
 							charactersWithMaxLevel.add(livingCharacter);
@@ -638,8 +638,8 @@ public class RealmUtility {
 		}
 	}
 	public static Collection<GameObject> findInventory(RealmComponent victim) {
-		ArrayList<GameObject> list = new ArrayList<>();
-		Collection<GameObject> holderHold = new ArrayList<>(victim.getGameObject().getHold()); // to avoid concurrent mods
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
+		Collection<GameObject> holderHold = new ArrayList<GameObject>(victim.getGameObject().getHold()); // to avoid concurrent mods
 		for (GameObject go : holderHold) {
 			RealmComponent thing = RealmComponent.getRealmComponent(go);
 			if (thing.isItem()) {
@@ -693,7 +693,7 @@ public class RealmUtility {
 	}
 	private static void moveInventory(GameObject inventoryHolder,GameObject destination,int clearing,boolean faceDown,boolean includeSpells) {
 		if (inventoryHolder!=null && destination!=null) {
-			ArrayList<GameObject> holderHold = new ArrayList<>();
+			ArrayList<GameObject> holderHold = new ArrayList<GameObject>();
 			holderHold.addAll(inventoryHolder.getHold()); // to avoid concurrent mods
 			for (GameObject go : holderHold) {
 				RealmComponent thing = RealmComponent.getRealmComponent(go);
@@ -794,7 +794,7 @@ public class RealmUtility {
 	public static void burnColorChit(JFrame parent,GameWrapper game,CharacterWrapper character,MagicChit colorChit,boolean filterSpellsAimingAtHiddenTargets) {
 		// See if we can energize a permanent spell
 		ColorMagic chitColor = colorChit.getColorMagic();
-		ArrayList<SpellWrapper> possSpells = new ArrayList<>();
+		ArrayList<SpellWrapper> possSpells = new ArrayList<SpellWrapper>();
 		TileLocation loc = character.getCurrentLocation();
 		SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(character.getGameObject().getGameData());
 		for (SpellWrapper spell : sm.getAllSpellsInClearing(loc,false)) {
@@ -960,7 +960,7 @@ public class RealmUtility {
 	 * A recursive method for extracting a tree of game objects
 	 */
 	public static Collection<GameObject> getAllGameObjectsIn(GameObject go,boolean excludeUnseenTreasures) {
-		ArrayList<GameObject> ret = new ArrayList<>();
+		ArrayList<GameObject> ret = new ArrayList<GameObject>();
 		for (GameObject ingo : go.getHold()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(ingo);
 			if (ingo.hasThisAttribute(Constants.QUEST) || ingo.hasThisAttribute(Quest.QUEST_STEP)) continue;
@@ -1003,7 +1003,7 @@ public class RealmUtility {
 	}
 	public static ArrayList<GameObject> dropNonFlyableStuff(JFrame frame,CharacterWrapper character,Fly fly,TileLocation current) {
 		GameObject weightlessItem = character.getWeightlessInactiveItem();
-		ArrayList<GameObject> toDrop = new ArrayList<>();
+		ArrayList<GameObject> toDrop = new ArrayList<GameObject>();
 		for (GameObject item:character.getInventory()) {
 			if (item.equals(weightlessItem)) continue; // ignore the weightless item (if any)
 			RealmComponent rc = RealmComponent.getRealmComponent(item);
@@ -1084,7 +1084,7 @@ public class RealmUtility {
 		
 		// Which tiles have this color?
 		RealmObjectMaster rom = RealmObjectMaster.getRealmObjectMaster(data);
-		ArrayList<TileComponent> enchantableTiles = new ArrayList<>();
+		ArrayList<TileComponent> enchantableTiles = new ArrayList<TileComponent>();
 		for (GameObject tileObject:rom.getTileObjects()) {
 			boolean found = false;
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(tileObject);
@@ -1135,7 +1135,7 @@ public class RealmUtility {
 	private static ArrayList<RealmComponent> willBeBlockedByRealmComponent(CharacterWrapper character,boolean isFollowing,boolean blockMonsters, boolean monsters, boolean natives, boolean magic) {
 		if (character.getGameObject().hasThisAttribute(Constants.MEDITATE_NO_BLOCKING)) return null;
 		// Player's current clearing is checked for monsters, and blocked if needed
-		ArrayList<RealmComponent> blockers = new ArrayList<>();
+		ArrayList<RealmComponent> blockers = new ArrayList<RealmComponent>();
 		if (!character.isMinion() && !isFollowing) {
 			TileLocation tl = character.getCurrentLocation();
 			if (tl!=null && tl.hasClearing() && !tl.isBetweenClearings()) {
@@ -1259,7 +1259,7 @@ public class RealmUtility {
 	}
 	private static final String[] VISITOR = {"Crone","Warlock","Shaman","Scholar"};
 	public static String getHTMLPoliticsString(ArrayList<String> list) {
-		ArrayList<String> visitors = new ArrayList<>(Arrays.asList(VISITOR));
+		ArrayList<String> visitors = new ArrayList<String>(Arrays.asList(VISITOR));
 		Collections.sort(list);
 		StringBufferedList sb = new StringBufferedList(", ","");
 		for (String val:list) {
@@ -1278,7 +1278,7 @@ public class RealmUtility {
 		ArrayList<GameObject> monsters = pool.find("monster");
 		
 		// First, count each type
-		HashLists<String, GameObject> hl = new HashLists<>();
+		HashLists<String, GameObject> hl = new HashLists<String, GameObject>();
 		for (GameObject go:monsters) {
 			hl.put(go.getName(),go);
 		}
@@ -1406,7 +1406,7 @@ public class RealmUtility {
 	public static ArrayList<GameObject> getLivingCharacters(GameData data) {
 		GamePool pool = new GamePool(RealmObjectMaster.getRealmObjectMaster(data).getPlayerCharacterObjects());
 		ArrayList<GameObject> list = pool.find(CharacterWrapper.NAME_KEY);
-		ArrayList<GameObject> active = new ArrayList<>();
+		ArrayList<GameObject> active = new ArrayList<GameObject>();
 		for (GameObject characterGo : list) {
 			CharacterWrapper character = new CharacterWrapper(characterGo);
 			if (!character.isDead()) {

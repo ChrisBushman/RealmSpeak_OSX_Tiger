@@ -31,7 +31,7 @@ public class DieRoller extends JComponent {
 	
 	private static final Font font = new Font(MODIFIER_FONT_NAME,Font.BOLD,12);
 	
-	protected ArrayList<Die> dice = new ArrayList<>();
+	protected ArrayList<Die> dice = new ArrayList<Die>();
 	protected Collection<ActionListener> actionListeners;
 	protected boolean hasRolled = false;
 	
@@ -138,7 +138,7 @@ public class DieRoller extends JComponent {
 	}
 	public void addActionListener(ActionListener listener) {
 		if (actionListeners==null) {
-			actionListeners = new ArrayList<>();
+			actionListeners = new ArrayList<ActionListener>();
 		}
 		actionListeners.add(listener);
 	}
@@ -411,7 +411,7 @@ public class DieRoller extends JComponent {
 	}
 	
 	public static ArrayList<Serializable> breakOutRollers(String in,int dieSize,int dotSize) {
-		ArrayList<Serializable> list = new ArrayList<>();
+		ArrayList<Serializable> list = new ArrayList<Serializable>();
 		int n;
 		boolean addingString = true;
 		if (in.startsWith(LOG_ANNOTATION)) {

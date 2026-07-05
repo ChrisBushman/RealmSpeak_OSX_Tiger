@@ -16,12 +16,12 @@ public class HashLists<K,T> implements Map {
 	}
 	public HashLists(boolean forceUnique) {
 		this.forceUnique = forceUnique;
-	    hash = new Hashtable<>();
+	    hash = new Hashtable<K,ArrayList<T>>();
 	}
 	public Object put(Object key,Object val) {
 	    ArrayList<T> list = getList(key);
 	    if (list==null) {
-	        list = new ArrayList<>();
+	        list = new ArrayList<T>();
 	        hash.put((K)key,list);
 	    }
 	    if (!forceUnique || !list.contains(val)) {
@@ -41,7 +41,7 @@ public class HashLists<K,T> implements Map {
 	public ArrayList<T> getListAsNew(Object key) {
 		ArrayList<T> list = getList(key);
 		if (list!=null) {
-			return new ArrayList<>(list);
+			return new ArrayList<T>(list);
 		}
 		return null;
 	}

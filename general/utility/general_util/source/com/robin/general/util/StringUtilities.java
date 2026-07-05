@@ -119,7 +119,7 @@ public class StringUtilities {
 		return ret;
 	}
 	public static String intArrayToString(int[] array,String delim) {
-		ArrayList<Integer> list = new ArrayList<>();
+		ArrayList<Integer> list = new ArrayList<Integer>();
 		for (int i=0;i<array.length;i++) {
 			list.add(Integer.valueOf(array[i]));
 		}

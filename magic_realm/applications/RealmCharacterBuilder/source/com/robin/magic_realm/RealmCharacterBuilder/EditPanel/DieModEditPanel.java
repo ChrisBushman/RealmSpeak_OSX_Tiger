@@ -70,7 +70,7 @@ public class DieModEditPanel extends AdvantageEditPanel {
 		JPanel mainPanel = new JPanel(new GridLayout(1,3));
 		mainPanel.add(typePanel);
 		
-		optionsHash = new Hashtable<>();
+		optionsHash = new Hashtable<String,JCheckBox>();
 		
 		JPanel tableBox = new JPanel(new BorderLayout());
 		allTablesOption = new AllCheckBox("All Tables");
@@ -87,7 +87,7 @@ public class DieModEditPanel extends AdvantageEditPanel {
 		tableBox.add(allTablesOption,"North");
 		JPanel innerTableBox = new JPanel(new GridLayout(1,2));
 		tableBox.add(innerTableBox,"Center");
-		specificTableOptions = new ArrayList<>();
+		specificTableOptions = new ArrayList<JCheckBox>();
 		allTablesOption.setOptions(specificTableOptions);
 		Box column = null;
 		for (int i=0;i<TABLE.length;i++) {
@@ -116,7 +116,7 @@ public class DieModEditPanel extends AdvantageEditPanel {
 		conditionBox.add(allConditionsOption,"North");
 		JPanel innerConditionBox = new JPanel(new GridLayout(1,2));
 		conditionBox.add(innerConditionBox,"Center");
-		specificConditionOptions = new ArrayList<>();
+		specificConditionOptions = new ArrayList<JCheckBox>();
 		allConditionsOption.setOptions(specificConditionOptions);
 		column = null;
 		for (int i=0;i<CONDITION.length;i++) {
@@ -247,7 +247,7 @@ public class DieModEditPanel extends AdvantageEditPanel {
 		fullKey.append(typeKey);
 		fullKey.append(tableKey.toString());
 		fullKey.append(conditionKey.toString());
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		list.add(fullKey.toString());
 		setAttributeList(Constants.DIEMOD,list);
 	}

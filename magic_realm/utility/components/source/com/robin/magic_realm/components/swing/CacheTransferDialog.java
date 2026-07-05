@@ -123,7 +123,7 @@ public class CacheTransferDialog extends AggressiveDialog {
 		ArrayList<GameObject> cacheFinalInventory = cacheTableModel.getInventory();
 		
 		// First, transfer all items in cache that the character is taking
-		ArrayList<GameObject> getting = new ArrayList<>(cacheInventory);
+		ArrayList<GameObject> getting = new ArrayList<GameObject>(cacheInventory);
 		getting.removeAll(cacheFinalInventory);
 		RealmUtility.transferInventory((JFrame)parent, cache, character, getting, listener,false);
 		cacheInventory.removeAll(getting);
@@ -192,7 +192,7 @@ public class CacheTransferDialog extends AggressiveDialog {
 		private boolean includePosition;
 		
 		public CacheTableModel(CharacterWrapper bin,boolean includePosition) {
-			inventory = new ArrayList<>();
+			inventory = new ArrayList<GameObject>();
 			for (GameObject go:bin.getInventory()) {
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (rc.isItem() && !go.hasThisAttribute(Constants.CONTROLLED_HORSE)) {

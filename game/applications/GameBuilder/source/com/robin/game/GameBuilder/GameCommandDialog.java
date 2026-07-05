@@ -65,7 +65,7 @@ public class GameCommandDialog extends JDialog {
 		getContentPane().repaint();
 	}
 	private ArrayList<String> findAvailablePoolNames(ArrayList<GameCommand> allCommands) {
-		ArrayList<String> previousPoolNames = new ArrayList<>();
+		ArrayList<String> previousPoolNames = new ArrayList<String>();
 		previousPoolNames.add("ALL");
 		for (GameCommand prev : allCommands) {
 			if (prev==originalCommand) {
@@ -86,7 +86,7 @@ public class GameCommandDialog extends JDialog {
 		getContentPane().setLayout(new BorderLayout());
 			Box box = Box.createVerticalBox();
 				line = group.createLabelLine("Type");
-					type = new JComboBox<>();
+					type = new JComboBox<String>();
 					type.addItem(GameCommandCreate.NAME);
 					type.addItem(GameCommandAlter.NAME);
 					if (poolNames.size()>1) {
@@ -108,14 +108,14 @@ public class GameCommandDialog extends JDialog {
 				newPoolBox.add(Box.createHorizontalGlue());
 			box.add(newPoolBox);
 				fromBox = group.createLabelLine("From");
-					from = new JComboBox<>(poolNames.toArray());
+					from = new JComboBox(poolNames.toArray());
 					from.setSelectedItem(modelCommand.getFrom());
 					ComponentTools.lockComponentSize(from,150,25);
 				fromBox.add(from);
 				fromBox.add(Box.createHorizontalGlue());
 			box.add(fromBox);
 				toBox = group.createLabelLine("To");
-					to = new JComboBox<>(poolNames.toArray());
+					to = new JComboBox(poolNames.toArray());
 					to.setSelectedItem(modelCommand.getTo());
 					ComponentTools.lockComponentSize(to,150,25);
 				toBox.add(to);

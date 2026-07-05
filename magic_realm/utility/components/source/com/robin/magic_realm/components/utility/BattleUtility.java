@@ -42,7 +42,7 @@ public class BattleUtility {
 	}
 
 	public static ArrayList<CharacterActionChitComponent> getPlayedChits(CharacterWrapper character) {
-		ArrayList<CharacterActionChitComponent> list = new ArrayList<>();
+		ArrayList<CharacterActionChitComponent> list = new ArrayList<CharacterActionChitComponent>();
 		CombatWrapper combat = new CombatWrapper(character.getGameObject());
 		for (GameObject go:combat.getUsedChits()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
@@ -109,7 +109,7 @@ public class BattleUtility {
 	}
 
 	public static ArrayList<RealmComponent> findFightComponentsWithCombatBox(Collection<RealmComponent> list) {
-		ArrayList<RealmComponent> fightChits = new ArrayList<>();
+		ArrayList<RealmComponent> fightChits = new ArrayList<RealmComponent>();
 		for (RealmComponent rc : list) {
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 			if ((combat.getCombatBoxAttack()>0 || combat.getCombatBoxDefense()>0) && (!rc.isActionChit() || combat.getPlacedAsFight() || combat.getPlacedAsParry())) {

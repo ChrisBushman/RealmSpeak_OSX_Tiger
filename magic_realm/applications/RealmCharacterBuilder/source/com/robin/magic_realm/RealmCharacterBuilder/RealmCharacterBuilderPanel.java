@@ -280,7 +280,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			int boxHeight = 200;
 			box = Box.createHorizontalBox();
 				String[] startingLoc = model.getCharacter().getStartingLocations(false);
-				ArrayList<String> list = new ArrayList<>(Arrays.asList(startingLoc));
+				ArrayList<String> list = new ArrayList<String>(Arrays.asList(startingLoc));
 				JPanel locationControls = new JPanel(new GridLayout(5,2));
 				startInnChoice = new JCheckBox("Inn",true); // ALWAYS true
 				startInnChoice.setEnabled(false); // ALWAYS disabled (MUST have INN as a choice)
@@ -526,7 +526,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			fairnessPanel.add(mfReasonPanel,BorderLayout.SOUTH);
 			topPanel.add(fairnessPanel,"South");
 		leftPanel.add(topPanel,"North");
-			ArrayList<String[]> relationships = new ArrayList<>();
+			ArrayList<String[]> relationships = new ArrayList<String[]>();
 			for (int i=0;i<RealmCharacterConstants.DEFAULT_RELATIONSHIPS.length;i++) {
 				relationships.add(RealmCharacterConstants.DEFAULT_RELATIONSHIPS[i]);
 			}
@@ -558,7 +558,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 		}
 	}
 	private void evaluateNow() {
-		TreeSet<String> notes = new TreeSet<>();
+		TreeSet<String> notes = new TreeSet<String>();
 		
 		boolean mediumArmor = false;
 		boolean mediumMoves = false;
@@ -694,7 +694,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 	}
 	private void updateStartingLocation(String location,boolean selected) {
 		String[] startingLoc = model.getCharacter().getStartingLocations(false);
-		ArrayList<String> list = new ArrayList<>(Arrays.asList(startingLoc));
+		ArrayList<String> list = new ArrayList<String>(Arrays.asList(startingLoc));
 		if (selected) {
 			// add it
 			list.add(location);
@@ -875,7 +875,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 				JPanel middleLeft = new JPanel(new BorderLayout());
 				middleLeft.add(getWeaponPanel(),"Center");
 					Box line = group.createLabelLine("# Spells");
-					startingSpellCount = new JComboBox<>(RealmCharacterConstants.SPELL_COUNT);
+					startingSpellCount = new JComboBox<String>(RealmCharacterConstants.SPELL_COUNT);
 					startingSpellCount.setSelectedItem(String.valueOf(model.getCharacter().getGameObject().getInt(levelKey,"spellcount")));
 					startingSpellCount.addActionListener(new ActionListener() {
 						public void actionPerformed(ActionEvent ev) {
@@ -1063,7 +1063,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			repaint();
 		}
 		private ArrayList<String> getMagicTypes() {
-			ArrayList<String> magicTypes = new ArrayList<>();
+			ArrayList<String> magicTypes = new ArrayList<String>();
 			ArrayList<CharacterActionChitComponent> list = model.getCharacter().getAllActionChitsSorted(level);
 			for (CharacterActionChitComponent cc:list) {
 				if (cc.isMagic()) {

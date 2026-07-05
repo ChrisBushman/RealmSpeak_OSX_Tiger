@@ -60,7 +60,7 @@ public class SpecialActionEditPanel extends AdvantageEditPanel implements Action
 	}
 
 	protected void applyAdvantage() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		list.add(currentSpecialAction);
 		setAttributeList(Constants.SPECIAL_ACTION,list);
 	}

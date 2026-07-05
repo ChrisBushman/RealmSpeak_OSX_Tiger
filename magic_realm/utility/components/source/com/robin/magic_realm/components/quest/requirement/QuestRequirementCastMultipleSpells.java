@@ -40,7 +40,7 @@ public class QuestRequirementCastMultipleSpells extends QuestRequirement {
 				break;
 		}
 		
-		List<String> spellsCasted = new ArrayList<>();
+		List<String> spellsCasted = new ArrayList<String>();
 		ArrayList<String> allDayKeys = character.getAllDayKeys();
 		if (allDayKeys==null) {
 			return false;

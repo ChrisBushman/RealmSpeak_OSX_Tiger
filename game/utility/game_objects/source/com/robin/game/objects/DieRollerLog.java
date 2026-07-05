@@ -32,7 +32,7 @@ public class DieRollerLog implements DieRollerLoggable {
 		return rolls==null?0:rolls.size();
 	}
 	public Integer[] getDieMultiples() {
-		ArrayList<Integer> multiples = new ArrayList<>();
+		ArrayList<Integer> multiples = new ArrayList<Integer>();
 		for(DieRoller roller:getDieRollers()) {
 			int nod = roller.getNumberOfDice();
 			if (!multiples.contains(nod)) {
@@ -94,7 +94,7 @@ public class DieRollerLog implements DieRollerLoggable {
 	}
 	public ArrayList<DieRoller> getDieRollers() {
 		if (cache==null || dirty) {
-			cache = new ArrayList<>();
+			cache = new ArrayList<DieRoller>();
 			ArrayList<String> rolls = gameObject.getThisAttributeList(ROLL_LIST);
 			if (rolls!=null) {
 				for(String roll:rolls) {

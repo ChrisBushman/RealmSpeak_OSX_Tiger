@@ -56,7 +56,7 @@ public class HostPrefWrapper extends GameObjectWrapper {
 		return HOST_PREF_BLOCK;
 	}
 	public static Collection<String> getKeyVals() {
-		ArrayList<String> keyVals = new ArrayList<>();
+		ArrayList<String> keyVals = new ArrayList<String>();
 		keyVals.add(HOST_NAME_TAG);
 		return keyVals;
 	}
@@ -324,7 +324,7 @@ public class HostPrefWrapper extends GameObjectWrapper {
 	}
 	public ArrayList<String> getAllCharacterKeys() {
 		ArrayList<String> list = getList(CHARACTER_KEY);
-		ArrayList<String> ret = new ArrayList<>();
+		ArrayList<String> ret = new ArrayList<String>();
 		if (list!=null) {
 			for (String key : list) {
 				ret.add(key);

@@ -71,7 +71,7 @@ public class BattleBuilder extends JFrame {
 	private boolean cancelled = false;
 	
 	public BattleBuilder() {
-		characterPanels = new ArrayList<>();
+		characterPanels = new ArrayList<CharacterBattleBuilderPanel>();
 		initComponents();
 	}
 	public boolean isCancelled() {
@@ -333,7 +333,7 @@ public class BattleBuilder extends JFrame {
 				RealmCharacterBuilderModel.addCustomCharacters(hostPrefs,gameData);
 						
 				// Some items require a spell be cast (Flying Carpet)
-				ArrayList<String> keyVals = new ArrayList<>();
+				ArrayList<String> keyVals = new ArrayList<String>();
 				keyVals.add(hostPrefs.getGameKeyVals());
 				keyVals.add(Constants.CAST_SPELL_ON_INIT);
 				SpellMasterWrapper.getSpellMaster(gameData); // make sure SpellMaster is created
@@ -437,7 +437,7 @@ public class BattleBuilder extends JFrame {
 		// Denizens...
 		BattleGroup denGroup = model.getDenizenBattleGroup();
 		if (denGroup!=null) {
-			ArrayList<GameObject> toAdd = new ArrayList<>();
+			ArrayList<GameObject> toAdd = new ArrayList<GameObject>();
 			for (RealmComponent rc : denGroup.getBattleParticipants()) {
 				GameObject go = rc.getGameObject();
 				go.setThisAttribute(BATTLE_BUILDER_KEY);
@@ -481,11 +481,11 @@ public class BattleBuilder extends JFrame {
 	private void changeClearing() {
 		// Choose a tile and clearing
 		Collection<GameObject> tiles = pool.find("tile,"+hostPrefs.getGameKeyVals());
-		Hashtable<String, GameObject> tileHash = new Hashtable<>();
+		Hashtable<String, GameObject> tileHash = new Hashtable<String, GameObject>();
 		for (GameObject tile : tiles) {
 			tileHash.put(tile.getName(),tile);
 		}
-		ArrayList<String> tileNames = new ArrayList<>(tileHash.keySet());
+		ArrayList<String> tileNames = new ArrayList<String>(tileHash.keySet());
 		Collections.sort(tileNames);
 		String tileName = (String)JOptionPane.showInputDialog(
 				null,
@@ -511,8 +511,8 @@ public class BattleBuilder extends JFrame {
 			tile.setLightSideUp();
 		}
 		
-		ArrayList<String> clearingNames = new ArrayList<>();
-		Hashtable<String, ClearingDetail> clearingHash = new Hashtable<>();
+		ArrayList<String> clearingNames = new ArrayList<String>();
+		Hashtable<String, ClearingDetail> clearingHash = new Hashtable<String, ClearingDetail>();
 		for (int i=1;i<=6;i++) {
 			ClearingDetail clearing = tile.getClearing(i);
 			if (clearing!=null) {
@@ -542,7 +542,7 @@ public class BattleBuilder extends JFrame {
 		updateControls();
 	}
 	protected void checkHorses(Collection<GameObject> denizens) {
-		ArrayList<GameObject> horses = new ArrayList<>();
+		ArrayList<GameObject> horses = new ArrayList<GameObject>();
 		for (GameObject go : denizens) {
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			BattleHorse horse = rc.getHorse();
@@ -587,7 +587,7 @@ public class BattleBuilder extends JFrame {
 	}
 	public Collection<GameObject> makeDuplicates(Collection<GameObject> in) {
 		if (makeDuplicatesOption.isSelected()) {
-			ArrayList<GameObject> dups = new ArrayList<>();
+			ArrayList<GameObject> dups = new ArrayList<GameObject>();
 			for (GameObject go :  in) {
 				GameObject dup = gameData.createNewObject(go);
 				Collection<GameObject> hold = go.getHold();
@@ -604,7 +604,7 @@ public class BattleBuilder extends JFrame {
 		return in;
 	}
 	private void removeDenizens() {
-		ArrayList all = new ArrayList<>(Arrays.asList(denizenPanel.getComponents()));
+		ArrayList all = new ArrayList(Arrays.asList(denizenPanel.getComponents()));
 		Collection<RealmComponent> selDenizens = denizenPanel.getSelectedComponents();
 		for (RealmComponent rc : selDenizens) {
 			rc.getGameObject().removeThisAttribute(BATTLE_BUILDER_KEY);
@@ -683,7 +683,7 @@ public class BattleBuilder extends JFrame {
 	}
 	private void updateDenizenPanel() {
 		denizenPanel.removeAll();
-		ArrayList<GameObject> denizens = new ArrayList<>();
+		ArrayList<GameObject> denizens = new ArrayList<GameObject>();
 		denizens.addAll(pool.find("monster,!part,"+hostPrefs.getGameKeyVals()+","+BATTLE_BUILDER_KEY));
 		denizens.addAll(pool.find("native,!horse,!treasure,"+hostPrefs.getGameKeyVals()+","+BATTLE_BUILDER_KEY));
 		for(GameObject denizen:denizens) {
@@ -746,7 +746,7 @@ public class BattleBuilder extends JFrame {
 	}
 	private SpellWrapper querySpell() {
 		ArrayList<GameObject> spells = pool.find("spell,duration=permanent");
-		ArrayList<GameObject> toRemove = new ArrayList<>();
+		ArrayList<GameObject> toRemove = new ArrayList<GameObject>();
 		for (GameObject spell:spells) {
 			String spellType = spell.getThisAttribute("spell").trim();
 			if (spellType.length()==0 || !"IIIVIII".contains(spellType)) {
@@ -822,7 +822,7 @@ public class BattleBuilder extends JFrame {
 		return null;
 	}
 	private RealmComponent queryTarget(String targetType) {
-		ArrayList<GameObject> choices = new ArrayList<>();
+		ArrayList<GameObject> choices = new ArrayList<GameObject>();
 		boolean individual = "individual".equals(targetType);
 		if (individual || "monster".equals(targetType)) {
 			choices.addAll(pool.find("monster,"+BATTLE_BUILDER_KEY));

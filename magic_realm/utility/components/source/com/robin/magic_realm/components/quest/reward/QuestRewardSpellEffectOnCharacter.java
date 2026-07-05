@@ -81,7 +81,7 @@ public class QuestRewardSpellEffectOnCharacter extends QuestReward {
 			}
 			
 			if(character.getCurrentLocation() == null || character.getCurrentLocation().tile == null) return;
-			ArrayList<TileComponent> adjacentTiles = new ArrayList<>(character.getCurrentLocation().tile.getAllAdjacentTiles());
+			ArrayList<TileComponent> adjacentTiles = new ArrayList<TileComponent>(character.getCurrentLocation().tile.getAllAdjacentTiles());
 			TileComponent targetTile = adjacentTiles.get(RandomNumber.getRandom(adjacentTiles.size()));
 			SpellWrapper spell = new SpellWrapper(hurricanWinds);
 			spell.setSecondaryTarget(targetTile.getGameObject());

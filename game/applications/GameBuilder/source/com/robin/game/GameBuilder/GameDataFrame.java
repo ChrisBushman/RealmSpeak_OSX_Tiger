@@ -279,7 +279,7 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 						public void duplicate() {
 							int[] row = getSelectedRows();
 							
-							ArrayList<GameObject> objectsToDuplicate = new ArrayList<>();
+							ArrayList<GameObject> objectsToDuplicate = new ArrayList<GameObject>();
 							for (int i=0;i<row.length;i++) {
 								GameObject obj = data.getFilteredGameObjects().get(row[i]);
 								objectsToDuplicate.add(obj);
@@ -296,7 +296,7 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 							int[] row = getSelectedRows();
 							
 							// First get all selected objects
-							ArrayList<GameObject> delObjects = new ArrayList<>();
+							ArrayList<GameObject> delObjects = new ArrayList<GameObject>();
 							for (int i=0;i<row.length;i++) {
 								GameObject obj = data.getFilteredGameObjects().get(row[i]);
 								delObjects.add(obj);
@@ -340,7 +340,7 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 									}
 									
 									if (val!=null) {
-										ArrayList<GameObject> editObjects = new ArrayList<>(data.getFilteredGameObjects());
+										ArrayList<GameObject> editObjects = new ArrayList<GameObject>(data.getFilteredGameObjects());
 										int[] row = getSelectedRows();
 										if (removingChange) {
 											// Remove attribute from all selected objects
@@ -367,7 +367,7 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 							// First get all selected objects
 							int min = Integer.MAX_VALUE;
 							int max = Integer.MIN_VALUE;
-							ArrayList<GameObject> shiftObjects = new ArrayList<>();
+							ArrayList<GameObject> shiftObjects = new ArrayList<GameObject>();
 							for (int i=0;i<row.length;i++) {
 								GameObject obj = data.getFilteredGameObjects().get(row[i]);
 								shiftObjects.add(obj);
@@ -422,7 +422,7 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 						int[] row = getSelectedRows();
 						
 						// First get all selected objects
-						ArrayList<GameSetup> delSetups = new ArrayList<>();
+						ArrayList<GameSetup> delSetups = new ArrayList<GameSetup>();
 						for (int i=0;i<row.length;i++) {
 							GameSetup setup = data.getGameSetups().get(row[i]);
 							delSetups.add(setup);

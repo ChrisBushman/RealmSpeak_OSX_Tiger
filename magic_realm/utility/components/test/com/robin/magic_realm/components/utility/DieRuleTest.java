@@ -44,7 +44,7 @@ public class DieRuleTest extends TestBaseWithLoader {
 	}
 	@Test
 	public void testRuinsChit() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		list.add("cliff");
 		list.add("ruins m");
 		list.add("flutter");
@@ -54,7 +54,7 @@ public class DieRuleTest extends TestBaseWithLoader {
 	}
 	@Test
 	public void testLostCityChit() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		list.add("cliff");
 		list.add("lost city b");
 		list.add("flutter");
@@ -71,7 +71,7 @@ public class DieRuleTest extends TestBaseWithLoader {
 	}
 	@Test
 	public void testNotWoods() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		list.add("cliff");
 		list.add("lost city b");
 		list.add("flutter");
@@ -81,7 +81,7 @@ public class DieRuleTest extends TestBaseWithLoader {
 	}
 	@Test
 	public void testAllDieModsLists() {
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add(Constants.DIEMOD);
 		ArrayList<GameObject> dieModObjs = findGameObjects(query);
 		for (GameObject go:dieModObjs) {

@@ -33,15 +33,15 @@ public class GameOption {
 	public GameOption(String inKey,String description,boolean active,String[] overrides,String[] includes,String[] cantHaves) {
 		this.key = inKey;
 		this.description = description;
-		overrideKeys = new ArrayList<>();
+		overrideKeys = new ArrayList<String>();
 		if (overrides!=null) {
 			overrideKeys.addAll(Arrays.asList(overrides));
 		}
-		includeKeys = new ArrayList<>();
+		includeKeys = new ArrayList<String>();
 		if (includes!=null) {
 			includeKeys.addAll(Arrays.asList(includes));
 		}
-		cantHaveKeys = new ArrayList<>();
+		cantHaveKeys = new ArrayList<String>();
 		if (cantHaves!=null) {
 			cantHaveKeys.addAll(Arrays.asList(cantHaves));
 		}

@@ -13,7 +13,7 @@ public class StringBufferedList {
 	public StringBufferedList(String comma,String and) {
 		this.comma = comma;
 		this.and = and;
-		list = new ArrayList<>();
+		list = new ArrayList<String>();
 	}
 	public int size() {
 		return list.size();
@@ -27,8 +27,8 @@ public class StringBufferedList {
 		}
 	}
 	public void countIdenticalItems() {
-		HashLists<String,String> hash = new HashLists<>();
-		ArrayList<String> keys = new ArrayList<>();
+		HashLists<String,String> hash = new HashLists<String,String>();
+		ArrayList<String> keys = new ArrayList<String>();
 		int n=0;
 		for (String string:list) {
 			hash.put(string,"n"+(n++));

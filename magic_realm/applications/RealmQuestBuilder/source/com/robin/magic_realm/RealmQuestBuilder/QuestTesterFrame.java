@@ -590,7 +590,7 @@ public class QuestTesterFrame extends JFrame {
 		JPanel superPanel = new JPanel(new BorderLayout());
 		JPanel panel = new JPanel(new GridLayout(2, 1));
 
-		activeInventory = new JList<>();
+		activeInventory = new JList<GameObject>();
 		activeInventory.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		activeInventory.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
@@ -604,7 +604,7 @@ public class QuestTesterFrame extends JFrame {
 		activeInventory.setCellRenderer(new QuestListRenderer());
 		panel.add(makeTitledScrollPane("Active Inventory", activeInventory));
 
-		inactiveInventory = new JList<>();
+		inactiveInventory = new JList<GameObject>();
 		inactiveInventory.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		inactiveInventory.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
@@ -717,8 +717,8 @@ public class QuestTesterFrame extends JFrame {
 				QuestRequirementParams params = new QuestRequirementParams();
 				params.actionType = CharacterActionType.Trading;
 				params.actionName = TradeType.Buy.toString();
-				params.objectList = new ArrayList<>();
-				params.targetOfSearch = seller;			
+				params.objectList = new ArrayList<GameObject>();
+				params.targetOfSearch = seller;
 				ArrayList<GameObject> items = chooseItem();
 				if (items == null)
 					return;
@@ -752,7 +752,7 @@ public class QuestTesterFrame extends JFrame {
 				QuestRequirementParams params = new QuestRequirementParams();
 				params.actionType = CharacterActionType.Trading;
 				params.actionName = TradeType.Sell.toString();
-				params.objectList = new ArrayList<>();
+				params.objectList = new ArrayList<GameObject>();
 				params.targetOfSearch = list.get(0);
 
 				if (activeInventory.getSelectedIndex() != -1) {
@@ -828,7 +828,7 @@ public class QuestTesterFrame extends JFrame {
 	private JPanel buildCharacterHirelingPanel() {
 		JPanel panel = new JPanel(new GridLayout(3, 1));
 		JPanel hirelingsPanel = new JPanel(new BorderLayout());	
-		hirelings = new JList<>();
+		hirelings = new JList<RealmComponent>();
 		hirelings.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		hirelings.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
@@ -913,12 +913,12 @@ public class QuestTesterFrame extends JFrame {
 		hirelingsPanel.add(hirelingButtons, BorderLayout.SOUTH);
 		panel.add(makeTitledScrollPane("Hirelings", hirelingsPanel));
 
-		journalList = new JList<>();
+		journalList = new JList<QuestJournalEntry>();
 		journalList.setCellRenderer(new JournalEntryListRenderer());
 		panel.add(makeTitledScrollPane("Journal", journalList));
 				
 		JPanel markedThingsPanel = new JPanel(new BorderLayout());
-		markedThings = new JList<>();
+		markedThings = new JList<RealmComponent>();
 		markedThings.setCellRenderer(new MarkedThingsListRenderer());
 		markedThingsPanel.add(markedThings);
 		panel.add(makeTitledScrollPane("Marked Things", markedThingsPanel));
@@ -956,7 +956,7 @@ public class QuestTesterFrame extends JFrame {
 		openLocationButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				RealmComponent rc = clearingComponents.getSelectedValue();
-				ArrayList<GameObject> objectsToOpen = new ArrayList<>();
+				ArrayList<GameObject> objectsToOpen = new ArrayList<GameObject>();
 				objectsToOpen.add(rc.getGameObject());
 				TreasureUtility.openOneObject(QuestTesterFrame.this, character, objectsToOpen, null, true);
 				updateCharacterPanel();
@@ -1006,7 +1006,7 @@ public class QuestTesterFrame extends JFrame {
 		locationButtonsWithTitlePanel.add(locationButtonsPanel, BorderLayout.NORTH);
 		clearingChitsPanel.add(locationButtonsWithTitlePanel, BorderLayout.NORTH);
 		
-		clearingComponents = new JList<>();
+		clearingComponents = new JList<RealmComponent>();
 		clearingComponents.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		clearingComponents.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
@@ -1259,11 +1259,11 @@ public class QuestTesterFrame extends JFrame {
 	
 	private ArrayList<GameObject> chooseItem() {
 		GamePool pool = new GamePool(gameData.getGameObjects());
-		Hashtable<String, GameObject> hash = new Hashtable<>();
-		ArrayList<String> weaponList = new ArrayList<>();
-		ArrayList<String> armorList = new ArrayList<>();
-		ArrayList<String> steedList = new ArrayList<>();
-		ArrayList<String> treasureList = new ArrayList<>();
+		Hashtable<String, GameObject> hash = new Hashtable<String, GameObject>();
+		ArrayList<String> weaponList = new ArrayList<String>();
+		ArrayList<String> armorList = new ArrayList<String>();
+		ArrayList<String> steedList = new ArrayList<String>();
+		ArrayList<String> treasureList = new ArrayList<String>();
 
 		ArrayList<GameObject> all = pool.find("item");
 		all.addAll(pool.find("treasure_within_treasure"));
@@ -1284,7 +1284,7 @@ public class QuestTesterFrame extends JFrame {
 
 			hash.put(itemKey, item);
 		}
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		list.addAll(weaponList);
 		list.addAll(armorList);
 		list.addAll(steedList);
@@ -1297,7 +1297,7 @@ public class QuestTesterFrame extends JFrame {
 		chooser.setVisible(true);
 		Vector v = chooser.getSelectedItems();
 		if (v != null && !v.isEmpty()) {
-			ArrayList<GameObject> ret = new ArrayList<>();
+			ArrayList<GameObject> ret = new ArrayList<GameObject>();
 			for (int i = 0; i < v.size(); i++) {
 				ret.add(hash.get(v.get(i)));
 			}
@@ -1308,8 +1308,8 @@ public class QuestTesterFrame extends JFrame {
 
 	private ArrayList<GameObject> chooseOther(String name, String... keyVals) {
 		GamePool pool = new GamePool(gameData.getGameObjects());
-		Hashtable<String, GameObject> hash = new Hashtable<>();
-		ArrayList<String> chitList = new ArrayList<>();
+		Hashtable<String, GameObject> hash = new Hashtable<String, GameObject>();
+		ArrayList<String> chitList = new ArrayList<String>();
 		for (String kv : keyVals) {
 			for (GameObject thing : pool.find(kv)) {
 				String itemKey = getKey(thing);
@@ -1325,7 +1325,7 @@ public class QuestTesterFrame extends JFrame {
 		chooser.setVisible(true);
 		Vector v = chooser.getSelectedItems();
 		if (v != null && !v.isEmpty()) {
-			ArrayList<GameObject> ret = new ArrayList<>();
+			ArrayList<GameObject> ret = new ArrayList<GameObject>();
 			for (int i = 0; i < v.size(); i++) {
 				ret.add(hash.get(v.get(i)));
 			}
@@ -1447,7 +1447,7 @@ public class QuestTesterFrame extends JFrame {
 		//		doubleBoard.setSelected(quest.getBoolean(QuestConstants.DOUBLE_BOARD));
 		//		tripleBoard.setSelected(quest.getBoolean(QuestConstants.TRIPLE_BOARD));
 
-		ArrayList<GameVariant> variantChoices = new ArrayList<>();
+		ArrayList<GameVariant> variantChoices = new ArrayList<GameVariant>();
 		if (quest.getBoolean(QuestConstants.VARIANT_ORIGINAL))
 			variantChoices.add(GameVariant.ORIGINAL_GAME_VARIANT);
 		if (quest.getBoolean(QuestConstants.VARIANT_PRUITTS))
@@ -1602,15 +1602,15 @@ public class QuestTesterFrame extends JFrame {
 		wounds.setText(String.valueOf(character.getExtraWounds()));
 		guild.setText(character.getCurrentGuildLevelName());
 
-		activeInventory.setListData(new Vector<>(character.getActiveInventory()));
-		inactiveInventory.setListData(new Vector<>(character.getInactiveInventory()));
-		hirelings.setListData(new Vector<>(character.getAllHirelings()));
-		journalList.setListData(new Vector<>(quest.getJournalEntries()));
-		markedThings.setListData(new Vector<>(getAllMarkedThings()));
+		activeInventory.setListData(new Vector<GameObject>(character.getActiveInventory()));
+		inactiveInventory.setListData(new Vector<GameObject>(character.getInactiveInventory()));
+		hirelings.setListData(new Vector<RealmComponent>(character.getAllHirelings()));
+		journalList.setListData(new Vector<QuestJournalEntry>(quest.getJournalEntries()));
+		markedThings.setListData(new Vector<RealmComponent>(getAllMarkedThings()));
 
 		clearingTitle.setText(character.getCurrentLocation().toString()+getEnchanted()+" "+getMagicColors());
 		
-		Vector<RealmComponent> rcs = new Vector<>();
+		Vector<RealmComponent> rcs = new Vector<RealmComponent>();
 		for (RealmComponent rc : character.getCurrentLocation().clearing.getClearingComponents(true)) {
 			if (rc.isCharacter())
 				continue;
@@ -1927,7 +1927,7 @@ public class QuestTesterFrame extends JFrame {
 	}
 	
 	public ArrayList<RealmComponent> getAllMarkedThings() {
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());
 		for (GameObject go : pool.find(QuestConstants.QUEST_MARK)) {
 			RealmComponent rc = RealmComponent.getRealmComponent(go);

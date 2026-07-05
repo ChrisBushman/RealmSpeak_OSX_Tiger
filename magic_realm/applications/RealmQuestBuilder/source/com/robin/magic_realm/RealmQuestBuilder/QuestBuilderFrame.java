@@ -850,7 +850,7 @@ public class QuestBuilderFrame extends JFrame {
 		specificCharacterHelperButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				GamePool pool = new GamePool(realmSpeakData.getGameObjects());
-				ArrayList<String> names = new ArrayList<>();
+				ArrayList<String> names = new ArrayList<String>();
 				for (GameObject go : pool.find("character")) {
 					names.add(go.getName());
 				}

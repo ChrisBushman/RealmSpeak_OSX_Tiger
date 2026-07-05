@@ -74,7 +74,7 @@ public class QuestLocation extends GameObjectWrapper {
 		return quest.getName();
 	}
 	private ArrayList<String> getValidAddresses() {
-		ArrayList<String> addresses = new ArrayList<>();
+		ArrayList<String> addresses = new ArrayList<String>();
 		String lock = getLockAddress();
 		if (lock!=null) {
 			addresses.add(lock);
@@ -96,7 +96,7 @@ public class QuestLocation extends GameObjectWrapper {
 			resolveStepStart(frame,character);
 		}
 		
-		ArrayList<RealmComponent> allPieces = new ArrayList<>();
+		ArrayList<RealmComponent> allPieces = new ArrayList<RealmComponent>();
 		
 		ArrayList<String> addresses = getValidAddresses();
 		if (addresses.isEmpty()) {
@@ -165,9 +165,9 @@ public class QuestLocation extends GameObjectWrapper {
 		
 		if (addressesToTest.isEmpty()) return true; // If there are NO addresses, then anything is allowed
 		
-		ArrayList<RealmComponent> clearingComponents = new ArrayList<>();
+		ArrayList<RealmComponent> clearingComponents = new ArrayList<RealmComponent>();
 		if (specificObject!=null) {
-			clearingComponents= new ArrayList<>();
+			clearingComponents= new ArrayList<RealmComponent>();
 			clearingComponents.add(RealmComponent.getRealmComponent(specificObject));
 		}
 		else {
@@ -448,8 +448,8 @@ public class QuestLocation extends GameObjectWrapper {
 	public ArrayList<TileLocation> getAllAllowedClearingsForTileLocation(TileLocation location) {
 		LocationTileSideType tileSideType = getLocationTileSideType();
 		LocationClearingType clearingType = getLocationClearingType();
-		ArrayList<TileLocation> locations = new ArrayList<>();
-		ArrayList<ClearingDetail> clearingsToCheck = new ArrayList<>();
+		ArrayList<TileLocation> locations = new ArrayList<TileLocation>();
+		ArrayList<ClearingDetail> clearingsToCheck = new ArrayList<ClearingDetail>();
 		if (location == null) {
 			return null;
 		}
@@ -523,7 +523,7 @@ public class QuestLocation extends GameObjectWrapper {
 	private static ArrayList<RealmComponent> fetchPieces(GameData gameData, String val,boolean onlySeen) {
 		ArrayList<GameObject> gos = gameData.getGameObjectsByNameIgnoreCase(val);
 		if (gos.isEmpty()) return null;
-		ArrayList<RealmComponent> ret = new ArrayList<>();
+		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
 		for (GameObject go : gos) {
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc==null) continue;
@@ -549,7 +549,7 @@ public class QuestLocation extends GameObjectWrapper {
 	
 	public ArrayList<TileLocation> fetchAllLocations(GameData gameData) {
 		ArrayList<String> addresses = getValidAddresses();
-		ArrayList<TileLocation> allTileLocations = new ArrayList<>();
+		ArrayList<TileLocation> allTileLocations = new ArrayList<TileLocation>();
 		
 		if (addresses.isEmpty()) {
 			ArrayList<GameObject> gameObjects = getGameObject().getGameData().getGameObjects();

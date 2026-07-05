@@ -292,7 +292,7 @@ public class CharacterBattleBuilderPanel extends JPanel {
 		removeInventoryButton = new JButton("Remove Inventory");
 		removeInventoryButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<RealmComponent> componentsToDitch = new ArrayList<>();
+				ArrayList<RealmComponent> componentsToDitch = new ArrayList<RealmComponent>();
 				componentsToDitch.addAll(activeInventoryPanel.getSelectedComponents());
 				componentsToDitch.addAll(inactiveInventoryPanel.getSelectedComponents());
 				for (RealmComponent rc : componentsToDitch) {
@@ -468,7 +468,7 @@ public class CharacterBattleBuilderPanel extends JPanel {
 		RealmObjectChooser invChooser = new RealmObjectChooser("Select other inventory for the "+character.getGameObject().getName(),builder.getGameData(),false);
 		invChooser.addObjectsToChoose(builder.getPool().find(keyVals+",armor,!character,!treasure,!"+BattleBuilder.BATTLE_BUILDER_KEY));
 		invChooser.addObjectsToChoose(builder.getPool().find(keyVals+",weapon,!character,!"+BattleBuilder.BATTLE_BUILDER_KEY));
-		ArrayList<GameObject> treasures = new ArrayList<>(setFaceUp(builder.getPool().find(keyVals+",treasure,!"+BattleBuilder.BATTLE_BUILDER_KEY)));
+		ArrayList<GameObject> treasures = new ArrayList<GameObject>(setFaceUp(builder.getPool().find(keyVals+",treasure,!"+BattleBuilder.BATTLE_BUILDER_KEY)));
 		Collections.sort(treasures,new Comparator<GameObject>() {
 			public int compare(GameObject go1,GameObject go2) {
 				int ret = 0;

@@ -74,7 +74,7 @@ public class Peer extends Search {
 
 	@Override
 	protected ArrayList<ImageIcon> getHintIcons(CharacterWrapper character) {
-		ArrayList<ImageIcon> list = new ArrayList<>();
+		ArrayList<ImageIcon> list = new ArrayList<ImageIcon>();
 		for(PathDetail path:getAllUndiscoveredPaths(character)) {
 			list.add(new PathIcon(path));
 		}

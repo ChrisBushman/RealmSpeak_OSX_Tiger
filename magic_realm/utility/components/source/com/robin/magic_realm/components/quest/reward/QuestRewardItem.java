@@ -47,7 +47,7 @@ public class QuestRewardItem extends QuestReward {
 			actionDescription = ": Select ONE item to gain.";
 			if (getGainType()==ItemGainType.GainFromNativeHq || getGainType()==ItemGainType.GainClonedFromNativeHq) {
 				ArrayList<GameObject> filteredHq = getNativeHqs();
-				ArrayList<GameObject> sourceObjects = new ArrayList<>();
+				ArrayList<GameObject> sourceObjects = new ArrayList<GameObject>();
 				for (GameObject hq : filteredHq) {
 					sourceObjects.addAll(hq.getHold());
 				}
@@ -63,7 +63,7 @@ public class QuestRewardItem extends QuestReward {
 		}
 		
 		if (requiresMark()) {
-			ArrayList<GameObject> objectsToCheck = new ArrayList<>();
+			ArrayList<GameObject> objectsToCheck = new ArrayList<GameObject>();
 			objectsToCheck.addAll(objects);
 			objects.clear();
 			String questId = getParentQuest().getGameObject().getStringId();
@@ -202,7 +202,7 @@ public class QuestRewardItem extends QuestReward {
 	
 	public static ArrayList<GameObject> getObjectList(ArrayList<GameObject> sourceObjects,ArrayList<ChitItemType> chitItemTypes,String regEx) {
 		Pattern pattern = (regEx==null || regEx.length()==0)?null:Pattern.compile(regEx);
-		ArrayList<GameObject> objects = new ArrayList<>();
+		ArrayList<GameObject> objects = new ArrayList<GameObject>();
 		GamePool pool = new GamePool(sourceObjects);
 		for(ChitItemType cit:chitItemTypes) {
 			for(GameObject obj:pool.extract(Arrays.asList(cit.getKeyVals()))) {
@@ -217,7 +217,7 @@ public class QuestRewardItem extends QuestReward {
 	private ArrayList<GameObject> getNativeHqs() {
 		GamePool pool = new GamePool(getGameData().getGameObjects());
 		ArrayList<GameObject> allHq = pool.find("native,rank=HQ");
-		ArrayList<GameObject> filteredHq = new ArrayList<>();
+		ArrayList<GameObject> filteredHq = new ArrayList<GameObject>();
 		String regEx = getNativeRegex();
 		Pattern pattern = (regEx==null || regEx.length()==0)?null:Pattern.compile(regEx);
 		for(GameObject hq:allHq) {

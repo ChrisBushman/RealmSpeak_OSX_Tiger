@@ -57,7 +57,7 @@ public class QuestRewardSummonGeneratedMonster extends QuestReward {
 	}
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
-		ArrayList<GameObject> monsters = new ArrayList<>();
+		ArrayList<GameObject> monsters = new ArrayList<GameObject>();
 		
 		MonsterCreator mc = null;
 		switch (getMonsterType()) {
@@ -144,7 +144,7 @@ public class QuestRewardSummonGeneratedMonster extends QuestReward {
 		if (locationOnly()) {
 			QuestLocation loc = getQuestLocation();
 			if (loc == null) return;
-			ArrayList<TileLocation> validLocations = new ArrayList<>();
+			ArrayList<TileLocation> validLocations = new ArrayList<TileLocation>();
 			validLocations = loc.fetchAllLocations(frame, character, getGameData());
 			if(validLocations.isEmpty()) {
 				logger.fine("QuestLocation "+loc.getName()+" doesn't have any valid locations!");

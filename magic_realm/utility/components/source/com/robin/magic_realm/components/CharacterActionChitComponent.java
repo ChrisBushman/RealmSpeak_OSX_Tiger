@@ -860,7 +860,7 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 	}
 	
 	public ArrayList<Integer> getEnchantableNumbers() {
-		ArrayList<Integer> list = new ArrayList<>();
+		ArrayList<Integer> list = new ArrayList<Integer>();
 		list.add(getMagicNumber());
 		return list;
 	}

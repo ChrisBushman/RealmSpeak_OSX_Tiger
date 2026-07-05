@@ -16,7 +16,7 @@ public class ThornsEvent implements IEvent {
 	public void applyBirdsong(GameData data) {
 	}
 	public void applySunset(GameData data) {
-		ArrayList<String> tileTypes = new ArrayList<>(Arrays.asList("M","C","F","R"));
+		ArrayList<String> tileTypes = new ArrayList<String>(Arrays.asList("M","C","F","R"));
 		TileComponent tile = RealmEvents.chooseRandomTile(data, tileTypes);
 		if (tile!=null) {
 			GameObject config = RealmEvents.findEventsConfig(data);

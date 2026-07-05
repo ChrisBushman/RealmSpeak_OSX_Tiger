@@ -205,7 +205,7 @@ public class CharacterQuestPanel extends CharacterFramePanel {
 
 	private void doDiscardQuestCards() {
 		RealmObjectChooser chooser = new RealmObjectChooser("Discard Which Cards?", getGame().getGameData(), false);
-		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
 		for (Quest quest : getCharacter().getAllQuests()) {
 			if (quest.getState() == QuestState.Assigned && !quest.isAllPlay()) {
 				list.add(quest.getGameObject());

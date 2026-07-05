@@ -37,7 +37,7 @@ public class PowerOfThePit extends RealmTable {
 		super(frame,null);
 		this.caster = caster;
 		this.speed = attackSpeed;
-		kills = new ArrayList<>();
+		kills = new ArrayList<GameObject>();
 	}
 	public boolean harmWasApplied() {
 		return kills.size()>0 || harm;
@@ -205,7 +205,7 @@ public class PowerOfThePit extends RealmTable {
 				+"become damaged, damaged armor counters are destroyed. Armor cards and inactive\n"
 				+"counters are not affected.");
 		// The target's active armor counters are damaged.  Armor cards and inactive counters are NOT affected.
-		ArrayList<GameObject> destroyed = new ArrayList<>();
+		ArrayList<GameObject> destroyed = new ArrayList<GameObject>();
 		for (GameObject inv:character.getActiveInventory()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(inv);
 			if (rc.isArmor() && !rc.getGameObject().hasThisAttribute(Constants.OINTMENT_OF_STONE)) {

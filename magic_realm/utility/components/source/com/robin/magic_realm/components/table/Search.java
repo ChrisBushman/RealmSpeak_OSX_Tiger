@@ -83,7 +83,7 @@ public abstract class Search extends RealmTable {
 		character.testQuestRequirements(getParentFrame(),qp);
 	}
 	protected ArrayList<ImageIcon> convertPathDetailToImageIcon(ArrayList<PathDetail> paths) {
-		ArrayList<ImageIcon> list = new ArrayList<>();
+		ArrayList<ImageIcon> list = new ArrayList<ImageIcon>();
 		if (paths!=null) {
 			for (PathDetail path:paths) {
 				list.add(new PathIcon(path));
@@ -92,7 +92,7 @@ public abstract class Search extends RealmTable {
 		return list;
 	}
 	protected ArrayList<ImageIcon> convertRealmComponentToImageIcon(ArrayList<RealmComponent> chits) {
-		ArrayList<ImageIcon> list = new ArrayList<>();
+		ArrayList<ImageIcon> list = new ArrayList<ImageIcon>();
 		if (chits!=null) {
 			for (RealmComponent rc:chits) {
 				list.add(getIconForSearch(rc));
@@ -101,7 +101,7 @@ public abstract class Search extends RealmTable {
 		return list;
 	}
 	protected ArrayList<PathDetail> getAllUndiscoveredPaths(CharacterWrapper character) {
-		ArrayList<PathDetail> list = new ArrayList<>();
+		ArrayList<PathDetail> list = new ArrayList<PathDetail>();
 		ClearingDetail currentClearing = getCurrentClearing(character);
 		ArrayList<PathDetail> passages = currentClearing.getConnectedPaths();
 		if (passages==null) return list;
@@ -115,7 +115,7 @@ public abstract class Search extends RealmTable {
 		return list;
 	}
 	protected ArrayList<PathDetail> getAllUndiscoveredPassages(CharacterWrapper character) {
-		ArrayList<PathDetail> list = new ArrayList<>();
+		ArrayList<PathDetail> list = new ArrayList<PathDetail>();
 		ClearingDetail currentClearing = getCurrentClearing(character);
 		ArrayList<PathDetail> passages = currentClearing.getConnectedPaths();
 		if (passages==null) return list;
@@ -129,7 +129,7 @@ public abstract class Search extends RealmTable {
 		return list;
 	}
 	protected ArrayList<RealmComponent> getAllDiscoverableChits(CharacterWrapper character,boolean onlyUndiscovered) {
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		ClearingDetail currentClearing = getCurrentClearing(character);
 		for (RealmComponent rc:currentClearing.getClearingComponents()) {
 			if (rc.getGameObject().hasThisAttribute("chit")

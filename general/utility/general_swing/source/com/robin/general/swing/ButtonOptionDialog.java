@@ -40,11 +40,11 @@ public class ButtonOptionDialog extends AggressiveDialog {
 	public ButtonOptionDialog(JFrame parent,Icon icon,String message,String title,boolean includeCancel,int columns) {
 		super(parent,title,true);
 		this.columns = columns;
-		buttons = new Hashtable<>();
-		labels = new Hashtable<>();
-		buttonBoxes = new ArrayList<>();
+		buttons = new Hashtable<String,JButton>();
+		labels = new Hashtable<String,JLabel>();
+		buttonBoxes = new ArrayList<Box>();
 		selectedObject = null;
-		objectNameHash = new Hashtable<>();
+		objectNameHash = new Hashtable<String,Object>();
 		getContentPane().setLayout(new BorderLayout());
 		
 			questionPanel = new JPanel(new BorderLayout(10,10));

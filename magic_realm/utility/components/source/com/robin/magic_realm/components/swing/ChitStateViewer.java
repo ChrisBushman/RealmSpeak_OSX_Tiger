@@ -96,7 +96,7 @@ public class ChitStateViewer extends ChitManager {
 		CharacterWrapper wrapper = new CharacterWrapper(character);
 		
 		// artifically fatigue and wound some chits
-		ArrayList<CharacterActionChitComponent> list = new ArrayList<>(wrapper.getAllChits());
+		ArrayList<CharacterActionChitComponent> list = new ArrayList<CharacterActionChitComponent>(wrapper.getAllChits());
 		for (int i=2;i<5;i+=2) {
 			CharacterActionChitComponent aChit = list.get(i);
 			aChit.makeFatigued();

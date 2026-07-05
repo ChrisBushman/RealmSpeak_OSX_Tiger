@@ -65,7 +65,7 @@ public class MultiFormatString {
 	}
 
 	private void init(String s) {
-		formattedStrings = new Vector<>();
+		formattedStrings = new Vector<FormattedString>();
 		addFormattedText(s);
 		initFonts();
 	}
@@ -218,7 +218,7 @@ public class MultiFormatString {
 	}
 
 	public static String[] breakupString(String s) {
-		Vector<String> vector = new Vector<>();
+		Vector<String> vector = new Vector<String>();
 		String s1 = new String(s);
 		for (int i = s1.indexOf(" "); i >= 0; i = s1.indexOf(" ")) {
 			vector.addElement(s1.substring(0, i + 1));

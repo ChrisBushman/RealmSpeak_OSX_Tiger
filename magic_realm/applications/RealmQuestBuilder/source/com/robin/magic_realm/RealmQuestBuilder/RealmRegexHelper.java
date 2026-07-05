@@ -41,7 +41,7 @@ public class RealmRegexHelper extends AggressiveDialog {
 			testField.setForeground(Color.red);
 			return;
 		}
-		ArrayList<String> matches = new ArrayList<>();
+		ArrayList<String> matches = new ArrayList<String>();
 		for(String val:names) {
 			Matcher match = pattern.matcher(val);
 			if (match.find()) {
@@ -99,7 +99,7 @@ public class RealmRegexHelper extends AggressiveDialog {
 	}
 	private JPanel createListPanel() {
 		JPanel panel = new JPanel(new BorderLayout(5,5));
-		list = new JList<>();
+		list = new JList();
 		list.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent ev) {
 				if (ev.getClickCount()!=2) return;
@@ -150,7 +150,7 @@ public class RealmRegexHelper extends AggressiveDialog {
 		return panel;
 	}
 	public static void main(String[] args) {
-		ArrayList<String> names = new ArrayList<>();
+		ArrayList<String> names = new ArrayList<String>();
 		names.add("One");
 		names.add("Two");
 		names.add("Three");

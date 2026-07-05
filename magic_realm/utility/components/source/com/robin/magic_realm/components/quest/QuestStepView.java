@@ -164,7 +164,7 @@ public class QuestStepView extends JComponent {
 		int height = orientation==SwingConstants.HORIZONTAL?displayOrderSize:rankSize;
 		ComponentTools.lockComponentSize(this,width,height);
 		setBorder(BorderFactory.createEtchedBorder());
-		Hashtable<Integer,Integer> hash = new Hashtable<>();
+		Hashtable<Integer,Integer> hash = new Hashtable<Integer,Integer>();
 		for(QuestStepToken token:tokens) {
 			int viewRank = token.getViewRank();
 			if (hash.containsKey(viewRank)) {
@@ -181,12 +181,12 @@ public class QuestStepView extends JComponent {
 	protected void rebuildTokens(ArrayList<QuestStep> steps) {
 		maxRank = 0;
 		maxDisplayOrder = 0;
-		tokens = new ArrayList<>();
+		tokens = new ArrayList<QuestStepToken>();
 		if (steps==null) return;
-		steps = new ArrayList<>(steps); // make a copy that we can modify
-		ArrayList<QuestStepToken> origins = new ArrayList<>();
+		steps = new ArrayList<QuestStep>(steps); // make a copy that we can modify
+		ArrayList<QuestStepToken> origins = new ArrayList<QuestStepToken>();
 		int displayOrder=0;
-		ArrayList<QuestStep> toRemove = new ArrayList<>();
+		ArrayList<QuestStep> toRemove = new ArrayList<QuestStep>();
 		for(QuestStep step:steps) {
 			if (step.isOrigin()) {
 				QuestStepToken token = new QuestStepToken(step);
@@ -210,8 +210,8 @@ public class QuestStepView extends JComponent {
 			}
 			if (allVirtual) break;
 			displayOrder = 0;
-			ArrayList<QuestStep> virtualCovered = new ArrayList<>();
-			ArrayList<QuestStepToken> newTokens = new ArrayList<>();
+			ArrayList<QuestStep> virtualCovered = new ArrayList<QuestStep>();
+			ArrayList<QuestStepToken> newTokens = new ArrayList<QuestStepToken>();
 			for(QuestStepToken token:origins) {
 				//if (token.isVirtual()) continue;
 				toRemove.clear();
@@ -248,7 +248,7 @@ public class QuestStepView extends JComponent {
 	}
 	private static ArrayList<QuestStep> getTestSteps1() {
 		GameData data = new GameData();
-		ArrayList<QuestStep> steps = new ArrayList<>();
+		ArrayList<QuestStep> steps = new ArrayList<QuestStep>();
 		QuestStep step1 = new QuestStep(data.createNewObject());
 		step1.setName("Step 1");
 		step1.setId(1);
@@ -284,7 +284,7 @@ public class QuestStepView extends JComponent {
 	}
 	private static ArrayList<QuestStep> getTestSteps2() {
 		GameData data = new GameData();
-		ArrayList<QuestStep> steps = new ArrayList<>();
+		ArrayList<QuestStep> steps = new ArrayList<QuestStep>();
 		QuestStep step1 = new QuestStep(data.createNewObject());
 		step1.setName("Step 1");
 		step1.setId(1);
@@ -318,7 +318,7 @@ public class QuestStepView extends JComponent {
 	}
 	private static ArrayList<QuestStep> getTestSteps3() {
 		GameData data = new GameData();
-		ArrayList<QuestStep> steps = new ArrayList<>();
+		ArrayList<QuestStep> steps = new ArrayList<QuestStep>();
 		QuestStep step1 = new QuestStep(data.createNewObject());
 		step1.setName("Step 1");
 		step1.setId(1);
@@ -354,7 +354,7 @@ public class QuestStepView extends JComponent {
 	}
 	private static ArrayList<QuestStep> getTestSteps4() {
 		GameData data = new GameData();
-		ArrayList<QuestStep> steps = new ArrayList<>();
+		ArrayList<QuestStep> steps = new ArrayList<QuestStep>();
 		QuestStep step1 = new QuestStep(data.createNewObject());
 		step1.setName("Step 1");
 		step1.setId(1);
@@ -390,7 +390,7 @@ public class QuestStepView extends JComponent {
 	}
 	private static ArrayList<QuestStep> getTestSteps5() {
 		GameData data = new GameData();
-		ArrayList<QuestStep> steps = new ArrayList<>();
+		ArrayList<QuestStep> steps = new ArrayList<QuestStep>();
 		QuestStep step1 = new QuestStep(data.createNewObject());
 		step1.setName("Step 1");
 		step1.setId(1);
@@ -425,7 +425,7 @@ public class QuestStepView extends JComponent {
 	}
 	private static ArrayList<QuestStep> getTestSteps6() {
 		GameData data = new GameData();
-		ArrayList<QuestStep> steps = new ArrayList<>();
+		ArrayList<QuestStep> steps = new ArrayList<QuestStep>();
 		QuestStep step1 = new QuestStep(data.createNewObject());
 		step1.setName("Step 1");
 		step1.setId(1);

@@ -38,7 +38,7 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 	}
 
 	protected ArrayList<QuestPropertyBlock> createPropertyBlocks() {
-		ArrayList<QuestPropertyBlock> list = new ArrayList<>();
+		ArrayList<QuestPropertyBlock> list = new ArrayList<QuestPropertyBlock>();
 		list.add(new QuestPropertyBlock(QuestRequirement.NOT,"NOT",FieldType.Boolean));
 		switch (requirement.getRequirementType()) {
 			case Action:
@@ -319,7 +319,7 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 	}
 
 	private String[] getAllClearingCodes() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
 		for(GameObject go:pool.find("tile")) {
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
@@ -333,8 +333,8 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 	}
 	
 	private String[] getAllTileTypes() {
-		ArrayList<String> list = new ArrayList<>();
-		ArrayList<String> choices = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
+		ArrayList<String> choices = new ArrayList<String>();
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
 		for(GameObject go:pool.find("tile")) {
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
@@ -352,8 +352,8 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 	}
 	
 	private String[] getAllChitTypes() {
-		ArrayList<String> list = new ArrayList<>();
-		ArrayList<String> choices = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
+		ArrayList<String> choices = new ArrayList<String>();
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
 		for(GameObject go:pool.find("chit,!red_special,!treasure_location,!minor_tl,!traveler,!gold,!guild,!gate")) {
 			if (!list.contains(go.getName())) {
@@ -382,7 +382,7 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 	}
 	
 	private static ArrayList<String> getCurseStrings() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		list.add(Constants.ASHES);
 		list.add(Constants.DISGUST);
 		list.add(Constants.EYEMIST);
@@ -394,7 +394,7 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 	}
 	
 	private ArrayList<String> getDiscoveryStrings() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		
 		// Build the discovery lists
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
@@ -406,7 +406,7 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 		}
 		Collections.sort(list);
 		
-		ArrayList<String> sublist = new ArrayList<>();
+		ArrayList<String> sublist = new ArrayList<String>();
 		for(GameObject go:pool.find("tile")) {
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
 			for(PathDetail path:tile.getHiddenPaths()) {
@@ -423,8 +423,8 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 	}
 	
 	private ArrayList<String> getTreasureLocationsAndRedSpecialsAndDwellingsStrings() {
-		ArrayList<String> list = new ArrayList<>();
-		ArrayList<String> choices = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
+		ArrayList<String> choices = new ArrayList<String>();
 		
 		// Build the discovery lists
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
@@ -446,7 +446,7 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 	}
 
 	private ArrayList<QuestLocation> getOptionalQuestLocationArray() {
-		ArrayList<QuestLocation> list = new ArrayList<>();
+		ArrayList<QuestLocation> list = new ArrayList<QuestLocation>();
 		ArrayList<QuestLocation> locations = quest.getLocations();
 		if (locations != null) {
 			list.addAll(locations);
@@ -456,7 +456,7 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 	}
 	
 	private ArrayList<String> getSeasonStrings() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
 		for(GameObject go:pool.find("season")) {
 			list.add(go.getName());
@@ -486,7 +486,7 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 	}
 	
 	private static ArrayList<String> getTeleportTypes() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		ArrayList<String> teleportTypes = new ArrayList<String>();
 		for (TeleportType type : TeleportType.values()) {
 			list.add(type.toString());

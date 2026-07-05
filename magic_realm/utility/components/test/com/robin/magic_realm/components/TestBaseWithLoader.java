@@ -34,7 +34,7 @@ public abstract class TestBaseWithLoader {
 	@Before
 	public void setUp() {
 		loader = new RealmLoader();
-		ArrayList<String> keyVals = new ArrayList<>();
+		ArrayList<String> keyVals = new ArrayList<String>();
 		keyVals.add("original_game");
 		loader.getData().doSetup("standard_game",keyVals);
 		hostPrefs = HostPrefWrapper.createDefaultHostPrefs(loader.getData());

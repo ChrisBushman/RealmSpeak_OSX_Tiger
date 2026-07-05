@@ -57,7 +57,7 @@ public class MoveActivator {
 	 * Takes a collection of BattleChits, and returns only the flyers.
 	 */
 	private Collection<RealmComponent> filterFlyers(Collection<RealmComponent> in) {
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		for (RealmComponent rc : in) {
 			RealmComponent target = rc.getTarget();
 			if (target!=null && target.equals(activeParticipant)) {
@@ -169,7 +169,7 @@ public class MoveActivator {
 		TileLocation currentCombatLocation = battleModel.getBattleLocation();
 		//Remove flying chits if affected by Violent Winds
 		if (currentCombatLocation.clearing.isAffectedByViolentWinds()) {
-			Collection<RealmComponent> nonFlyingOptions = new ArrayList<>();
+			Collection<RealmComponent> nonFlyingOptions = new ArrayList<RealmComponent>();
 			for (RealmComponent option : moveSpeedOptions) {	
 				if (!option.isFlyChit()) {
 					nonFlyingOptions.add(option);
@@ -217,7 +217,7 @@ public class MoveActivator {
 				// Check for a horse in the move options.  If there is one, that's the ONLY option!
 				for (RealmComponent rc : moveSpeedOptions) {
 					if (rc.isHorse()) {
-						moveSpeedOptions = new ArrayList<>();
+						moveSpeedOptions = new ArrayList<RealmComponent>();
 						moveSpeedOptions.add(rc);
 						break;
 					}
@@ -254,7 +254,7 @@ public class MoveActivator {
 				if (fly!=null) {
 					// Flying away?  Make some adjustments here...
 					fastest = fastestFlyer;
-					attackers = new ArrayList<>(filterFlyers(attackers));
+					attackers = new ArrayList<RealmComponent>(filterFlyers(attackers));
 				}
 					
 				if (checkStumble && !fastest.isInfinitelySlow() && hostPrefs.hasPref(Constants.OPT_STUMBLE)) {

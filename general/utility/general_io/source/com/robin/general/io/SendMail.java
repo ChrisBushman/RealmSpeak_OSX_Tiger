@@ -148,7 +148,7 @@ public class SendMail {
 		}
 	}
 	private static String[] addRecipient(String[] recipients,String newRecipient) {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		if (recipients!=null && recipients.length>0) {
 			list.addAll(Arrays.asList(recipients));
 		}
@@ -238,7 +238,7 @@ public class SendMail {
 			attachmentBodyPart.setFileName(attachmentFilePath.substring(lastSeparator + 1));
 		}
 		if (bodyParts == null) {
-			bodyParts = new ArrayList<>();
+			bodyParts = new ArrayList<MimeBodyPart>();
 		}
 		bodyParts.add(attachmentBodyPart);
 		return true;
@@ -262,7 +262,7 @@ public class SendMail {
 		attachmentBodyPart.setDisposition("attachment");
 		attachmentBodyPart.setFileName(attachmentFileName);
 		if (bodyParts == null) {
-			bodyParts = new ArrayList<>();
+			bodyParts = new ArrayList<MimeBodyPart>();
 		}
 		bodyParts.add(attachmentBodyPart);
 		return true;

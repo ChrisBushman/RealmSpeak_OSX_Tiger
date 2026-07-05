@@ -2,9 +2,6 @@ package com.robin.magic_realm.components.utility;
 
 import java.io.*;
 import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
 import javax.swing.*;
 
 import com.robin.game.objects.*;
@@ -44,13 +41,15 @@ public class SpellUtility {
 	}
 	
 	public static void repair(CharacterWrapper character){
-		character.getInventory().stream()
-			.map(obj -> obj)
-			.map(go -> RealmComponent.getRealmComponent(go))
-			.filter(rc -> rc.isArmor())
-			.map(rc -> (ArmorChitComponent)rc)
-			.filter(armor -> armor.isDamaged())
-			.forEach(armor -> armor.setIntact(true));
+		for (GameObject obj : character.getInventory()) {
+			RealmComponent rc = RealmComponent.getRealmComponent(obj);
+			if (rc.isArmor()) {
+				ArmorChitComponent armor = (ArmorChitComponent) rc;
+				if (armor.isDamaged()) {
+					armor.setIntact(true);
+				}
+			}
+		}
 	}
 	
 	public static ArrayList<SpellWrapper> getBewitchingSpells(GameObject go) {
@@ -59,7 +58,7 @@ public class SpellUtility {
 	}
 	
 	public static ArrayList<SpellWrapper>getBewitchingSpellsWithKey(GameObject target, String key){
-		ArrayList<SpellWrapper>result = new ArrayList<>();
+		ArrayList<SpellWrapper>result = new ArrayList<SpellWrapper>();
 		for(SpellWrapper spell:getBewitchingSpells(target)){
 			if(spell.isActive() && spell.getGameObject().hasThisAttribute(key)){
 				result.add(spell);
@@ -101,7 +100,7 @@ public class SpellUtility {
 			JOptionPane.showMessageDialog(frame,"The "+character.getGameObject().getName()+" teleports to "+chosen,reason,JOptionPane.INFORMATION_MESSAGE);
 		}
 		else if (teleportType==TeleportType.Location) {
-			ArrayList<ClearingDetail> clearings = new ArrayList<>();
+			ArrayList<ClearingDetail> clearings = new ArrayList<ClearingDetail>();
 			GamePool pool = new GamePool(character.getGameData().getGameObjects());
 			ArrayList<GameObject> destinations = pool.find("name="+location);
 			for (GameObject destination : destinations) {
@@ -166,14 +165,14 @@ public class SpellUtility {
 			CenteredMapView.getSingleton().centerOn(chosen);
 		}
 
-		// Followers should stay behind!		
-		character.getFollowingHirelings().stream()
-			.peek(h -> ClearingUtility.moveToLocation(h.getGameObject(), planned))
-			.filter(h -> h.getGameObject().hasThisAttribute(Constants.CAPTURE))
-			.forEach(h -> {
+		// Followers should stay behind!
+		for (RealmComponent h : character.getFollowingHirelings()) {
+			ClearingUtility.moveToLocation(h.getGameObject(), planned);
+			if (h.getGameObject().hasThisAttribute(Constants.CAPTURE)) {
 				character.removeHireling(h.getGameObject());
 				RealmLogging.logMessage(character.getGameObject().getName(),"The "+h.getGameObject().getName()+" escaped!");
-			});
+			}
+		}
 		
 		//CJM -- leaving this for a moment in case I break something 
 //		for (Iterator i=character.getFollowingHirelings().iterator();i.hasNext();) {
@@ -208,12 +207,14 @@ public class SpellUtility {
 	
 	private static ArrayList<GateChitComponent> findKnownGatesForCharacter(CharacterWrapper character) {
 		GameData gameData = character.getGameObject().getGameData();
-		ArrayList<GateChitComponent> knownGates = new ArrayList<>();
+		ArrayList<GateChitComponent> knownGates = new ArrayList<GateChitComponent>();
 		
-		character.getOtherChitDiscoveries().stream()
-			.map(d -> RealmComponent.getRealmComponent(gameData.getGameObjectByName(d)))
-			.filter(rc -> rc.isGate())
-			.forEach(rc -> knownGates.add((GateChitComponent)rc));
+		for (String d : character.getOtherChitDiscoveries()) {
+			RealmComponent rc = RealmComponent.getRealmComponent(gameData.getGameObjectByName(d));
+			if (rc.isGate()) {
+				knownGates.add((GateChitComponent) rc);
+			}
+		}
 
 		//CJM -- leaving this for a moment in case I break something 
 //		ArrayList list = character.getOtherChitDiscoveries();
@@ -287,7 +288,7 @@ the Appearance Chart, he instantly becomes unhired.
 		RealmLogging.logMessage(caster.getName(),monsterTable.getTableName(true)+" result: "+result);
 		ArrayList<String> list = spell.getGameObject().getThisAttributeList("created");
 		if (list==null) {
-			list = new ArrayList<>();
+			list = new ArrayList<String>();
 		}
 		for(GameObject go:monsterTable.getMonsterCreator().getMonstersCreated()) {
 			list.add(go.getStringId());
@@ -297,7 +298,7 @@ the Appearance Chart, he instantly becomes unhired.
 	
 	public static ArrayList<GameObject> getCreatedCompanions(SpellWrapper spell) {
 		GameData gameData = spell.getGameObject().getGameData();
-		ArrayList<GameObject> created = new ArrayList<>();
+		ArrayList<GameObject> created = new ArrayList<GameObject>();
 		ArrayList<String> list = spell.getGameObject().getThisAttributeList("created");
 		if (list!=null) {
 			for(String id : list) {
@@ -324,7 +325,7 @@ the Appearance Chart, he instantly becomes unhired.
 		return getSpells(spellLocation,awakened,excludeAsteriskType,false).size();
 	}
 	public static ArrayList<GameObject> getSpells(GameObject spellLocation,Boolean awakened,boolean excludeAsteriskType,boolean ignoreEnchanted) {
-		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
 		
 		RealmComponent sl = RealmComponent.getRealmComponent(spellLocation);
 		if (ignoreEnchanted || !sl.isEnchanted()) { // enchanted artifacts/books cannot have active spells!
@@ -357,7 +358,7 @@ the Appearance Chart, he instantly becomes unhired.
 	}
 	
 	public static ArrayList<ColorMagic> getSourcesOfColor(RealmComponent test) {
-		ArrayList<ColorMagic> colors = new ArrayList<>();
+		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
 		ArrayList<RealmComponent> seen = ClearingUtility.dissolveIntoSeenStuff(test);
 		for (RealmComponent rc : seen) {
 			String colorName = getColorSourceName(rc);
@@ -480,37 +481,48 @@ the Appearance Chart, he instantly becomes unhired.
 	}
 
 	public static boolean targetsAreBeingAttackedByHirelings(ArrayList<GameObject>attackers, GameObject caster) {
-		boolean result = attackers.stream()
-			.map(atk -> RealmComponent.getRealmComponent(atk))
-			.filter(rc -> !rc.getGameObject().equals(caster)) //all but caster
-			.map(rc -> rc.getOwner())
-			.anyMatch(owner -> owner != null && owner.getGameObject().equals(caster)); //owned by caster
-		
-		return result;
+		for (GameObject atk : attackers) {
+			RealmComponent rc = RealmComponent.getRealmComponent(atk);
+			if (!rc.getGameObject().equals(caster)) {
+				RealmComponent owner = rc.getOwner();
+				if (owner != null && owner.getGameObject().equals(caster)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	
-	public static Optional<GameObject> findNativeFromTheseGroups(ArrayList<String>groups, Predicate<GameObject>predicate, GameWrapper game){
-		ArrayList<String>lowerCaseGroups = groups.stream()
-				.map(g -> g.toLowerCase())
-				.collect(Collectors.toCollection(ArrayList::new));
-		
-		return game.getGameData().getGameObjects().stream()
-		.filter(go -> go.hasThisAttribute("native"))
-		.filter(go -> go.hasThisAttribute("denizen"))
-		.filter(go -> lowerCaseGroups.contains(go.getThisAttribute("native").toLowerCase()))
-		.filter(predicate)
-		.sorted(new NativeHireOrder())
-		.findFirst();
+	public static GameObject findNativeFromTheseGroups(ArrayList<String> groups, GameObjectFilter filter, GameWrapper game) {
+		ArrayList<String> lowerCaseGroups = new ArrayList<String>();
+		for (String g : groups) {
+			lowerCaseGroups.add(g.toLowerCase());
+		}
+		ArrayList<GameObject> candidates = new ArrayList<GameObject>();
+		for (GameObject go : game.getGameData().getGameObjects()) {
+			if (go.hasThisAttribute("native") && go.hasThisAttribute("denizen")
+					&& lowerCaseGroups.contains(go.getThisAttribute("native").toLowerCase())
+					&& filter.test(go)) {
+				candidates.add(go);
+			}
+		}
+		if (candidates.isEmpty()) return null;
+		Collections.sort(candidates, new NativeHireOrder());
+		return candidates.get(0);
 	}
-	
-	public static Optional<GameObject> findNativeFromTheseGroups(String group, Predicate<GameObject>predicate, GameWrapper game){
-		return game.getGameData().getGameObjects().stream()
-		.filter(go -> go.hasThisAttribute("native"))
-		.filter(go -> go.hasThisAttribute("denizen"))
-		.filter(go -> go.getThisAttribute("native").toLowerCase().equals(group.toLowerCase()))
-		.filter(predicate)
-		.sorted(new NativeHireOrder())
-		.findFirst();	
+
+	public static GameObject findNativeFromTheseGroups(String group, GameObjectFilter filter, GameWrapper game) {
+		ArrayList<GameObject> candidates = new ArrayList<GameObject>();
+		for (GameObject go : game.getGameData().getGameObjects()) {
+			if (go.hasThisAttribute("native") && go.hasThisAttribute("denizen")
+					&& go.getThisAttribute("native").toLowerCase().equals(group.toLowerCase())
+					&& filter.test(go)) {
+				candidates.add(go);
+			}
+		}
+		if (candidates.isEmpty()) return null;
+		Collections.sort(candidates, new NativeHireOrder());
+		return candidates.get(0);
 	}
 		
 	public static void bringSummonToClearing(CharacterWrapper character, GameObject summon, SpellWrapper spell, ArrayList<GameObject>createdMonsters){
@@ -525,7 +537,7 @@ the Appearance Chart, he instantly becomes unhired.
 		
 		ArrayList<String> list = spell.getGameObject().getThisAttributeList("created");
 		if (list==null) {
-			list = new ArrayList<>();
+			list = new ArrayList<String>();
 		}
 		
 		if(createdMonsters == null){

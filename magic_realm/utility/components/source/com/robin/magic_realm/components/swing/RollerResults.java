@@ -31,7 +31,7 @@ public class RollerResults extends JPanel {
 	 * @param in		Collection of RollerResult objects
 	 */
 	public void setBattleRolls(ArrayList<RollerResult> in) {
-		battleRolls = new ArrayList<>(in);
+		battleRolls = new ArrayList<RollerResult>(in);
 		ComponentTools.lockComponentSize(this,Constants.COMBAT_SIDEBAR_WIDTH,battleRolls.size()*ROLLER_OFFSET);
 		repaint();
 	}

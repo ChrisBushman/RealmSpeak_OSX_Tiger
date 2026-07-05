@@ -81,7 +81,7 @@ public class RealmSpeakInit {
 		}
 		
 		// Handle all pre-setup initialization
-		appendNames = new ArrayList<>();
+		appendNames = new ArrayList<String>();
 		if (hostPrefs.getAlternativeTilesEnabled()) {
 			enableAlternativeTilesInLoader(loader);
 		}
@@ -176,7 +176,7 @@ public class RealmSpeakInit {
 	}
 	private void cleanupTiles() {
 		ArrayList<GameObject> tiles = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
-		ArrayList<GameObject> unused = new ArrayList<>();
+		ArrayList<GameObject> unused = new ArrayList<GameObject>();
 		for(GameObject tile:tiles) {
 			if (tile.getHoldCount()==0) {
 				unused.add(tile);
@@ -270,7 +270,7 @@ public class RealmSpeakInit {
 		}
 		
 		// Expand the setup to accommodate the new tiles
-		ArrayList<String> tiedPools = new ArrayList<>();
+		ArrayList<String> tiedPools = new ArrayList<String>();
 		tiedPools.add("SPELL_I");
 		tiedPools.add("SPELL_II");
 		tiedPools.add("SPELL_III");
@@ -373,7 +373,7 @@ public class RealmSpeakInit {
 	}
 	private void markItemStartingLocations() {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add("item");
 		query.add(hostPrefs.getGameKeyVals());
 		for(GameObject item:pool.find(query)) {
@@ -549,7 +549,7 @@ public class RealmSpeakInit {
 	}
 	private void doItemSpellCasting() {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.addAll(GamePool.makeKeyVals(hostPrefs.getGameKeyVals()));
 		query.add(Constants.CAST_SPELL_ON_INIT);
 		Collection<GameObject> needsSpellInit = pool.find(query);

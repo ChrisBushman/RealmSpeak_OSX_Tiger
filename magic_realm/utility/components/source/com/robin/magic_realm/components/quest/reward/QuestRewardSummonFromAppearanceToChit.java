@@ -43,15 +43,15 @@ public class QuestRewardSummonFromAppearanceToChit extends QuestReward {
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
 		int summonedDenizens = 0;
-		ArrayList<GameObject> summonedDenizenHolders = new ArrayList<>();
-		ArrayList<TileLocation> allQuestLocations = new ArrayList<>();
+		ArrayList<GameObject> summonedDenizenHolders = new ArrayList<GameObject>();
+		ArrayList<TileLocation> allQuestLocations = new ArrayList<TileLocation>();
 		if (toLocation()) {
 			QuestLocation loc = getQuestLocation();
 			if (loc == null) return;
 			allQuestLocations = loc.fetchAllLocations(character.getGameData());
 		}
 		
-		ArrayList<GameObject> validChits = new ArrayList<>();
+		ArrayList<GameObject> validChits = new ArrayList<GameObject>();
 		if (!getChit().isEmpty()) {
 			ArrayList<GameObject> chits = character.getGameData().getGameObjectsByNameRegex(getChit());
 			for (GameObject chit : chits) {
@@ -118,7 +118,7 @@ public class QuestRewardSummonFromAppearanceToChit extends QuestReward {
 			}
 			else {
 				GamePool pool = new GamePool(getGameData().getGameObjects());
-				ArrayList<String> query = new ArrayList<>();
+				ArrayList<String> query = new ArrayList<String>();
 				query.add("warning");
 				validChits.addAll(pool.find(query));
 				query.clear();
@@ -133,7 +133,7 @@ public class QuestRewardSummonFromAppearanceToChit extends QuestReward {
 			}
 		}
 
-		ArrayList<GameObject> validDenizens = new ArrayList<>();
+		ArrayList<GameObject> validDenizens = new ArrayList<GameObject>();
 		if (!getDenizenName().isEmpty()) {
 			ArrayList<GameObject> possibleDenizens = character.getGameData().getGameObjectsByNameRegex(getDenizenName());
 			for (GameObject denizen : possibleDenizens) {
@@ -144,7 +144,7 @@ public class QuestRewardSummonFromAppearanceToChit extends QuestReward {
 		}
 		else {
 			GamePool pool = new GamePool(getGameData().getGameObjects());
-			ArrayList<String> query = new ArrayList<>();
+			ArrayList<String> query = new ArrayList<String>();
 			query.add("vulnerability");
 			query.add("setup_start");
 			validDenizens.addAll(pool.find(query));

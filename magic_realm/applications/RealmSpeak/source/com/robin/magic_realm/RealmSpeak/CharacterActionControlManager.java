@@ -505,7 +505,7 @@ public class CharacterActionControlManager {
 		// cap better NOT be null here!
 		cap.scrollActionTableToVisible();
 		
-		ArrayList<String> actions = new ArrayList<>();
+		ArrayList<String> actions = new ArrayList<String>();
 		Collection<String> c = getCharacter().getCurrentActions();
 		if (c!=null && !c.isEmpty()) {
 			actions.addAll(c);
@@ -529,12 +529,12 @@ public class CharacterActionControlManager {
 			if (getCharacter().getClearingPlot()==null) {
 				getCharacter().rebuildClearingPlot();
 			}
-			getGameHandler().getInspector().getMap().setClearingPlot(new ArrayList<>(getCharacter().getClearingPlot()));
+			getGameHandler().getInspector().getMap().setClearingPlot(new ArrayList<TileLocation>(getCharacter().getClearingPlot()));
 		}
 		getCharacter().setCurrentActions(actions);
 		
 		// Don't forget to delete the actionTypeCode entry
-		ArrayList<String> actionTypeCodes = new ArrayList<>();
+		ArrayList<String> actionTypeCodes = new ArrayList<String>();
 		c = getCharacter().getCurrentActionTypeCodes();
 		if (c!=null && !c.isEmpty()) {
 			actionTypeCodes.addAll(c);
@@ -543,7 +543,7 @@ public class CharacterActionControlManager {
 		getCharacter().setCurrentActionTypeCodes(actionTypeCodes);
 		
 		// And the valids (aigh)
-		ArrayList<String> valids = new ArrayList<>();
+		ArrayList<String> valids = new ArrayList<String>();
 		c = getCharacter().getCurrentActionValids();
 		if (c!=null && !c.isEmpty()) {
 			valids.addAll(c);
@@ -603,7 +603,7 @@ public class CharacterActionControlManager {
 	}
 	private void recordFollowAction() {
 		// Find all characters that are not this character in the clearing (no clearing validation needed here)
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		TileLocation current = getCharacter().getCurrentLocation(); // since FOLLOW must the first and only action, current is good
 		for (RealmComponent rc : current.clearing.getClearingComponents()) {
 			// Someone, that isn't yourself
@@ -709,7 +709,7 @@ public class CharacterActionControlManager {
 			else if (flyingActivity) {
 				getGameHandler().getInspector().getMap().markAllClearings(false);
 				Collection<TileComponent> adjTiles = tl.tile.getAllAdjacentTiles();
-				ArrayList<TileComponent> tiles = new ArrayList<>();
+				ArrayList<TileComponent> tiles = new ArrayList<TileComponent>();
 				tiles.add(tl.tile);
 				tiles.addAll(adjTiles);
 				for (TileComponent tile : tiles) {
@@ -794,10 +794,10 @@ public class CharacterActionControlManager {
 		Collection<String> c = getCharacter().getCurrentActions();
 		if (c==null || c.isEmpty()) {
 			// Recording the first action?  Reset the clearingPlot.
-			ArrayList<TileLocation> plot = new ArrayList<>();
+			ArrayList<TileLocation> plot = new ArrayList<TileLocation>();
 			plot.add(getCharacter().getCurrentLocation()); // start the plot off with the current location
 			getCharacter().setClearingPlot(plot);
-			c = new ArrayList<>();
+			c = new ArrayList<String>();
 		}
 		if (action.equals(DayAction.SPELL_ACTION.getCode()) && !c.contains(DayAction.SPELL_PREP_ACTION.getCode())) {
 			boolean canSkipSpellPrep = getCharacter().getGameObject().hasAttribute(Constants.OPTIONAL_BLOCK,Constants.NO_SPX)

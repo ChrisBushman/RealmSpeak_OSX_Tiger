@@ -48,7 +48,7 @@ public class QuestRewardTreasureFromSite extends QuestReward {
 		}
 		
 		ArrayList<GameObject> hold = selected.getHold();
-		ArrayList<GameObject> treasures = new ArrayList<>();
+		ArrayList<GameObject> treasures = new ArrayList<GameObject>();
 		for(GameObject o:hold) {
 			RealmComponent rc = RealmComponent.getRealmComponent(o);
 			if (rc.isTreasure()) {

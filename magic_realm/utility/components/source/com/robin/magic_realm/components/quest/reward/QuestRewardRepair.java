@@ -21,14 +21,13 @@ public class QuestRewardRepair extends QuestReward {
 	public void processReward(JFrame frame,CharacterWrapper character) {
 		if (!getRegex().isEmpty()) {
 			Pattern pattern = Pattern.compile(getRegex());
-			character.getInventory().stream()
-			.map(obj -> obj)
-			.filter(go -> pattern.matcher(go.getName()).find())
-			.map(go -> RealmComponent.getRealmComponent(go))
-			.filter(rc -> rc.isArmor())
-			.map(rc -> (ArmorChitComponent)rc)
-			.filter(armor -> armor.isDamaged())
-			.forEach(armor -> armor.setIntact(true));
+			for (GameObject obj : character.getInventory()) {
+				if (!pattern.matcher(obj.getName()).find()) continue;
+				RealmComponent rc = RealmComponent.getRealmComponent(obj);
+				if (!rc.isArmor()) continue;
+				ArmorChitComponent armor = (ArmorChitComponent) rc;
+				if (armor.isDamaged()) armor.setIntact(true);
+			}
 		}
 		else {
 			SpellUtility.repair(character);

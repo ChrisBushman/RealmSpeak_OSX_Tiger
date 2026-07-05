@@ -21,15 +21,15 @@ public class CustomCharacterLibrary {
 	private Hashtable<String,GameObject> customCharacterHash;
 	private Hashtable<String,ImageIcon> customCharacterImageHash;
 	private CustomCharacterLibrary() {
-		customCharacterHash = new Hashtable<>();
-		customCharacterImageHash = new Hashtable<>();
+		customCharacterHash = new Hashtable<String,GameObject>();
+		customCharacterImageHash = new Hashtable<String,ImageIcon>();
 	}
 	public void addCustomCharacterTemplate(GameObject character,ImageIcon detailImage) {
 		customCharacterHash.put(character.getName(),character);
 		customCharacterImageHash.put(character.getName(),detailImage);
 	}
 	public ArrayList<String> getCharacterTemplateNameList() {
-		return new ArrayList<>(customCharacterHash.keySet());
+		return new ArrayList<String>(customCharacterHash.keySet());
 	}
 	public GameObject getCharacterTemplate(String name) {
 		return customCharacterHash.get(name);
@@ -49,7 +49,7 @@ public class CustomCharacterLibrary {
 		return null;
 	}
 	public ArrayList<GameObject> getCharacterTemplateList() {
-		return new ArrayList<>(customCharacterHash.values());
+		return new ArrayList<GameObject>(customCharacterHash.values());
 	}
 	public ImageIcon getCharacterImage(String name) {
 		return customCharacterImageHash.get(name);
@@ -70,7 +70,7 @@ public class CustomCharacterLibrary {
 		return pool.find("companion");
 	}
 	private ArrayList<String> getAllUniqueKeys() {
-		ArrayList<String> list =  new ArrayList<>();
+		ArrayList<String> list =  new ArrayList<String>();
 		for (String name:getCharacterTemplateNameList()) {
 			list.add(getCharacterUniqueKey(name));
 		}
@@ -78,7 +78,7 @@ public class CustomCharacterLibrary {
 	}
 	public ArrayList<String> getMissingCharacterNames(ArrayList<String> expectedList) {
 		ArrayList<String> allUniqueKeys = getAllUniqueKeys();
-		ArrayList<String> list =  new ArrayList<>();
+		ArrayList<String> list =  new ArrayList<String>();
 		for (String val:expectedList) {
 			if (!allUniqueKeys.contains(val)) {
 				int col = val.lastIndexOf(':');

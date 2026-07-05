@@ -61,18 +61,18 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 
 	public RealmComponentOptionChooser(JFrame parent, String title,boolean includeCancel) {
 		super(parent, "", true);
-		textHash = new OrderedHashtable<>();
-		componentHashLists = new HashLists<>();
-		iconHashLists= new HashLists<>();
+		textHash = new OrderedHashtable<String, String>();
+		componentHashLists = new HashLists<String, ArrayList<RealmComponent>>();
+		iconHashLists= new HashLists<Object, ImageIcon>();
 		initComponents(title,includeCancel);
 		updateLayout();
 	}
 	
 	public RealmComponentOptionChooser(JFrame parent, String title,String cancelButton) {
 		super(parent, "", true);
-		textHash = new OrderedHashtable<>();
-		componentHashLists = new HashLists<>();
-		iconHashLists= new HashLists<>();
+		textHash = new OrderedHashtable<String, String>();
+		componentHashLists = new HashLists<String, ArrayList<RealmComponent>>();
+		iconHashLists= new HashLists<Object, ImageIcon>();
 		initComponents(title,true,cancelButton);
 		updateLayout();
 	}
@@ -298,10 +298,10 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 
 	private void updateLayout() {
 		ArrayList<String> group = null;
-		ArrayList<ArrayList<String>> send = new ArrayList<>();
+		ArrayList<ArrayList<String>> send = new ArrayList<ArrayList<String>>();
 		for (String key : textHash.keySet()) {
 			if (group==null) {
-				group = new ArrayList<>();
+				group = new ArrayList<String>();
 				send.add(group);
 			}
 			group.add(key);
@@ -523,7 +523,7 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 			}
 		});
 		
-		ArrayList<RealmComponent> testList = new ArrayList<>();
+		ArrayList<RealmComponent> testList = new ArrayList<RealmComponent>();
 		testList.add(RealmComponent.getRealmComponent(loader.getData().getGameObjectByName("Bashkar 1")));
 		testList.add(RealmComponent.getRealmComponent(loader.getData().getGameObjectByName("Bashkar 2")));
 		testList.add(RealmComponent.getRealmComponent(loader.getData().getGameObjectByName("Bashkar 3")));

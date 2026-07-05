@@ -181,7 +181,7 @@ public class SuggestionTextArea extends JTextArea {
 	}
 	
 	public static void main(String[] args) {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		// list.add("DragonsLair");
 		// list.add("UndeadTown");
 		// list.add("DraconicTemple");

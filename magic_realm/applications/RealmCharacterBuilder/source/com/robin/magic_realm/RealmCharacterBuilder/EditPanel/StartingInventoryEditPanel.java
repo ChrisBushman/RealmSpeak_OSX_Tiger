@@ -124,7 +124,7 @@ public class StartingInventoryEditPanel extends AdvantageEditPanel {
 		}
 	}
 	private void pickTreasure() {
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add("treasure");
 		query.add("!treasure_within_treasure");
 		query.add("!book");
@@ -137,7 +137,7 @@ public class StartingInventoryEditPanel extends AdvantageEditPanel {
 		}
 	}
 	private void pickHorse() {
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add("horse");
 		GameObject go = pickGameObject(query,"Choose a Horse:");
 		if (go!=null) {
@@ -145,7 +145,7 @@ public class StartingInventoryEditPanel extends AdvantageEditPanel {
 		}
 	}
 	private void pickWeapon() {
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add("weapon");
 		query.add("!treasure");
 		GameObject go = pickGameObject(query,"Choose a Weapon:");
@@ -156,7 +156,7 @@ public class StartingInventoryEditPanel extends AdvantageEditPanel {
 	private GameObject pickGameObject(ArrayList<String> query,String title) {
 		GamePool pool = new GamePool(magicRealmData.getGameObjects());
 		ArrayList<GameObject> list = pool.find(query);
-		ArrayList<GameObject> remove = new ArrayList<>();
+		ArrayList<GameObject> remove = new ArrayList<GameObject>();
 		for(GameObject go:list) {
 			if (go.getHoldCount()>0) {
 				remove.add(go);
@@ -170,8 +170,8 @@ public class StartingInventoryEditPanel extends AdvantageEditPanel {
 		list.removeAll(remove);
 		
 		//filter duplicates
-		ArrayList<GameObject> listFiltered = new ArrayList<>();
-		ArrayList<String> names = new ArrayList<>();
+		ArrayList<GameObject> listFiltered = new ArrayList<GameObject>();
+		ArrayList<String> names = new ArrayList<String>();
 		for (GameObject go:list) {
 			if (!names.contains(go.getName())) {
 				listFiltered.add(go);

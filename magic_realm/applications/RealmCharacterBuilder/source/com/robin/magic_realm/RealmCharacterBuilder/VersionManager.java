@@ -47,7 +47,7 @@ public class VersionManager {
 				//	- extra_actions changes from a string attribute, to an attributeList
 				if (extraActions!=null) {
 					extraActions = extraActions.replace("SP", "E");
-					ArrayList<String> list = new ArrayList<>();
+					ArrayList<String> list = new ArrayList<String>();
 					list.add(extraActions);
 					character.setAttributeList(levelKey,Constants.EXTRA_ACTIONS,list);
 				}
@@ -55,7 +55,7 @@ public class VersionManager {
 				// - translate demon_immunity into the more generic monster_immunity
 				if (character.hasAttribute(levelKey,"demon_immunity")) {
 					character.removeAttribute(levelKey,"demon_immunity");
-					ArrayList<String> demons = new ArrayList<>();
+					ArrayList<String> demons = new ArrayList<String>();
 					demons.add("Demon");
 					demons.add("Flying Demon");
 					demons.add("Imp");
@@ -98,7 +98,7 @@ public class VersionManager {
 			for (int i=1;i<=4;i++) {
 				String levelKey = "level_"+i;
 				if (character.hasAttribute(levelKey,"monster_immunity")) {
-					ArrayList<String> monsters = new ArrayList<>(character.getAttributeList(levelKey,"monster_immunity"));
+					ArrayList<String> monsters = new ArrayList<String>(character.getAttributeList(levelKey,"monster_immunity"));
 					if (monsters.contains("Flying Demon")) {
 						monsters.remove("Flying Demon");
 						monsters.add("Winged Demon");

@@ -46,7 +46,7 @@ public class QuestRequirementInventory extends QuestRequirementLoot {
 		}
 		int n = getNumber();
 		int found = matches.size();
-		ArrayList<GameObject> validMatches = new ArrayList<>();
+		ArrayList<GameObject> validMatches = new ArrayList<GameObject>();
 		if (found>=n) {
 			for(GameObject match:matches) {
 					if (reqActive && !match.hasThisAttribute(Constants.ACTIVATED)) {

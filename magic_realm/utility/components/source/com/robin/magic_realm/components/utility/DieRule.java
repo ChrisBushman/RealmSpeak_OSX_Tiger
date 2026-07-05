@@ -113,7 +113,7 @@ public class DieRule {
 		return false;
 	}
 	private static ArrayList<String> makeList(String input) {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		StringTokenizer tokens = new StringTokenizer(input,",");
 		while(tokens.hasMoreTokens()) {
 			list.add(tokens.nextToken());

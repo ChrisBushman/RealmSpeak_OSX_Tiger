@@ -55,7 +55,7 @@ public class Badge extends JLabel {
 		return "badges/"+iconName;
 	}
 	
-	private static Hashtable<String,Badge> cached = new Hashtable<>();
+	private static Hashtable<String,Badge> cached = new Hashtable<String,Badge>();
 	public static Badge getBadge(CharacterWrapper character,String advantage) {
 		String key = character.getGameObject().getStringId()+advantage;
 		Badge badge = cached.get(key);

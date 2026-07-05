@@ -37,7 +37,7 @@ public class DevilsSpell extends RealmTable {
 		super(frame,null);
 		this.caster = caster;
 		this.speed = attackSpeed;
-		kills = new ArrayList<>();
+		kills = new ArrayList<GameObject>();
 	}
 	public boolean harmWasApplied() {
 		return kills.size()>0 || harm;

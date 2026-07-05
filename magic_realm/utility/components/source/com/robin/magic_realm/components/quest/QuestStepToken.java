@@ -54,7 +54,7 @@ public class QuestStepToken {
 		this.selected = selected;
 	}
 	public boolean allRequiredPresent(ArrayList<QuestStepToken> tokens) {
-		ArrayList<String> all = new ArrayList<>();
+		ArrayList<String> all = new ArrayList<String>();
 		ArrayList<String> required = step.getRequiredSteps();
 		ArrayList<String> onfail = step.getFailSteps();
 		if (required!=null) all.addAll(required);

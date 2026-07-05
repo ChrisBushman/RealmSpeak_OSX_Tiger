@@ -1,8 +1,6 @@
 package com.robin.magic_realm.components.effect;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import com.robin.general.util.RandomNumber;
 import com.robin.magic_realm.components.MonsterChitComponent;
@@ -68,10 +66,8 @@ public class DuelEffect implements ISpellEffect {
 			if (combat0.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_ATTACK) && combat0.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_DEFENSE)) {
 				ArrayList<String> boxesA = combat0.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
 				ArrayList<String> boxesD = combat0.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
-				List<String> result = boxesA.stream()
-						  .distinct()
-						  .filter(boxesD::contains)
-						  .collect(Collectors.toList());
+				ArrayList<String> result = new ArrayList<String>();
+				for (String b : boxesA) { if (boxesD.contains(b) && !result.contains(b)) result.add(b); }
 				String box = result.get(RandomNumber.getRandom(result.size()));
 				combat0.setCombatBoxAttack(Integer.parseInt(box));
 				combat0.setCombatBoxDefense(Integer.parseInt(box));
@@ -84,10 +80,8 @@ public class DuelEffect implements ISpellEffect {
 			if (combat1.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_ATTACK) && combat1.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_DEFENSE)) {
 				ArrayList<String> boxesA = combat1.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
 				ArrayList<String> boxesD = combat1.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
-				List<String> result = boxesA.stream()
-						  .distinct()
-						  .filter(boxesD::contains)
-						  .collect(Collectors.toList());
+				ArrayList<String> result = new ArrayList<String>();
+				for (String b : boxesA) { if (boxesD.contains(b) && !result.contains(b)) result.add(b); }
 				String box = result.get(RandomNumber.getRandom(result.size()));
 				combat1.setCombatBoxAttack(Integer.parseInt(box));
 				combat1.setCombatBoxDefense(Integer.parseInt(box));

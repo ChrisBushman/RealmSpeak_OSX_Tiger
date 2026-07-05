@@ -804,7 +804,7 @@ public class HostGameSetupDialog extends AggressiveDialog {
 			minMapRating.setPaintTicks(true);
 			minMapRating.setPaintLabels(true);
 			minMapRating.setOrientation(SwingConstants.VERTICAL);
-			Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
+			Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
 			labelTable.put( 0, new JLabel("0 - Any (Fast)  ") );
 			labelTable.put( 1, new JLabel("1") );
 			labelTable.put( 2, new JLabel("2") );
@@ -951,7 +951,7 @@ public class HostGameSetupDialog extends AggressiveDialog {
 			box.add(Box.createHorizontalGlue());
 		gamePlayBox.add(box);
 			box = group.createLabelLine("Optional Season");
-				ArrayList seasons = new ArrayList<>(RealmCalendar.findSeasons(gameData));
+				ArrayList seasons = new ArrayList(RealmCalendar.findSeasons(gameData));
 				seasons.add(1,RealmCalendar.RANDOM_SEASON);
 				seasons.add(2,RealmCalendar.UNPREDICTABLE_SEASON);
 				startingSeason = notifier.getComboBox(seasons.toArray());
@@ -1585,7 +1585,7 @@ public class HostGameSetupDialog extends AggressiveDialog {
 			return;
 		}
 		
-		ArrayList<String> recipients = new ArrayList<>();
+		ArrayList<String> recipients = new ArrayList<String>();
 		recipients.add(address);
 		String error = RealmMail.sendMail(smtp,address,recipients,gameTitle.getText(),"Test","This is a test of the e-mail notification setup within RealmSpeak.  If you receieved this e-mail by mistake, please ignore it.");
 		if (error!=null) {

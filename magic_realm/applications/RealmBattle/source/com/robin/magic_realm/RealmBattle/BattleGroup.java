@@ -28,7 +28,7 @@ public class BattleGroup implements Comparable {
 	 */
 	public BattleGroup(RealmComponent owningCharacter) {
 		this.owningCharacter = owningCharacter;
-		this.battleParticipants = new ArrayList<>();
+		this.battleParticipants = new ArrayList<RealmComponent>();
 	}
 	public String toString() {
 		return "BattleGroup:"+owningCharacter+":"+battleParticipants.size();
@@ -48,7 +48,7 @@ public class BattleGroup implements Comparable {
 		}
 	}
 	public ArrayList<RealmComponent> getHirelings() {
-		ArrayList<RealmComponent> ret = new ArrayList<>();
+		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
 		ret.addAll(battleParticipants);
 		if (owningCharacter!=null) {
 			ret.remove(owningCharacter);
@@ -186,7 +186,7 @@ public class BattleGroup implements Comparable {
 		}
 		
 		// Character not found/unhidden?  Find all unhidden hirelings, and query character
-		ArrayList<RealmComponent> unhiddenHirelings = new ArrayList<>();
+		ArrayList<RealmComponent> unhiddenHirelings = new ArrayList<RealmComponent>();
 		for (RealmComponent bp : getBattleParticipants()) {
 			if (!bp.isCharacter() && !bp.isHidden()) {
 				// Make sure the hireling isn't already fighting a RED-side-up monster

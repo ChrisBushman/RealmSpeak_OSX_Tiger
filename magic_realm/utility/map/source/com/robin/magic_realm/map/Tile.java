@@ -96,7 +96,7 @@ public class Tile {
 	 * AFTER setting up the map with buildMap
 	 */
 	public static Hashtable<Point, Tile> readMap(GameData data,Collection<String> keyVals) {
-		Hashtable<Point, Tile> mapGrid = new Hashtable<>();
+		Hashtable<Point, Tile> mapGrid = new Hashtable<Point, Tile>();
 		// loop through all gameObjects to get tiles
 		GamePool pool = new GamePool(data.getGameObjects());
 		for (GameObject obj : pool.extract(keyVals)) {
@@ -138,7 +138,7 @@ public class Tile {
 		}
 	}
 	public void build() {
-		clearings = new ArrayList<>();
+		clearings = new ArrayList<String>();
 		paths = new Hashtable[2];
 		paths[SIDE_NORMAL] = new Hashtable();
 		buildPaths(paths[SIDE_NORMAL],gameObject.getAttributeBlock("normal"));
@@ -293,7 +293,7 @@ public class Tile {
 	private void updatePathHash(Hashtable<String, ArrayList<String>> pathHash,String from,String to) {
 		ArrayList<String> list = pathHash.get(from);
 		if (list==null) {
-			list = new ArrayList<>();
+			list = new ArrayList<String>();
 			pathHash.put(from,list);
 		}
 		if (!list.contains(to)) {
@@ -464,7 +464,7 @@ public class Tile {
 			sideName = "enchanted";
 		}
 		String edgeName = getEdgeName(edge);
-		ArrayList<String> pathsTypes = new ArrayList<>();
+		ArrayList<String> pathsTypes = new ArrayList<String>();
 		int i=1;
 		Hashtable attributes = gameObject.getAttributeBlock(sideName);
 		while (true) {
@@ -491,7 +491,7 @@ public class Tile {
 		else {
 			sideName = "enchanted";
 		}
-		ArrayList<String> clearingTypes = new ArrayList<>();
+		ArrayList<String> clearingTypes = new ArrayList<String>();
 		Hashtable attributes = gameObject.getAttributeBlock(sideName);
 		for (int i=1;i<=9;i++) {
 			if (attributes.get("clearing_"+i+"_type")!=null) {
@@ -579,7 +579,7 @@ public class Tile {
 		return findAvailableMapPositions(mapGrid,anchorTilename,false,false);
 	}
 	public static ArrayList<Point> findAvailableMapPositions(Hashtable<Point, Tile> mapGrid, String anchorTilename, boolean autoBuildRiver, boolean hillTilesRule) {
-		ArrayList<Point> availableMapPositions = new ArrayList<>();
+		ArrayList<Point> availableMapPositions = new ArrayList<Point>();
 		for (Tile tile : mapGrid.values()) {
 			Point pos = tile.getMapPosition();
 			

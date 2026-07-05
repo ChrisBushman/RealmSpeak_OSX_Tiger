@@ -40,7 +40,7 @@ public class QuestRequirementLoot extends QuestRequirement {
 	}
 	
 	protected ArrayList<GameObject> filterObjectsForRequirement(CharacterWrapper character,ArrayList<GameObject> objects,Logger myLogger) {
-		ArrayList<GameObject> matches = new ArrayList<>();
+		ArrayList<GameObject> matches = new ArrayList<GameObject>();
 		if (objects.isEmpty()) {
 			myLogger.fine("No items to test.");
 			return matches;

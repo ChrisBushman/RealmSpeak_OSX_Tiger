@@ -26,7 +26,7 @@ public class ModifyableObject {
 	}
 	public void addChangeListener(ChangeListener listener) {
 		if (changeListeners==null) {
-			changeListeners = new ArrayList<>();
+			changeListeners = new ArrayList<ChangeListener>();
 		}
 		changeListeners.add(listener);
 	}

@@ -43,7 +43,7 @@ public class CombatSummarySheet extends JPanel {
 		super();
 		this.battleModel = combatFrame.getBattleModel();
 		this.combatFrame = combatFrame;
-		ArrayList<CharacterWrapper> characters = new ArrayList<>();
+		ArrayList<CharacterWrapper> characters = new ArrayList<CharacterWrapper>();
 		for (RealmComponent rc : battleModel.getAllParticipatingCharacters()) {
 			characters.add(new CharacterWrapper(rc.getGameObject()));
 		}

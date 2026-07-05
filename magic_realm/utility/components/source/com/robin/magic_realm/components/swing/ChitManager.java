@@ -271,7 +271,7 @@ public abstract class ChitManager extends AggressiveDialog {
 		activeChits.reset();
 		fatiguedChits.reset();
 		woundedChits.reset();
-		ArrayList<StateChitComponent> list = new ArrayList<>(character.getCompleteChitList());
+		ArrayList<StateChitComponent> list = new ArrayList<StateChitComponent>(character.getCompleteChitList());
 		for (int i=0;i<list.size();i++) {
 			StateChitComponent chit = list.get(i);
 			if (chit.isActionChit()) {

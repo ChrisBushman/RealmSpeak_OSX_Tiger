@@ -207,7 +207,7 @@ public class PreferenceManager {
 	 * Clears all keys that start with the provided string
 	 */
 	public void clearStartsWith(String start) {
-		ArrayList<String> keysToRemove = new ArrayList<>();
+		ArrayList<String> keysToRemove = new ArrayList<String>();
 		for (Iterator i=preferences.keySet().iterator();i.hasNext();) {
 			String key = (String)i.next();
 			if (key.startsWith(start)) {

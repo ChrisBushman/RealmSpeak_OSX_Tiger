@@ -58,7 +58,7 @@ public class GamePool extends ArrayList<GameObject> {
 	 * Locates all GameObjects that have all members of "keyVals" in their attributes
 	 */
 	public ArrayList<GameObject> find(Collection<String> keyVals) {
-		ArrayList<GameObject> foundObjects = new ArrayList<>();
+		ArrayList<GameObject> foundObjects = new ArrayList<GameObject>();
 		for (int i=0;i<size();i++) {
 			GameObject go = get(i);
 			if (go.hasAllKeyVals(keyVals)) {
@@ -71,7 +71,7 @@ public class GamePool extends ArrayList<GameObject> {
 	 * This is useful for translating the hold into a generic typed array
 	 */
 	public ArrayList<GameObject> findAll() {
-		ArrayList<GameObject> foundObjects = new ArrayList<>();
+		ArrayList<GameObject> foundObjects = new ArrayList<GameObject>();
 		for (int i=0;i<size();i++) {
 			GameObject go = get(i);
 			foundObjects.add(go);
@@ -292,7 +292,7 @@ public class GamePool extends ArrayList<GameObject> {
 	 */
 	public static ArrayList<String> makeKeyVals(String string) {
 		StringTokenizer tokens = new StringTokenizer(string,",");
-		ArrayList<String> keyVals = new ArrayList<>();
+		ArrayList<String> keyVals = new ArrayList<String>();
 		while(tokens.hasMoreTokens()) {
 			keyVals.add(tokens.nextToken());
 		}

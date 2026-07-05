@@ -16,7 +16,7 @@ public class SummaryEventWrapper extends GameObjectWrapper {
 		addListItem("event",val);
 	}
 	public ArrayList<String> getSummaryEvents() {
-		ArrayList<String> ret = new ArrayList<>();
+		ArrayList<String> ret = new ArrayList<String>();
 
 		ArrayList<String> list = getList("event");
 		if (list!=null) {

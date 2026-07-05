@@ -33,7 +33,7 @@ public class QuestRequirementClearing extends QuestRequirement {
 		if (loc == null || loc.clearing == null) return false;
 		if (getTileSide() !=  LocationTileSideType.Any && !getTileSide().matches(loc.tile)) return false;
 		
-		ArrayList<ClearingDetail> clearingsToCheck = new ArrayList<>();
+		ArrayList<ClearingDetail> clearingsToCheck = new ArrayList<ClearingDetail>();
 		if (checkTile()) {
 			clearingsToCheck.addAll(loc.tile.getClearings());
 		}
@@ -50,7 +50,7 @@ public class QuestRequirementClearing extends QuestRequirement {
 		}
 		
 		if (getChitAmount() == 0) return true;
-		ArrayList<RealmComponent> componentsToCheck = new ArrayList<>();
+		ArrayList<RealmComponent> componentsToCheck = new ArrayList<RealmComponent>();
 		for (ClearingDetail clearing : clearingsToCheck) {
 			if (getClearingType() != LocationClearingType.Any && !getClearingType().matches(clearing)) continue;
 			componentsToCheck.addAll(clearing.getDeepClearingComponents());

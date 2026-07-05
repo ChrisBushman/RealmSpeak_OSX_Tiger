@@ -52,8 +52,8 @@ public class MagicSight extends Search {
 		}
 		
 		// 2)	Take topmost "counter" (weapon, armor, horse) from any discovered Site in your clearing or cache of belongings
-		ArrayList<RealmComponent> clearingLoot = new ArrayList<>();
-		ArrayList<RealmComponent> components = new ArrayList<>();
+		ArrayList<RealmComponent> clearingLoot = new ArrayList<RealmComponent>();
+		ArrayList<RealmComponent> components = new ArrayList<RealmComponent>();
 		for (RealmComponent rc : character.getCurrentLocation().clearing.getClearingComponents()) {
 			if (rc.getGameObject().hasThisAttribute(RealmComponent.TREASURE_LOCATION)) {
 				if (!rc.getGameObject().hasThisAttribute("discovery") ||
@@ -138,8 +138,8 @@ public class MagicSight extends Search {
 		}
 		
 		// 2)	Take topmost "treasure card" from any discovered Site in your clearing or cache of belongings
-		ArrayList<RealmComponent> clearingLoot = new ArrayList<>();
-		ArrayList<RealmComponent> components = new ArrayList<>();
+		ArrayList<RealmComponent> clearingLoot = new ArrayList<RealmComponent>();
+		ArrayList<RealmComponent> components = new ArrayList<RealmComponent>();
 		for (RealmComponent rc : character.getCurrentLocation().clearing.getClearingComponents()) {
 			boolean added = false;
 			if (rc.getGameObject().hasThisAttribute(RealmComponent.TREASURE_LOCATION)) {
@@ -231,7 +231,7 @@ public class MagicSight extends Search {
 		}
 		
 		// 2)	Look at any one activated artifact/spellbook, or discovered site's spells, and learn any one you want
-		ArrayList<RealmComponent> components = new ArrayList<>();
+		ArrayList<RealmComponent> components = new ArrayList<RealmComponent>();
 		for (RealmComponent rc : character.getCurrentLocation().clearing.getClearingComponents()) {
 			if (rc.getGameObject().hasThisAttribute(RealmComponent.TREASURE_LOCATION)) {
 				if (!rc.getGameObject().hasThisAttribute("discovery") ||
@@ -276,7 +276,7 @@ public class MagicSight extends Search {
 			character.addNote(site.getGameObject(),"Perceive Spell",note.toString());
 			
 			// Only offer learnable spells!
-			ArrayList<GameObject> learnableSpells = new ArrayList<>();
+			ArrayList<GameObject> learnableSpells = new ArrayList<GameObject>();
 			for (GameObject spell : spells) {
 				if (character.canLearn(spell)) {
 					learnableSpells.add(spell);
@@ -321,7 +321,7 @@ public class MagicSight extends Search {
 	}
 
 	public static Collection<GameObject> getTreasureCounters(GameObject treasureLocation) {
-		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
 		for (GameObject obj : treasureLocation.getHold()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(obj);
 			if (rc.isWeapon() || rc.isArmor() || rc.isHorse()) {
@@ -337,7 +337,7 @@ public class MagicSight extends Search {
 	
 	@Override
 	protected ArrayList<ImageIcon> getHintIcons(CharacterWrapper character) {
-		ArrayList<ImageIcon> list = new ArrayList<>();
+		ArrayList<ImageIcon> list = new ArrayList<ImageIcon>();
 		for(RealmComponent rc:getAllDiscoverableChits(character,false)) {
 			list.add(getIconForSearch(rc));
 		}

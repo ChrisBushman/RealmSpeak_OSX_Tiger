@@ -64,7 +64,7 @@ public class StealReward extends RealmTable {
 
 	public String applyFour(CharacterWrapper character) {
 		GameObject holder = SetupCardUtility.getDenizenHolder(victim.getGameObject());
-		ArrayList<RealmComponent> treasures = new ArrayList<>();
+		ArrayList<RealmComponent> treasures = new ArrayList<RealmComponent>();
 		for(GameObject item:holder.getHold()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(item);
 			if ( rc.isTreasure()) {

@@ -31,7 +31,7 @@ public class ControlEffect implements ISpellEffect {
 								+target.getGameObject().getNameWithNumber());
 						
 						// Remove target manually
-						ArrayList<String> targetids = new ArrayList<>(context.Spell.getList("target_ids"));
+						ArrayList<String> targetids = new ArrayList<String>(context.Spell.getList("target_ids"));
 						targetids.remove(target.getGameObject().getStringId());
 						if (targetids.isEmpty()) {
 							context.Spell.cancelSpell();

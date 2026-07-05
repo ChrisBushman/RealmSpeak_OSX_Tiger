@@ -63,7 +63,7 @@ public class QuestRewardMoveDenizen extends QuestReward {
 		ArrayList<GameObject> denizens = character.getGameData().getGameObjectsByNameRegex(getDenizenNameRegex());
 		QuestLocation loc = getQuestLocation();
 		TileLocation charactersLoc= character.getCurrentLocation();
-		ArrayList<GameObject> denizensToMove = new ArrayList<>();
+		ArrayList<GameObject> denizensToMove = new ArrayList<GameObject>();
 		String questId = getParentQuest().getGameObject().getStringId();
 		for (GameObject denizen : denizens) {
 			RealmComponent denizenRc = RealmComponent.getRealmComponent(denizen);
@@ -227,7 +227,7 @@ public class QuestRewardMoveDenizen extends QuestReward {
 			}
 	}
 	private static void moveDenizensToLocationToClearing(ArrayList<TileLocation> locations, int clearingNumber, ArrayList<GameObject> denizensToMove, int numberOfDenizensToMove) {
-		ArrayList<TileLocation> validLocations = new ArrayList<>();
+		ArrayList<TileLocation> validLocations = new ArrayList<TileLocation>();
 		for (TileLocation loc : locations) {
 			if (loc.clearing.getNum() == clearingNumber) {
 				validLocations.add(loc);

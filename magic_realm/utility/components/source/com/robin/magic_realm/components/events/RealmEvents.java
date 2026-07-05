@@ -123,7 +123,7 @@ public class RealmEvents {
 		ArrayList<String> events = config.getThisAttributeList(activeEvents);
 		if (events==null) return null;
 		
-		ArrayList<IEvent> list = new ArrayList<>();
+		ArrayList<IEvent> list = new ArrayList<IEvent>();
 		for (String eventString : events) {
 			IEvent event = createEvent(Events.valueOf(eventString));
 			list.add(event);
@@ -134,11 +134,11 @@ public class RealmEvents {
 	
 	public static void shuffleEvents(GameHost host) {
 		GameObject config = findEventsConfig(host.getGameData());
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		for (int i=0;i<blankEventsPerWeek;i++) {
 			list.add(Events.Blank.toString());
 		}
-		ArrayList<String> possibleEvents = new ArrayList<>();
+		ArrayList<String> possibleEvents = new ArrayList<String>();
 		for (Events event : Events.values()) {
 			possibleEvents.add(event.toString());
 		}
@@ -218,7 +218,7 @@ public class RealmEvents {
 	
 	public static ArrayList<ColorMagic> getInfiniteColorMagicSources(GameData data) {
 		GameObject config = findEventsConfig(data);
-		ArrayList<ColorMagic> list = new ArrayList<>();
+		ArrayList<ColorMagic> list = new ArrayList<ColorMagic>();
 		if (config.hasThisAttribute(infiniteColorMagicSource)) {
 			for (String color : config.getThisAttributeList(infiniteColorMagicSource)) {
 				list.add(ColorMagic.makeColorMagic(color,true));
@@ -242,7 +242,7 @@ public class RealmEvents {
 	public static ArrayList<CharacterWrapper> getLivingCharacters(GameData gameData) {
 		GamePool pool = new GamePool(RealmObjectMaster.getRealmObjectMaster(gameData).getPlayerCharacterObjects());
 		ArrayList<GameObject> list = pool.find(CharacterWrapper.NAME_KEY);
-		ArrayList<CharacterWrapper> active = new ArrayList<>();
+		ArrayList<CharacterWrapper> active = new ArrayList<CharacterWrapper>();
 		for (GameObject characterGo : list) {
 			CharacterWrapper character = new CharacterWrapper(characterGo);
 			if (!character.isDead()) {
@@ -262,7 +262,7 @@ public class RealmEvents {
 		return chooseRandomTile(data,tileTypes,false);
 	}
 	public static TileComponent chooseRandomTile(GameData data,ArrayList<String> tileTypes, boolean onlyWithSummonChit) {
-		ArrayList<TileComponent> list = new ArrayList<>();
+		ArrayList<TileComponent> list = new ArrayList<TileComponent>();
 		for (CharacterWrapper character: getLivingCharacters(data)) {
 			TileLocation loc = character.getCurrentLocation();
 			if (loc!=null && loc.tile!=null && !list.contains(loc.tile)) {
@@ -327,7 +327,7 @@ public class RealmEvents {
 		return list.get(RandomNumber.getRandom(list.size()));
 	}
 	public static GameObject chooseRandomTileWithUnhiredNatives(GameData data) {
-		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<GameObject> list = new ArrayList<GameObject>();
 		GamePool pool = new GamePool(data.getGameObjects());
 		ArrayList<GameObject> denizens = pool.find(RealmComponent.NATIVE+",!treasure");
 		for (GameObject denizen: denizens) {
@@ -345,14 +345,14 @@ public class RealmEvents {
 	public static ArrayList<TileComponent> chooseRandomAndAdjacentTiles(GameData data) {
 		ClearingUtility.initAdjacentTiles(data);
 		
-		ArrayList<TileComponent> allTiles = new ArrayList<>();
+		ArrayList<TileComponent> allTiles = new ArrayList<TileComponent>();
 		TileComponent tile = RealmEvents.chooseRandomTile(data);
 		allTiles.add(tile);
 		allTiles.addAll(tile.getAllAdjacentTiles());
 		return allTiles;
 	}
 	public static ClearingDetail chooseRandomClearing(GameData data,ArrayList<String> clearingTypes) {
-		ArrayList<ClearingDetail> list = new ArrayList<>();
+		ArrayList<ClearingDetail> list = new ArrayList<ClearingDetail>();
 		for (CharacterWrapper character: getLivingCharacters(data)) {
 			TileLocation loc = character.getCurrentLocation();
 			if (loc!=null && loc.clearing!=null && !list.contains(loc.clearing)) {
@@ -394,8 +394,8 @@ public class RealmEvents {
 	}
 	public static ArrayList<TileComponent> chooseRandomWaterAndAdjacentTiles(GameData data) {
 		ArrayList<GameObject> allTiles = RealmEvents.chooseAllTiles(data);
-		ArrayList<TileComponent> waterTiles = new ArrayList<>();
-		ArrayList<TileComponent> chosenTiles = new ArrayList<>();
+		ArrayList<TileComponent> waterTiles = new ArrayList<TileComponent>();
+		ArrayList<TileComponent> chosenTiles = new ArrayList<TileComponent>();
 		for (GameObject tile : allTiles) {
 			TileComponent tileComponent = new TileComponent(tile);
 			for (ClearingDetail cl : tileComponent.getClearings()) {
@@ -422,7 +422,7 @@ public class RealmEvents {
 	}
 	public static ArrayList<GameObject> getAllAdjacentTiles(GameObject chosenTile,GameData data) {
 		ArrayList<GameObject> allTiles = chooseAllTiles(data);
-		ArrayList<GameObject> adjacentTiles = new ArrayList<>();
+		ArrayList<GameObject> adjacentTiles = new ArrayList<GameObject>();
 		Point basePosition = RealmUtility.getTilePositionFromGameObject(chosenTile);
 		allTiles.remove(chosenTile);
 		for (GameObject tile : allTiles) {
@@ -438,7 +438,7 @@ public class RealmEvents {
 		GamePool pool = new GamePool(data.getGameObjects());
 		ArrayList<GameObject> summons = pool.find("summon");
 		String boardNum = sound.getThisAttribute(Constants.BOARD_NUMBER);
-		ArrayList<GameObject> otherLocations = new ArrayList<>();
+		ArrayList<GameObject> otherLocations = new ArrayList<GameObject>();
 		for (GameObject go:summons) {
 			if(!SetupCardUtility.GameObjectMatchesBoardNumber(go,boardNum)) continue;
 			if (go.hasKey("gold_special_target")) {
@@ -453,7 +453,7 @@ public class RealmEvents {
 				return n1-n2;
 			}
 		});
-		ArrayList<String> redChitNames = new ArrayList<>();
+		ArrayList<String> redChitNames = new ArrayList<String>();
 		for (GameObject go : tile.getHold()) {
 			if (!go.hasKey("red_special")) continue;
 			redChitNames.add(go.getName());

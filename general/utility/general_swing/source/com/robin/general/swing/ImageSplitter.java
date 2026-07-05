@@ -18,7 +18,7 @@ public class ImageSplitter {
 		this.icon = IconFactory.findIcon(path);
 		this.columnWidth = columnWidth;
 		imagesPerRow = icon.getIconWidth()/columnWidth;
-		this.rowHeights = new ArrayList<>();
+		this.rowHeights = new ArrayList<Integer>();
 	}
 	public void addRow(int rowHeight) {
 		rowHeights.add(Integer.valueOf(rowHeight));

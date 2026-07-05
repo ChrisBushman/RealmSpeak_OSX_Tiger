@@ -112,7 +112,7 @@ public abstract class GameObjectWrapper {
 		boolean ret = false;
 		ArrayList<String> list = getList(key);
 		if (list!=null && list.contains(val)) {
-			list = new ArrayList<>(list);
+			list = new ArrayList<String>(list);
 			ret = list.remove(val);
 			setList(key,list);
 		}

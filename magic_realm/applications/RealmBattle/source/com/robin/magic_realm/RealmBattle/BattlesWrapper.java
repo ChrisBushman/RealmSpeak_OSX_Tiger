@@ -64,7 +64,7 @@ public class BattlesWrapper extends GameObjectWrapper {
 			clearBattleInfo(current,data);
 		}
 		
-		ArrayList<String> list = new ArrayList<>(getList(BATTLE_LOCATION));
+		ArrayList<String> list = new ArrayList<String>(getList(BATTLE_LOCATION));
 		if (!list.isEmpty()) {
 			String tlKey = list.remove(0);
 			setList(BATTLE_LOCATION,list); // make sure the list is updated
@@ -76,7 +76,7 @@ public class BattlesWrapper extends GameObjectWrapper {
 			ArrayList<RealmComponent> combatants = tl.clearing.getClearingComponents();
 			for (RealmComponent monster : combatants) {
 				if (!monster.isMonster()) continue;
-				ArrayList<RealmComponent> characterCanControl = new ArrayList<>();
+				ArrayList<RealmComponent> characterCanControl = new ArrayList<RealmComponent>();
 				for (RealmComponent characterRc : combatants) {
 					if (!characterRc.isCharacter()) continue;
 						Hashtable<String,Integer[]> controllableMonsters = characterRc.getControllableMonsters();

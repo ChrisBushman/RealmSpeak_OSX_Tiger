@@ -77,12 +77,12 @@ public class SpellSelector extends AggressiveDialog {
 		int selectedTab = fromTabPanel.getSelectedIndex();
 		fromTabPanel.removeAll();
 		
-		HashLists<String,GameObject> hashList = new HashLists<>();
+		HashLists<String,GameObject> hashList = new HashLists<String,GameObject>();
 		for (GameObject go:spellChoices) {
 			hashList.put(go.getThisAttribute("spell"),go);
 		}
 		
-		ArrayList<String> types = new ArrayList<>(hashList.keySet());
+		ArrayList<String> types = new ArrayList<String>(hashList.keySet());
 		Collections.sort(types); // not QUITE right, I think...
 		fromPanel = new RealmObjectPanel[types.size()];
 		int n=0;
@@ -292,7 +292,7 @@ public class SpellSelector extends AggressiveDialog {
 		int change = totalPicks-all.size();
 		if (change<0) {
 			// Remove empties
-			ArrayList<Component> newList = new ArrayList<>();
+			ArrayList<Component> newList = new ArrayList<Component>();
 			for (Iterator i=all.iterator();i.hasNext();) {
 				RealmComponent rc = (RealmComponent)i.next();
 				if (change<0 && rc instanceof EmptyCardComponent) {
@@ -326,7 +326,7 @@ public class SpellSelector extends AggressiveDialog {
 		if (sc!=null) {
 			SpellCardComponent nsc = new SpellCardComponent(sc.getGameObject());
 			
-			ArrayList<Component> all = new ArrayList<>(Arrays.asList(toPanel.getComponents()));
+			ArrayList<Component> all = new ArrayList<Component>(Arrays.asList(toPanel.getComponents()));
 			for (int i=0;i<all.size();i++) {
 				CardComponent card = (CardComponent)all.get(i);
 				if (card instanceof EmptyCardComponent) {
@@ -342,7 +342,7 @@ public class SpellSelector extends AggressiveDialog {
 	private void removeSelection(Point p) {
 		SpellCardComponent sc = getSpellFromPanel(toPanel,p);
 		if (sc!=null) {
-			ArrayList<Component> all = new ArrayList<>(Arrays.asList(toPanel.getComponents()));
+			ArrayList<Component> all = new ArrayList<Component>(Arrays.asList(toPanel.getComponents()));
 			int n = all.indexOf(sc);
 			all.remove(n);
 			all.add(n,new EmptyCardComponent());
@@ -406,7 +406,7 @@ public class SpellSelector extends AggressiveDialog {
 		RealmLoader loader = new RealmLoader();
 		GameData data = loader.getData();
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> choices = new ArrayList<>();//pool.find("spell");
+		ArrayList<GameObject> choices = new ArrayList<GameObject>();//pool.find("spell");
 		choices.addAll(pool.find("spell=V"));
 		choices.addAll(pool.find("spell=VI"));
 		choices.addAll(pool.find("spell=VII"));

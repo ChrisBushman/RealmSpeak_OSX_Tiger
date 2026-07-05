@@ -26,13 +26,13 @@ public class TextType {
 	public static void addType(String typeName,Font font,Color color) {
 		if (font!=null) {
 			if (typeFonts==null) {
-				typeFonts = new Hashtable<>();
+				typeFonts = new Hashtable<String, Font>();
 			}
 			typeFonts.put(typeName,font);
 		}
 		if (color!=null) {
 			if (typeColors==null) {
-				typeColors = new Hashtable<>();
+				typeColors = new Hashtable<String, Color>();
 			}
 			typeColors.put(typeName,color);
 		}
@@ -113,7 +113,7 @@ public class TextType {
 			// Build lines
 			int currentWidth = 0;
 			StringBuffer sb = new StringBuffer();
-			ArrayList<String> lines = new ArrayList<>();
+			ArrayList<String> lines = new ArrayList<String>();
 			for (int i=0;i<word.length;i++) {
 				int newWidth = currentWidth+wordWidth[i];
 				

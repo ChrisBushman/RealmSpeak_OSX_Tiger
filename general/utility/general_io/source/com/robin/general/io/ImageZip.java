@@ -32,7 +32,7 @@ public class ImageZip {
 	}
 	private static Image string2Image(String string) {
 		try {
-			ArrayList<Integer> integers = new ArrayList<>();
+			ArrayList<Integer> integers = new ArrayList<Integer>();
 			StringTokenizer st = new StringTokenizer(string,",");
 			while(st.hasMoreTokens()) {
 				String val = st.nextToken();
@@ -83,13 +83,13 @@ public class ImageZip {
 		return unzipImages(new FileInputStream(filename));
 	}
 	public static Image[] unzipImages(InputStream inputStream) {
-		ArrayList<Image> images = new ArrayList<>();
+		ArrayList<Image> images = new ArrayList<Image>();
 		try {
 			ZipInputStream zi = new ZipInputStream(inputStream);
 //			ZipEntry ze;
 			while ((zi.getNextEntry())!=null) {
 				byte[]data = new byte[BUFFER];
-				ArrayList<Byte> allBytes = new ArrayList<>();
+				ArrayList<Byte> allBytes = new ArrayList<Byte>();
 				int size;
 				while((size=zi.read(data,0,BUFFER))!=-1) {
 					for (int i=0;i<size;i++) {

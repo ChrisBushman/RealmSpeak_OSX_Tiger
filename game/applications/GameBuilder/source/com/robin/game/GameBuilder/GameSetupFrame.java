@@ -95,7 +95,7 @@ public class GameSetupFrame extends JInternalFrame implements Modifyable,Saveabl
 					int[] row = getSelectedRows();
 					
 					// First get all selected commands
-					ArrayList<GameCommand> delCommands = new ArrayList<>();
+					ArrayList<GameCommand> delCommands = new ArrayList<GameCommand>();
 					for (int i=0;i<row.length;i++) {
 						GameCommand command = setup.getGameCommands().get(row[i]);
 						delCommands.add(command);
@@ -120,7 +120,7 @@ public class GameSetupFrame extends JInternalFrame implements Modifyable,Saveabl
 					// First get all selected objects
 					int min = Integer.MAX_VALUE;
 					int max = Integer.MIN_VALUE;
-					ArrayList<GameCommand> shiftObjects = new ArrayList<>();
+					ArrayList<GameCommand> shiftObjects = new ArrayList<GameCommand>();
 					for (int i=0;i<row.length;i++) {
 						GameCommand command = setup.getGameCommands().get(row[i]);
 						shiftObjects.add(command);

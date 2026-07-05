@@ -42,7 +42,7 @@ public class MonsterInteractionEditPanel extends AdvantageEditPanel {
 		this.selection = selected;
 		setBorder(BorderFactory.createTitledBorder(toString())); // update name
 		
-		hash = new Hashtable<>();
+		hash = new Hashtable<String,JCheckBox>();
 		setLayout(new BorderLayout());
 		
 		if (controlSelected()) {
@@ -125,7 +125,7 @@ public class MonsterInteractionEditPanel extends AdvantageEditPanel {
 	}
 	
 	private void updateSelection() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		if (immunitySelected()) {
 			list = getAttributeList(Constants.MONSTER_IMMUNITY);
 		}
@@ -162,7 +162,7 @@ public class MonsterInteractionEditPanel extends AdvantageEditPanel {
 	}
 
 	protected void applyAdvantage() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		for (String name:hash.keySet()) {
 			JCheckBox option = hash.get(name);
 			if (option.isSelected()) {

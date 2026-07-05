@@ -14,7 +14,7 @@ public class QuestRequirementParams {
 	public String actionName;
 	public CharacterActionType actionType = CharacterActionType.Unknown; // default
 	public String dayKey;
-	public ArrayList<GameObject> objectList =  new ArrayList<>();
+	public ArrayList<GameObject> objectList =  new ArrayList<GameObject>();
 	public ColorMagic burnedColor;
 	
 	// Search stuff
@@ -37,7 +37,7 @@ public class QuestRequirementParams {
 		targetOfSearch = null;
 	}
 	public String asString() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		list.add(timeOfCall.toString());
 		list.add(actionName);
 		list.add(dayKey);

@@ -52,7 +52,7 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 		this.game = game;
 		this.map = map;
 		
-		tilesToAdd = new ArrayList<>();
+		tilesToAdd = new ArrayList<GameObject>();
 		tilePickModel = new TilePickTableModel();
 		
 		refreshTiles();
@@ -199,7 +199,7 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 				boolean placePrioOneFirst = false;
 				boolean placePrioTwoFirst = false;
 				// No borderland?  Choose a random tile that CAN be placed.
-				ArrayList<Integer> placeableIndices = new ArrayList<>();
+				ArrayList<Integer> placeableIndices = new ArrayList<Integer>();
 				for (int i=0;i<tilesToAdd.size();i++) {
 					GameObject go = tilesToAdd.get(i);
 					Collection<Tile> c = map.getPlaceables(go);
@@ -311,7 +311,7 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 	private void doRandomPlace() {
 		tilePickTable.clearSelection();
 		if (solePlayerIndex>=0) {
-			ArrayList<GameObject> list = new ArrayList<>();
+			ArrayList<GameObject> list = new ArrayList<GameObject>();
 			list.add(tilesToAdd.get(solePlayerIndex));
 			map.placeRandom(this,list);
 		}
@@ -351,11 +351,11 @@ public class RealmTilePickFrame extends RealmSpeakInternalFrame implements Chang
 		private Hashtable<GameObject,ImageIcon[]> cache;
 		
 		public TilePickTableModel() {
-			cache = new Hashtable<>();
+			cache = new Hashtable<GameObject,ImageIcon[]>();
 		}
 		public ArrayList<GameObject> getData() {
 			if (solePlayer) {
-				ArrayList<GameObject> list = new ArrayList<>();
+				ArrayList<GameObject> list = new ArrayList<GameObject>();
 				if (solePlayerIndex>=0) {
 					list.add(tilesToAdd.get(solePlayerIndex));
 				}

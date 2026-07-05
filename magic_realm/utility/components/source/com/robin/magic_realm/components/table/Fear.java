@@ -24,7 +24,7 @@ public class Fear {
 				return false;
 			}
 			
-			ArrayList<ClearingDetail> possibleClearings = new ArrayList<>(character.findAvailableClearingMoves(true));
+			ArrayList<ClearingDetail> possibleClearings = new ArrayList<ClearingDetail>(character.findAvailableClearingMoves(true));
 			if (possibleClearings.isEmpty()) {
 				RealmLogging.logMessage(RealmLogging.BATTLE, target.getName() +" cannot run away, as way out exists.");
 				return false;
@@ -44,7 +44,7 @@ public class Fear {
 			}
 		}
 		else {
-			ArrayList<ClearingDetail> possibleClearings = new ArrayList<>();
+			ArrayList<ClearingDetail> possibleClearings = new ArrayList<ClearingDetail>();
 			for (ClearingDetail clearing : currentLocation.tile.getClearings()) {
 				boolean addClearing = true;
 				for (RealmComponent rc : clearing.getClearingComponents()) {

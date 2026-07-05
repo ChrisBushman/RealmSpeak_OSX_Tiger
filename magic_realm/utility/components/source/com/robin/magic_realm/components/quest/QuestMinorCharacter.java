@@ -28,7 +28,7 @@ public class QuestMinorCharacter extends GameObjectWrapper {
 		super(obj);
 	}
 	public ArrayList<String> getAllAbilityBlockNames() {
-		ArrayList<String> abilityBlockNames = new ArrayList<>();
+		ArrayList<String> abilityBlockNames = new ArrayList<String>();
 		int n=0;
 		String blockName;
 		while(getGameObject().hasAttributeBlock(blockName=ABILITY_BLOCK_NAME+n)) {
@@ -41,7 +41,7 @@ public class QuestMinorCharacter extends GameObjectWrapper {
 		return getName();
 	}
 	public void setupAbilities() {
-		ArrayList<String> ignore = new ArrayList<>(Arrays.asList(IGNORE));
+		ArrayList<String> ignore = new ArrayList<String>(Arrays.asList(IGNORE));
 		for(String abilityBlockName:getAllAbilityBlockNames()) {
 			OrderedHashtable block = getGameObject().getAttributeBlock(abilityBlockName);
 			for(Object o:block.keySet()) {

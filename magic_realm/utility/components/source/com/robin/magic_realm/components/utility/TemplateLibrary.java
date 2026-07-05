@@ -29,7 +29,7 @@ public class TemplateLibrary {
 	private TemplateLibrary() {
 		RealmLoader loader = new RealmLoader();
 		dataPool = new GamePool(loader.getData().getGameObjects());
-		templateHash = new Hashtable<>();
+		templateHash = new Hashtable<String,GameObject>();
 		addQuery(dataPool,WEAPON_QUERY);
 		addQuery(dataPool,CHARACTER_QUERY);
 		addQuery(dataPool,ARMOR_QUERY);
@@ -44,7 +44,7 @@ public class TemplateLibrary {
 		}
 	}
 	public ArrayList<String> getAllWeaponNames() {
-		ArrayList<String> names = new ArrayList<>();
+		ArrayList<String> names = new ArrayList<String>();
 		for (String name:getAllNames()) {
 			GameObject go = getWeaponTemplate(name);
 			if (go!=null) {
@@ -54,7 +54,7 @@ public class TemplateLibrary {
 		return names;
 	}
 	public ArrayList<String> getAllArmorNames() {
-		ArrayList<String> names = new ArrayList<>();
+		ArrayList<String> names = new ArrayList<String>();
 		for (String name:getAllNames()) {
 			GameObject go = getArmorTemplate(name);
 			if (go!=null) {
@@ -91,7 +91,7 @@ public class TemplateLibrary {
 		return null;
 	}
 	public ArrayList<String> getAllCharacterTemplateNames() {
-		ArrayList<String> names = new ArrayList<>();
+		ArrayList<String> names = new ArrayList<String>();
 		for (String name:getAllNames()) {
 			GameObject go = getCharacterTemplate(name);
 			if (go!=null) {
@@ -101,7 +101,7 @@ public class TemplateLibrary {
 		return names;
 	}
 	public ArrayList<String> getAllNames() {
-		return new ArrayList<>(templateHash.keySet());
+		return new ArrayList<String>(templateHash.keySet());
 	}
 	private void addTemplate(String name,GameObject go) {
 		templateHash.put(name,go);

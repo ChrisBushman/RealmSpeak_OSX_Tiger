@@ -58,7 +58,7 @@ public class ChitEditDialog extends AggressiveDialog {
 	}
 	private void init(CharacterActionChitComponent chit) {
 		this.chit = chit;
-		reservedChitNames = new ArrayList<>();
+		reservedChitNames = new ArrayList<String>();
 		reservedChitNames.add("MOVE");
 		reservedChitNames.add("FIGHT");
 		reservedChitNames.add("MAGIC");
@@ -190,7 +190,7 @@ public class ChitEditDialog extends AggressiveDialog {
 			for (int i=0;i<specialSelect.length;i++) {
 				specialSelect[i] = new SpecialSelect(SPECIAL_SELECT[i]);
 			}
-			specialSelections = new JComboBox<>(specialSelect);
+			specialSelections = new JComboBox<SpecialSelect>(specialSelect);
 			specialSelections.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
 					SpecialSelect ss = (SpecialSelect)specialSelections.getSelectedItem();

@@ -138,7 +138,7 @@ public class GameSetup extends ModifyableObject implements Serializable {
 		result.append("\n");
 		result.append("---DONE---");
 		result.append("\n");
-		ArrayList<String> keys = new ArrayList<>(pools.keySet());
+		ArrayList<String> keys = new ArrayList<String>(pools.keySet());
 		Collections.sort(keys);
 		for (String key : keys) {
 			GamePool pool = pools.get(key);
@@ -165,7 +165,7 @@ public class GameSetup extends ModifyableObject implements Serializable {
 	 */
 	private void moveObjects(ArrayList<GameCommand> objects,GameCommand indexObject,boolean before) {
 		// First, verify ALL objects are in the list, and that the list is uniqued
-		ArrayList<GameCommand> validCommands = new ArrayList<>();
+		ArrayList<GameCommand> validCommands = new ArrayList<GameCommand>();
 		for (GameCommand command : objects) {
 			if (command.parent==this && gameCommands.contains(command) && !validCommands.contains(command)) {
 				validCommands.add(command);

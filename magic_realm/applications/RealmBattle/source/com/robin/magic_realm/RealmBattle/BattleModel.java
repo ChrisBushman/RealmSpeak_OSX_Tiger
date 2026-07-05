@@ -68,9 +68,9 @@ public class BattleModel {
 		this.gameData = data;
 		this.battleLocation = battleLocation;
 		denizenBattleGroup = null;
-		characterBattleGroups = new ArrayList<>();
-		characterBattleGroupsNotGoingLast = new ArrayList<>();
-		characterBattleGroupsGoingLast = new ArrayList<>();
+		characterBattleGroups = new ArrayList<BattleGroup>();
+		characterBattleGroupsNotGoingLast = new ArrayList<BattleGroup>();
+		characterBattleGroupsGoingLast = new ArrayList<BattleGroup>();
 		hostPrefs = HostPrefWrapper.findHostPrefs(gameData);
 		theGame = GameWrapper.findGame(gameData);
 	}
@@ -279,7 +279,7 @@ public class BattleModel {
 			for (RealmComponent denizen:denizenBattleGroup.getBattleParticipants()) {
 				CombatWrapper combat = new CombatWrapper(denizen.getGameObject());
 				if (!denizen.isAssigned() && !combat.isPeaceful()  && !combat.isPacified() && !denizen.isMistLike()) {
-					ArrayList<BattleGroup> availableGroups = new ArrayList<>();
+					ArrayList<BattleGroup> availableGroups = new ArrayList<BattleGroup>();
 					// Find one possibility for each BattleGroup
 					for (BattleGroup bg:characterBattleGroups) {
 						if (bg.hasAvailableParticipant(denizen)) {
@@ -312,7 +312,7 @@ public class BattleModel {
 		if (groups.size() > 0) {
 			while (groups.size() > 1) { // As long as there are ties, the rolloff continues. Only one "winner" allowed.
 				int markRoll = best ? 99 : -99;
-				ArrayList<BattleGroup> markedRollers = new ArrayList<>();
+				ArrayList<BattleGroup> markedRollers = new ArrayList<BattleGroup>();
 				for (BattleGroup bg : groups) {
 					DieRoller roller = bg.createDieRoller("Roll Off");
 					int roll = roller.getHighDieResult();
@@ -363,7 +363,7 @@ public class BattleModel {
 	 * @return			All characters involved in battle (includes characters that are absent, but have hirelings)
 	 */
 	public ArrayList<RealmComponent> getAllOwningCharacters() {
-		ArrayList<RealmComponent> ret = new ArrayList<>();
+		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
 		for (BattleGroup group:characterBattleGroups) {
 			RealmComponent rc = group.getOwningCharacter();
 			if (rc!=null) {
@@ -377,7 +377,7 @@ public class BattleModel {
 	 * Returns a list of all native leaders, and controlled monsters in the clearing (not characters).
 	 */
 	public ArrayList<RealmComponent> getAllLeaders() {
-		ArrayList<RealmComponent> ret = new ArrayList<>();
+		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
 		ArrayList<RealmComponent> list  = getAllBattleParticipants(false);
 		for (RealmComponent rc : list) {
 			if (rc.isPlayerControlledLeader() && !rc.isCharacter()) {
@@ -392,7 +392,7 @@ public class BattleModel {
 	 * @return			All characters in the battle (not owningCharacters!)
 	 */
 	public ArrayList<CharacterChitComponent> getAllParticipatingCharacters() {
-		ArrayList<CharacterChitComponent> ret = new ArrayList<>();
+		ArrayList<CharacterChitComponent> ret = new ArrayList<CharacterChitComponent>();
 		for (BattleGroup group:characterBattleGroups) {
 			CharacterChitComponent rc = group.getCharacterInBattle();
 			if (rc!=null) {
@@ -406,7 +406,7 @@ public class BattleModel {
 	 * @return			All characters in the battle (not owningCharacters!)
 	 */
 	public ArrayList<RealmComponent> getAllParticipatingCharactersAsRc() {
-		ArrayList<RealmComponent> ret = new ArrayList<>();
+		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
 		for (BattleGroup group:characterBattleGroups) {
 			RealmComponent rc = group.getCharacterInBattle();
 			if (rc!=null) {
@@ -420,7 +420,7 @@ public class BattleModel {
 	 * Returns a Collection of all the battle groups in this model.
 	 */
 	public ArrayList<BattleGroup> getAllBattleGroups(boolean includeDenizens) {
-		ArrayList<BattleGroup> all = new ArrayList<>();
+		ArrayList<BattleGroup> all = new ArrayList<BattleGroup>();
 		all.addAll(characterBattleGroups);
 		if (includeDenizens && denizenBattleGroup != null) {
 			all.add(denizenBattleGroup);
@@ -469,7 +469,7 @@ public class BattleModel {
 		}
 		
 		// Assign targets for hirelings where obvious
-		ArrayList<RealmComponent> owners = new ArrayList<>();
+		ArrayList<RealmComponent> owners = new ArrayList<RealmComponent>();
 		for (BattleGroup bg:characterBattleGroups) {
 			owners.add(bg.getOwningCharacter());
 			for (RealmComponent hireling:bg.getHirelings()) {
@@ -490,7 +490,7 @@ public class BattleModel {
 		
 		// Assign the order for target selection (randomized every round)
 		RealmLogging.logMessage(RealmLogging.BATTLE,"Assigning random target selection order.");
-		ArrayList<RealmComponent> randomOrder = new ArrayList<>();
+		ArrayList<RealmComponent> randomOrder = new ArrayList<RealmComponent>();
 		while(!owners.isEmpty()) {
 			int r = RandomNumber.getRandom(owners.size());
 			randomOrder.add(owners.remove(r));
@@ -533,7 +533,7 @@ public class BattleModel {
 	}
 	
 	public void doEnergizeDenizenPreBattleSpells() {
-		ArrayList<RealmComponent> casters = new ArrayList<>();
+		ArrayList<RealmComponent> casters = new ArrayList<RealmComponent>();
 		for (RealmComponent battleParticipant : getAllBattleParticipants(true)) {
 			if ((battleParticipant.isMonster() || battleParticipant.isNative()) && battleParticipant.getGameObject().hasThisAttribute(Constants.SPELL_PRE_BATTLE)) {
 				String spellName = battleParticipant.getGameObject().getThisAttribute(Constants.SPELL_PRE_BATTLE);
@@ -587,10 +587,10 @@ public class BattleModel {
 		energizeFloodEvent();
 		
 		// Find and hash all spells and casters cast this round by speed
-		HashLists<Integer,SpellWrapper> spells = new HashLists<>();
-		HashLists<Integer,BattleChit> monsterSpells = new HashLists<>();
-		HashLists<Integer,CharacterChitComponent> casters = new HashLists<>();
-		ArrayList<BattleChit> spellCasters = new ArrayList<>();
+		HashLists<Integer,SpellWrapper> spells = new HashLists<Integer,SpellWrapper>();
+		HashLists<Integer,BattleChit> monsterSpells = new HashLists<Integer,BattleChit>();
+		HashLists<Integer,CharacterChitComponent> casters = new HashLists<Integer,CharacterChitComponent>();
+		ArrayList<BattleChit> spellCasters = new ArrayList<BattleChit>();
 		for (CharacterChitComponent rc : getAllParticipatingCharacters()) {
 			CombatWrapper character = new CombatWrapper(rc.getGameObject());
 			GameObject go = character.getCastSpell();
@@ -649,7 +649,7 @@ public class BattleModel {
 		}
 		
 		if (spells.size()>0) {
-			ArrayList<Integer> allSpeeds = new ArrayList<>(spells.keySet());
+			ArrayList<Integer> allSpeeds = new ArrayList<Integer>(spells.keySet());
 			allSpeeds.addAll(monsterSpells.keySet());
 			Collections.sort(allSpeeds);
 			
@@ -750,16 +750,16 @@ public class BattleModel {
 				}
 				
 				// check for duplicate conflicting (transmorph) spells at same target
-				HashMap<RealmComponent,ArrayList<SpellWrapper>> conflictingSpells = new HashMap<>();
-				HashMap<RealmComponent,Integer> conflictingSpellsStrength = new HashMap<>();
-				HashMap<RealmComponent,SpellWrapper> strongestConflictingSpells = new HashMap<>();
+				HashMap<RealmComponent,ArrayList<SpellWrapper>> conflictingSpells = new HashMap<RealmComponent,ArrayList<SpellWrapper>>();
+				HashMap<RealmComponent,Integer> conflictingSpellsStrength = new HashMap<RealmComponent,Integer>();
+				HashMap<RealmComponent,SpellWrapper> strongestConflictingSpells = new HashMap<RealmComponent,SpellWrapper>();
 				if (spellsAtSpeed != null) {
 					for (SpellWrapper spell : spellsAtSpeed) {
 						if (!spell.isActive()) continue; // might have already been cancelled!
 						ArrayList<RealmComponent> targets = spell.getTargets();
 						for (RealmComponent target : targets) {
 							if (spell.canConflict()) {
-								ArrayList<SpellWrapper> targetedConflictingSpells = new ArrayList<>();
+								ArrayList<SpellWrapper> targetedConflictingSpells = new ArrayList<SpellWrapper>();
 								targetedConflictingSpells.add(spell);
 								int strongestSpellStrength = 0;
 								if (conflictingSpells.containsKey(target)) {
@@ -1079,7 +1079,7 @@ public class BattleModel {
 					}
 					
 					// Circle group - hirelings or denizens targeting targets on character sheet
-					ArrayList<RealmComponent> helpers = new ArrayList<>();
+					ArrayList<RealmComponent> helpers = new ArrayList<RealmComponent>();
 					for (RealmComponent test : all) {
 						if (!test.isCharacter() && (attackers.contains(test.getTarget()) || attackers.contains(test.get2ndTarget())) ) {
 							helpers.add(test);
@@ -1091,8 +1091,8 @@ public class BattleModel {
 				}
 				else {
 					// Setup some more lists
-					ArrayList<RealmComponent> targets = new ArrayList<>(); // intentional misnomer - only ever one target
-					ArrayList<RealmComponent> attackersMinusTarget = new ArrayList<>();
+					ArrayList<RealmComponent> targets = new ArrayList<RealmComponent>(); // intentional misnomer - only ever one target
+					ArrayList<RealmComponent> attackersMinusTarget = new ArrayList<RealmComponent>();
 					if (attackers.size()>0) {
 						attackersMinusTarget.addAll(attackers);
 					}
@@ -1126,7 +1126,7 @@ public class BattleModel {
 					repositionAndChangeTactics(CombatWrapper.GROUP_CIRCLE,combat,attackersMinusTarget);
 					
 					if (rc.getOwnerId()==null) {
-						ArrayList<RealmComponent> self = new ArrayList<>();
+						ArrayList<RealmComponent> self = new ArrayList<RealmComponent>();
 						self.add(rc);
 						repositionAndChangeTactics(CombatWrapper.GROUP_RED,combat,self);
 					}
@@ -1164,11 +1164,11 @@ public class BattleModel {
 	 * @return The number of hits that occurred during this round
 	 */
 	public int doResolveAttacks(int round,CombatWrapper tile) {
-		killedTallyHash = new HashLists<>();
-		killTallyHash = new HashLists<>();
-		killerOrder = new ArrayList<>();
+		killedTallyHash = new HashLists<GameObject,GameObject>();
+		killTallyHash = new HashLists<GameObject,GameObject>();
+		killerOrder = new ArrayList<GameObject>();
 		
-		ArrayList<RealmComponent> all = new ArrayList<>(getAllBattleParticipants(true));
+		ArrayList<RealmComponent> all = new ArrayList<RealmComponent>(getAllBattleParticipants(true));
 		
 		// Since things might have been killed previously this round (PoP), be sure to start with them now
 		populateKillLists(all);
@@ -1189,8 +1189,8 @@ public class BattleModel {
 		sortAccordingToRound(battleChits, round);
 		
 		// Group attackers that have same length and speed (simultaneous)
-		ArrayList<String> attackBlockOrder = new ArrayList<>();
-		HashLists<String,BattleChit> attackBlocks = new HashLists<>();
+		ArrayList<String> attackBlockOrder = new ArrayList<String>();
+		HashLists<String,BattleChit> attackBlocks = new HashLists<String,BattleChit>();
 
 		handleSortTies(battleChits, attackBlockOrder, attackBlocks);
 		
@@ -1227,7 +1227,7 @@ public class BattleModel {
 
 	//collect all the battle chits that have targets, including weapons
 	private static ArrayList<BattleChit>collectBattleChits(ArrayList<RealmComponent> allBattleChits, HostPrefWrapper hostPrefs) {
-		ArrayList<BattleChit> battleChits = new ArrayList<>();
+		ArrayList<BattleChit> battleChits = new ArrayList<BattleChit>();
 		for (RealmComponent realmComponent : allBattleChits) {
 			BattleChit battleChit=(BattleChit)realmComponent;
 			if (battleChit.getTarget()!=null) {
@@ -1587,7 +1587,7 @@ public class BattleModel {
 		RealmLogging.incrementIndent();
 		
 		int attackerDefenseBox = (new CombatWrapper(characterChit.getAttackChit().getGameObject())).getCombatBoxDefense();
-		ArrayList<BattleChit> allTargets = new ArrayList<>();
+		ArrayList<BattleChit> allTargets = new ArrayList<BattleChit>();
 		Speed fastestAttackSpeed = new Speed();
 		Integer maxLength = 0;
 		for (RealmComponent target : attackerCombat.getAttackersAsComponents()) {
@@ -1603,7 +1603,7 @@ public class BattleModel {
 			}
 		}
 		
-		ArrayList<BattleChit> targets = new ArrayList<>();
+		ArrayList<BattleChit> targets = new ArrayList<BattleChit>();
 		
 		if (round==1) {
 			for (BattleChit targetBc : allTargets) {
@@ -1982,7 +1982,7 @@ public class BattleModel {
 						// Demon's Power of the Pit
 						logBattleInfo(target.getGameObject().getNameWithNumber()+" was hit with Power of the Pit along box "+attacker.getAttackCombatBox());
 						PowerOfThePit pop = PowerOfThePit.doNow(SpellWrapper.dummyFrame,attacker.getGameObject(),target.getGameObject(),false,0,attacker.getAttackSpeed());
-						ArrayList<GameObject> kills = new ArrayList<>(pop.getKills());
+						ArrayList<GameObject> kills = new ArrayList<GameObject>(pop.getKills());
 						kills.remove(targetCombat.getGameObject()); // Because targetCombat will be handled normally
 						
 						for (GameObject kill:kills) {
@@ -2005,7 +2005,7 @@ public class BattleModel {
 						// Devils Spell
 						logBattleInfo(target.getGameObject().getNameWithNumber()+" was hit with Devil's Spell along box "+attacker.getAttackCombatBox());
 						DevilsSpell ds = DevilsSpell.doNow(SpellWrapper.dummyFrame,attacker.getGameObject(),target.getGameObject(),false,0,attacker.getAttackSpeed());
-						ArrayList<GameObject> kills = new ArrayList<>(ds.getKills());
+						ArrayList<GameObject> kills = new ArrayList<GameObject>(ds.getKills());
 						kills.remove(targetCombat.getGameObject()); // Because targetCombat will be handled normally
 						
 						for (GameObject kill:kills) {
@@ -2227,7 +2227,7 @@ public class BattleModel {
 				return;
 			}
 			
-			ArrayList<BattleChit> targets = new ArrayList<>();
+			ArrayList<BattleChit> targets = new ArrayList<BattleChit>();
 			if (!target.isCharacter()) {
 				targets.add(target);
 				if (target.isMonster()) {
@@ -2544,7 +2544,7 @@ public class BattleModel {
 	private void repositionAndChangeTactics(String prefix,CombatWrapper sheetOwner,ArrayList<RealmComponent> groupList) {
 		if (groupList.size()>0) {
 			// Hash by box
-			HashLists<Key, RealmComponent> boxHash = new HashLists<>();
+			HashLists<Key, RealmComponent> boxHash = new HashLists<Key, RealmComponent>();
 			for (RealmComponent rc : groupList) {
 				CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 				int boxA = combat.getCombatBoxAttack();
@@ -2845,9 +2845,9 @@ public class BattleModel {
 		}
 		
 		// Need to get rid of dead participants here - wounds should have been handled already?  fatigued effort?
-		ArrayList<SpellWrapper> attackSpellsToExpire = new ArrayList<>();
-		ArrayList<SpellWrapper> spellsToExpireAtRoundEnd = new ArrayList<>();
-		ArrayList<RealmComponent> rcsToMakeDead = new ArrayList<>();
+		ArrayList<SpellWrapper> attackSpellsToExpire = new ArrayList<SpellWrapper>();
+		ArrayList<SpellWrapper> spellsToExpireAtRoundEnd = new ArrayList<SpellWrapper>();
+		ArrayList<RealmComponent> rcsToMakeDead = new ArrayList<RealmComponent>();
 		ArrayList<RealmComponent> all = getAllBattleParticipants(true);
 	
 		if (hostPrefs.hasPref(Constants.SR_OPT_CORNERED)) {
@@ -3208,8 +3208,8 @@ public class BattleModel {
 			}
 
 			// Clear out all round combat info (include all held stuff)
-			ArrayList<GameObject> removeList = new ArrayList<>();
-			ArrayList<GameObject> hold = new ArrayList<>(rc.getGameObject().getHold()); // to prevent concurrent mod issues when flychits are expired
+			ArrayList<GameObject> removeList = new ArrayList<GameObject>();
+			ArrayList<GameObject> hold = new ArrayList<GameObject>(rc.getGameObject().getHold()); // to prevent concurrent mod issues when flychits are expired
 			for (GameObject held : hold) {
 				CombatWrapper combat = new CombatWrapper(held);
 				
@@ -3382,7 +3382,7 @@ public class BattleModel {
 		return getAttackersFor(rc,true,true);
 	}
 	public ArrayList<RealmComponent> getAttackersFor(RealmComponent rc,boolean includeCharacters,boolean includeWeapons) {
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		for (RealmComponent bp : getAllBattleParticipants(true)) {
 			if (includeCharacters || !bp.isCharacter()) {
 				if ((bp.getTarget()!=null && rc.equals(bp.getTarget())) || (bp.get2ndTarget()!=null && rc.equals(bp.get2ndTarget()))) {
@@ -3448,7 +3448,7 @@ public class BattleModel {
 	 * 				by Hurricane Winds
 	 */
 	public ArrayList<RealmComponent> getAllBlowees() {
-		ArrayList<RealmComponent> list = new ArrayList<>();
+		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 		for (RealmComponent rc : getAllBattleParticipants(true)) {
 			if (rc.getGameObject().hasThisAttribute(Constants.BLOWS_TARGET) || rc.getGameObject().hasThisAttribute(Constants.EVENT_HURRICANE_WINDS)) {
 				list.add(rc);
@@ -3497,7 +3497,7 @@ public class BattleModel {
 		}
 		else {
 			TileLocation loc = rc.getCurrentLocation();
-			ArrayList<TileComponent> possibleTiles = new ArrayList<>();
+			ArrayList<TileComponent> possibleTiles = new ArrayList<TileComponent>();
 			Point basePosition = RealmUtility.getTilePositionFromGameObject(loc.tile.getGameObject());
 			GamePool pool = new GamePool(gameData.getGameObjects());
 			ArrayList<GameObject> tiles = pool.find("tile");
@@ -3515,7 +3515,7 @@ public class BattleModel {
 		if (!hostPrefs.hasPref(Constants.HOUSE2_HURRICANE_WINDS_BLOWS_HIRELINGS)) {
 			TileLocation loc = rc.getCurrentLocation();
 			if (loc.clearing!=null) {
-				ArrayList<GameObject> leftBehindItems = new ArrayList<>();
+				ArrayList<GameObject> leftBehindItems = new ArrayList<GameObject>();
 				for (GameObject item : rc.getGameObject().getHold()) {
 					RealmComponent itemRc = RealmComponent.getRealmComponent(item);
 					if ((itemRc.isHiredOrControlled() || itemRc.isNative() || itemRc.isMonster()) && itemRc.getCurrentLocation().equals(loc)) {
@@ -3622,7 +3622,7 @@ public class BattleModel {
 	}
 	
 	public static ArrayList<RealmComponent> getParticipantsFromGroups(Collection<BattleGroup> battleGroups) {
-		ArrayList<RealmComponent> participants = new ArrayList<>();
+		ArrayList<RealmComponent> participants = new ArrayList<RealmComponent>();
 		for (BattleGroup bg : battleGroups) {
 			participants.addAll(bg.getBattleParticipants());
 		}

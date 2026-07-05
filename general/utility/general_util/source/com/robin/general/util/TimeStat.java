@@ -8,10 +8,10 @@ public class TimeStat {
 //	private static final long NANOS_PER_MILLISECOND = 1000000l;
 	
 	/** Hash that holds a single start time for any single key */
-	private Hashtable<String, Timestamp> starts = new Hashtable<>();
+	private Hashtable<String, Timestamp> starts = new Hashtable<String, Timestamp>();
 	
 	/** Hash that holds all the measurement (duration) times for any single key */
-	private Hashtable<String, ArrayList<Long>> times = new Hashtable<>();
+	private Hashtable<String, ArrayList<Long>> times = new Hashtable<String, ArrayList<Long>>();
 	
 	/**
 	 * Sole constructor
@@ -24,8 +24,8 @@ public class TimeStat {
 	 * Resets all measurements by deleting all times.
 	 */
 	public void reset() {
-		starts = new Hashtable<>();
-		times = new Hashtable<>();
+		starts = new Hashtable<String, Timestamp>();
+		times = new Hashtable<String, ArrayList<Long>>();
 	}
 	
 	/**
@@ -59,7 +59,7 @@ public class TimeStat {
 //			}
 			ArrayList<Long> all = times.get(key);
 			if (all==null) {
-				all = new ArrayList<>();
+				all = new ArrayList<Long>();
 				times.put(key,all);
 			}
 			all.add(Long.valueOf(diff));

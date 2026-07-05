@@ -94,8 +94,8 @@ public class QuestView extends JPanel implements Scrollable {
 		questDescription.setFont(QuestGuiConstants.QuestDescriptionFont);
 		questDescription.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		model = new DefaultListModel<>();
-		questJournalList = new JList<>(model);
+		model = new DefaultListModel<QuestJournalEntry>();
+		questJournalList = new JList<QuestJournalEntry>(model);
 		questJournalList.setCellRenderer(new JournalLineRenderer());
 		splitPane = new JSplitPaneImproved(JSplitPane.VERTICAL_SPLIT, true, new JScrollPane(questDescription), new JScrollPane(questJournalList));
 		add(splitPane, BorderLayout.CENTER);

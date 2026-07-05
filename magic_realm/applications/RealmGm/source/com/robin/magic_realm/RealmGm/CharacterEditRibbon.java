@@ -338,7 +338,7 @@ public class CharacterEditRibbon extends JPanel {
 	}
 	private JComponent buildSpellEditor() {
 		JPanel panel = new JPanel(new BorderLayout());
-		ownedSpellsList = new JList<>();
+		ownedSpellsList = new JList<OwnedSpellsListModel>();
 		updateOwnedSpells();
 		panel.add(new JScrollPane(ownedSpellsList));
 		JButton addStartSpell = new JButton("Add Starting");
@@ -385,7 +385,7 @@ public class CharacterEditRibbon extends JPanel {
 		return selector.getSpellSelection().get(0);
 	}
 	private JComponent buildBreakableSpellsList() {
-		breakableSpellsList = new JList<>();
+		breakableSpellsList = new JList<BreakableSpellsListModel>();
 		updateBreakableSpells();
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.add(new JScrollPane(breakableSpellsList),BorderLayout.CENTER);
@@ -426,7 +426,7 @@ public class CharacterEditRibbon extends JPanel {
 	}
 	private ArrayList<String[]> getRelationshipNames() {
 		ArrayList<String[]> relationshipNames = new ArrayList<String[]>();
-		ArrayList<String> keyVals = new ArrayList<>();
+		ArrayList<String> keyVals = new ArrayList<String>();
 		HostPrefWrapper	hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
 		keyVals.add(hostPrefs.getGameKeyVals());
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());

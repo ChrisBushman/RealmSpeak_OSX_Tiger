@@ -19,7 +19,7 @@ public class GameObjectTreeView extends JFrame {
 			DefaultMutableTreeNode top = new DefaultMutableTreeNode("top");
 			
 			// Add all base objects (not held by anything)
-			Hashtable<String, DefaultMutableTreeNode> hash = new Hashtable<>();
+			Hashtable<String, DefaultMutableTreeNode> hash = new Hashtable<String, DefaultMutableTreeNode>();
 			for (GameObject object : gameObjects) {
 				DefaultMutableTreeNode node = new DefaultMutableTreeNode(object);
 				if (object.getHeldBy()==null) {

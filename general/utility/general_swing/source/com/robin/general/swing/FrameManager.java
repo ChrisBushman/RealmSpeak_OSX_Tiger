@@ -18,7 +18,7 @@ public class FrameManager {
 	private HashMap<String,ManagedFrame> frameHash;
 	
 	private FrameManager() {
-		frameHash = new HashMap<>();
+		frameHash = new HashMap<String,ManagedFrame>();
 	}
 	private static void _dispose(ManagedFrame frame) {
 		frame.setVisible(false);

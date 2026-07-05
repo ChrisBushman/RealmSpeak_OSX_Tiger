@@ -9,7 +9,7 @@ import javax.sound.sampled.*;
 import com.robin.general.io.ResourceFinder;
 
 public class SoundCache {
-	private static Hashtable<String,Clip> cache = new Hashtable<>();
+	private static Hashtable<String,Clip> cache = new Hashtable<String,Clip>();
 	
 	private static double currentGain = 0.5;
 	

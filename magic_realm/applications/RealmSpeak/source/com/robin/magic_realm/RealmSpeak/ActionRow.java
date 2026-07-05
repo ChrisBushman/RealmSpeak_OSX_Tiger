@@ -153,7 +153,7 @@ public class ActionRow {
 					negate = true;
 					message = character.getGameObject().getName() + " negates result of "+realmTable.getTableName(false);
 					// revert stats
-					ArrayList<String> phaseChitIds = new ArrayList<>();
+					ArrayList<String> phaseChitIds = new ArrayList<String>();
 					if (character.getGameObject().hasThisAttribute(CharacterWrapper.PHASE_CHITS)) {
 						for (String id : character.getGameObject().getThisAttributeList(CharacterWrapper.PHASE_CHITS)) {
 							phaseChitIds.add(id);
@@ -968,7 +968,7 @@ public class ActionRow {
 			int c = roller.getTotal();
 			
 			// Find all clearings that match the number
-			ArrayList<ClearingDetail> clearings = new ArrayList<>();
+			ArrayList<ClearingDetail> clearings = new ArrayList<ClearingDetail>();
 			for (PathDetail path : current.clearing.getConnectedPaths()) {
 				ClearingDetail clearing = path.findConnection(current.clearing);
 				if (clearing!=null) {
@@ -1032,7 +1032,7 @@ public class ActionRow {
 				}
 				
 				if (character.canWalkWoods(current.tile,current.clearing,location.clearing) || (current.isTileOnly() && !current.isFlying())) {
-					ArrayList<ClearingDetail> validClearings = new ArrayList<>();
+					ArrayList<ClearingDetail> validClearings = new ArrayList<ClearingDetail>();
 					if (current.clearing!=null) {
 						validClearings.addAll(current.clearing.getParent().getClearings());
 					}
@@ -1089,8 +1089,8 @@ public class ActionRow {
 					ArrayList<CharacterWrapper> actionFollowers = character.getActionFollowers();
 					
 					if (actionFollowers.size()>0) {
-						ArrayList<CharacterWrapper> canLeaveBehind = new ArrayList<>();
-						ArrayList<CharacterWrapper> encumberedFollowers = new ArrayList<>();
+						ArrayList<CharacterWrapper> canLeaveBehind = new ArrayList<CharacterWrapper>();
+						ArrayList<CharacterWrapper> encumberedFollowers = new ArrayList<CharacterWrapper>();
 						for (CharacterWrapper follower : actionFollowers) {
 							if (!follower.foundHiddenEnemy(character.getGameObject())) {
 								canLeaveBehind.add(follower);
@@ -1714,14 +1714,14 @@ public class ActionRow {
 				if (!negate && completed && hostPrefs.hasPref(Constants.QST_SR_QUESTS) && !character.isBlocked() && (trader.isNative() || trader.isVisitor() || trader.isTraveler())) {
 					boolean tradedQuests = false;
 					ArrayList<QuestCardComponent> unfinishedQuests = character.getUnfinishedNotAllPlayQuests();
-					ArrayList<QuestCardComponent> characterQuests = new ArrayList<>();
+					ArrayList<QuestCardComponent> characterQuests = new ArrayList<QuestCardComponent>();
 					for (QuestCardComponent quest : unfinishedQuests) {
 						if (!(new Quest(quest.getGameObject()).isSticky())) {
 							characterQuests.add(quest);
 						}
 					}
-					ArrayList<QuestCardComponent> traderQuests = new ArrayList<>();
-					ArrayList<GameObject> questsToNote = new ArrayList<>();
+					ArrayList<QuestCardComponent> traderQuests = new ArrayList<QuestCardComponent>();
+					ArrayList<GameObject> questsToNote = new ArrayList<GameObject>();
 					GameObject holder = null;
 					if (trader.isNative()) {
 						holder = SetupCardUtility.getDenizenHolder(trader.getGameObject());
@@ -1800,8 +1800,8 @@ public class ActionRow {
 		String relName = RealmUtility.getRelationshipNameFor(character,trader);
 		String traderRel = traderName+" ("+relName+")";
 		if (TRADE_BUY.equals(tradeAction)) {
-			hold = new ArrayList<>();
-			holdToNote = new ArrayList<>();
+			hold = new ArrayList<GameObject>();
+			holdToNote = new ArrayList<GameObject>();
 			if (trader.isNative()) {
 				// Native Leader - trade with their dwelling's hold
 				GameObject holder = SetupCardUtility.getDenizenHolder(trader.getGameObject());
@@ -2221,7 +2221,7 @@ public class ActionRow {
 	private void doHealAction() {
 		// Select a character in the same clearing that has wounds/fatigue, and does not have ILL_HEALTH, or is transmorphed
 		TileLocation current = character.getCurrentLocation();
-		ArrayList<RealmComponent> canBeHealed = new ArrayList<>();
+		ArrayList<RealmComponent> canBeHealed = new ArrayList<RealmComponent>();
 		for (RealmComponent rc:current.clearing.getClearingComponents()) {
 			if (rc.isCharacter()) {
 				if (!rc.getGameObject().equals(character.getGameObject())) { // can't be you!
@@ -2264,7 +2264,7 @@ public class ActionRow {
 	public static RealmComponentOptionChooser alertChooser(CharacterWrapper character, RealmGameHandler gameHandler) {
 		RealmComponentOptionChooser chooser = null;
 		// Player chooses from all inactive weapons and spell chits
-		ArrayList<ChitComponent> alertChoices = new ArrayList<>();
+		ArrayList<ChitComponent> alertChoices = new ArrayList<ChitComponent>();
 		Collection<CharacterActionChitComponent> c = character.getActiveChits();
 		for (CharacterActionChitComponent chit : c) {
 			if (chit.isMagic() || chit.isFightAlert()) {
@@ -2387,7 +2387,7 @@ public class ActionRow {
 		}
 	}
 	private void doRepairAction() {
-		ArrayList<ArmorChitComponent> damagedArmor = new ArrayList<>();
+		ArrayList<ArmorChitComponent> damagedArmor = new ArrayList<ArmorChitComponent>();
 		for(GameObject go:character.getInventory()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc.isArmor()) {
@@ -2522,7 +2522,7 @@ public class ActionRow {
 					result = "Cancelled Hire";
 					return;
 				}
-				ArrayList<RealmComponent> list = new ArrayList<>(chooser.getSelectedComponents());
+				ArrayList<RealmComponent> list = new ArrayList<RealmComponent>(chooser.getSelectedComponents());
 				ChitComponent last = (ChitComponent)list.get(list.size()-1);
 				
 				boolean credit = false;
@@ -2626,7 +2626,7 @@ public class ActionRow {
 	public static RealmComponentOptionChooser enchantChooser(CharacterWrapper character, RealmGameHandler gameHandler, TileLocation targetClearing, Collection<ColorMagic> colorMagicSources) {
 		// SPX actions are ignored.  Need to ask player if they want to enchant a chit, or a tile.
 		// The tile option would only be available if the conditions are right (right color/invocation combination available)		
-		ArrayList<MagicChit> enchantable = new ArrayList<>();
+		ArrayList<MagicChit> enchantable = new ArrayList<MagicChit>();
 		
 		// Chits
 		ArrayList<CharacterActionChitComponent> enchantableChits = character.getEnchantableChits();
@@ -2647,7 +2647,7 @@ public class ActionRow {
 			}
 		}
 	
-		ArrayList<RealmComponent[]> tileEnchantableSets = new ArrayList<>(); // CharacterChitActionComponent[] set
+		ArrayList<RealmComponent[]> tileEnchantableSets = new ArrayList<RealmComponent[]>(); // CharacterChitActionComponent[] set
 		// Determine if any of the color magic (infinite sources first) are available to enchant the tile
 		for (MagicChit chit:enchantable) {
 			for (ColorMagic infiniteSource : colorMagicSources) {
@@ -2662,7 +2662,7 @@ public class ActionRow {
 			}
 		}
 		// check own color chits (player may not want to use infinite source if it uses the wrong chit!)
-		ArrayList<MagicChit> colorMagicChits = new ArrayList<>();
+		ArrayList<MagicChit> colorMagicChits = new ArrayList<MagicChit>();
 		if ((!hostPrefs.hasPref(Constants.FE_STEEL_AGAINST_MAGIC) && !character.affectedByKey(Constants.STAFF_RESTRICTED_SPELLCASTING)) || character.hasOnlyStaffAsActivatedWeapon()) {
 			colorMagicChits.addAll(character.getColorChits());
 		}
@@ -2868,7 +2868,7 @@ public class ActionRow {
 		
 		// Strip out any chits that aren't strong enough to support character
 		Strength vul = character.getVulnerability();
-		ArrayList<StrengthChit> strongEnough = new ArrayList<>();
+		ArrayList<StrengthChit> strongEnough = new ArrayList<StrengthChit>();
 		for (StrengthChit sc:flyStrengthChits) {
 			if (sc.getStrength().strongerOrEqualTo(vul)) {
 				strongEnough.add(sc);
@@ -2885,7 +2885,7 @@ public class ActionRow {
 		flyStrengthChits = strongEnough;
 		
 		// Make sure intended target tile for flying is possible (might not be if a previously recorded move is invalid!)
-		ArrayList<TileComponent> allAvailableTiles = new ArrayList<>(current.tile.getAllAdjacentTiles());
+		ArrayList<TileComponent> allAvailableTiles = new ArrayList<TileComponent>(current.tile.getAllAdjacentTiles());
 		allAvailableTiles.add(current.tile);
 		if (!allAvailableTiles.contains(location.tile)) {
 			result = "Target tile too far away.";

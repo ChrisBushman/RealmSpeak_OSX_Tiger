@@ -78,14 +78,14 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 	}
 	private void initData() {
 		RealmObjectMaster rom = RealmObjectMaster.getRealmObjectMaster(gameData);
-		ArrayList<String> query = new ArrayList<>();
+		ArrayList<String> query = new ArrayList<String>();
 		query.add("!"+Constants.GOLD_SPECIAL_PLACED);
 		if (hostPrefs.hasPref(Constants.HOUSE2_IGNORE_CAMPAIGNS)) {
 			query.add("!campaign");
 		}
-		ArrayList<GameObject> gs = new ArrayList<>(rom.findObjects("gold_special",query));
-		destinations = new ArrayList<>(rom.findObjects("gold_special_target"));
-		chits = new ArrayList<>();
+		ArrayList<GameObject> gs = new ArrayList<GameObject>(rom.findObjects("gold_special",query));
+		destinations = new ArrayList<GameObject>(rom.findObjects("gold_special_target"));
+		chits = new ArrayList<GameObject[]>();
 		while (!gs.isEmpty()) {
 			GameObject[] chit = new GameObject[2];
 			chit[0] = gs.remove(0);
@@ -115,7 +115,7 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 		int count = 0;
 		int pageCount = 0;
 		ButtonGroup group = new ButtonGroup();
-		chitButtons = new ArrayList<>();
+		chitButtons = new ArrayList<JToggleButton>();
 		boolean ignoreCampaigns = hostPrefs.hasPref(Constants.HOUSE2_IGNORE_CAMPAIGNS);
 		for (GameObject[] chit:chits) {
 			if ((!hostPrefs.usesSuperRealm() && count%6==0) || (hostPrefs.usesSuperRealm() && count%12==0)) {
@@ -190,7 +190,7 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 		DestinationPanel dPanel = null;
 		count = 0;
 		pageCount = 0;
-		destButtons = new ArrayList<>();
+		destButtons = new ArrayList<PlaceButton>();
 		for (GameObject go:destinations) {
 			if (count%7==0) {
 				if (dPanel!=null) {
@@ -330,7 +330,7 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 	private static void prepMultiboard(HostPrefWrapper hostPrefs,GameData data) {
 		RealmLoader doubleLoader = new RealmLoader();
 		
-		ArrayList<String> appendNames = new ArrayList<>();
+		ArrayList<String> appendNames = new ArrayList<String>();
 		doubleLoader.cleanupData(hostPrefs.getGameKeyVals());
 		int count = hostPrefs.getMultiBoardCount();
 		for (int n=0;n<count-1;n++) {

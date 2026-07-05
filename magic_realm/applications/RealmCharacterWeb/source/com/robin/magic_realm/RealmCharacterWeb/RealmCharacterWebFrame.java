@@ -50,7 +50,7 @@ public class RealmCharacterWebFrame extends JFrame {
 	}
 	private void refresh() {
 		fetchRscharFiles();
-		layoutRecords = new ArrayList<>();
+		layoutRecords = new ArrayList<RscharLayout>();
 		if (webLayoutFile!=null) {
 			if (!loadFromFile(webLayoutFile)) {
 				webLayoutFile = null;
@@ -200,7 +200,7 @@ public class RealmCharacterWebFrame extends JFrame {
 			
 			// Create all the folders
 			Menu menu = new Menu();
-			Hashtable<String,File> folders = new Hashtable<>();
+			Hashtable<String,File> folders = new Hashtable<String,File>();
 			for (RscharLayout rec:layoutRecords) {
 				String folder = rec.getWebFolder();
 				File webFolder;
@@ -270,7 +270,7 @@ public class RealmCharacterWebFrame extends JFrame {
 		Collections.sort(layoutRecords);
 	}
 	private void fetchRscharFiles() {
-		rscharFiles = new ArrayList<>();
+		rscharFiles = new ArrayList<File>();
 		File[] files = characterFolder.listFiles(new FileFilter() {
 			public boolean accept(File file) {
 				if (file.isFile()) {

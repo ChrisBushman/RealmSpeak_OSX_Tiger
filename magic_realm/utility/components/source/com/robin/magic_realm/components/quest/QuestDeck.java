@@ -47,7 +47,7 @@ public class QuestDeck extends GameObjectWrapper {
 	private void doShuffle() {
 		ArrayList<String> list = getList(QUEST_CARD_LIST);
 		if (list==null) return;
-		ArrayList<String> shuffled = new ArrayList<>();
+		ArrayList<String> shuffled = new ArrayList<String>();
 		while(list.size()>0) {
 			int r = RandomNumber.getRandom(list.size());
 			shuffled.add(list.remove(r));
@@ -76,7 +76,7 @@ public class QuestDeck extends GameObjectWrapper {
 		}
 	}
 	private ArrayList<GameObject> getAllPlayCardsAsObjects() {
-		ArrayList<GameObject> allPlay = new ArrayList<>();
+		ArrayList<GameObject> allPlay = new ArrayList<GameObject>();
 		ArrayList<String> list = getList(QUEST_ALL_PLAY_LIST);
 		if (list!=null && list.size()>0) {
 			for(String questId : list) {
@@ -87,7 +87,7 @@ public class QuestDeck extends GameObjectWrapper {
 		return allPlay;
 	}
 	private ArrayList<Quest> getAllPlayCards() {
-		ArrayList<Quest> allPlay = new ArrayList<>();
+		ArrayList<Quest> allPlay = new ArrayList<Quest>();
 		for(GameObject go:getAllPlayCardsAsObjects()) {
 			Quest quest = new Quest(go);
 			allPlay.add(quest);
@@ -98,7 +98,7 @@ public class QuestDeck extends GameObjectWrapper {
 	private void reshuffle() {
 		ArrayList<String> discards = getList(QUEST_DISCARDS);
 		if (discards==null || discards.size()==0) return; // if there are no discards, then there are more player quest slots than the deck can handle, and nothing happens.
-		setList(QUEST_CARD_LIST,new ArrayList<>(discards));
+		setList(QUEST_CARD_LIST,new ArrayList<String>(discards));
 		clear(QUEST_DISCARDS);
 		shuffle();
 	}
@@ -114,7 +114,7 @@ public class QuestDeck extends GameObjectWrapper {
 	public ArrayList<String> getAllQuestNames() {
 		ArrayList<String> quests = getList(QUEST_CARD_LIST);
 		quests.addAll(getList(QUEST_DISCARDS));
-		ArrayList<String> names = new ArrayList<>();
+		ArrayList<String> names = new ArrayList<String>();
 		GameData gameData = getGameData();
 		if (quests!=null && quests.size()>0) {
 			for (String questId : quests) {

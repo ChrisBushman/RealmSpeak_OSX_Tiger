@@ -57,7 +57,7 @@ public class RealmDirectInfoHolder {
 	private ArrayList<String> list;
 	public RealmDirectInfoHolder(GameData data) {
 		this.data = data;
-		list = new ArrayList<>();
+		list = new ArrayList<String>();
 		// Three required placeholders
 		list.add("");
 		list.add("");
@@ -71,7 +71,7 @@ public class RealmDirectInfoHolder {
 		if (in.size()<GAME_OBJECT_ID_LIST_START) {
 			throw new IllegalArgumentException("Invalid list");
 		}
-		list = new ArrayList<>(in);
+		list = new ArrayList<String>(in);
 	}
 	public RealmDirectInfoHolder(GameData data,String playerName) {
 		this(data);
@@ -114,7 +114,7 @@ public class RealmDirectInfoHolder {
 		list.addAll(in);
 	}
 	public void clearGameObjectList() {
-		list = new ArrayList<>(list.subList(0,3));
+		list = new ArrayList<String>(list.subList(0,3));
 	}
 	public void addGameObject(GameObject go) {
 		list.add(go.getStringId());
@@ -133,7 +133,7 @@ public class RealmDirectInfoHolder {
 		return new CharacterWrapper(go);
 	}
 	public ArrayList<GameObject> getGameObjects() {
-		ArrayList<GameObject> ret = new ArrayList<>();
+		ArrayList<GameObject> ret = new ArrayList<GameObject>();
 		for (int i=GAME_OBJECT_ID_LIST_START;i<list.size();i++) {
 			String id = list.get(i);
 			ret.add(data.getGameObject(Long.valueOf(id)));
@@ -141,7 +141,7 @@ public class RealmDirectInfoHolder {
 		return ret;
 	}
 	public ArrayList<String> getStrings() {
-		ArrayList<String> ret = new ArrayList<>();
+		ArrayList<String> ret = new ArrayList<String>();
 		for (int i=GAME_OBJECT_ID_LIST_START;i<list.size();i++) {
 			String string = list.get(i);
 			ret.add(string);

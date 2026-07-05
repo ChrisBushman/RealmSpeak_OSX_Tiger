@@ -84,7 +84,7 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 		updateControls();
 	}
 	public void updatePanel() {
-		hirelings = new ArrayList<>();
+		hirelings = new ArrayList<HirelingDetailComponent>();
 		ArrayList<RealmComponent> allHirelings = getCharacter().getAllHirelings();
 		ArrayList<RealmComponent> fHirelings = getCharacter().getFollowingHirelings(); // likely the same group
 		for (RealmComponent fHireling : fHirelings) {
@@ -134,7 +134,7 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 	}
 	public void updateControls() {
 		if (hirelingTable!=null) {
-			selectedUnderlings = new ArrayList<>();
+			selectedUnderlings = new ArrayList<RealmComponent>();
 			if (hirelingTable.getSelectedRowCount()>0) {
 				int[] selRow = hirelingTable.getSelectedRows();
 				for (int i=0;i<selRow.length;i++) {
@@ -183,10 +183,10 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 	private void doAssign() {
 		if (selectedUnderlings.isEmpty()) return;
 		boolean rovingUnderlings = false;
-		ArrayList<String> rovingNatives = new ArrayList<>();
+		ArrayList<String> rovingNatives = new ArrayList<String>();
 		
 		// Need to group underlings by location - assignment may not be the same for all
-		HashLists<TileLocation,RealmComponent> underlingHash = new HashLists<>();
+		HashLists<TileLocation,RealmComponent> underlingHash = new HashLists<TileLocation,RealmComponent>();
 		for (RealmComponent underling : selectedUnderlings) {
 			TileLocation location = ClearingUtility.getTileLocation(underling);
 			if (location!=null && location.isInClearing()) { // This should always be true, I think
@@ -202,7 +202,7 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 		boolean wasQueried = false; // Need to know this, in case there are no characters/leaders to assign hirelings to
 		for (TileLocation location : underlingHash.keySet()) {
 			ArrayList<RealmComponent> list = underlingHash.getList(location);
-			Collection<RealmComponent> guides = new ArrayList<>();
+			Collection<RealmComponent> guides = new ArrayList<RealmComponent>();
 			Collection<RealmComponent> allGuides = ClearingUtility.getGuidesInClearing(location);
 			if (rovingUnderlings) {
 				for (RealmComponent guide : allGuides) {

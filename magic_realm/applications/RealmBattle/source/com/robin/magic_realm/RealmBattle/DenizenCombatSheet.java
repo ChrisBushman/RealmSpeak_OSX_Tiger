@@ -471,7 +471,7 @@ public class DenizenCombatSheet extends CombatSheet {
 				// Character might have a target to attack
 				RealmComponent target = combatFrame.getActiveParticipant().getTarget();
 				RealmComponent target2 = combatFrame.getActiveParticipant().get2ndTarget();
-				ArrayList<RealmComponent> allSheetParticipants = new ArrayList<>(sheetParticipants);
+				ArrayList<RealmComponent> allSheetParticipants = new ArrayList<RealmComponent>(sheetParticipants);
 				allSheetParticipants.add(sheetOwner);
 				boolean sheetHasTarget = target!=null && sheetParticipants.contains(target);
 				boolean sheetHasTarget2 = target2!=null && sheetParticipants.contains(target2);
@@ -521,10 +521,10 @@ public class DenizenCombatSheet extends CombatSheet {
 		battleChitsWithRolls.clear();
 		layoutHash.clear();
 		
-		sheetParticipants = new ArrayList<>();
+		sheetParticipants = new ArrayList<RealmComponent>();
 		sheetParticipants.add(sheetOwner);
 		
-		ArrayList<RealmComponent> excludeList = new ArrayList<>();
+		ArrayList<RealmComponent> excludeList = new ArrayList<RealmComponent>();
 		excludeList.add(sheetOwner);
 		
 		if (isOwnedByActive || combatFrame.getActionState()>=Constants.COMBAT_RESOLVING || sheetOwner.getOwnerId()==null) {
@@ -557,7 +557,7 @@ public class DenizenCombatSheet extends CombatSheet {
 		
 		// If the sheet owner is a denizen, then ALL denizens should be in the middle... I think...
 		if (sheetOwner.getOwnerId()==null && (defenderTarget!=null || defenderTarget2!=null)) {
-			ArrayList<RealmComponent> denizens = new ArrayList<>(model.getDenizenBattleGroup().getBattleParticipants());
+			ArrayList<RealmComponent> denizens = new ArrayList<RealmComponent>(model.getDenizenBattleGroup().getBattleParticipants());
 			for (RealmComponent denizen : denizens) {
 				if (!excludeList.contains(denizen) && (
 						(defenderTarget!=null && (defenderTarget.equals(denizen.getTarget()) || defenderTarget.equals(denizen.get2ndTarget())))
@@ -691,7 +691,7 @@ public class DenizenCombatSheet extends CombatSheet {
 				}
 				else if (combatFrame.getActionState()==Constants.COMBAT_ASSIGN) {
 					// Character target assignment
-					ArrayList<RealmComponent> list = new ArrayList<>();
+					ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
 					ArrayList<RealmComponent> list1 = layoutHash.getList(Integer.valueOf(POS_DEFENDER_BOX1));
 					if (list1!=null) {
 						list.addAll(list1);

@@ -39,10 +39,10 @@ public class DemonsEffects {
 		return string.toString();
 	}
 	public static ArrayList<RealmComponent> killEverythingInClearing(CharacterWrapper character,Strength power,boolean hiddenAreSafe,boolean charactersAreSafe,Speed speed,GameObject caster, boolean makeDeadWhenKilled, ArrayList<GameObject> kills) {
-		ArrayList<RealmComponent> killed = new ArrayList<>();
+		ArrayList<RealmComponent> killed = new ArrayList<RealmComponent>();
 		TileLocation tl = character.getCurrentLocation();
 		if (tl.isInClearing()) {
-			HashSet<RealmComponent> livingThings = new HashSet<>();
+			HashSet<RealmComponent> livingThings = new HashSet<RealmComponent>();
 			for (RealmComponent rc:tl.clearing.getClearingComponents()) {
 				if (rc.isPlayerControlledLeader()) {
 					livingThings.add(rc);

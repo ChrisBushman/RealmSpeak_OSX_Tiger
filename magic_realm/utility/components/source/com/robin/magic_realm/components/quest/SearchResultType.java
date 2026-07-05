@@ -69,7 +69,7 @@ public enum SearchResultType {
 		}
 	}
 	public static String[] optionalValues() {
-		ArrayList<String> list = new ArrayList<>();
+		ArrayList<String> list = new ArrayList<String>();
 		list.add("");
 		for(SearchResultType rt:values()) {
 			list.add(rt.toString());
@@ -88,7 +88,7 @@ public enum SearchResultType {
 		return null;
 	}
 	public static SearchResultType[] getSearchResultTypes(SearchTableType table) {
-		ArrayList<SearchResultType> list = new ArrayList<>();
+		ArrayList<SearchResultType> list = new ArrayList<SearchResultType>();
 		list.add(SearchResultType.Any);
 		switch(table) {
 			case Any:

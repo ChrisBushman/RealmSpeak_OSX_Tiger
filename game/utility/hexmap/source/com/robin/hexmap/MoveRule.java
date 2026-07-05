@@ -13,7 +13,7 @@ public class MoveRule {
 	public MoveRule(Object userData,float moveLeft) {
 		this.userData = userData==null?"":userData;
 		this.moveLeft = moveLeft;
-		this.rules = new ArrayList<>();
+		this.rules = new ArrayList<String>();
 		canMoveBoatless = false;
 	}
 	public void setUserData(Object userData) {

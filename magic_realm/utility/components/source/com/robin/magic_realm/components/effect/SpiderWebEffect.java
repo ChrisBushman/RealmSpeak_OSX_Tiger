@@ -29,8 +29,8 @@ public class SpiderWebEffect implements ISpellEffect {
 	}
 	public static void applySpiderWebEffect(RealmComponent target, GameObject caster, GameData gameData) {
 		CombatWrapper cw = new CombatWrapper(target.getGameObject());
-		ArrayList<Integer> attackBoxes = new ArrayList<>();
-		ArrayList<Integer> defenseBoxes = new ArrayList<>();
+		ArrayList<Integer> attackBoxes = new ArrayList<Integer>();
+		ArrayList<Integer> defenseBoxes = new ArrayList<Integer>();
 		attackBoxes.add(cw.getCombatBoxAttack());
 		defenseBoxes.add(cw.getCombatBoxDefense());
 		if (target.isDenizen()) {

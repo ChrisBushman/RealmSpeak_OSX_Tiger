@@ -349,7 +349,7 @@ public class GameHtmlGenerator extends HtmlGenerator {
 		generateMap(path);
 		
 		// Setup Card
-		setupCardNames = new ArrayList<>();
+		setupCardNames = new ArrayList<String>();
 		TreasureSetupCardView[] treasureSetupCardView;
 		if (hostPrefs.getMultiBoardEnabled()) {
 			int count = hostPrefs.getMultiBoardCount();
@@ -470,10 +470,10 @@ public class GameHtmlGenerator extends HtmlGenerator {
 		if (!dir.exists()) {
 			dir.mkdir();
 		}
-		ArrayList<String> playerNames = new ArrayList<>();
-		ArrayList<String> employerNames = new ArrayList<>();
-		HashLists<String, CharacterWrapper> characterHash = new HashLists<>();
-		HashLists<String, CharacterWrapper> minionHash = new HashLists<>();
+		ArrayList<String> playerNames = new ArrayList<String>();
+		ArrayList<String> employerNames = new ArrayList<String>();
+		HashLists<String, CharacterWrapper> characterHash = new HashLists<String, CharacterWrapper>();
+		HashLists<String, CharacterWrapper> minionHash = new HashLists<String, CharacterWrapper>();
 		for (GameObject go : characterGameObjects) {
 			CharacterWrapper character = new CharacterWrapper(go);
 			if (character.isCharacter()) {

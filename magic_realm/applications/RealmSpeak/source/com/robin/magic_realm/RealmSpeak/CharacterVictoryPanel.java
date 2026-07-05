@@ -45,7 +45,7 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 	
 	public CharacterVictoryPanel(CharacterFrame parent) {
 		super(parent);
-		calcColumns = new ArrayList<>();
+		calcColumns = new ArrayList<Integer>();
 		init();
 	}
 	private void init() {
@@ -364,7 +364,7 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 	private ArrayList<VictoryTableRow> tableRows;
 	private void initializeTableRows(HostPrefWrapper hostPrefs) {
 		boolean showQuestPoints = hostPrefs.hasPref(Constants.QST_QUEST_CARDS) || hostPrefs.hasPref(Constants.QST_SR_QUESTS);
-		tableRows = new ArrayList<>();
+		tableRows = new ArrayList<VictoryTableRow>();
 		if (showQuestPoints) {
 			tableRows.add(new ScoreRow(hostPrefs,"Quest Pts",VictoryRowType.QuestPoints) {
 				public Score getScore() {
