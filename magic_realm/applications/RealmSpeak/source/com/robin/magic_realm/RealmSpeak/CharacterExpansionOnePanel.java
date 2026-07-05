@@ -1,25 +1,7 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -81,14 +63,13 @@ public class CharacterExpansionOnePanel extends CharacterFramePanel {
 	}
 	private class ChitDiscoveryModel extends AbstractTableModel {
 		private String name;
-		private ArrayList list;
-		private ArrayList discoveryNamesList;
-		public ChitDiscoveryModel(String name,ArrayList list) {
+		private ArrayList<GameObject> list;
+		private ArrayList<String> discoveryNamesList;
+		public ChitDiscoveryModel(String name,ArrayList<GameObject> list) {
 			this.name = name;
 			this.list = list;
-			discoveryNamesList = new ArrayList();
-			for (Iterator i=list.iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
+			discoveryNamesList = new ArrayList<>();
+			for (GameObject go : list) {
 				discoveryNamesList.add(go.getName());
 			}
 		}
@@ -112,7 +93,7 @@ public class CharacterExpansionOnePanel extends CharacterFramePanel {
 		}
 		public Object getValueAt(int row, int column) {
 			if (row<list.size()) {
-				GameObject go = (GameObject)list.get(row);
+				GameObject go = list.get(row);
 				switch(column) {
 					case 0:
 						String name = go.getName();
@@ -129,8 +110,8 @@ public class CharacterExpansionOnePanel extends CharacterFramePanel {
 		}
 	}
 	private class ChitDiscoveryRenderer extends DefaultTableCellRenderer {
-		private ArrayList list;
-		public ChitDiscoveryRenderer(ArrayList list) {
+		private ArrayList<GameObject> list;
+		public ChitDiscoveryRenderer(ArrayList<GameObject> list) {
 			this.list = list;
 		}
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSel, boolean hasFocus, int row, int column) {
@@ -138,13 +119,13 @@ public class CharacterExpansionOnePanel extends CharacterFramePanel {
 			setBackground(Color.white);
 			setText((String)value);
 			if (row<list.size()) {
-				GameObject go = (GameObject)list.get(row);
+				GameObject go = list.get(row);
 				if (getCharacter().hasOtherChitDiscovery(go.getName())) {
 					setBackground(MagicRealmColor.DISCOVERY_HIGHLIGHT_COLOR);
 				}
 			}
-			if (column==0) setHorizontalAlignment(JLabel.LEFT);
-			else setHorizontalAlignment(JLabel.CENTER);
+			if (column==0) setHorizontalAlignment(SwingConstants.LEFT);
+			else setHorizontalAlignment(SwingConstants.CENTER);
 			return this;
 		}
 	}

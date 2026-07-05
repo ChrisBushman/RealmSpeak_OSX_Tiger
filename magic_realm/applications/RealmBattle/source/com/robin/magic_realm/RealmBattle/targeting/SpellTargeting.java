@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle.targeting;
 
 import java.util.ArrayList;
@@ -29,6 +12,7 @@ import com.robin.magic_realm.components.wrapper.*;
 
 public abstract class SpellTargeting {
 	
+	public static final String NON_TREASURE_WEAPON = "non_treasure_weapon";
 	protected CombatFrame combatFrame;
 	protected SpellWrapper spell;
 	
@@ -41,10 +25,10 @@ public abstract class SpellTargeting {
 	protected SpellTargeting(CombatFrame combatFrame,SpellWrapper spell) {
 		this.combatFrame = combatFrame;
 		this.spell = spell;
-		gameObjects = new ArrayList<GameObject>();
+		gameObjects = new ArrayList<>();
 	}
 	protected boolean allowTargetingHirelings() {
-		return combatFrame.allowsTreachery() || (spell.isBenevolent() && combatFrame.getHostPrefs().hasPref(Constants.TE_BENEVOLENT_SPELLS));
+		return combatFrame.allowsTreachery() || (spell.isBenevolent() && combatFrame.getHostPrefs().hasPref(Constants.TE_BENEVOLENT_SPELLS)) || spell.isBenevolentForHirelings();
 	}
 	/**
 	 * This is the primary access to Spell Targeting
@@ -70,6 +54,9 @@ public abstract class SpellTargeting {
 		else if ("character".equals(targetType)) {
 			targeting = new SpellTargetingCharacter(combatFrame,spell,spell.getGameObject().hasThisAttribute("targetLightOnly"));
 		}
+		else if ("characters".equals(targetType)) {
+			targeting = new SpellTargetingCharacters(combatFrame,spell,spell.getGameObject().hasThisAttribute("targetLightOnly"));
+		}
 		else if ("caster".equals(targetType)) {
 			targeting = new SpellTargetingCaster(combatFrame,spell);
 		}
@@ -79,11 +66,18 @@ public abstract class SpellTargeting {
 		else if ("monster".equals(targetType)) {
 			targeting = new SpellTargetingMonster(combatFrame,spell);
 		}
+		else if ("living monster".equals(targetType) || "monster alive".equals(targetType) || "monster_alive".equals(targetType)
+				|| "living monsters".equals(targetType) || "monsters alive".equals(targetType) || "monsters_alive".equals(targetType)) {
+			targeting = new SpellTargetingAliveMonster(combatFrame,spell);
+		}
 		else if ("sound".equals(targetType)) {
 			targeting = new SpellTargetingSound(combatFrame,spell);
 		}
 		else if ("artifact".equals(targetType)) {
 			targeting = new SpellTargetingArtifact(combatFrame,spell);
+		}
+		else if ("site with spell".equals(targetType)) {
+			targeting = new SpellTargetingSiteWithSpell(combatFrame,spell);
 		}
 		else if (targetType.indexOf("spell")>=0 || targetType.indexOf("curse")>=0) {
 			targeting = new SpellTargetingSpellOrCurse(combatFrame,spell);
@@ -91,17 +85,33 @@ public abstract class SpellTargeting {
 		else if (targetType.startsWith("magic")) {
 			targeting = new SpellTargetingMagic(combatFrame,spell);
 		}
+		else if ("uncontrolled monsters".equals(targetType) || "monsters uncontrolled".equals(targetType) || "monsters_uncontrolled".equals(targetType)
+				||"uncontrolled monster".equals(targetType) || "monster uncontrolled".equals(targetType) || "monster_uncontrolled".equals(targetType)) {
+			targeting = new SpellTargetingUncontrolledMonsters(combatFrame,spell);
+		}
+		else if ("creature, horse, hound".equals(targetType)) {
+			targeting = new SpellTargetingCreatureHorseHound(combatFrame,spell);
+		}
 		else if ("spider, octopus".equals(targetType)) {
 			targeting = new SpellTargetingSpiderOctopus(combatFrame,spell);
 		}
+		else if ("spider, octopus, scorpion".equals(targetType)) {
+			targeting = new SpellTargetingSpiderOctopusScorpion(combatFrame,spell);
+		}
 		else if ("bats".equals(targetType)) {
 			targeting = new SpellTargetingBats(combatFrame,spell);
+		}
+		else if ("skeletons".equals(targetType)) {
+			targeting = new SpellTargetingSkeletons(combatFrame,spell);
 		}
 		else if ("wolves".equals(targetType)) {
 			targeting = new SpellTargetingWolves(combatFrame,spell);
 		}
 		else if ("goblins".equals(targetType)) {
 			targeting = new SpellTargetingGoblins(combatFrame,spell);
+		}
+		else if ("orcs, goblins".equals(targetType)) {
+			targeting = new SpellTargetingOrcsGoblins(combatFrame,spell);
 		}
 		else if ("human group".equals(targetType)) {
 			targeting = new SpellTargetingHumanGroup(combatFrame,spell);
@@ -112,16 +122,22 @@ public abstract class SpellTargeting {
 		else if ("demon".equals(targetType)) {
 			targeting = new SpellTargetingDemon(combatFrame,spell);
 		}
+		else if ("ask demon".equals(targetType) || "ask_demon".equals(targetType)) {
+			targeting = new SpellTargetingAskDemon(combatFrame,spell);
+		}
 		else if ("weather".equals(targetType)) {
 			targeting = new SpellTargetingWeather(combatFrame,spell);
 		}
 		else if ("weapon".equals(targetType)) {
 			targeting = new SpellTargetingWeapon(combatFrame,spell);
 		}
+		else if ("weapon, denizen".equals(targetType)) {
+			targeting = new SpellTargetingWeaponOrDenizen(combatFrame,spell);
+		}
 		else if ("tile".equals(targetType)) {
 			targeting = new SpellTargetingTile(combatFrame,spell);
 		}
-		else if ("character,tile".equals(targetType)) {
+		else if (targetingCharacterOrTile(targetType)) {
 			// Show a dialog to make a choice here
 			ButtonOptionDialog choice = new ButtonOptionDialog(combatFrame,null,"Target which?",spell.getGameObject().getName());
 			choice.addSelectionObject("Character");
@@ -161,7 +177,7 @@ public abstract class SpellTargeting {
 		else if ("undead".equals(targetType)) {
 			targeting = new SpellTargetingUndead(combatFrame,spell);
 		}
-		else if ("dead monster".equals(targetType)) {
+		else if ("dead monster".equals(targetType) || "dead_monster".equals(targetType)) {
 			targeting = new SpellTargetingDeadMonster(combatFrame,spell);
 		}
 		else if ("staff".equals(targetType)) {
@@ -173,50 +189,69 @@ public abstract class SpellTargeting {
 		else if ("MOVE chit".equals(targetType)) {
 			targeting = new SpellTargetingChit(combatFrame,spell,"MOVE");
 		}
+		else if ("FIGHT chit".equals(targetType)) {
+			targeting = new SpellTargetingChit(combatFrame,spell,"FIGHT");
+		}
 		else if ("native".equals(targetType)) {
 			targeting = new SpellTargetingNative(combatFrame,spell);
+		}
+		else if ("combat box".equals(targetType)) {
+			targeting = new SpellTargetingCombatBox(combatFrame,spell);
+		}
+		else if ("none".equals(targetType)) {
+			targeting = new SpellTargetingNone(combatFrame,spell);
+		}
+		else if ("beast".equals(targetType)) {
+			targeting = new SpellTargetingBeast(combatFrame,spell);
+		}
+		else if ("animal".equals(targetType)) {
+			targeting = new SpellTargetingAnimal(combatFrame,spell);
+		}
+		else if ("roadway".equals(targetType)) {
+			targeting = new SpellTargetingRoadway(combatFrame,spell);
+		}
+		else if ("active horse".equals(targetType) || "active_horse".equals(targetType)) {
+			targeting = new SpellTargetingActiveHorse(combatFrame,spell);
+		}
+		else if ("warning chits".equals(targetType)) {
+			targeting = new SpellTargetingWarningChits(combatFrame,spell);
+		}
+		else if ("killed denizen".equals(targetType) || "killed_denizen".equals(targetType)) {
+			targeting = new SpellTargetingKilledDenizen(combatFrame,spell);
+		}
+		else if ("character, native leader, controlled monster".equals(targetType)) {
+			targeting = new SpellTargetingCharacterNativeLeaderControlledMonster(combatFrame,spell);
+		}
+		else if ("weapon, native, monster".equals(targetType)) {
+			targeting = new SpellTargetingWeaponNativeMonster(combatFrame,spell);
+		}
+		else if ("active item".equals(targetType)) {
+			targeting = new SpellTargetingItem(combatFrame,spell,true,false);
+		}
+		else if ("individual, horse, hound".equals(targetType)) {
+			targeting = new SpellTargetingIndividualHorseHound(combatFrame,spell);
+		}
+		else if ("active weapon, denizen weapon".equals(targetType)) {
+			targeting = new SpellTargetingWeaponNativeMonster(combatFrame,spell);
+		}
+		else if ("spells item".equals(targetType)) {
+			targeting = new SpellTargetingSpellsItem(combatFrame,spell);
+		}
+		else if ("owner".equals(targetType)) {
+			targeting = new SpellTargetingOwner(combatFrame,spell);
+		}
+		else if ("bewitched".equals(targetType) || "bewitched target".equals(targetType)) {
+			targeting = new SpellTargetingBewitched(combatFrame,spell);
 		}
 		
 		return targeting;
 	}
-		/*
-		 * This is the complete list of target possibilities:
-		 * 
-		 * These are done:
-		 * ---------------
-		 * character
-		 * characterL			one Light character
-		 * individual			anyone in the clearing
-		 * attacker			anyone in the clearing that is an opponent
-		 * leader 			any character, hired leader or controlled monster
-		 * multiple 			any in clearing - multiple
-		 * magic(II,VIII)
-		 * magic(III,VII)
-		 * magic(IV,VI)
-		 * magic(all)
-		 * monster
-		 * spell				TEST - Any active spell in the clearing
-		 * spell,curse			TEST - One active spell or curse
-		 * artifact			TEST - Any artifact or book
-		 * sound				One face-up sound chit anywhere on the map
-		 * clearing(all)		Everything: monsters,natives,characters,spells
-		 * clearing			Monsters,natives,characters
-		 * bats				All bats in the clearing
-		 * spiderOctopus		Spider or Octopus
-		 * dragon				Any dragon
-		 * goblins			All goblins in the clearing
-		 * humanGroup			any one native group, or all giants, or all ogres
-		 * weather			the weather chit
-		 * 
-		 * Need to test:
-		 * ------------
-		 * weapon				Select any weapon, native, Goblin, Ogre, or Giant's Club
-		 * cave				The cave clearing itself.
-		 * demon				A demon
-		 * 
-		 * Still to do:
-		 * ------------
-		 * tile 				entire tile
-		 * character,tile		either one character or spellcaster tile
-		 */
+	
+	public ArrayList<GameObject> getPossibleTargets() {
+		return gameObjects;
+	}
+	
+	protected static boolean targetingCharacterOrTile(String targetType) {
+		return "character,tile".equals(targetType) || "character, tile".equals(targetType);
+	}
 }

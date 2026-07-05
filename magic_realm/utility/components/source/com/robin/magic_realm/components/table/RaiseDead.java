@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.table;
 
 import java.util.ArrayList;
@@ -67,10 +50,12 @@ public class RaiseDead extends MonsterTable {
 		TileLocation tl = character.getCurrentLocation();
 		GameObject go = ClearingUtility.getItemInClearingWithKey(tl,Constants.NO_UNDEAD);
 		if (go==null) {
+			CombatWrapper characterCombat = new CombatWrapper(character.getGameObject());
 			GameData data = character.getGameObject().getGameData();
 			for (int i=0;i<count;i++) {
 				GameObject undead = createUndead(getMonsterCreator(),data);
 				undead.setThisAttribute(Constants.UNDEAD);
+				undead.setThisAttribute(Constants.UNDEAD_SUMMONED);
 				if (hire) {
 					character.addHireling(undead);
 					CombatWrapper combat = new CombatWrapper(undead);
@@ -78,6 +63,10 @@ public class RaiseDead extends MonsterTable {
 				}
 				if (tl!=null && tl.isInClearing()) {
 					tl.clearing.add(undead,null);
+					if (characterCombat.getRaiseTheDead() && !characterCombat.getRaisedDead()) {
+						CombatWrapper tlCombat = new CombatWrapper(tl.tile.getGameObject());
+						tlCombat.addRaisedUndead(undead);
+					}
 				}
 			}
 			return "Raised "+count+" "+(hire?"":"Enemy")+" Undead";
@@ -99,7 +88,7 @@ public class RaiseDead extends MonsterTable {
 	}
 	public ArrayList<GameObject> getOneOfEach(CharacterWrapper character) {
 		GameData data = character.getGameObject().getGameData();
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
+		ArrayList<GameObject> list = new ArrayList<>();
 		list.add(createSkeleton(getMonsterCreator(),data));
 		list.add(createSkeletonArcher(getMonsterCreator(),data));
 		list.add(createSkeletonSwordsman(getMonsterCreator(),data));
@@ -108,51 +97,72 @@ public class RaiseDead extends MonsterTable {
 		}
 		return list;
 	}
-	private static GameObject createSkeleton(MonsterCreator monsterCreator,GameData data) {
+	public static GameObject createSkeleton(MonsterCreator monsterCreator,GameData data) {
 		// L4/4 and L2/6
 		GameObject go = monsterCreator.createOrReuseMonster(data);
 		monsterCreator.setupGameObject(go,"Skeleton","skull","M",false);
-		monsterCreator.setupSide(go,"light","L",0,4,0,4,"white");
-		monsterCreator.setupSide(go,"dark","L",0,2,0,6,"gray");
+		MonsterCreator.setupSide(go,"light","L",0,4,0,4,"white");
+		MonsterCreator.setupSide(go,"dark","L",0,2,0,6,"gray");
+		go.setThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE,"skeleton");
+		go.setThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE,"wesnoth/units");
+		go.setThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE,"0.9");
+		go.setThisAttribute(Constants.UNDEAD);
+		go.setThisAttribute(Constants.UNDEAD_SUMMONED);
 		return go;
 	}
-	private static GameObject createSkeletonArcher(MonsterCreator monsterCreator,GameData data) {
+	public static GameObject createSkeletonArcher(MonsterCreator monsterCreator,GameData data) {
 		// -/3 and M*3/5
 		GameObject go = monsterCreator.createOrReuseMonster(data);
 		monsterCreator.setupGameObject(go,"Skeletal Archer","skullbow","M",false);
-		monsterCreator.setupSide(go,"light",null,0,0,0,3,"white");
-		monsterCreator.setupSide(go,"dark","M",1,3,14,5,"gray");
+		MonsterCreator.setupSide(go,"light",null,0,0,0,3,"white");
+		MonsterCreator.setupSide(go,"dark","M",1,3,14,5,"gray");
+		go.setThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE,"core-images-units-undead-skeletal-archer-archer");
+		go.setThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE,"wesnoth/units/addons");
+		go.setThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE,"0.9");
+		go.setThisAttribute(Constants.UNDEAD);
+		go.setThisAttribute(Constants.UNDEAD_SUMMONED);
 		return go;
 	}
-	private static GameObject createSkeletonSwordsman(MonsterCreator monsterCreator,GameData data) {
+	public static GameObject createSkeletonSwordsman(MonsterCreator monsterCreator,GameData data) {
 		// L*4/4 and L*2/6
 		GameObject go = monsterCreator.createOrReuseMonster(data);
 		monsterCreator.setupGameObject(go,"Skeletal Swordsman","skullsword","M",false);
-		monsterCreator.setupSide(go,"light","L",1,4,3,4,"white");
-		monsterCreator.setupSide(go,"dark","L",1,2,3,6,"gray");
+		MonsterCreator.setupSide(go,"light","L",1,4,3,4,"white");
+		MonsterCreator.setupSide(go,"dark","L",1,2,3,6,"gray");
+		go.setThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE,"core-images-units-undead-skeletal-deathblade");
+		go.setThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE,"wesnoth/units/addons");
+		go.setThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE,"0.9");
+		go.setThisAttribute(Constants.UNDEAD);
+		go.setThisAttribute(Constants.UNDEAD_SUMMONED);
 		return go;
 	}
-	private static GameObject createZombie(MonsterCreator monsterCreator,GameData data,int r) {
+	public static GameObject createZombie(MonsterCreator monsterCreator,GameData data,int r) {
 		GameObject go = monsterCreator.createOrReuseMonster(data);
 		int z = RandomNumber.getRandom(2)+1;
 		monsterCreator.setupGameObject(go,"Zombie","zombie"+z,"M",false);
+		go.setThisAttribute("zombie");
+		go.setThisAttribute(Constants.UNDEAD);
+		go.setThisAttribute(Constants.UNDEAD_SUMMONED);
 		switch(r) {
 			case 0:
 				// M5/5 and H6/5
-				monsterCreator.setupSide(go,"light","M",0,5,0,5,"peach");
-				monsterCreator.setupSide(go,"dark","H",0,6,0,5,"purple");
+				MonsterCreator.setupSide(go,"light","M",0,5,0,5,"peach");
+				MonsterCreator.setupSide(go,"dark","H",0,6,0,5,"purple");
 				break;
 			case 1:
 				// M5/4 and T5/5
-				monsterCreator.setupSide(go,"light","M",0,5,0,4,"peach");
-				monsterCreator.setupSide(go,"dark","T",0,5,0,5,"purple");
+				MonsterCreator.setupSide(go,"light","M",0,5,0,4,"peach");
+				MonsterCreator.setupSide(go,"dark","T",0,5,0,5,"purple");
 				break;
 			case 2:
 				// L4/5 and M6/4
-				monsterCreator.setupSide(go,"light","L",0,4,0,5,"peach");
-				monsterCreator.setupSide(go,"dark","M",0,6,0,4,"purple");
+				MonsterCreator.setupSide(go,"light","L",0,4,0,5,"peach");
+				MonsterCreator.setupSide(go,"dark","M",0,6,0,4,"purple");
 				break;
 		}
+		go.setThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE,"zombie");
+		go.setThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE,"wesnoth/units/undead");
+		go.setThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE,"0.9");
 		return go;
 	}
 }

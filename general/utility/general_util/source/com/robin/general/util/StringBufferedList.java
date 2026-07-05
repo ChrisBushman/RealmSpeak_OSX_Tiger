@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.util;
 
 import java.util.ArrayList;
@@ -30,7 +13,7 @@ public class StringBufferedList {
 	public StringBufferedList(String comma,String and) {
 		this.comma = comma;
 		this.and = and;
-		list = new ArrayList<String>();
+		list = new ArrayList<>();
 	}
 	public int size() {
 		return list.size();
@@ -44,8 +27,8 @@ public class StringBufferedList {
 		}
 	}
 	public void countIdenticalItems() {
-		HashLists hash = new HashLists();
-		ArrayList<String> keys = new ArrayList<String>();
+		HashLists<String,String> hash = new HashLists<>();
+		ArrayList<String> keys = new ArrayList<>();
 		int n=0;
 		for (String string:list) {
 			hash.put(string,"n"+(n++));
@@ -67,7 +50,7 @@ public class StringBufferedList {
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		for (int i=0;i<list.size();i++) {
-			String val = (String)list.get(i);
+			String val = list.get(i);
 			if (sb.length()>0) {
 				sb.append(comma);
 				if (i==(list.size()-1)) {

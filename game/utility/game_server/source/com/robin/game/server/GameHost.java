@@ -1,25 +1,7 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.server;
 
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.logging.Logger;
 
 import com.robin.game.objects.GameData;
@@ -50,7 +32,7 @@ public class GameHost {
 	
 	protected ArrayList<GameServer> servers;
 	
-	protected ArrayList gameHostListeners;
+	protected ArrayList<GameHostListener> gameHostListeners;
 
 	public GameHost(String dataPath,String gameTitle,String password) {
 		mostRecentHost = this;
@@ -82,7 +64,7 @@ public class GameHost {
 		this.connector = null;
 		this.gameTitle = title;
 		this.password = pass;
-		servers = new ArrayList<GameServer>();
+		servers = new ArrayList<>();
 	}
 	public String getGameTitle() {
 		return gameTitle;
@@ -92,7 +74,7 @@ public class GameHost {
 	}
 	public void addGameHostListener(GameHostListener listener) {
 		if (gameHostListeners == null) {
-			gameHostListeners = new ArrayList();
+			gameHostListeners = new ArrayList<>();
 		}
 		gameHostListeners.add(listener);
 	}
@@ -108,8 +90,7 @@ public class GameHost {
 	}
 	public void fireHostOnly(InfoObject io) {
 		if (gameHostListeners!=null) {
-			for (Iterator i=gameHostListeners.iterator();i.hasNext();) {
-				GameHostListener listener = (GameHostListener)i.next();
+			for (GameHostListener listener : gameHostListeners) {
 				listener.handleHostOnlyInfo(io);
 			}
 		}
@@ -121,8 +102,7 @@ public class GameHost {
 	}
 	public void fireHostModified(GameHostEvent event) {
 		if (gameHostListeners!=null) {
-			for (Iterator i=gameHostListeners.iterator();i.hasNext();) {
-				GameHostListener listener = (GameHostListener)i.next();
+			for (GameHostListener listener : gameHostListeners) {
 				listener.hostModified(event);
 			}
 		}
@@ -130,8 +110,7 @@ public class GameHost {
 	public void fireServerLost(GameServer server) {
 		if (gameHostListeners!=null) {
 			GameHostEvent event = new GameHostEvent(this,server,GameHostEvent.NOTICE_LOST_CONNECTION);
-			for (Iterator i=gameHostListeners.iterator();i.hasNext();) {
-				GameHostListener listener = (GameHostListener)i.next();
+			for (GameHostListener listener : gameHostListeners) {
 				listener.serverLost(event);
 			}
 		}
@@ -190,7 +169,7 @@ public class GameHost {
 	}
 	public void killAllOutsideConnections() {
 		// Assume that the first connection is the host's player, and shut down all the rest.
-		ArrayList<GameServer> list = new ArrayList<GameServer>();
+		ArrayList<GameServer> list = new ArrayList<>();
 		list.add(servers.remove(0));
 		shutdown();
 		servers = list;
@@ -216,41 +195,54 @@ public class GameHost {
 		return gameData.getGameObject(id);
 	}
 	
-	public synchronized boolean applyChanges(GameServer activeServer,ArrayList changes) {
+	public boolean applyChanges(GameServer activeServer,ArrayList<GameObjectChange> changes) {
 		return applyChanges(activeServer,changes,true);
 	}
-	public synchronized boolean applyChanges(GameServer activeServer,ArrayList changes,boolean fireChange) {
-		if (changes!=null && !changes.isEmpty()) {
-//			for (Iterator i=changes.iterator();i.hasNext();) {
-//				GameObjectChange change = (GameObjectChange)i.next();
-//				if (!change.testVersion(gameData)) {
-//					// Version inconsistency
-//					return false;
+	public boolean applyChanges(GameServer activeServer,ArrayList<GameObjectChange> changes,boolean fireChange) {
+		// Apply changes and distribute to peer servers while holding the GameHost lock,
+		// then release the lock before calling fireHostModified().
+		// Releasing the lock before fireHostModified() means concurrent applyChanges() calls
+		// and getMasterToGameChanges() calls are never held up by slow host-panel work
+		// (e.g. RealmHostPanel updateGameState() and may trigger autosave (zipToFile)
+		boolean shouldFire = false;
+		synchronized(this) {
+			if (changes!=null && !changes.isEmpty()) {
+//				for (Iterator i=changes.iterator();i.hasNext();) {
+//					GameObjectChange change = (GameObjectChange)i.next();
+//					if (!change.testVersion(gameData)) {
+//						// Version inconsistency
+//						return false;
+//					}
 //				}
-//			}
-			logger.fine("Host apply changes: "+changes.size()+" changes.");
-			for (Iterator i=changes.iterator();i.hasNext();) {
-				GameObjectChange action = (GameObjectChange)i.next();
-				logger.finer("--> "+action);
-				action.applyChange(gameData);
-			}
-//			gameData.rebuildChanges(); // This breaks things fairly badly!
-			logger.fine("Host apply changes: DONE.");
-			
-			// Update all servers (except the originating server) with the changes
-			for (GameServer server:servers) {
-				logger.fine("activeServer="+activeServer);
-				logger.fine("server="+server);
-				if (activeServer==null || !server.equals(activeServer)) {
-					logger.fine("updating a server with "+changes.size());
-					server.addObjectChanges(changes);
+				logger.fine("Host apply changes: "+changes.size()+" changes.");
+				for (GameObjectChange action : changes) {
+					logger.finer("--> "+action);
+					action.applyChange(gameData);
+				}
+//				gameData.rebuildChanges(); // This breaks things fairly badly!
+				logger.fine("Host apply changes: DONE.");
+
+				// Update all servers (except the originating server) with the changes
+				ArrayList<GameServer> serversToUpdate = new ArrayList<>();
+				serversToUpdate.addAll(servers);
+				for (GameServer server:serversToUpdate) {
+					logger.fine("activeServer="+activeServer);
+					logger.fine("server="+server);
+					if (activeServer==null || !server.equals(activeServer)) {
+						logger.fine("updating a server with "+changes.size());
+						server.addObjectChanges(changes);
+					}
+				}
+
+				if (activeServer!=null && fireChange) {
+					shouldFire = true;
 				}
 			}
-			
-			if (activeServer!=null && fireChange) {
-				// only fire this event if the changes came from another server
-				fireHostModified();
-			}
+		}
+		// GameHost lock is released - fireHostModified/updateGame may be slow but will
+		// no longer block concurrent applyChanges() or getMasterToGameChanges() calls.
+		if (shouldFire) {
+			fireHostModified();
 		}
 		return true;
 	}
@@ -300,14 +292,13 @@ public class GameHost {
 			}
 		}
 	}
-	public synchronized ArrayList getMasterToGameChanges() {
+	public synchronized ArrayList<GameObjectChange> getMasterToGameChanges() {
 		return masterData.buildChanges(gameData);
 	}
 	public void _testBuildChanges() {
-		ArrayList changes = getMasterToGameChanges();
+		ArrayList<GameObjectChange> changes = getMasterToGameChanges();
 		System.out.println("changes="+changes.size());
-		for (Iterator i=changes.iterator();i.hasNext();) {
-			GameObjectChange change = (GameObjectChange)i.next();
+		for (GameObjectChange change : changes) {
 			System.out.println(change);
 		}
 		changes.clear();

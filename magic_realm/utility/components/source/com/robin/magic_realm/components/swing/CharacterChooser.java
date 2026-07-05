@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.swing;
 
 import java.awt.*;
@@ -29,7 +12,9 @@ import com.robin.game.objects.GameObject;
 import com.robin.game.objects.GamePool;
 import com.robin.general.swing.*;
 import com.robin.general.util.RandomNumber;
+import com.robin.magic_realm.components.CharacterInfoCard;
 import com.robin.magic_realm.components.utility.*;
+import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class CharacterChooser extends AggressiveDialog {
@@ -46,7 +31,7 @@ public class CharacterChooser extends AggressiveDialog {
 	private ArrayList<GameObject> availableMagicUsers;
 	private JLabel characterDisplay;
 	private CharacterListModel listModel;
-	private JList characterList;
+	private JList<CharacterListModel> characterList;
 	
 	private JCheckBox showRegularOption;
 	private JCheckBox showCustomOption;
@@ -70,9 +55,9 @@ public class CharacterChooser extends AggressiveDialog {
 		setLocationRelativeTo(frame);
 	}
 	private void buildLists() {
-		availableCharacterObjects = new ArrayList<GameObject>();
-		availableFighters = new ArrayList<GameObject>();
-		availableMagicUsers = new ArrayList<GameObject>();
+		availableCharacterObjects = new ArrayList<>();
+		availableFighters = new ArrayList<>();
+		availableMagicUsers = new ArrayList<>();
 		for (GameObject go:allCharacterObjects) {
 			boolean custom = go.hasThisAttribute(Constants.CUSTOM_CHARACTER);
 			boolean okayToAdd = false;
@@ -106,7 +91,7 @@ public class CharacterChooser extends AggressiveDialog {
 		
 		JPanel left = new JPanel(new BorderLayout());
 		listModel = new CharacterListModel();
-		characterList = new JList(listModel);
+		characterList = new JList<CharacterListModel>(listModel);
 		characterList.setBackground(new Color(200,255,255));
 		left.add(new JScrollPane(characterList),"Center");
 		showRegularOption = new JCheckBox("Regular",true);
@@ -190,7 +175,7 @@ public class CharacterChooser extends AggressiveDialog {
 			public void actionPerformed(ActionEvent ev) {
 				int index = characterList.getSelectedIndex();
 				if (index>=0) {
-					chosenCharacter = (GameObject)availableCharacterObjects.get(index);
+					chosenCharacter = availableCharacterObjects.get(index);
 					cleanExit();
 				}
 			}
@@ -198,7 +183,7 @@ public class CharacterChooser extends AggressiveDialog {
 		controls.add(okayButton);
 		add(controls,"South");
 		
-		setDefaultCloseOperation(AggressiveDialog.DO_NOTHING_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		
 		pack();
 		
@@ -224,7 +209,7 @@ public class CharacterChooser extends AggressiveDialog {
 		int index = characterList.getSelectedIndex();
 		GameObject go = null;
 		if (index>=0) {
-			go = (GameObject)availableCharacterObjects.get(index);
+			go = availableCharacterObjects.get(index);
 		}
 		if (go!=null) {
 			characterDisplay.setIcon(getCharacterImage(go));
@@ -236,13 +221,13 @@ public class CharacterChooser extends AggressiveDialog {
 		}
 		System.gc();
 	}
-	private class CharacterListModel extends AbstractListModel {
+	protected class CharacterListModel extends AbstractListModel {
 		public int getSize() {
 			return availableCharacterObjects==null?0:availableCharacterObjects.size();
 		}
 		public Object getElementAt(int index) {
 			if (index<getSize()) {
-				GameObject go = (GameObject)availableCharacterObjects.get(index);
+				GameObject go = availableCharacterObjects.get(index);
 				return go.getName();
 			}
 			return null;
@@ -256,7 +241,7 @@ public class CharacterChooser extends AggressiveDialog {
 	private class CharacterListCellRenderer extends DefaultListCellRenderer {
 		public Component getListCellRendererComponent(JList list,Object value,int index,boolean isSelected,boolean cellHasFocus) {
 			super.getListCellRendererComponent(list,value,index,isSelected,cellHasFocus);
-			GameObject go = (GameObject)availableCharacterObjects.get(index);
+			GameObject go = availableCharacterObjects.get(index);
 			setIcon(go.hasThisAttribute("fighter")?fighterIcon:magicuserIcon);
 			setFont(go.hasThisAttribute(Constants.CUSTOM_CHARACTER)?ITALIC:NORMAL);
 			return this;
@@ -265,6 +250,22 @@ public class CharacterChooser extends AggressiveDialog {
 	public static ImageIcon getCharacterImage(GameObject go) {
 		if (go.hasThisAttribute(Constants.CUSTOM_CHARACTER)) {
 			return CustomCharacterLibrary.getSingleton().getCharacterImage(go.getAttribute("level_4","name"));
+		}
+		if (go.hasThisAttribute(Constants.SUPER_REALM) || go.hasThisAttribute("rw_expansion_1_character")) {
+			ArrayList<GameObject> collection = new ArrayList<GameObject>();
+			collection.add(go);
+			collection.addAll(go.getHold());
+			CharacterWrapper character = new CharacterWrapper(go);
+			CharacterInfoCard card = new CharacterInfoCard(character);
+			String iconName = go.getThisAttribute(Constants.CHARACTER_POTRAIT_FILE);
+			String iconFolder = go.getThisAttribute(Constants.CHARACTER_POTRAIT_FOLDER);
+			if (iconName!=null && iconFolder!=null) {
+				ImageIcon icon = IconFactory.findIcon("images/"+iconFolder+"/"+iconName+".png");
+				if (icon==null) icon = IconFactory.findIcon("images/"+iconFolder+"/"+iconName+".jpg");
+				card.setPicture(icon);
+			}
+			return card.getImageIcon(true);
+			
 		}
 		String iconType = go.getThisAttribute("icon_type");
 		return IconFactory.findIcon("images/characterdetail/"+iconType+".jpg");

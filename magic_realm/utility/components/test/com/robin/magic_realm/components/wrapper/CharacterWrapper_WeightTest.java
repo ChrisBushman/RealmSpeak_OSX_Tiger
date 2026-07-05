@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.wrapper;
 
 import java.util.ArrayList;
@@ -143,7 +126,7 @@ public class CharacterWrapper_WeightTest extends TestBaseWithLoader {
 		Strength before = witchKing.getMoveStrength(true,false);
 		absorbEssence.castSpell(witchKing.getGameObject());
 		absorbEssence.addTarget(hostPrefs,dragon);
-		absorbEssence.affectTargets(dummyFrame,game,false);
+		absorbEssence.affectTargets(dummyFrame,game,false,null);
 		
 		// Execute
 		Strength after = witchKing.getMoveStrength(true,false);
@@ -167,7 +150,7 @@ public class CharacterWrapper_WeightTest extends TestBaseWithLoader {
 		
 		broomstick.castSpell(witch.getGameObject());
 		broomstick.addTarget(hostPrefs,witch.getGameObject());
-		broomstick.affectTargets(dummyFrame,game,false);
+		broomstick.affectTargets(dummyFrame,game,false,null);
 		
 		ArrayList<StrengthChit> fly = witch.getFlyStrengthChits(false);
 		Assert.assertEquals(1,fly.size());
@@ -175,7 +158,7 @@ public class CharacterWrapper_WeightTest extends TestBaseWithLoader {
 		
 		absorbEssence.castSpell(witch.getGameObject());
 		absorbEssence.addTarget(hostPrefs,demon);
-		absorbEssence.affectTargets(dummyFrame,game,false);
+		absorbEssence.affectTargets(dummyFrame,game,false,null);
 		
 		fly = witch.getFlyStrengthChits(false);
 		Assert.assertEquals(1,fly.size());

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.GameSetupEncoder;
 
 import java.util.*;
@@ -36,8 +19,8 @@ public class Coding extends Properties {
 		this.codePrefix = codePrefix;
 		this.numLength = numLength;
 	}
-	public Collection getKeyVals() {
-		ArrayList keyVals = new ArrayList();
+	public Collection<String> getKeyVals() {
+		ArrayList<String> keyVals = new ArrayList<>();
 		for (Enumeration e=keys();e.hasMoreElements();) {
 			String key = (String)e.nextElement();
 			String val = getProperty(key);
@@ -55,13 +38,11 @@ public class Coding extends Properties {
 		sb.append(Encoder.LINE_END);
 		sb.append(StringUtilities.getRepeatString("-",79));
 		sb.append(Encoder.LINE_END);
-		Collection c = pool.find(getKeyVals());
+		Collection<GameObject> c = pool.find(getKeyVals());
 		pool = new GamePool(c);
 		pool.shuffle();
 		int n=1;
-		for (Iterator i=pool.iterator();i.hasNext();) {
-			GameObject object = (GameObject)i.next();
-			
+		for (GameObject object : pool) {
 			String paddedNum = ""+n;
 			while(paddedNum.length()<numLength) {
 				paddedNum = "0"+paddedNum;
@@ -76,7 +57,7 @@ public class Coding extends Properties {
 		return sb.toString();
 	}
 	public static String getCode(GameObject object) {
-		String val = (String)object.getAttribute(BLOCK_NAME,CODE_VALUE);
+		String val = object.getAttribute(BLOCK_NAME,CODE_VALUE);
 		if (val==null) {
 			val="";
 		}

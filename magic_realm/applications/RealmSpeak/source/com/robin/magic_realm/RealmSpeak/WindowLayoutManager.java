@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
@@ -57,7 +40,7 @@ public class WindowLayoutManager {
 	}
 	// Key pattern:   <Layout#>_<Window><mod>
 	// Value will be:   <x>_<y>_<width>_<height>
-	private String getKeyFor(int layoutNumber,String windowName,int modifier) {
+	private static String getKeyFor(int layoutNumber,String windowName,int modifier) {
 		StringBuilder key = new StringBuilder();
 		key.append(layoutNumber);
 		key.append("_");
@@ -90,10 +73,10 @@ public class WindowLayoutManager {
 		if (value==null) return null;
 		StringTokenizer tokens = new StringTokenizer(value,"_");
 		if (tokens.countTokens()!=4) return null;
-		int x = Integer.valueOf(tokens.nextToken());
-		int y = Integer.valueOf(tokens.nextToken());
-		int width = Integer.valueOf(tokens.nextToken());
-		int height = Integer.valueOf(tokens.nextToken());
+		int x = Integer.parseInt(tokens.nextToken());
+		int y = Integer.parseInt(tokens.nextToken());
+		int width = Integer.parseInt(tokens.nextToken());
+		int height = Integer.parseInt(tokens.nextToken());
 		return new Rectangle(x,y,width,height);
 	}
 	private void setLayoutName(int layoutNumber,String name) {
@@ -122,7 +105,7 @@ public class WindowLayoutManager {
 		return preferenceManager.getInt(LAST_LAYOUT); // returns 0 if none found
 	}
 	private void generateMenus() {
-		getters = new Hashtable<Integer,LayoutMenuItem>();
+		getters = new Hashtable<>();
 		clearCustomLayoutsItem = new JMenuItem("Clear All Custom Layouts");
 		clearCustomLayoutsItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
@@ -163,7 +146,7 @@ public class WindowLayoutManager {
 	}
 	private boolean applyLayout(int layoutNumber) {
 		int windowsRestored = 0;
-		Hashtable<String,Integer> instanceCount = new Hashtable<String,Integer>();
+		Hashtable<String,Integer> instanceCount = new Hashtable<>();
 		Rectangle mr = getLayout(layoutNumber,MAIN_WINDOW,0);
 		if (mr!=null) {
 			mainFrame.setLocation(mr.x,mr.y);
@@ -194,7 +177,7 @@ public class WindowLayoutManager {
 	}
 	private boolean captureCurrentLayout(int layoutNumber,String layoutName) {
 		int windowsCaptured = 0;
-		Hashtable<String,Integer> instanceCount = new Hashtable<String,Integer>();
+		Hashtable<String,Integer> instanceCount = new Hashtable<>();
 		for (Component component:desktop.getComponents()) {
 			if (!(component instanceof RealmSpeakInternalFrame)) continue;
 			RealmSpeakInternalFrame frame = (RealmSpeakInternalFrame)component;

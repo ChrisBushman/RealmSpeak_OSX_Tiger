@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest.requirement;
 
 import java.util.ArrayList;
@@ -38,8 +21,11 @@ public class QuestRequirementAttribute extends QuestRequirement {
 	public static final String VALUE = "_rq";
 	public static final String TARGET_VALUE_TYPE = "_tvt";
 	public static final String REGEX_FILTER = "_regex"; // to limit fame/notoriety gain to a particular type of monster or treasure type
+	public static final String INCLUDE_INVENTORY = "_inc_inv";
+	public static final String REGEX_DESCRIPTION = "_regex_description";
 
 	public static final String VALUE_OFFSET = "_vo";
+	private static final String VALUE_OFFSET_DAY = "_vod";
 
 	public QuestRequirementAttribute(GameObject go) {
 		super(go);
@@ -54,8 +40,15 @@ public class QuestRequirementAttribute extends QuestRequirement {
 
 	private void initValueOffset(CharacterWrapper character) {
 		if (hasValueOffset())
-			return; // NEVER overwrite it again
+			return; // NEVER overwrite it again, but for earliest = day
 		setValueOffset(calculateCurrentPoints(character, null)); // we set daykey to null, so that no time filter is applied
+	}
+	
+	private void resetValueOffsetForPastDays(CharacterWrapper character) {
+		if (getValueOffsetDay() == null || !getValueOffsetDay().matches(character.getCurrentDayKey())) {
+			setValueOffset(calculateCurrentPoints(character, null));
+			setValueOffsetDay(character.getCurrentDayKey());
+		}
 	}
 
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
@@ -71,6 +64,10 @@ public class QuestRequirementAttribute extends QuestRequirement {
 			case Step:
 				earliest = getParentStep().getQuestStepStartTime();
 				initValueOffset(character);
+				break;
+			case Day:
+				earliest = new DayKey(character.getCurrentDayKey());
+				resetValueOffsetForPastDays(character);
 				break;
 		}
 
@@ -112,12 +109,12 @@ public class QuestRequirementAttribute extends QuestRequirement {
 		
 		int current = 0;
 		if (regexFilter) { // inventory and kills but no recorded points (because the regex disallows them by default)
-			current += getInventory(character, attribute, earliest);
+			if (getIncludeInventory()) current += getInventory(character, attribute, earliest);
 			current += getKillsValue(character, attribute, earliest);
 		}
 		else { // inventory and recorded points, but no kills BECAUSE kills are accounted for in the recorded points, and invalid kills will be included in the offset value!
 			current += (int) getRecorded(character, attribute);
-			current += getInventory(character, attribute, earliest);
+			if (getIncludeInventory() || attribute == AttributeType.GreatTreasures) current += getInventory(character, attribute, earliest);
 		}
 
 		return current;
@@ -134,8 +131,8 @@ public class QuestRequirementAttribute extends QuestRequirement {
 				return character.hasCurse(Constants.ASHES) ? -1 : character.getGold();
 			case RecordedSpells:
 				return character.getRecordedSpellCount();
+			default: return 0; // GreatTreasures is never recorded
 		}
-		return 0; // GreatTreasures is never recorded
 	}
 
 	private int getInventory(CharacterWrapper character, AttributeType attribute, DayKey earliest) {
@@ -145,7 +142,7 @@ public class QuestRequirementAttribute extends QuestRequirement {
 		String regex = getRegExFilter();
 		Pattern pattern = regex == null || regex.trim().length() == 0 ? null : Pattern.compile(regex);
 		int total = 0;
-		for (GameObject go : character.getActiveInventory()) {
+		for (GameObject go : character.getInventory()) {
 			if (pattern != null && !pattern.matcher(go.getName()).find())
 				continue; // skip inventory that doesn't match regex (if used)
 
@@ -163,26 +160,28 @@ public class QuestRequirementAttribute extends QuestRequirement {
 		return total;
 	}
 
-	private int getInventoryValue(GameObject go, AttributeType attribute) {
+	private static int getInventoryValue(GameObject go, AttributeType attribute) {
 		switch (attribute) {
 			case Fame:
-				return go.getThisInt("fame");
+				return !go.hasThisAttribute("native") ? go.getThisInt("fame") : 0;
 			case Notoriety:
 				return go.getThisInt("notoriety");
 			case GreatTreasures:
 				return go.hasThisAttribute("great") ? 1 : 0;
+			default:
+				return 0; // no value for gold or recorded spells
 		}
-		return 0; // no value for gold or recorded spells
 	}
 
 	private int getKillsValue(CharacterWrapper character, AttributeType attribute, DayKey earliest) {
-		if (attribute != AttributeType.Fame && attribute != AttributeType.Notoriety)
-			return 0; // TODO What about gold bounties?
+		if (attribute != AttributeType.Fame && attribute != AttributeType.Notoriety && attribute != AttributeType.Gold) {
+			return 0;
+		}
 
 		String regex = getRegExFilter();
 		Pattern pattern = regex == null || regex.trim().length() == 0 ? null : Pattern.compile(regex);
 		int good = 0;
-		ArrayList dayKeys = character.getAllDayKeys();
+		ArrayList<String> dayKeys = character.getAllDayKeys();
 		if (dayKeys == null)
 			return 0;
 		for (Object obj : dayKeys) {
@@ -204,6 +203,9 @@ public class QuestRequirementAttribute extends QuestRequirement {
 					good += (int) spoils.getFame();
 				else if (attribute == AttributeType.Notoriety)
 					good += (int) spoils.getNotoriety();
+				else if (attribute == AttributeType.Gold && go.hasThisAttribute("native")) {
+					good += Integer.parseInt(go.getThisAttribute("base_price"));
+				}
 			}
 		}
 		return good;
@@ -230,7 +232,7 @@ public class QuestRequirementAttribute extends QuestRequirement {
 	 * init.
 	 */
 
-	private int getRealValue() { // TODO Still don't like this as a solution...  how can the player know this is happening?
+	private int getRealValue() {
 		int val = getValue();
 		TargetValueType targetValueType = getTargetValueType();
 		if (targetValueType == TargetValueType.Game) {
@@ -267,6 +269,14 @@ public class QuestRequirementAttribute extends QuestRequirement {
 		sb.append(realValue);
 		sb.append(" ");
 		sb.append(getAttributeType().getDescription(realValue != 1));
+		if(hasRegExFilter()) {
+			sb.append(" from ");
+			if (!getRegExDescription().isEmpty()) {
+				sb.append(getRegExDescription());
+			} else {
+				sb.append(getRegExFilter());
+			}
+		}
 		TargetValueType tvt = getTargetValueType();
 		if (tvt != TargetValueType.Game) {
 			sb.append(" during the ");
@@ -274,6 +284,10 @@ public class QuestRequirementAttribute extends QuestRequirement {
 		}
 		sb.append(".");
 		return sb.toString();
+	}
+	
+	public boolean usesAutoJournal() {
+		return true;
 	}
 
 	public AttributeType getAttributeType() {
@@ -296,9 +310,21 @@ public class QuestRequirementAttribute extends QuestRequirement {
 	public String getRegExFilter() {
 		return getString(REGEX_FILTER);
 	}
+	
+	public boolean getIncludeInventory() {
+		return getBoolean(INCLUDE_INVENTORY);
+	}
 
 	private void setValueOffset(int val) {
 		setInt(VALUE_OFFSET, val);
+	}
+	
+	private void setValueOffsetDay(String dayKey) {
+		setString(VALUE_OFFSET_DAY, dayKey);
+	}
+	
+	private String getValueOffsetDay() {
+		return getString(VALUE_OFFSET_DAY);
 	}
 
 	private boolean hasValueOffset() {
@@ -307,5 +333,12 @@ public class QuestRequirementAttribute extends QuestRequirement {
 
 	private int getValueOffset() {
 		return getInt(VALUE_OFFSET);
+	}
+	
+	public String getRegExDescription() {
+		if (getGameObject().hasAttribute(getBlockName(),REGEX_DESCRIPTION)) {
+			return getString(REGEX_DESCRIPTION);
+		}
+		return "";
 	}
 }

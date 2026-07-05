@@ -1,25 +1,10 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.objects;
 
 import java.util.*;
 
-public class GamePool extends ArrayList {
+import com.robin.general.util.RandomNumber;
+
+public class GamePool extends ArrayList<GameObject> {
 
 	public static final int RANDOM = 0;
 	public static final int FROM_BEGINNING = 1;
@@ -36,37 +21,17 @@ public class GamePool extends ArrayList {
 		random = new Random();
 	}
 	
-	public GamePool(Collection c) {
+	public GamePool(Collection<GameObject> c) {
 		super();
 		addAll(c);
 		random = new Random();
 	}
 	
 	public GameObject getGameObject(int index) {
-		return (GameObject)get(index);
+		return get(index);
 	}
-
-	/**
-	 * Overridden method guarantees that the added object is a GameObject
-	 */
-	public boolean add(Object o) {
-		if (o instanceof GameObject) {
-			return super.add(o);
-		}
-		return false;
-	}
-	/**
-	 * Overridden method guarantees that the added collection contains only GameObjects
-	 */
-	public boolean addAll(Collection c) {
-		for (Iterator i=c.iterator();i.hasNext();) {
-			if (!(i.next() instanceof GameObject)) {
-				return false;
-			}
-		}
-		return super.addAll(c);
-	}
-	public ArrayList pick(int number,int type) {
+	
+	public ArrayList<GameObject> pick(int number,int type) {
 		GamePool temp = new GamePool();
 		move(temp,number,type);
 		return temp;
@@ -75,7 +40,7 @@ public class GamePool extends ArrayList {
 	public GameObject findFirst(String keyVals) {
 		return findFirst(makeKeyVals(keyVals));
 	}
-	public GameObject findFirst(Collection keyVals) {
+	public GameObject findFirst(Collection<String> keyVals) {
 		ArrayList<GameObject> list = find(keyVals);
 		if (!list.isEmpty()) {
 			return list.get(0);
@@ -92,10 +57,10 @@ public class GamePool extends ArrayList {
 	/**
 	 * Locates all GameObjects that have all members of "keyVals" in their attributes
 	 */
-	public ArrayList<GameObject> find(Collection keyVals) {
-		ArrayList<GameObject> foundObjects = new ArrayList<GameObject>();
+	public ArrayList<GameObject> find(Collection<String> keyVals) {
+		ArrayList<GameObject> foundObjects = new ArrayList<>();
 		for (int i=0;i<size();i++) {
-			GameObject go = (GameObject)get(i);
+			GameObject go = get(i);
 			if (go.hasAllKeyVals(keyVals)) {
 				foundObjects.add(go);
 			}
@@ -106,9 +71,9 @@ public class GamePool extends ArrayList {
 	 * This is useful for translating the hold into a generic typed array
 	 */
 	public ArrayList<GameObject> findAll() {
-		ArrayList<GameObject> foundObjects = new ArrayList<GameObject>();
+		ArrayList<GameObject> foundObjects = new ArrayList<>();
 		for (int i=0;i<size();i++) {
-			GameObject go = (GameObject)get(i);
+			GameObject go = get(i);
 			foundObjects.add(go);
 		}
 		return foundObjects;
@@ -125,7 +90,7 @@ public class GamePool extends ArrayList {
 	/**
 	 * Locates and extracts (removes) all GameObjects that have all members of "keyVals" in their attributes
 	 */
-	public ArrayList<GameObject> extract(Collection keyVals) {
+	public ArrayList<GameObject> extract(Collection<String> keyVals) {
 		return extract(keyVals,0);
 	}
 	/**
@@ -134,7 +99,7 @@ public class GamePool extends ArrayList {
 	 * @param keyVals		The keyvals
 	 * @param limit		The maximum number of objects to extract, or if less than 1, all of them.
 	 */
-	public ArrayList<GameObject> extract(Collection keyVals,int limit) {
+	public ArrayList<GameObject> extract(Collection<String> keyVals,int limit) {
 		ArrayList<GameObject> extractedObjects = find(keyVals);
 		for (GameObject extracted:extractedObjects) {
 			remove(extracted);
@@ -180,7 +145,11 @@ public class GamePool extends ArrayList {
 			int n;
 			switch(type) {
 				case RANDOM:
-					n = random.nextInt(size());
+					if (RandomNumber.getUseRandomNumberGeneratorForSetup()) {
+						n = RandomNumber.getRandom(size());
+					} else {
+						n = random.nextInt(size());
+					}
 					break;
 				case FROM_BEGINNING:
 					n = 0;
@@ -234,14 +203,15 @@ public class GamePool extends ArrayList {
 	 */
 	public int distribute(GamePool dist,int number,int type) {
  		int count = 0;
-//System.out.println("size = "+size());
-//System.out.println("number = "+number);
-//System.out.println("dist.size = "+dist.size());
 		while(size()>0 && number>0 && dist.size()>0) {
 			int n;
 			switch(type) {
 				case RANDOM:
-					n = random.nextInt(size());
+					if (RandomNumber.getUseRandomNumberGeneratorForSetup()) {
+						n = RandomNumber.getRandom(size());
+					} else {
+						n = random.nextInt(size());
+					}
 					break;
 				case FROM_BEGINNING:
 					n = 0;
@@ -258,7 +228,6 @@ public class GamePool extends ArrayList {
 			int distIndex = count % dist.size();
 			GameObject goAcceptor = dist.getGameObject(distIndex);
 			goAcceptor.add(go);
-//System.out.println("distribute "+go+" to "+goAcceptor);
 			count++;
 			number--;
 		}
@@ -270,17 +239,30 @@ public class GamePool extends ArrayList {
 	public void shuffle() {
 		if (size()>1) {
 			// There needs to be at least 2 objects for this to even make sense!
-			int iterations = size() + random.nextInt(size());
-			for (int i=0;i<iterations;i++) {
-				int n1 = random.nextInt(size());
-				int n2;
-				while((n2=random.nextInt(size()))==n1); // find a DIFFERENT index
-				
-				// Swap
-				GameObject o1 = getGameObject(n1);
-				GameObject o2 = getGameObject(n2);
-				set(n1,o2);
-				set(n2,o1);
+			if (RandomNumber.getUseRandomNumberGeneratorForSetup()) {
+				int iterations = size() + RandomNumber.getRandom(size());
+				for (int i=0;i<iterations;i++) {
+					int n1 = RandomNumber.getRandom(size());
+					int n2;
+					while((n2=RandomNumber.getRandom(size()))==n1); // find a DIFFERENT index					
+					// Swap
+					GameObject o1 = getGameObject(n1);
+					GameObject o2 = getGameObject(n2);
+					set(n1,o2);
+					set(n2,o1);
+				}
+			} else {
+				int iterations = size() + random.nextInt(size());
+				for (int i=0;i<iterations;i++) {
+					int n1 = random.nextInt(size());
+					int n2;
+					while((n2=random.nextInt(size()))==n1); // find a DIFFERENT index
+					// Swap
+					GameObject o1 = getGameObject(n1);
+					GameObject o2 = getGameObject(n2);
+					set(n1,o2);
+					set(n2,o1);
+				}
 			}
 		}
 	}
@@ -310,7 +292,7 @@ public class GamePool extends ArrayList {
 	 */
 	public static ArrayList<String> makeKeyVals(String string) {
 		StringTokenizer tokens = new StringTokenizer(string,",");
-		ArrayList<String> keyVals = new ArrayList<String>();
+		ArrayList<String> keyVals = new ArrayList<>();
 		while(tokens.hasMoreTokens()) {
 			keyVals.add(tokens.nextToken());
 		}

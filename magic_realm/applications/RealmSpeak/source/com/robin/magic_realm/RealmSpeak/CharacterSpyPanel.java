@@ -1,25 +1,7 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.swing.*;
 
@@ -31,6 +13,7 @@ import com.robin.magic_realm.components.quest.Quest;
 import com.robin.magic_realm.components.quest.QuestState;
 import com.robin.magic_realm.components.swing.*;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
+import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class CharacterSpyPanel extends JPanel {
 	
@@ -49,7 +32,7 @@ public class CharacterSpyPanel extends JPanel {
 	private void initComponents() {
 		setLayout(new BorderLayout());
 		
-		tabPane = new JTabbedPane(JTabbedPane.BOTTOM);
+		tabPane = new JTabbedPane(SwingConstants.BOTTOM);
 			
 		// Character Card
 		ImageIcon icon = CharacterChooser.getCharacterImage(character.getGameObject());
@@ -60,11 +43,10 @@ public class CharacterSpyPanel extends JPanel {
 		box.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
 		
 		// Attributes
-		ArrayList specialAdvantagesText = character.getGameObject().getThisAttributeList("advantages");
+		ArrayList<String> specialAdvantagesText = character.getGameObject().getThisAttributeList("advantages");
 		box.add(getTitle("Special Advantages:"));
 		if (specialAdvantagesText!=null) {
-			for (Iterator i=specialAdvantagesText.iterator();i.hasNext();) {
-				String sa = (String)i.next();
+			for (String sa : specialAdvantagesText) {
 				box.add(getTextLine("    "+sa));
 			}
 		}
@@ -73,11 +55,10 @@ public class CharacterSpyPanel extends JPanel {
 		}
 		
 		// Attributes
-		ArrayList optionalAdvantagesText = character.getGameObject().getAttributeList("optional","advantages");
+		ArrayList<String> optionalAdvantagesText = character.getGameObject().getAttributeList("optional","advantages");
 		box.add(getTitle("Optional Advantages:"));
 		if (optionalAdvantagesText!=null) {
-			for (Iterator i=optionalAdvantagesText.iterator();i.hasNext();) {
-				String sa = (String)i.next();
+			for (String sa : optionalAdvantagesText) {
 				box.add(getTextLine("    "+sa));
 			}
 		}
@@ -175,7 +156,8 @@ public class CharacterSpyPanel extends JPanel {
 		if (character.getQuestCount()>0) {
 			JPanel questsPanel = new JPanel(new FlowLayout());
 			JPanel finishedQuestsPanel = new JPanel(new FlowLayout());
-			int slots = character.getQuestSlotCount();
+			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
+			int slots = character.getQuestSlotCount(hostPrefs);
 			for (Quest quest:character.getAllQuests()) {
 				QuestCardComponent card = (QuestCardComponent)RealmComponent.getRealmComponent(quest.getGameObject());
 				
@@ -204,7 +186,7 @@ public class CharacterSpyPanel extends JPanel {
 		
 		add(tabPane,"Center");
 	}
-	private Box getTitle(String text) {
+	private static Box getTitle(String text) {
 		Box line = Box.createHorizontalBox();
 		JLabel label = new JLabel(text);
 		label.setFont(font);
@@ -212,7 +194,7 @@ public class CharacterSpyPanel extends JPanel {
 		line.add(Box.createHorizontalGlue());
 		return line;
 	}
-	private Box getTextLine(String text) {
+	private static Box getTextLine(String text) {
 		Box line = Box.createHorizontalBox();
 		JLabel label = new JLabel(text);
 		label.setFont(font2);

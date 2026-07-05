@@ -1,35 +1,30 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle;
 
+import java.awt.Point;
 import java.util.*;
 import java.util.logging.Logger;
 
 import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
+import com.robin.game.objects.GamePool;
 import com.robin.general.swing.DieRoller;
 import com.robin.general.util.HashLists;
+import com.robin.general.util.Key;
 import com.robin.general.util.RandomNumber;
 import com.robin.magic_realm.components.*;
 import com.robin.magic_realm.components.attribute.*;
+import com.robin.magic_realm.components.effect.SpiderWebEffect;
+import com.robin.magic_realm.components.events.RealmEvents;
+import com.robin.magic_realm.components.quest.Quest;
 import com.robin.magic_realm.components.table.Curse;
+import com.robin.magic_realm.components.table.DevilsSpell;
+import com.robin.magic_realm.components.table.Fear;
+import com.robin.magic_realm.components.table.Mesmerize;
 import com.robin.magic_realm.components.table.PowerOfThePit;
+import com.robin.magic_realm.components.table.RaiseDead;
+import com.robin.magic_realm.components.table.WallOfForce;
 import com.robin.magic_realm.components.utility.*;
+import com.robin.magic_realm.components.utility.SpellUtility.TeleportType;
 import com.robin.magic_realm.components.wrapper.*;
 
 public class BattleModel {
@@ -38,7 +33,13 @@ public class BattleModel {
 	public static final int MISS = 0;
 	public static final int INTERCEPT = 1;
 	public static final int UNDERCUT = 2;
+	public static final int INTERCEPT_PARRY = 3;
+	public static final int UNDERCUT_PARRY = 4;
 	public static final int ATTACK_CANCELLED = -2;
+	public static final int PARRY_CANCELLED = -3;
+	public static final int CANNOT_PARRY = -4;
+	public static boolean SKIP_REPOSITIONING = false;
+	public static boolean FORCE_MONSTER_FLIP = false;
 	
 	private static Logger logger = Logger.getLogger(BattleModel.class.getName());
 	
@@ -49,6 +50,8 @@ public class BattleModel {
 
 	private BattleGroup denizenBattleGroup; // only one allowed
 	private ArrayList<BattleGroup> characterBattleGroups;
+	private ArrayList<BattleGroup> characterBattleGroupsNotGoingLast;
+	private ArrayList<BattleGroup> characterBattleGroupsGoingLast;
 
 	// The killedTallyHash is a hash of dead:killers - used to determine how many ways the points are divided
 	private HashLists<GameObject,GameObject> killedTallyHash;
@@ -60,13 +63,14 @@ public class BattleModel {
 	private ArrayList<GameObject> killerOrder;
 	
 	private int totalHits;
-	private boolean spellCasting;
 	
 	public BattleModel(GameData data,TileLocation battleLocation) {
 		this.gameData = data;
 		this.battleLocation = battleLocation;
 		denizenBattleGroup = null;
-		characterBattleGroups = new ArrayList<BattleGroup>();
+		characterBattleGroups = new ArrayList<>();
+		characterBattleGroupsNotGoingLast = new ArrayList<>();
+		characterBattleGroupsGoingLast = new ArrayList<>();
 		hostPrefs = HostPrefWrapper.findHostPrefs(gameData);
 		theGame = GameWrapper.findGame(gameData);
 	}
@@ -84,13 +88,12 @@ public class BattleModel {
 		return round;
 	}
 	
-	private void logBattleInfo(String info) {
+	private static void logBattleInfo(String info) {
 		CombatFrame.broadcastMessage(RealmLogging.BATTLE,info);
 	}
 	
 	public boolean arePinningMonsters() {
-		for (Iterator i=getAllBattleParticipants(true).iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+		for (RealmComponent rc : getAllBattleParticipants(true)) {
 			if (rc.isMonster()) {
 				MonsterChitComponent monster = (MonsterChitComponent)rc;
 				if (monster.isPinningOpponent()) {
@@ -127,7 +130,7 @@ public class BattleModel {
 			for (RealmComponent denizen:denizenBattleGroup.getBattleParticipants()) {
 				CombatWrapper combat = new CombatWrapper(denizen.getGameObject());
 				
-				if (denizen.isMistLike() || combat.isPeaceful() || isPacifiedByAllCharacters(denizen)) continue;
+				if (combat.isPeaceful() || isPacifiedByAllCharacters(denizen) || combat.isPacified()) continue;
 				
 				for (BattleGroup group:getAllBattleGroups(false)) {
 					if (!group.canBeAttackedBy(denizen)) continue;
@@ -149,8 +152,7 @@ public class BattleModel {
 	
 	public boolean areUnhiredNatives() {
 		if (denizenBattleGroup != null) {
-			for (Iterator i=denizenBattleGroup.getBattleParticipants().iterator();i.hasNext();) {
-				RealmComponent denizen = (RealmComponent)i.next();
+			for (RealmComponent denizen : denizenBattleGroup.getBattleParticipants()) {
 				if (denizen.isNative()) {
 					return true;
 				}
@@ -161,17 +163,29 @@ public class BattleModel {
 	
 	public boolean areUnassignedDenizens() {
 		if (denizenBattleGroup != null) {
-			for (Iterator i=denizenBattleGroup.getBattleParticipants().iterator();i.hasNext();) {
-				RealmComponent denizen = (RealmComponent)i.next();
-				if (denizen.getTarget()==null) {
+			for (RealmComponent denizen : denizenBattleGroup.getBattleParticipants()) {
+				if (denizen.getTarget()==null && denizen.get2ndTarget()==null) {
 					return true;
 				}
 			}
 		}
 		return false;
 	}
-
-	public void addBattleGroup(BattleGroup group) {
+	
+	public boolean unassignedDenizenCanAttackMistLike() {
+		if (denizenBattleGroup != null) {
+			for (RealmComponent denizen : denizenBattleGroup.getBattleParticipants()) {
+				if (denizen.getTarget()==null && denizen.get2ndTarget()==null) {
+					if (denizen.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+		
+	public void addBattleGroup(BattleGroup group,boolean goesLast) {
 		if (group.isDenizen()) {
 			if (denizenBattleGroup == null) {
 				denizenBattleGroup = group;
@@ -181,8 +195,20 @@ public class BattleModel {
 			}
 		}
 		else {
-			characterBattleGroups.add(group);
-			Collections.sort(characterBattleGroups);
+			if (goesLast) {
+				characterBattleGroupsGoingLast.add(group);
+				Collections.shuffle(characterBattleGroupsGoingLast);
+				Collections.shuffle(characterBattleGroupsGoingLast);
+			}
+			else {
+				characterBattleGroupsNotGoingLast.add(group);
+				Collections.shuffle(characterBattleGroupsNotGoingLast);
+				Collections.shuffle(characterBattleGroupsNotGoingLast);
+			}
+			characterBattleGroups.clear();
+			characterBattleGroups.addAll(characterBattleGroupsNotGoingLast);
+			characterBattleGroups.addAll(characterBattleGroupsGoingLast);
+			//Collections.sort(characterBattleGroups);
 		}
 		group.setModel(this);
 	}
@@ -195,8 +221,7 @@ public class BattleModel {
 		return null;
 	}
 	public BattleGroup getParticipantsBattleGroup(RealmComponent participant) {
-		for (Iterator i=getAllBattleGroups(true).iterator();i.hasNext();) {
-			BattleGroup group = (BattleGroup)i.next();
+		for (BattleGroup group : getAllBattleGroups(true)) {
 			if (group.contains(participant)) {
 				return group;
 			}
@@ -225,11 +250,12 @@ public class BattleModel {
 			denizenBattleGroup.allHorsesWalk();
 			
 			// denizens reset to not having a sheet
-			for (Iterator p=denizenBattleGroup.getBattleParticipants().iterator();p.hasNext();) {
-				RealmComponent rc = (RealmComponent)p.next();
+			for (RealmComponent rc : denizenBattleGroup.getBattleParticipants()) {
 				CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 				if (combat.isSheetOwner()) {
-					combat.setSheetOwner(false);
+					if(!rc.hasTarget() || (rc.isMonster() && ((MonsterChitComponent)rc).isTremendousWeight() && rc.getTarget().isCharacter())) {
+						combat.setSheetOwner(false);
+					}
 				}
 			}
 		}
@@ -237,8 +263,7 @@ public class BattleModel {
 		
 		// Setup combat sheet owners
 		// Make sure all non-hired participants in clearing are sheet owners (to start)
-		for (Iterator p=getAllBattleParticipants(false).iterator();p.hasNext();) {
-			RealmComponent rc = (RealmComponent)p.next();
+		for (RealmComponent rc : getAllBattleParticipants(false)) {
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 			if (!combat.isSheetOwner()) {
 				combat.setSheetOwner(true);
@@ -253,8 +278,8 @@ public class BattleModel {
 		if (denizenBattleGroup != null) {
 			for (RealmComponent denizen:denizenBattleGroup.getBattleParticipants()) {
 				CombatWrapper combat = new CombatWrapper(denizen.getGameObject());
-				if (!denizen.isAssigned() && !combat.isPeaceful() && !denizen.isMistLike()) {
-					ArrayList availableGroups = new ArrayList();
+				if (!denizen.isAssigned() && !combat.isPeaceful()  && !combat.isPacified() && !denizen.isMistLike()) {
+					ArrayList<BattleGroup> availableGroups = new ArrayList<>();
 					// Find one possibility for each BattleGroup
 					for (BattleGroup bg:characterBattleGroups) {
 						if (bg.hasAvailableParticipant(denizen)) {
@@ -279,19 +304,17 @@ public class BattleModel {
 		}
 	}
 
-	private BattleGroup rollOffForWorst(Collection groups) {
+	private static BattleGroup rollOffForWorst(Collection<BattleGroup> groups) {
 		return rollOff(groups, false);
 	}
 
-	private BattleGroup rollOff(Collection groups, boolean best) {
+	private static BattleGroup rollOff(Collection<BattleGroup> groups, boolean best) {
 		if (groups.size() > 0) {
 			while (groups.size() > 1) { // As long as there are ties, the rolloff continues. Only one "winner" allowed.
 				int markRoll = best ? 99 : -99;
-				ArrayList markedRollers = new ArrayList();
-				for (Iterator i = groups.iterator(); i.hasNext();) {
-					BattleGroup bg = (BattleGroup) i.next();
+				ArrayList<BattleGroup> markedRollers = new ArrayList<>();
+				for (BattleGroup bg : groups) {
 					DieRoller roller = bg.createDieRoller("Roll Off");
-					// TODO Add the roller to the character somehow...
 					int roll = roller.getHighDieResult();
 					if (roll == markRoll) {
 						// Tied
@@ -306,7 +329,7 @@ public class BattleModel {
 				}
 				groups = markedRollers;
 			}
-			return (BattleGroup) groups.iterator().next();
+			return groups.iterator().next();
 		}
 		return null;
 	}
@@ -323,7 +346,7 @@ public class BattleModel {
 		return getParticipantsFromGroups(getAllBattleGroups(includeDenizens));
 	}
 	public ArrayList<RealmComponent> getAllOtherBattleParticipants(BattleGroup bg,boolean includeDenizens,boolean allowTreachery) {
-		ArrayList list = findOtherBattleGroups(bg,includeDenizens);
+		ArrayList<BattleGroup> list = findOtherBattleGroups(bg,includeDenizens);
 		if (allowTreachery) {
 			list.add(bg);
 		}
@@ -340,7 +363,7 @@ public class BattleModel {
 	 * @return			All characters involved in battle (includes characters that are absent, but have hirelings)
 	 */
 	public ArrayList<RealmComponent> getAllOwningCharacters() {
-		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
+		ArrayList<RealmComponent> ret = new ArrayList<>();
 		for (BattleGroup group:characterBattleGroups) {
 			RealmComponent rc = group.getOwningCharacter();
 			if (rc!=null) {
@@ -354,10 +377,9 @@ public class BattleModel {
 	 * Returns a list of all native leaders, and controlled monsters in the clearing (not characters).
 	 */
 	public ArrayList<RealmComponent> getAllLeaders() {
-		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
+		ArrayList<RealmComponent> ret = new ArrayList<>();
 		ArrayList<RealmComponent> list  = getAllBattleParticipants(false);
-		for (Iterator i=list.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+		for (RealmComponent rc : list) {
 			if (rc.isPlayerControlledLeader() && !rc.isCharacter()) {
 				ret.add(rc);
 			}
@@ -370,7 +392,7 @@ public class BattleModel {
 	 * @return			All characters in the battle (not owningCharacters!)
 	 */
 	public ArrayList<CharacterChitComponent> getAllParticipatingCharacters() {
-		ArrayList<CharacterChitComponent> ret = new ArrayList<CharacterChitComponent>();
+		ArrayList<CharacterChitComponent> ret = new ArrayList<>();
 		for (BattleGroup group:characterBattleGroups) {
 			CharacterChitComponent rc = group.getCharacterInBattle();
 			if (rc!=null) {
@@ -381,10 +403,24 @@ public class BattleModel {
 	}
 
 	/**
+	 * @return			All characters in the battle (not owningCharacters!)
+	 */
+	public ArrayList<RealmComponent> getAllParticipatingCharactersAsRc() {
+		ArrayList<RealmComponent> ret = new ArrayList<>();
+		for (BattleGroup group:characterBattleGroups) {
+			RealmComponent rc = group.getCharacterInBattle();
+			if (rc!=null) {
+				ret.add(rc);
+			}
+		}
+		return ret;
+	}
+	
+	/**
 	 * Returns a Collection of all the battle groups in this model.
 	 */
 	public ArrayList<BattleGroup> getAllBattleGroups(boolean includeDenizens) {
-		ArrayList<BattleGroup> all = new ArrayList<BattleGroup>();
+		ArrayList<BattleGroup> all = new ArrayList<>();
 		all.addAll(characterBattleGroups);
 		if (includeDenizens && denizenBattleGroup != null) {
 			all.add(denizenBattleGroup);
@@ -395,8 +431,8 @@ public class BattleModel {
 	/**
 	 * Returns a collection of all battle groups that are not the specified battle group\ (denizens and characters are grouped together)
 	 */
-	public ArrayList findOtherBattleGroups(BattleGroup bg, boolean includeDenizens) {
-		ArrayList otherBattleGroups = getAllBattleGroups(includeDenizens);
+	public ArrayList<BattleGroup> findOtherBattleGroups(BattleGroup bg, boolean includeDenizens) {
+		ArrayList<BattleGroup> otherBattleGroups = getAllBattleGroups(includeDenizens);
 		otherBattleGroups.remove(bg);
 		return otherBattleGroups;
 	}
@@ -407,17 +443,15 @@ public class BattleModel {
 			denizenBattleGroup.allHorsesGallop();
 			
 			// Denizens select their target
-			for (Iterator i=denizenBattleGroup.getBattleParticipants().iterator();i.hasNext();) {
-				RealmComponent denizen = (RealmComponent)i.next();
-				if (!denizen.isMonster()
-						|| !((MonsterChitComponent)denizen).isPinningOpponent()) {
-					ArrayList attackers = getAttackersFor(denizen);
+			for (RealmComponent denizen : denizenBattleGroup.getBattleParticipants()) {
+				if (!denizen.isMonster() || !((MonsterChitComponent)denizen).isPinningOpponent()) {
+					ArrayList<RealmComponent> attackers = getAttackersFor(denizen);
 					if (!attackers.isEmpty()) {
 						Collections.sort(attackers,new TargetIndexComparator());
 						// Target the last one, unless a character
 						int n = attackers.size()-1;
 						RealmComponent target = null;
-						while(n>=0 && (target = (RealmComponent)attackers.get(n)).isCharacter()) {
+						while(n>=0 && (target = attackers.get(n)).isCharacter()) {
 							target = null;
 							n--;
 						}
@@ -435,17 +469,20 @@ public class BattleModel {
 		}
 		
 		// Assign targets for hirelings where obvious
-		ArrayList<RealmComponent> owners = new ArrayList<RealmComponent>();
+		ArrayList<RealmComponent> owners = new ArrayList<>();
 		for (BattleGroup bg:characterBattleGroups) {
 			owners.add(bg.getOwningCharacter());
 			for (RealmComponent hireling:bg.getHirelings()) {
-				if (hireling.getTarget()==null) {
-					ArrayList attackers = getAttackersFor(hireling,true,false);
+				if (hireling.getTarget()==null && hireling.get2ndTarget()==null) {
+					ArrayList<RealmComponent> attackers = getAttackersFor(hireling,true,false);
 					if (attackers.size()==1) {
 						// its obvious, so do it here
-						RealmComponent soleAttacker = (RealmComponent)attackers.iterator().next();
+						RealmComponent soleAttacker = attackers.iterator().next();
 						hireling.setTarget(soleAttacker);
-						CombatFrame.makeTarget(null,null,hireling,soleAttacker,theGame);
+						boolean gotUnhidden = CombatFrame.makeTarget(CombatFrame.getSingleton(),null,hireling,soleAttacker);
+						if (gotUnhidden) {
+							setGotUnhidden();
+						}
 					}
 				}
 			}
@@ -453,7 +490,7 @@ public class BattleModel {
 		
 		// Assign the order for target selection (randomized every round)
 		RealmLogging.logMessage(RealmLogging.BATTLE,"Assigning random target selection order.");
-		ArrayList<RealmComponent> randomOrder = new ArrayList<RealmComponent>();
+		ArrayList<RealmComponent> randomOrder = new ArrayList<>();
 		while(!owners.isEmpty()) {
 			int r = RandomNumber.getRandom(owners.size());
 			randomOrder.add(owners.remove(r));
@@ -462,16 +499,99 @@ public class BattleModel {
 		for(RealmComponent rc:randomOrder) {
 			CharacterWrapper owner = new CharacterWrapper(rc.getGameObject());
 			owner.setMeleePlayOrder(n++);
+			owner.setPlayerOrdering(n++);
 		}
 	}
 	
-	public void doEnergizeSpells() {
+	public void doRaiseDeads() {
+		for (CharacterChitComponent rc : getAllParticipatingCharacters()) {
+			CombatWrapper character = new CombatWrapper(rc.getGameObject());
+			if (character.getRaiseTheDead() && !rc.affectedByKey(Constants.DISENCHANT_POTION)) {
+				CharacterWrapper characterCasting = new CharacterWrapper(rc.getGameObject());
+				RaiseDead raiseDead = new RaiseDead(CombatFrame.getSingleton());
+				DieRoller deadRoller = DieRollBuilder.getDieRollBuilder(CombatFrame.getSingleton(),characterCasting).createRoller(raiseDead);
+				String msg = raiseDead.apply(characterCasting,deadRoller);
+				character.setRaisedDead();
+				logBattleInfo(rc+": "+msg);
+			}
+		}
+	}
+	
+	public void checkForGuildHideout() {
+		if (!hostPrefs.hasPref(Constants.GUILDS_HIDEOUT)) return;
+		RealmComponent guild = null;
+		if (battleLocation.hasClearing()) {
+			guild = battleLocation.clearing.getGuild();
+		}
+		if (guild==null) return;
+		for (CharacterChitComponent rc : getAllParticipatingCharacters()) {
+			CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
+			if (character.isGuildMember(guild.getGameObject().getThisAttribute(Constants.GUILD))) {
+				character.setHidden(true);
+			}
+		}
+	}
+	
+	public void doEnergizeDenizenPreBattleSpells() {
+		ArrayList<RealmComponent> casters = new ArrayList<>();
+		for (RealmComponent battleParticipant : getAllBattleParticipants(true)) {
+			if ((battleParticipant.isMonster() || battleParticipant.isNative()) && battleParticipant.getGameObject().hasThisAttribute(Constants.SPELL_PRE_BATTLE)) {
+				String spellName = battleParticipant.getGameObject().getThisAttribute(Constants.SPELL_PRE_BATTLE);
+				SpellWrapper spell = null;
+				for (GameObject held : battleParticipant.getGameObject().getHold()) {
+					if (held.getName().toLowerCase().matches(spellName.toLowerCase()) && held.hasThisAttribute(Constants.SPELL_DENIZEN)) {
+						spell = new SpellWrapper(held);
+						break;
+					}
+				}
+				if (spell!=null && !spell.isAttackSpell()) {
+					boolean validTarget = spell.selectTargetForDenizen(hostPrefs, battleLocation, (BattleChit)battleParticipant,battleParticipant.getTarget());
+					if (validTarget) {
+						spell.castSpellByDenizen(battleParticipant.getGameObject());
+					}
+					
+					if (!validTarget || spell.isNullified() || !spell.isAlive()) continue;
+					ArrayList<String> logs = new ArrayList<String>();
+					if (spell.isInstantSpell() && !spell.uneffectAtMidnight()) {
+						logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,true,null);
+					}
+					else if (spell.isCombatSpell() || spell.isDaySpell() || spell.isPermanentSpell() || spell.isPhaseSpell() || spell.isMoveSpell() || spell.uneffectAtMidnight()) {
+						logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,false,null);
+					}
+					if (logs != null && !logs.isEmpty()) {
+						for (String log : logs) {
+							logBattleInfo(log);
+						}
+					}
+					spell.recognizeCastedSpellByDenizen();
+					casters.add(battleParticipant);
+					continue;
+				}
+			}
+		}
+		
+		for (RealmComponent rc : casters) {
+			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
+			if (combat.isSheetOwner()) {
+				if(!rc.hasTarget() || (rc.isMonster() && ((MonsterChitComponent)rc).isTremendousWeight() && rc.getTarget().isCharacter())) {
+					combat.setSheetOwner(false);
+				}
+			}
+		}
+	}
+	
+	public void doEnergizeSpells(int combatRound) {
+		energizeInstantTeleport();
+		energizeHurricaneWindsEvent();
+		energizeRoofCollapsesEvent();
+		energizeFloodEvent();
+		
 		// Find and hash all spells and casters cast this round by speed
-		HashLists spells = new HashLists();
-		HashLists casters = new HashLists();
-		ArrayList spellCasters = new ArrayList();
-		for (Iterator i=getAllParticipatingCharacters().iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+		HashLists<Integer,SpellWrapper> spells = new HashLists<>();
+		HashLists<Integer,BattleChit> monsterSpells = new HashLists<>();
+		HashLists<Integer,CharacterChitComponent> casters = new HashLists<>();
+		ArrayList<BattleChit> spellCasters = new ArrayList<>();
+		for (CharacterChitComponent rc : getAllParticipatingCharacters()) {
 			CombatWrapper character = new CombatWrapper(rc.getGameObject());
 			GameObject go = character.getCastSpell();
 			if (go!=null) {
@@ -480,45 +600,206 @@ public class BattleModel {
 				}
 				SpellWrapper spell = new SpellWrapper(go);
 				if (spell.isAlive()) { // A spell might not be alive if it was already energized this round
-					spells.put(new Integer(spell.getAttackSpeed().getNum()),spell);
-					casters.put(new Integer(spell.getAttackSpeed().getNum()),rc);
+					spells.put(Integer.valueOf(spell.getAttackSpeed().getNum()),spell);
+					casters.put(Integer.valueOf(spell.getAttackSpeed().getNum()),rc);
+				}
+			}
+		}
+		for (RealmComponent battleParticipant : getAllBattleParticipants(true)) {
+			boolean transmorphed = false;
+			if (battleParticipant.isCharacter()) {
+				if ((new CharacterWrapper(battleParticipant.getGameObject())).isTransmorphed()) {
+					transmorphed = true;
+				}
+			}
+			if ((battleParticipant.isMonster() || battleParticipant.isNative() || transmorphed) && !battleParticipant.isMonsterPart()) {
+				BattleChit denizen = (BattleChit)battleParticipant;
+				if (combatRound!=1 && (denizen.getGameObject().hasThisAttribute(Constants.CAST_ONLY_IN_FIRST_COMBAT_ROUND) || ((ChitComponent)denizen).hasFaceAttribute(Constants.CAST_ONLY_IN_FIRST_COMBAT_ROUND))) {
+					continue;
+				}
+				
+				if (hostPrefs.hasPref(Constants.OPT_POWER_OF_THE_PIT_DEMON) && Constants.POWER_OF_THE_PIT.matches(denizen.getAttackSpell()) && !spellCasters.contains(denizen)) {
+					spellCasters.add(denizen);
+					monsterSpells.put(Integer.valueOf(denizen.getAttackSpeed().getNum()),denizen);
+				}
+				else if ((denizen.getGameObject().hasThisAttribute(Constants.FAST_CASTER) || ((ChitComponent)denizen).hasFaceAttribute(Constants.FAST_CASTER))
+						&& denizen.getMagicType()!=null&&!denizen.getMagicType().isEmpty()) {
+					String spellName = denizen.getAttackSpell();
+					SpellWrapper spell = null;
+					for (GameObject held : denizen.getGameObject().getHold()) {
+						if (held.getName().toLowerCase().matches(spellName.toLowerCase()) && held.hasThisAttribute(Constants.SPELL_DENIZEN)) {
+							spell = new SpellWrapper(held);
+							break;
+						}
+					}
+					if (spell!=null && !spell.isAttackSpell()) {		
+						CombatWrapper combatDenizen = new CombatWrapper(battleParticipant.getGameObject());
+						if (!denizen.isNative() || !combatDenizen.isAffectedByExorcise() || colorSuppliedForDenizenSpell(spell)) {
+							boolean validTarget = spell.selectTargetForDenizen(hostPrefs, battleLocation, denizen,denizen.getTarget());
+							if (validTarget) {
+								spell.castSpellByDenizen(denizen.getGameObject());
+								spells.put(Integer.valueOf(denizen.getAttackSpeed().getNum()),spell);
+							}
+						} else {
+							logBattleInfo(denizen.getGameObject().getNameWithNumber()+" is affected by Exorcise and thus cannot cast "+spell.getName()+".");
+						}
+					}
 				}
 			}
 		}
 		
 		if (spells.size()>0) {
-			ArrayList allSpeeds = new ArrayList(spells.keySet());
+			ArrayList<Integer> allSpeeds = new ArrayList<>(spells.keySet());
+			allSpeeds.addAll(monsterSpells.keySet());
 			Collections.sort(allSpeeds);
 			
 			// Determine which spells cancel which spellcasters
-			for (Iterator i=allSpeeds.iterator();i.hasNext();) {
-				Integer speed = (Integer)i.next();
-				ArrayList spellsAtSpeed = spells.getList(speed);
-				for (Iterator n=spellsAtSpeed.iterator();n.hasNext();) {
-					SpellWrapper spell = (SpellWrapper)n.next();
-					if (spell.isAlive() && !spell.targetsClearing()) { // might have already been cancelled!
-						ArrayList unaffectedCasters = casters.getList(speed);
-						ArrayList targets = spell.getTargets();
-						targets.retainAll(spellCasters);
-						targets.removeAll(unaffectedCasters);
-					
-						if (targets.size()>0) {
-							for (Iterator t=targets.iterator();t.hasNext();) {
-								RealmComponent target = (RealmComponent)t.next();
-								CombatWrapper combat = new CombatWrapper(target.getGameObject());
-								GameObject spellToCancelGo = combat.getCastSpell();
-								SpellWrapper spellToCancel = new SpellWrapper(spellToCancelGo);
-								logBattleInfo(
-										spellToCancelGo.getName()
-										+", cast by the "
-										+target.getGameObject().getName()
-										+" (speed "+spellToCancel.getAttackSpeed().getNum()+")"
-										+",\n   was cancelled by "
-										+spell.getGameObject().getName()
-										+" (speed "+spell.getAttackSpeed().getNum()+")"
-										+", cast by the "
-										+spell.getCaster().getGameObject().getName());
-								spellToCancel.expireSpell();
+			for (Integer speed : allSpeeds) {
+				ArrayList<SpellWrapper> spellsAtSpeed = spells.getList(speed);
+				ArrayList<CharacterChitComponent> unaffectedCasters = casters.getList(speed);
+				
+				if (spellsAtSpeed != null) {
+					for (SpellWrapper spell : spellsAtSpeed) {
+						if (spell.isAlive() && !spell.targetsClearing()) { // might have already been cancelled!
+							ArrayList<RealmComponent> targets = spell.getTargets();
+							targets.retainAll(spellCasters);
+							if (unaffectedCasters!=null) targets.removeAll(unaffectedCasters);
+							
+							if (targets.size()>0) {
+								for (RealmComponent target : targets) {
+									CombatWrapper combat = new CombatWrapper(target.getGameObject());
+									if (hostPrefs.hasPref(Constants.OPT_POWER_OF_THE_PIT_DEMON)) {
+										boolean targetTransmorphed = false;
+										if (target.isCharacter()) {
+											if ((new CharacterWrapper(target.getGameObject())).isTransmorphed()) {
+												targetTransmorphed = true;
+											}
+										}
+										if ((target.isMonster() || targetTransmorphed) && !target.isMonsterPart()) {
+											BattleChit monster = (BattleChit)target;
+											if ("V".equals(monster.getMagicType()) && Constants.POWER_OF_THE_PIT.matches(monster.getAttackSpell())) {
+												if (monster.getAttackSpeed().getNum() <= speed) continue;
+												combat.setCancelSpell();
+												String message = "Attack spell, cast by the "
+														+monster.getGameObject().getNameWithNumber()
+														+" (speed "+monster.getAttackSpeed().getNum()+")"
+														+",\n   was cancelled by "
+														+spell.getGameObject().getName()
+														+" (speed "+spell.getAttackSpeed().getNum()+")"
+														+", cast by the "
+														+spell.getCaster().getGameObject().getName()+".";
+												logBattleInfo(message);
+												continue;
+											}
+										}
+									}
+									
+									GameObject spellToCancelGo = combat.getCastSpell();
+									SpellWrapper spellToCancel = new SpellWrapper(spellToCancelGo);
+									
+									//attackSpeed cannot be fetched anymore, if spell already expired (e.g. dissolve spell didn't have a target)
+									if (spellToCancel.getIncantationObject() == null) continue;
+									if (spellToCancel.getAttackSpeed().getNum() <= speed) continue;
+																	
+									String targetingClearing = "";
+									if (spellToCancel.targetsClearing()) {
+										targetingClearing = ", targeting the clearing";
+									}
+									
+									String message = spellToCancelGo.getName()
+											+", cast by the "
+											+target.getGameObject().getNameWithNumber()
+											+targetingClearing
+											+" (speed "+spellToCancel.getAttackSpeed().getNum()+")"
+											+",\n   was cancelled by "
+											+spell.getGameObject().getName()
+											+" (speed "+spell.getAttackSpeed().getNum()+")"
+											+", cast by the "
+											+spell.getCaster().getGameObject().getName()+".";
+									logBattleInfo(message);
+									spellToCancel.cancelSpell();
+								}
+							}
+						}
+					}
+				}
+				
+				if (hostPrefs.hasPref(Constants.OPT_POWER_OF_THE_PIT_DEMON)) {
+					ArrayList<BattleChit> monstersAtSpeed = monsterSpells.getList(speed);
+					if (monstersAtSpeed!=null) {
+						for (BattleChit monster : monstersAtSpeed) {
+							RealmComponent target = monster.getTarget();
+							if (target == null || (unaffectedCasters != null && unaffectedCasters.contains(target))) continue;
+							CombatWrapper combat = new CombatWrapper(target.getGameObject());
+							GameObject spellToCancelGo = combat.getCastSpell();
+							if (spellToCancelGo == null) continue;
+							SpellWrapper spellToCancel = new SpellWrapper(spellToCancelGo);	
+							//attackSpeed cannot be fetched anymore, if spell already expired (e.g. dissolve spell didn't have a target)
+							if (spellToCancel.getIncantationObject() == null) continue;
+							if (spellToCancel.getAttackSpeed().getNum() <= speed) continue;
+							String message = spellToCancelGo.getName()
+									+", cast by the "
+									+target.getGameObject().getNameWithNumber()
+									+" (speed "+spellToCancel.getAttackSpeed().getNum()+")"
+									+",\n   was cancelled by "
+									+monster.getGameObject().getName()+".";
+							logBattleInfo(message);
+							spellToCancel.cancelSpell();
+						}
+					}
+				}
+				
+				// check for duplicate conflicting (transmorph) spells at same target
+				HashMap<RealmComponent,ArrayList<SpellWrapper>> conflictingSpells = new HashMap<>();
+				HashMap<RealmComponent,Integer> conflictingSpellsStrength = new HashMap<>();
+				HashMap<RealmComponent,SpellWrapper> strongestConflictingSpells = new HashMap<>();
+				if (spellsAtSpeed != null) {
+					for (SpellWrapper spell : spellsAtSpeed) {
+						if (!spell.isActive()) continue; // might have already been cancelled!
+						ArrayList<RealmComponent> targets = spell.getTargets();
+						for (RealmComponent target : targets) {
+							if (spell.canConflict()) {
+								ArrayList<SpellWrapper> targetedConflictingSpells = new ArrayList<>();
+								targetedConflictingSpells.add(spell);
+								int strongestSpellStrength = 0;
+								if (conflictingSpells.containsKey(target)) {
+									targetedConflictingSpells.addAll(conflictingSpells.get(target));
+									strongestSpellStrength = conflictingSpellsStrength.get(target);
+								}
+								conflictingSpells.put(target, targetedConflictingSpells);
+								if (spell.getConflictStrength() > strongestSpellStrength) {
+									conflictingSpellsStrength.put(target, spell.getConflictStrength());
+									strongestConflictingSpells.put(target, spell); 
+								}
+							}
+						}
+					}
+				}
+				for (RealmComponent target : conflictingSpells.keySet()) {
+					ArrayList<SpellWrapper> conflictingSpellsAtTarget = conflictingSpells.get(target);
+					if (conflictingSpellsAtTarget.size() <= 1) continue;
+					int strongestSpellStrength = conflictingSpellsStrength.get(target);
+					int numberOfStrongestSpells = 0;
+					for (SpellWrapper spell : conflictingSpellsAtTarget) {
+						if (spell.getConflictStrength() < strongestSpellStrength) {
+							strongestConflictingSpells.get(target).addListItem(SpellWrapper.NULLIFIED_SPELLS, spell.getGameObject().getStringId());
+							spell.nullifySpell(true);
+							logBattleInfo(spell.getName() + " (cast by "+spell.getCaster().getName()+") was nullified as a stronger spell hit the " + target + " at the same speed of " + speed +".");
+						}
+						if (spell.getConflictStrength() == strongestSpellStrength) {
+							numberOfStrongestSpells = numberOfStrongestSpells + 1;
+						}
+					}
+					if (numberOfStrongestSpells >= 2) {
+						for (SpellWrapper spell : conflictingSpellsAtTarget) {
+							if (spell.getConflictStrength() == strongestSpellStrength) {
+								if (spell.isTransform() || spell.isStoneGaze()) {
+									spell.cancelSpell();
+									logBattleInfo(spell.getName() + " (cast by "+spell.getCaster().getName()+") was cancelled as multiple Transform or Stone Gaze spells hit the " + target + " at the same speed of " + speed +".");
+								}
+								if (spell.isAbsorbEssence()) {
+									spell.cancelSpell();
+									logBattleInfo(spell.getName() + " (cast by "+spell.getCaster().getName()+") was cancelled as multiple Absorb Essence spells hit the " + target + " at the same speed of " + speed +".");								}
 							}
 						}
 					}
@@ -527,22 +808,60 @@ public class BattleModel {
 					
 			// Non-attack spells go into effect here
 			CombatWrapper tile = new CombatWrapper(battleLocation.tile.getGameObject());
-			for (Iterator i=allSpeeds.iterator();i.hasNext();) {
-				Integer speed = (Integer)i.next();
-				ArrayList spellsAtSpeed = spells.getList(speed);
-				for (Iterator n=spellsAtSpeed.iterator();n.hasNext();) {
-					SpellWrapper spell = (SpellWrapper)n.next();
-					if (spell.isInstantSpell()) {
-						spell.affectTargets(CombatFrame.getSingleton(),theGame,true);
+			for (Integer speed : allSpeeds) {
+				ArrayList<SpellWrapper> spellsAtSpeed = spells.getList(speed);
+				if (spellsAtSpeed == null) continue;
+				for (SpellWrapper spell : spellsAtSpeed) {
+					if (spell.isNullified() || !spell.isAlive()) continue;
+					if (spell.getCaster().affectedByKey(Constants.DISENCHANT_POTION)) {
+						spell.cancelSpell();
+						logBattleInfo("Spell canceled. Caster affected by Disenchant Potion");
+						continue;
 					}
-					else if (spell.isCombatSpell() || spell.isDaySpell() || spell.isPermanentSpell() || spell.isPhaseSpell() || spell.isMoveSpell()) {
-						spell.affectTargets(CombatFrame.getSingleton(),theGame,false);
+					ArrayList<String> logs = new ArrayList<String>();
+					
+					if (spell.isDenizenSpell()) {
+						if (spell.isInstantSpell() && !spell.uneffectAtMidnight()) {
+							logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,true,null);
+						}
+						else if (spell.isCombatSpell() || spell.isDaySpell() || spell.isPermanentSpell() || spell.isPhaseSpell() || spell.isMoveSpell() || spell.uneffectAtMidnight()) {
+							logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,false,null);
+						}
+						if (logs != null && !logs.isEmpty()) {
+							for (String log : logs) {
+								logBattleInfo(log);
+							}
+						}
+						spell.recognizeCastedSpellByDenizen();
+						RealmComponent denizenRc = RealmComponent.getRealmComponent(spell.getCaster().getGameObject());
+						if ((denizenRc.isMonster() && ((MonsterChitComponent)denizenRc).changeTacticsAfterCasting())
+								|| (denizenRc.isNative() && ((NativeChitComponent)denizenRc).changeTacticsAfterCasting())) {
+							denizenRc.flip();
+						}
+						continue;
+					}
+					
+					if (spell.isInstantSpell() && !spell.uneffectAtMidnight()) {
+						logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,true,spellsAtSpeed);
+					}
+					else if (spell.isCombatSpell() || spell.isDaySpell() || spell.isPermanentSpell() || spell.isPhaseSpell() || spell.isMoveSpell() || spell.uneffectAtMidnight()) {
+						logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,false,spellsAtSpeed);
+					}
+					if (logs != null && !logs.isEmpty()) {
+						for (String log : logs) {
+							logBattleInfo(log);
+						}
 					}
 				}
 				// Make sure PEACE didn't happen
 				// FIXME The problem is, that the WISH for PEACE happens on a separate thread, so this is never called...
 				if (tile.isPeaceClearing(battleLocation.clearing.getNum())) {
 					// it did - no other spells go into effect, and all targets are cleared
+					break;
+				}
+				
+				if (tile.isSleepClearing(battleLocation.clearing.getNum())) {
+					logBattleInfo("Clearing falls asleep. Combat ceases.");
 					break;
 				}
 			}
@@ -554,6 +873,140 @@ public class BattleModel {
 		}
 	}
 	
+	private void energizeInstantTeleport() {
+		for (CharacterChitComponent rc : getAllParticipatingCharacters()) {
+			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
+			if (combat.getInstantTeleport()!=null) {
+				CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
+				if (!character.canUseInstantTeleport()) {
+					RealmLogging.logMessage(rc.getGameObject().getName(),"Cannot use teleport, spell is canceled.");
+				}
+				else {
+					String destination = combat.getInstantTeleport();
+					SpellUtility.doTeleport(CombatFrame.getSingleton(), "Instant Teleport", character, TeleportType.Location, 0, destination);
+					RealmLogging.logMessage(rc.getGameObject().getName(),"Teleports to "+destination);
+				}
+				combat.removeInstantTeleport();
+			}
+		}
+	}
+	
+	private void energizeRoofCollapsesEvent() {
+		if (battleLocation.tile.getGameObject().hasThisAttribute(Constants.EVENT_CAVE_IN)) {
+			ArrayList<String> clearings = battleLocation.tile.getGameObject().getThisAttributeList(Constants.EVENT_CAVE_IN);
+			for (String cl : clearings) {
+				if (battleLocation.clearing.getNumString().matches(cl)) {
+					ArrayList<RealmComponent> allBattleParticipants = getAllBattleParticipants(true);
+					GamePool pool = new GamePool(gameData.getGameObjects());
+					GameObject objectToCopy = pool.findFirst("name=Roof Collapses");
+					if (objectToCopy!=null) {
+						for (RealmComponent participant : allBattleParticipants) {
+							GameObject spell = gameData.createNewObject(objectToCopy);
+							spell.setThisAttribute(Constants.EVENT);
+							spell.setThisAttribute("target",participant.getGameObject().getNameWithNumber());
+							spell.removeThisAttribute("learnable");
+							CombatWrapper combatSpell = new CombatWrapper(spell);
+							combatSpell.setCombatBoxAttack(3);
+							combatSpell.setCombatBoxDefense(3);
+							RealmComponent spellRc = RealmComponent.getRealmComponent(spell);
+							spellRc.setTarget(participant);
+							CombatWrapper combatParticipant = new CombatWrapper(participant.getGameObject());
+							combatParticipant.addAttacker(spell);
+							battleLocation.clearing.add(spell, null);
+						}
+						logBattleInfo("EVENT: Roof Collapses is cast.");
+						battleLocation.tile.getGameObject().removeThisAttributeListItem(Constants.EVENT_CAVE_IN,cl);
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+	private void energizeFloodEvent() {
+		if (battleLocation.tile.getGameObject().hasThisAttribute(Constants.EVENT_FLOOD) && !battleLocation.clearing.isMountain()) {
+			ArrayList<String> clearings = battleLocation.tile.getGameObject().getThisAttributeList(Constants.EVENT_FLOOD);
+			for (String cl : clearings) {
+				if (battleLocation.clearing.getNumString().matches(cl)) {
+					ArrayList<RealmComponent> allBattleParticipants = getAllBattleParticipants(true);
+					GamePool pool = new GamePool(gameData.getGameObjects());
+					GameObject objectToCopy = pool.findFirst("name=Flood");
+					if (objectToCopy!=null) {
+						for (RealmComponent participant : allBattleParticipants) {
+							if (participant.isMonster() && ((MonsterChitComponent)participant).flies()) {
+								continue;
+							}
+							if (participant.isNative() && ((NativeChitComponent)participant).flies()) {
+								continue;
+							}
+							if (participant instanceof NativeSteedChitComponent && ((NativeSteedChitComponent)participant).flies()) {
+								continue;
+							}
+							if (participant instanceof SteedChitComponent && ((SteedChitComponent)participant).flies()) {
+								continue;
+							}
+							GameObject spell = gameData.createNewObject(objectToCopy);
+							spell.setThisAttribute(Constants.EVENT);
+							spell.setThisAttribute("target",participant.getGameObject().getNameWithNumber());
+							spell.removeThisAttribute("learnable");
+							CombatWrapper combatSpell = new CombatWrapper(spell);
+							if (hostPrefs.hasPref(Constants.SR_COMBAT)) {
+								combatSpell.setCombatBoxAttack(RandomNumber.getRandom(3)+1);
+								combatSpell.setCombatBoxDefense(RandomNumber.getRandom(3)+1);
+							} else {
+								int random = RandomNumber.getRandom(3)+1;
+								combatSpell.setCombatBoxAttack(random);
+								combatSpell.setCombatBoxDefense(random);
+							}
+							RealmComponent spellRc = RealmComponent.getRealmComponent(spell);
+							spellRc.setTarget(participant);
+							CombatWrapper combatParticipant = new CombatWrapper(participant.getGameObject());
+							combatParticipant.addAttacker(spell);
+							battleLocation.clearing.add(spell, null);
+						}
+						logBattleInfo("EVENT: Flood is cast.");
+						battleLocation.tile.getGameObject().removeThisAttributeListItem(Constants.EVENT_FLOOD,cl);
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+	private void energizeHurricaneWindsEvent() {
+		if (battleLocation.tile.getGameObject().hasThisAttribute(Constants.EVENT_HURRICANE_WINDS)) {
+			ArrayList<String> clearings = battleLocation.tile.getGameObject().getThisAttributeList(Constants.EVENT_HURRICANE_WINDS);
+			for (String cl : clearings) {
+				if (battleLocation.clearing.getNumString().matches(cl)) {
+					ArrayList<RealmComponent> allBattleParticipants = getAllBattleParticipants(true);
+					for (RealmComponent participant : allBattleParticipants) {
+						participant.getGameObject().setThisAttribute(Constants.EVENT_HURRICANE_WINDS);
+					}
+					logBattleInfo("EVENT: Hurricane Winds is cast.");
+					battleLocation.tile.getGameObject().removeThisAttributeListItem(Constants.EVENT_HURRICANE_WINDS,cl);
+					break;
+				}
+			}
+		}
+	}
+	
+	private boolean colorSuppliedForDenizenSpell(SpellWrapper spell) {
+		ColorMagic requiredColorMagic = spell.getRequiredColorMagic();
+		ArrayList<ColorMagic> availableColors = battleLocation.clearing.getAllSourcesOfColor(false);
+		RealmCalendar cal = RealmCalendar.getCalendar(gameData);
+		availableColors.addAll(cal.getColorMagic(theGame.getMonth(),theGame.getDay()));
+		availableColors.addAll(RealmEvents.getInfiniteColorMagicSources(gameData));
+		
+		boolean colorSupplied = false;
+		for (ColorMagic color : availableColors) {
+			if (requiredColorMagic.getColor() == color.getColor()) {
+				colorSupplied = true;
+				break;
+			}
+		}
+		return colorSupplied;
+	}
+	
 	/**
 	 * This method is here to GUARANTEE that denizens being attacked by hidden attackers are moved to their own sheets.  This is
 	 * supposed to happen when attacks are placed, but Watchful Natives messes this logic up.  Rather than constantly chase this
@@ -562,19 +1015,35 @@ public class BattleModel {
 	public void doFixSheetOwners() {
 		BattleGroup battleGroup = getDenizenBattleGroup();
 		if (battleGroup!=null) {
-			for (Iterator i=battleGroup.getBattleParticipants().iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
+			for (RealmComponent rc : battleGroup.getBattleParticipants()) {
 				CombatWrapper combat = new CombatWrapper(rc.getGameObject());
-				if (rc.getTarget()==null && combat.getAttackerCount()>0 && !combat.isSheetOwner()) { // being attacked, but not already on their own sheet
+				if (rc.getTarget()==null && rc.get2ndTarget()==null && combat.getAttackerCount()>0 && !combat.isSheetOwner()) { // being attacked, but not already on their own sheet
 					// As far as I know, there is NEVER a reason that the denizen shouldn't get their own sheet at this time
 					combat.setSheetOwner(true);
-					combat.setCombatBox(1);
+					if (combat.canUseCombatBoxAttack(1) && combat.canUseCombatBoxDefense(1)) {
+						combat.setCombatBoxAttack(1);
+						combat.setCombatBoxDefense(1);
+					} else if(combat.canUseCombatBoxAttack(2) && combat.canUseCombatBoxDefense(2)) {
+							combat.setCombatBoxAttack(2);
+							combat.setCombatBoxDefense(2);
+					} else if(combat.canUseCombatBoxAttack(3) && combat.canUseCombatBoxDefense(3)) {
+						combat.setCombatBoxAttack(3);
+						combat.setCombatBoxDefense(3);
+					}
+					else {
+						ArrayList<String> boxesA = combat.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
+						String boxA = boxesA.get(RandomNumber.getRandom(boxesA.size()));
+						combat.setCombatBoxAttack(Integer.parseInt(boxA));
+						ArrayList<String> boxesD = combat.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_DEFENSE);
+						String boxD = boxesD.get(RandomNumber.getRandom(boxesD.size()));
+						combat.setCombatBoxAttack(Integer.parseInt(boxD));
+					}
 				}
 			}
 		}
 	}
 	
-	public void doRepositioningAndTactics() {
+	public void doRepositioningAndTactics(int combatRound) {
 		/*
 		 * Find all participants that have their own sheet, and start there.
 		 * 
@@ -594,11 +1063,11 @@ public class BattleModel {
 		 * 		CIRCLE - Attackers = 0-n
 		 * 		RED - Self
 		 */
-		ArrayList all = getAllBattleParticipants(true);
-		for (Iterator i=all.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+		ArrayList<RealmComponent> all = getAllBattleParticipants(true);
+		for (RealmComponent rc : all) {
 			RealmComponent target = rc.getTarget();
-			ArrayList attackers = getAttackersFor(rc,false,true); // don't include character attackers here!
+			RealmComponent target2 = rc.get2ndTarget();
+			ArrayList<RealmComponent> attackers = getAttackersFor(rc,false,true); // don't include character attackers here!
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 			if (combat.isSheetOwner()/* && (target!=null || attackers.size()>0)*/) {
 				if (rc.isCharacter()) {
@@ -610,10 +1079,9 @@ public class BattleModel {
 					}
 					
 					// Circle group - hirelings or denizens targeting targets on character sheet
-					ArrayList helpers = new ArrayList();
-					for (Iterator n=all.iterator();n.hasNext();) {
-						RealmComponent test = (RealmComponent)n.next();
-						if (!test.isCharacter() && attackers.contains(test.getTarget())) {
+					ArrayList<RealmComponent> helpers = new ArrayList<>();
+					for (RealmComponent test : all) {
+						if (!test.isCharacter() && (attackers.contains(test.getTarget()) || attackers.contains(test.get2ndTarget())) ) {
 							helpers.add(test);
 						}
 					}
@@ -623,8 +1091,8 @@ public class BattleModel {
 				}
 				else {
 					// Setup some more lists
-					ArrayList targets = new ArrayList(); // intentional misnomer - only ever one target
-					ArrayList attackersMinusTarget = new ArrayList();
+					ArrayList<RealmComponent> targets = new ArrayList<>(); // intentional misnomer - only ever one target
+					ArrayList<RealmComponent> attackersMinusTarget = new ArrayList<>();
 					if (attackers.size()>0) {
 						attackersMinusTarget.addAll(attackers);
 					}
@@ -639,6 +1107,17 @@ public class BattleModel {
 							}
 						}
 					}
+					if (target2!=null) {
+						targets.add(target2);
+						attackersMinusTarget.remove(target2);
+						if (target2.isMonster()) {
+							MonsterChitComponent monster2 = (MonsterChitComponent)target2;
+							MonsterPartChitComponent weapon2 = monster2.getWeapon();
+							if (weapon2!=null) {
+								attackersMinusTarget.remove(weapon2);
+							}
+						}
+					}
 					
 					// Square group - this hireling/denizen's target
 					repositionAndChangeTactics(CombatWrapper.GROUP_SQUARE,combat,targets);
@@ -647,10 +1126,35 @@ public class BattleModel {
 					repositionAndChangeTactics(CombatWrapper.GROUP_CIRCLE,combat,attackersMinusTarget);
 					
 					if (rc.getOwnerId()==null) {
-						ArrayList self = new ArrayList();
+						ArrayList<RealmComponent> self = new ArrayList<>();
 						self.add(rc);
 						repositionAndChangeTactics(CombatWrapper.GROUP_RED,combat,self);
 					}
+				}
+			}
+			
+			boolean changeTacticsForNonSpellAttack = false;
+			String magicType = null;
+			String attackSpell = null;
+			if (rc.isMonster()) {
+				MonsterChitComponent monsterChit = (MonsterChitComponent)rc;
+				if (monsterChit.changeTacticsForNonSpellAttack()) {
+					magicType = monsterChit.getMagicType();
+					attackSpell = monsterChit.getAttackSpell();
+					changeTacticsForNonSpellAttack = true;
+				}
+			} else if (rc.isNative()) {
+				NativeChitComponent nativeChit = (NativeChitComponent)rc;
+				if (nativeChit.changeTacticsForNonSpellAttack() && nativeChit.castOnlyInFirstCombatRound()) {
+					magicType = nativeChit.getMagicType();
+					attackSpell = nativeChit.getAttackSpell();
+					changeTacticsForNonSpellAttack = true;
+				}
+			}
+			if (changeTacticsForNonSpellAttack && combat.getCastSpell()==null) {
+				if (((magicType == null || magicType.isEmpty()) && (attackSpell == null || attackSpell.isEmpty()))
+						|| (combatRound!=1 && (rc.getGameObject().hasThisAttribute(Constants.CAST_ONLY_IN_FIRST_COMBAT_ROUND) || ((ChitComponent)rc).hasFaceAttribute(Constants.CAST_ONLY_IN_FIRST_COMBAT_ROUND)))) {
+					rc.flip();
 				}
 			}
 		}
@@ -659,14 +1163,12 @@ public class BattleModel {
 	/**
 	 * @return The number of hits that occurred during this round
 	 */
-	public int doResolveAttacks(int round) {
-		killedTallyHash = new HashLists<GameObject,GameObject>();
-		killTallyHash = new HashLists<GameObject,GameObject>();
-		killerOrder = new ArrayList<GameObject>();
+	public int doResolveAttacks(int round,CombatWrapper tile) {
+		killedTallyHash = new HashLists<>();
+		killTallyHash = new HashLists<>();
+		killerOrder = new ArrayList<>();
 		
-		spellCasting = false;
-		
-		ArrayList<RealmComponent> all = new ArrayList<RealmComponent>(getAllBattleParticipants(true));
+		ArrayList<RealmComponent> all = new ArrayList<>(getAllBattleParticipants(true));
 		
 		// Since things might have been killed previously this round (PoP), be sure to start with them now
 		populateKillLists(all);
@@ -678,7 +1180,7 @@ public class BattleModel {
 		 */
 		
 		// First, collect all the battle chits that have targets
-		ArrayList<BattleChit> battleChits = collectBattleChits(all);
+		ArrayList<BattleChit> battleChits = collectBattleChits(all, hostPrefs);
 		
 		// Include combat spells
 		collectSpells(battleChits, getAllParticipatingCharacters());
@@ -687,17 +1189,21 @@ public class BattleModel {
 		sortAccordingToRound(battleChits, round);
 		
 		// Group attackers that have same length and speed (simultaneous)
-		ArrayList<String> attackBlockOrder = new ArrayList<String>();
-		HashLists<String,BattleChit> attackBlocks = new HashLists<String,BattleChit>();
+		ArrayList<String> attackBlockOrder = new ArrayList<>();
+		HashLists<String,BattleChit> attackBlocks = new HashLists<>();
 
 		handleSortTies(battleChits, attackBlockOrder, attackBlocks);
 		
 		// Process hits in order
-		processHits(attackBlockOrder, attackBlocks, round);
 		totalHits = 0;
-
+		processHits(attackBlockOrder, attackBlocks, round);
+		
 		// Now, do all the appropriate scoring for characters that killed things
-		scoreKills(round);
+		scoreKills(round, hostPrefs);
+		
+		for (GameObject kill : killedTallyHash.keySet()) {
+			tile.addKill(kill);
+		}		
 		
 		// Build a battle summary here
 		BattleSummaryWrapper bs = new BattleSummaryWrapper(theGame.getGameObject());
@@ -720,14 +1226,14 @@ public class BattleModel {
 	}
 
 	//collect all the battle chits that have targets, including weapons
-	private ArrayList<BattleChit>collectBattleChits(ArrayList<RealmComponent> allBattleChits) {
-		ArrayList<BattleChit> battleChits = new ArrayList<BattleChit>();
+	private static ArrayList<BattleChit>collectBattleChits(ArrayList<RealmComponent> allBattleChits, HostPrefWrapper hostPrefs) {
+		ArrayList<BattleChit> battleChits = new ArrayList<>();
 		for (RealmComponent realmComponent : allBattleChits) {
 			BattleChit battleChit=(BattleChit)realmComponent;
 			if (battleChit.getTarget()!=null) {
 				// Only add battle chits that have targets
-				battleChits.add(battleChit);
 				if (battleChit.isMonster()) {
+					battleChits.add(battleChit);
 					MonsterChitComponent monster = (MonsterChitComponent)battleChit;
 					RealmComponent weapon = monster.getWeapon();
 					if (weapon!=null) {
@@ -738,10 +1244,34 @@ public class BattleModel {
 					CharacterChitComponent chit = (CharacterChitComponent)battleChit;
 					MonsterChitComponent transmorph = chit.getTransmorphedComponent();
 					if (transmorph!=null) {
+						battleChits.add(battleChit);
 						RealmComponent weapon = transmorph.getWeapon();
 						if (weapon!=null) {
 							battleChits.add((BattleChit)weapon);
 						}
+					}
+					CharacterWrapper character = new CharacterWrapper(battleChit.getGameObject());
+					for (RealmComponent fightChit : BattleUtility.findFightComponentsWithCombatBox(character.getFightSpeedOptions(new Speed(), true))) {
+						CharacterChitComponent charChit = new CharacterChitComponent(chit.getGameObject());
+						charChit.setAttackChit(fightChit);
+						battleChits.add(charChit);
+					}
+				}
+				else {
+					battleChits.add(battleChit);
+				}
+			}
+			else {
+				if (hostPrefs.hasPref(Constants.SR_ADV_SURVIVAL_TACTICS) && battleChit.isCharacter()) {
+					CharacterChitComponent chit = (CharacterChitComponent)battleChit;
+					if (chit.getTransmorphedComponent()!=null) continue;
+					CharacterWrapper character = new CharacterWrapper(battleChit.getGameObject());
+					for (RealmComponent fightChit : BattleUtility.findFightComponentsWithCombatBox(character.getFightSpeedOptions(new Speed(), true))) {
+						CombatWrapper combatChit = new CombatWrapper(fightChit.getGameObject());
+						if (!combatChit.getPlacedAsParry() || combatChit.getCombatBoxDefense()==0) continue;
+						CharacterChitComponent charChit = new CharacterChitComponent(chit.getGameObject());
+						charChit.setAttackChit(fightChit);
+						battleChits.add(charChit);
 					}
 				}
 			}
@@ -749,8 +1279,7 @@ public class BattleModel {
 		return battleChits;
 	}
 
-	private void collectSpells(ArrayList<BattleChit>battleChits,
-							   ArrayList<CharacterChitComponent> participatingCharacters) {
+	private static void collectSpells(ArrayList<BattleChit>battleChits, ArrayList<CharacterChitComponent> participatingCharacters) {
 		for (CharacterChitComponent characterChitComponent : participatingCharacters) {
 			CharacterWrapper character = new CharacterWrapper(characterChitComponent.getGameObject());
 			for (SpellWrapper spell : character.getAliveSpells()) {
@@ -761,7 +1290,7 @@ public class BattleModel {
 		}
 	}
 	
-	private void sortAccordingToRound(ArrayList<BattleChit>battleChits, int round) {
+	private static void sortAccordingToRound(ArrayList<BattleChit>battleChits, int round) {
 		RealmLogging.clearIndent();
 		if (round==1) {
 			// 1st round, sort by length first, then speed
@@ -775,16 +1304,15 @@ public class BattleModel {
 		}
 	}
 
-	private void handleSortTies(ArrayList<BattleChit>battleChits, ArrayList<String> attackBlockOrder, 
-								HashLists<String, BattleChit> attackBlocks) {
+	private static void handleSortTies(ArrayList<BattleChit>battleChits, ArrayList<String> attackBlockOrder, HashLists<String, BattleChit> attackBlocks) {
 		for (BattleChit battleChit : battleChits) {
-			String key = battleChit.getLength()+":"+battleChit.getAttackSpeed().getNum();
+			String key = null;
+			key = battleChit.getLength()+":"+battleChit.getAttackSpeed().getNum();
 			if (!attackBlockOrder.contains(key)) {
 				attackBlockOrder.add(key);
 			}
 			attackBlocks.put(key,battleChit);
 		}
-
 	}
 
 	private void processHits(ArrayList<String> attackBlockOrder, HashLists<String,BattleChit> attackBlocks, int round) {
@@ -795,15 +1323,56 @@ public class BattleModel {
 			for (BattleChit attacker : attackBlocks.getList(key)) {
 				if (attacker instanceof SpellWrapper) {
 					SpellWrapper spell = (SpellWrapper)attacker;
-					for (Iterator n=spell.getTargets().iterator();n.hasNext();) {
-						BattleChit target = (BattleChit)n.next();
+					if (spell.noTargeting()) {
+						CharacterWrapper character = spell.getCaster();
+						RealmComponent characterRc = RealmComponent.getRealmComponent(character.getGameObject());
+						CombatSheet sheet = CombatSheet.createCombatSheet(CombatFrame.getSingleton(),this,characterRc,false, hostPrefs);
+						Collection<RealmComponent> c = sheet.getAllParticipantsOnSheet();
+						int attackCombatBox = spell.getAttackCombatBox();
+						for (RealmComponent target : c) {
+							CombatWrapper combatTarget = new CombatWrapper(target.getGameObject());
+							if (combatTarget.getCombatBoxDefense() == attackCombatBox) {
+								spell.addTarget(hostPrefs, target.getGameObject());
+							}
+						}
+						for (String key2 : attackBlockOrder) {
+							for (BattleChit casterAttacker : attackBlocks.getList(key2)) {
+								RealmComponent casterAttackerRc = RealmComponent.getRealmComponent(casterAttacker.getGameObject());
+								if(casterAttackerRc.isCharacter() && (casterAttackerRc.getTarget() == characterRc || casterAttackerRc.get2ndTarget() == characterRc)) {
+									if (casterAttacker.getAttackCombatBox() == attackCombatBox) {
+										spell.addTarget(hostPrefs, casterAttackerRc.getGameObject());
+									}
+								}
+							}
+						}
+					}
+					for (RealmComponent rc : spell.getTargets()) {
+						BattleChit target = (BattleChit)rc;
 						doTargetAttack(attacker,target,round,attackOrderPos);
 						RealmLogging.clearIndent();
 					}
 				}
 				else {
-					BattleChit target = (BattleChit)attacker.getTarget();
-					doTargetAttack(attacker,target,round,attackOrderPos);
+					BattleChit target = null;
+					if (attacker.isCharacter()) {
+						CharacterChitComponent character = (CharacterChitComponent)attacker;
+						target = (BattleChit) character.getTarget();
+						// all but the first attack, aim at the second target
+						if (character.get2ndTarget() != null && character.getTargetAttacked()) {
+							target = (BattleChit) character.get2ndTarget();
+						}
+						character.setTargetAttacked();
+					}
+					else {
+						target = (BattleChit)attacker.getTarget();
+					}
+					
+					if (hostPrefs.hasPref(Constants.SR_ADV_SURVIVAL_TACTICS) && attacker.isCharacter() && target==null) {
+						doParryFirstAttackers(attacker,round,attackOrderPos);
+					} else {
+						boolean normalAttack = !denizenCastingSpellOnItself(attacker);
+						if (normalAttack) doTargetAttack(attacker,target,round,attackOrderPos);
+					}
 				}
 				RealmLogging.clearIndent();
 			}
@@ -811,12 +1380,75 @@ public class BattleModel {
 		}
 	}
 	
-	private void scoreKills(int round) {
+	private boolean denizenCastingSpellOnItself (BattleChit attacker) {
+		boolean attackAfterCasting = false;
+		boolean transmorphed = false;
+		String magicType = attacker.getMagicType();
+		if (attacker.isCharacter()) {
+			if ((new CharacterWrapper(attacker.getGameObject())).isTransmorphed()) {
+				transmorphed = true;
+			}
+		}
+		if ((attacker.isMonster() || attacker.isNative() || transmorphed) && magicType!=null && !magicType.isEmpty()
+				&& (attacker.getGameObject().hasThisAttribute(Constants.SPELL_TARGETS_SELF) || ((ChitComponent)attacker).hasFaceAttribute(Constants.SPELL_TARGETS_SELF))) {
+			String spellName = attacker.getAttackSpell();
+			SpellWrapper spell = null;
+			for (GameObject held : attacker.getGameObject().getHold()) {
+				if (held.getName().toLowerCase().matches(spellName.toLowerCase()) && held.hasThisAttribute("spell_native")) {
+					spell = new SpellWrapper(held);
+					break;
+				}
+			}
+			if (spell!=null) {
+				if (attacker.getGameObject().hasThisAttribute(Constants.ATTACK_AFTER_CASTING) || ((ChitComponent)attacker).hasFaceAttribute(Constants.ATTACK_AFTER_CASTING)) {
+					attackAfterCasting = false;
+				}
+				else {
+					attackAfterCasting = true;
+				}
+				
+				if (!attacker.isNative() || !new CombatWrapper(attacker).isAffectedByExorcise() || colorSuppliedForDenizenSpell(spell)){
+					spell.selectTargetForDenizen(hostPrefs, battleLocation, attacker,null);
+					spell.castSpellByDenizen(attacker.getGameObject());
+					ArrayList<String> logs = new ArrayList<String>();
+					if (spell.isInstantSpell() && !spell.uneffectAtMidnight()) {
+						logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,true,null);
+					}
+					else if (spell.isCombatSpell() || spell.isDaySpell() || spell.isPermanentSpell() || spell.isPhaseSpell() || spell.isMoveSpell() || spell.uneffectAtMidnight()) {
+						logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,false,null);
+					}
+					if (logs != null && !logs.isEmpty()) {
+						for (String log : logs) {
+							logBattleInfo(log);
+						}
+					}
+					spell.recognizeCastedSpellByDenizen();
+					setSpellCasting();
+				} else {
+					logBattleInfo(attacker.getGameObject().getNameWithNumber()+" is affected by Exorcise and thus cannot cast "+spell.getName()+".");
+				}
+				
+				if ((attacker.isMonster() && ((MonsterChitComponent)attacker).changeTacticsAfterCasting())
+						|| (attacker.isNative() && ((NativeChitComponent)attacker).changeTacticsAfterCasting())) {
+					attacker.flip();
+				}
+			}
+		}
+		return attackAfterCasting;
+	}
+	
+	private void scoreKills(int round, HostPrefWrapper hostPrefs) {
+		boolean hiredCaptains = hostPrefs.hasPref(Constants.FE_HIRED_CAPTAINS);
 		for (GameObject attacker : killerOrder) { // use killerOrder instead of killTallyHash.keySet to guarantee proper ordering of calculations (fixes BUG 1719)
 			RealmComponent rc = RealmComponent.getRealmComponent(attacker);
 			RealmComponent owner = rc.getOwner();
 			if (owner!=null) { // only characters and hirelings can score points and gold
-				CharacterWrapper character = new CharacterWrapper(owner.getGameObject());
+				CharacterWrapper character = null;
+				if (hiredCaptains && rc.isNativeLeader()) {
+					character = new CharacterWrapper(rc.getGameObject());
+				} else {
+					character = new CharacterWrapper(owner.getGameObject());
+				}
 				CombatWrapper attackerCombat = new CombatWrapper(attacker);
 				ArrayList<GameObject> kills = killTallyHash.getList(attacker);
 				// Need to sort from most to least notoriety (Rule 43.4)
@@ -844,14 +1476,15 @@ public class BattleModel {
 					int divides = killedTallyHash.getList(kill).size(); // how many ways to split?
 
 					RealmComponent rcKill = RealmComponent.getRealmComponent(kill);
-					if (!rcKill.isHorse() && !rcKill.isNativeHorse()) {
+					if (!rcKill.isHorse() && !rcKill.isNativeHorse() && !rcKill.getGameObject().hasThisAttribute(Constants.SPOILS_NONE)) {
 						attackerCombat.addKillResult();
 					}
 
-					int multiplier = attackerCombat.getHitResultCount();
-
-					Spoils spoils = getSpoils(attacker,kill);
-					spoils.setMultiplier(multiplier);
+					Spoils spoils = Spoils.getSpoils(attacker,kill);
+					if (!rc.isNativeLeader()) {
+						int multiplier = attackerCombat.getHitResultCount();
+						spoils.setMultiplier(multiplier);
+					}
 					spoils.setDivisor(divides);
 
 					character.addKill(kill,spoils); // for recording purposes, and quests
@@ -863,32 +1496,141 @@ public class BattleModel {
 								+" gets "
 								+spoils.getFameNotorietyString()
 								+" for the death of the "
-								+kill.getName());
+								+kill.getNameWithNumber());
+						if (hostPrefs.hasPref(Constants.FE_GLORY)) {
+							for (GameObject item : character.getInventory()) {
+								RealmComponent itemRc = RealmComponent.getRealmComponent(item);
+								if (!itemRc.isGoldSpecial()) continue;
+								GoldSpecialChitComponent gs = (GoldSpecialChitComponent)rc;
+								if (!gs.isCampaign()) continue;
+								for (String foe : gs.getFoes()) {
+									if (kill.hasThisAttribute(foe) || kill.hasThisAttribute(foe.toLowerCase())
+											|| (kill.hasThisAttribute("native") && kill.getThisAttribute("native").toLowerCase().matches(foe.toLowerCase()))
+											|| (kill.hasThisAttribute("icon_type") && kill.getThisAttribute("icon_type").toLowerCase().matches(foe.toLowerCase()))) {
+										character.addFame(spoils.getNotoriety());
+										logBattleInfo("The "+character.getGameObject().getName()
+												+" gets additional"
+												+spoils.getNotoriety()
+												+" fame (Glory rule) for the death of the "
+												+kill.getNameWithNumber());
+									}
+								}
+							}
+						}
 					}
 
 					if (spoils.hasGold() && rc.isPlayerControlledLeader()) {
 						CharacterWrapper record = new CharacterWrapper(attacker);
 						record.addGold(spoils.getGoldBounty());
 						record.addGold(spoils.getGoldRecord());
-						logBattleInfo("The "+attacker.getName()
+						logBattleInfo("The "+attacker.getNameWithNumber()
 								+" gets "
 								+spoils.getGoldString()
 								+" from the "
-								+kill.getName());
+								+kill.getNameWithNumber());
 					}
 
-					CombatWrapper ownerCombat = new CombatWrapper(owner.getGameObject());
-					ownerCombat.addSpoilsInfo(round,kill,spoils);
+					if (hiredCaptains) {
+						attackerCombat.addSpoilsInfo(round,kill,spoils);
+					}
+					else if (owner!=null) {
+						CombatWrapper ownerCombat = new CombatWrapper(owner.getGameObject());
+						ownerCombat.addSpoilsInfo(round,kill,spoils);
+					}
+
 				}
 			}
+		}
+	}
+	
+	private void doParryFirstAttackers(BattleChit attacker,int round,int attackOrderPos) {
+		CombatWrapper attackerCombat = new CombatWrapper(attacker.getGameObject());
+		String attackerName = attacker.getGameObject().getNameWithNumber();
+		String attackCancelled = null;
+		CharacterChitComponent characterChit = (CharacterChitComponent)attacker;
+		
+		GameObject killer = attackerCombat.getKilledBy();
+		int killLength = attackerCombat.getKilledLength();
+		int killSpeed = attackerCombat.getKilledSpeed();
+		
+		if (killer!=null && attackCancelled==null) {
+			// The attacker was killed, but was it simultaneous?
+			boolean simultaneous = killSpeed == attacker.getAttackSpeed().getNum()
+					&& killLength == attacker.getLength().intValue();
+			if (!simultaneous) {
+				// nope - attack is cancelled
+				attackCancelled = attackerName+" was already killed by "+killer.getNameWithNumber()+".";
+			}
+		}
+		if (attackCancelled==null && characterChit.getAttackingWeapon()!=null && characterChit.getAttackChit()!=null) {
+			if (characterChit.getAttackChit().isActionChit()) {
+				CharacterActionChitComponent fightChit = (CharacterActionChitComponent)characterChit.getAttackChit();
+				if(fightChit.isFight() && characterChit.getAttackingWeapon().getWeight().strongerThan(fightChit.getStrength())) {
+					attackCancelled = "Parry canceled! ("+attacker+" cannot hold weapon, it's too heavy.)";
+				}
+			}
+		}
+		
+		if (attacker.isCharacter() && !characterChit.hasAnParry()) {
+			logBattleInfo(attacker.getGameObject().getNameWithNumber()+" didn't parry, and thus does not prevent an attack.");
+			return;
+		}
+
+		logBattleInfo(">");
+		RealmLogging.incrementIndent();
+		if (round==1) {
+			logBattleInfo("Parry Length="+attacker.getLength()+", Speed="+attacker.getAttackSpeed().getNum());
+		}
+		else {
+			logBattleInfo("Parry Speed="+attacker.getAttackSpeed().getNum()+", Length="+attacker.getLength());
+		}
+		RealmLogging.incrementIndent();
+		
+		int attackerDefenseBox = (new CombatWrapper(characterChit.getAttackChit().getGameObject())).getCombatBoxDefense();
+		ArrayList<BattleChit> allTargets = new ArrayList<>();
+		Speed fastestAttackSpeed = new Speed();
+		Integer maxLength = 0;
+		for (RealmComponent target : attackerCombat.getAttackersAsComponents()) {
+			CombatWrapper targetCombat = new CombatWrapper(target.getGameObject());
+			if (targetCombat.getCombatBoxAttack()!=attackerDefenseBox) continue;
+			BattleChit targetBc = (BattleChit)target;
+			allTargets.add((BattleChit)target);
+			if (targetBc.getAttackSpeed().fasterThan(fastestAttackSpeed)) {
+				fastestAttackSpeed = targetBc.getAttackSpeed();
+			}
+			if (targetBc.getLength() > maxLength) {
+				maxLength = targetBc.getLength();
+			}
+		}
+		
+		ArrayList<BattleChit> targets = new ArrayList<>();
+		
+		if (round==1) {
+			for (BattleChit targetBc : allTargets) {
+				if (targetBc.getLength()==maxLength) {
+					targets.add(targetBc);
+				}
+			}
+		} else {
+			for (BattleChit targetBc : allTargets) {
+				if (targetBc.getAttackSpeed().equalTo(fastestAttackSpeed)) {
+					targets.add(targetBc);
+				}
+			}
+		}
+		
+		for (BattleChit targetBc : targets) {
+			parryTarget(attacker, attackerCombat, attackerDefenseBox, targetBc);
 		}
 	}
 	
 	private void doTargetAttack(BattleChit attacker,BattleChit target,int round,int attackOrderPos) {
 		CombatWrapper attackerCombat = new CombatWrapper(attacker.getGameObject());
 		CombatWrapper targetCombat = target==null?null:(new CombatWrapper(target.getGameObject()));
-		String attackerName = attacker.getGameObject().getName();
+		String attackerName = attacker.getGameObject().getNameWithNumber();
 		GameObject killer = attackerCombat.getKilledBy();
+		int killLength = attackerCombat.getKilledLength();
+		int killSpeed = attackerCombat.getKilledSpeed();
 		if (attacker instanceof SpellWrapper) {
 			// In the case of a spell, the attack is cancelled when the caster is dead
 			SpellWrapper spell = (SpellWrapper)attacker;
@@ -896,6 +1638,8 @@ public class BattleModel {
 			if (character!=null) {
 				CombatWrapper casterCombat = new CombatWrapper(character.getGameObject());
 				killer = casterCombat.getKilledBy();
+				killLength = casterCombat.getKilledLength();
+				killSpeed = casterCombat.getKilledSpeed();
 				attackerName = character.getGameObject().getName();
 			}
 		}
@@ -906,52 +1650,234 @@ public class BattleModel {
 			targetCombat = target==null?null:(new CombatWrapper(target.getGameObject()));
 			CombatWrapper weaponHolder = new CombatWrapper(monster.getGameObject());
 			killer = weaponHolder.getKilledBy(); // if holder is killed, their weapon attack is cancelled too!
+			killLength = weaponHolder.getKilledLength();
+			killSpeed = weaponHolder.getKilledSpeed();
+			if (killer == null && attackerCombat.getKilledBy() != null) {
+				killer = attackerCombat.getKilledBy();
+				killLength = attackerCombat.getKilledLength();
+				killSpeed = attackerCombat.getKilledSpeed();
+			}
+			else if (killer != null && attackerCombat.getKilledBy() != null) {
+				if (round == 1) {
+					if (weaponHolder.getKilledLength() > attackerCombat.getKilledLength()) {
+						killer = weaponHolder.getKilledBy();
+						killLength = weaponHolder.getKilledLength();
+						killSpeed = weaponHolder.getKilledSpeed();
+					}
+					else if (weaponHolder.getKilledLength() < attackerCombat.getKilledLength()) {
+						killer = attackerCombat.getKilledBy();
+						killLength = attackerCombat.getKilledLength();
+						killSpeed = attackerCombat.getKilledSpeed();
+					}
+					else {
+						if (weaponHolder.getKilledSpeed() <= attackerCombat.getKilledSpeed()) {
+							killer = weaponHolder.getKilledBy();
+							killLength = weaponHolder.getKilledLength();
+							killSpeed = weaponHolder.getKilledSpeed();
+						}
+						else {
+							killer = attackerCombat.getKilledBy();
+							killLength = attackerCombat.getKilledLength();
+							killSpeed = attackerCombat.getKilledSpeed();
+						}
+					}
+				}
+				else {
+					if (weaponHolder.getKilledSpeed() < attackerCombat.getKilledSpeed()) {
+						killer = weaponHolder.getKilledBy();
+						killLength = weaponHolder.getKilledLength();
+						killSpeed = weaponHolder.getKilledSpeed();
+					}
+					else if (weaponHolder.getKilledSpeed() > attackerCombat.getKilledSpeed()) {
+						killer = attackerCombat.getKilledBy();
+						killLength = attackerCombat.getKilledLength();
+						killSpeed = attackerCombat.getKilledSpeed();
+					}
+					else {
+						if (weaponHolder.getKilledLength() >= attackerCombat.getKilledSpeed()) {
+							killer = weaponHolder.getKilledBy();
+							killLength = weaponHolder.getKilledLength();
+							killSpeed = weaponHolder.getKilledSpeed();
+						}
+						else {
+							killer = attackerCombat.getKilledBy();
+							killLength = attackerCombat.getKilledLength();
+							killSpeed = attackerCombat.getKilledSpeed();
+						}
+					}
+				}
+			}
+		}
+		if (targetCombat == null) {
+			logBattleInfo(attacker.getName() + " has no target anymore. Attack canelled.");
+			return;
 		}
 		GameObject targetKiller = targetCombat.getKilledBy();
-		
+
 		String attackCancelled = null;
 		
-		// You can't kill a target that is already dead, unless the target's killer attacked with the same
-		// speed and length (simultaneous)
-		if (targetKiller!=null) {
+		boolean parry = false;
+
+		if (attacker.isCharacter() && !(new CharacterWrapper(attacker.getGameObject()).isTransmorphed())) {
+			CharacterChitComponent characterChit = (CharacterChitComponent) attacker;
+			CombatWrapper combatAttackChit = new CombatWrapper(characterChit.getAttackChit().getGameObject());
+			if (combatAttackChit.getPlacedAsParry()) {
+				parry = true;
+			}
+			// Attack must be placed on target's sheet or target must be on character's sheet (=target attacks the character) or both must be on same denizen sheet
+			if (!parry && !combatAttackChit.getSheetOwnerId().equals(target.getGameObject().getStringId())
+					&& !(combatAttackChit.getSheetOwnerId().equals(attacker.getGameObject().getStringId()) && attackerCombat.getAttackers().contains(target.getGameObject()))
+					&& (!target.isCharacter() && (RealmComponent.getRealmComponent(target.getGameObject()).getTarget()!=null && !combatAttackChit.getSheetOwnerId().equals(RealmComponent.getRealmComponent(target.getGameObject()).getTarget().getGameObject().getStringId())))
+					&& (!target.isCharacter() && (RealmComponent.getRealmComponent(target.getGameObject()).get2ndTarget()!=null && !combatAttackChit.getSheetOwnerId().equals(RealmComponent.getRealmComponent(target.getGameObject()).get2ndTarget().getGameObject().getStringId())))) {
+				attackCancelled = "Miss! ("+attacker+" placed the attack not on same sheet as target.)";
+			}
+			if (attackCancelled==null && characterChit.getAttackingWeapon()!=null && characterChit.getAttackChit()!=null) {
+				if (characterChit.getAttackChit().isActionChit()) {
+					CharacterActionChitComponent fightChit = (CharacterActionChitComponent)characterChit.getAttackChit();
+					if(fightChit.isFight() && characterChit.getAttackingWeapon().getWeight().strongerThan(fightChit.getStrength())) {
+						attackCancelled = "Attack canceled! ("+attacker+" cannot hold weapon, it's too heavy.)";
+					}
+				}
+			}
+		}
+		
+		// You can't kill a target that is already dead, unless the target's killer attacked with the same speed and length (simultaneous)
+		if (targetKiller!=null && attackCancelled==null) {
+			int targetKillerLength = targetCombat.getKilledLength();
+			int targetKillerSpeed = targetCombat.getKilledSpeed();
+			boolean simultaneous = targetKillerSpeed == attacker.getAttackSpeed().getNum()
+					&& targetKillerLength == attacker.getLength().intValue();
+			/*
 			BattleChit targetKillerChit = RealmComponent.getBattleChit(targetKiller);
 			boolean simultaneous = targetKillerChit.getAttackSpeed().equals(attacker.getAttackSpeed())
 										&& targetKillerChit.getLength().equals(attacker.getLength());
+			*/
 			if (!simultaneous) {
 				// nope - attack is cancelled
-				attackCancelled = target.getGameObject().getName()+" was already killed by "+targetKiller.getName()+".";
+				attackCancelled = target.getGameObject().getNameWithNumber()+" was already killed by "+targetKiller.getNameWithNumber()+".";
 			}
 		}
 		
 		// The attacker can't attack if he/she is dead, unless their attack is simultaneous with their killer.
-		if (killer!=null) {
-			// The attacker was killed, but was it simultaneous?
-			BattleChit killerChit = RealmComponent.getBattleChit(killer);
-			boolean simultaneous = killerChit.getAttackSpeed().equals(attacker.getAttackSpeed())
-										&& killerChit.getLength().equals(attacker.getLength());
-			if (!simultaneous) {
-				// nope - attack is cancelled
-				attackCancelled = attackerName+" was already killed by "+killer.getName()+".";
+		if (killer!=null && attackCancelled==null) {
+			if (attackerCombat.killedByWounds()) {
+				logBattleInfo(attacker.getGameObject().getNameWithNumber()+" can still attack, as wounds are resolved later.");
+			 } else {
+				// The attacker was killed, but was it simultaneous?
+				boolean simultaneous = killSpeed == attacker.getAttackSpeed().getNum()
+						&& killLength == attacker.getLength().intValue();
+				/*
+				BattleChit killerChit = RealmComponent.getBattleChit(killer);
+				boolean simultaneous = killerChit.getAttackSpeed().equals(attacker.getAttackSpeed())
+											&& killerChit.getLength().equals(attacker.getLength());
+				*/
+				if (!simultaneous) {
+					// nope - attack is cancelled
+					attackCancelled = attackerName+" was already killed by "+killer.getNameWithNumber()+".";
+				}
+			}
+		}
+		
+		if (attackCancelled == null && attacker instanceof MonsterChitComponent) {
+			if (attackerCombat.getCancelSpell()) {
+				attackCancelled = attacker.getGameObject().getNameWithNumber()+"'s spell was already canceled.";
+			}
+		}
+		
+		// Before anything else, check to see if character fears the target
+		if (attackCancelled == null && !parry && (attacker instanceof RealmComponent) && (target instanceof RealmComponent) && ((RealmComponent)attacker).fears((RealmComponent)target)) {
+			attackCancelled = attacker.getGameObject().getNameWithNumber()+" fears "+target.getGameObject().getNameWithNumber()+" and cannot attack it.";
+		}
+		
+		if (attackCancelled == null && !parry && attacker.getGameObject().hasThisAttribute(Constants.NON_FLYING_TARGETS)) {
+			if ((target.getGameObject().hasThisAttribute(Constants.FLYING) || target.getGameObject().hasThisAttribute(Constants.GROW_WINGS))
+				|| (target instanceof CharacterChitComponent && ((CharacterChitComponent)target).getManeuverChit().isFlyChit())) {
+				attackCancelled = attacker.getGameObject().getNameWithNumber()+" cannot attack flying targets: "+target.getGameObject().getNameWithNumber();
 			}
 		}
 		
 		// Before anything else, check to see if character is immune to the attacker
-		if (target!=null && (attacker instanceof RealmComponent) && target.isImmuneTo((RealmComponent)attacker)) {
-			attackCancelled = target.getGameObject().getName()+" is immune to "+attacker.getGameObject().getName()+"s";
+		if (attackCancelled == null && target!=null && (attacker instanceof RealmComponent) && target.isImmuneTo((RealmComponent)attacker)) {
+			attackCancelled = target.getGameObject().getNameWithNumber()+" is immune to "+attacker.getGameObject().getNameWithNumber()+".";
+		}
+		
+		if (attackCancelled == null && target!=null && (attacker instanceof RealmComponent)
+				&& (target.getGameObject().hasThisAttribute(Constants.MIST_LIKE) || (target.isCharacter() && new CharacterWrapper(target.getGameObject()).isMistLike()))) {
+			boolean ignoresMistLike = false;
+			if (attacker.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE)) {
+				ignoresMistLike = true;
+			}
+			if (!ignoresMistLike && attacker.isCharacter()) {
+				CharacterChitComponent characterChit =(CharacterChitComponent)attacker;
+				if (characterChit.getAttackingWeapon().getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE)) {
+					ignoresMistLike = true;
+				}
+				if (!ignoresMistLike) {
+					CharacterWrapper character = new CharacterWrapper(attacker.getGameObject());
+					for (GameObject item : character.getActiveInventory()) {
+						if (item.hasThisAttribute(Constants.IGNORE_MIST_LIKE) && !item.hasThisAttribute("attack") && !item.hasThisAttribute(RealmComponent.WEAPON)) {
+							ignoresMistLike = true;
+						}
+					}
+				}
+				if (!ignoresMistLike && SpellUtility.affectedByBewitchingSpellKey(attacker.getGameObject(),Constants.IGNORE_MIST_LIKE)) {
+					ignoresMistLike = true;
+				}
+			}
+			if (!ignoresMistLike) {
+				attackCancelled = target.getGameObject().getNameWithNumber()+" is mist like and cannot be attacked by "+attacker.getGameObject().getNameWithNumber()+".";
+			}
+		}
+				
+		if (attackCancelled == null && attackerCombat.wasParried()) {
+			if (attackerCombat.getParriedBy().contains(target.getGameObject().getStringId()+":"+attacker.getLength()+":"+attacker.getAttackSpeed()+":"+attacker.getAttackCombatBox()+":"+attacker.getHarm().getStrength())) {
+				attackCancelled = attacker.getGameObject().getNameWithNumber()+" was already parried and cannot attack "+target.getGameObject().getNameWithNumber()+".";
+			}
 		}
 		
 		logBattleInfo(">");
 		RealmLogging.incrementIndent();
+		String attackOrParry = "Attack";
+		if (parry) {
+			attackOrParry = "Parry";
+		}
 		if (round==1) {
-			logBattleInfo("Attack Length="+attacker.getLength()+", Speed="+attacker.getAttackSpeed().getNum());
+			logBattleInfo(attackOrParry+" Length="+attacker.getLength()+", Speed="+attacker.getAttackSpeed().getNum());
 		}
 		else {
-			logBattleInfo("Attack Speed="+attacker.getAttackSpeed().getNum()+", Length="+attacker.getLength());
+			logBattleInfo(attackOrParry+" Speed="+attacker.getAttackSpeed().getNum()+", Length="+attacker.getLength());
 		}
 		RealmLogging.incrementIndent();
-		//logBattleInfo(attacker.getGameObject().getName()+" vs. "+target.getGameObject().getName()+": ");
-		logBattleInfo(getCombatantInformation(attacker,true)+" vs. "+getCombatantInformation(target,false));
-		if (attackCancelled==null) {
+		if (!parry) {
+			logBattleInfo(getCombatantInformation(attacker,true)+" vs. "+getCombatantInformation(target,false));
+		}
+		if (attackCancelled!=null) {
+			if (!parry) {
+				logBattleInfo("Attack Cancelled:  "+attackCancelled);
+				attackerCombat.addHitType(ATTACK_CANCELLED,target.getGameObject());
+				return;
+			}
+			logBattleInfo("Parry Cancelled:  "+attackCancelled);
+			attackerCombat.addHitType(PARRY_CANCELLED,target.getGameObject());
+			return;
+		}
+		if (!parry) {
+			if (attacker.getGameObject().hasThisAttribute(Constants.RANDOM_ATTACK_DIRECTION)) {
+				if (attacker instanceof SpellWrapper) {
+					((SpellWrapper)attacker).setCombatBox(RandomNumber.getRandom(3)+1);
+				}
+				else {
+					if (target.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_ATTACK)) {
+						ArrayList<String> boxes = target.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
+						String box = boxes.get(RandomNumber.getRandom(boxes.size()));
+						attackerCombat.setCombatBoxAttack(Integer.parseInt(box));
+					} else {
+						attackerCombat.setCombatBoxAttack(RandomNumber.getRandom(3)+1);
+					}
+				}
+				logBattleInfo("Random attack direction! "+attacker.getName()+" attacks box "+attacker.getAttackCombatBox()+".");
+			}
+			
 			int hitType = NO_ATTACK;
 			if (attacker.hasAnAttack()) {
 				hitType = MISS;
@@ -960,17 +1886,19 @@ public class BattleModel {
 					// Intercepted!
 					hitType = INTERCEPT;
 					attackerCombat.setHitResult("Intercepted");
+					setWeaponHitForCharacter(attacker);
 					logBattleInfo("Intercepted! (box "+attacker.getAttackCombatBox()+" matches box "+target.getManeuverCombatBox()+")");
 				}
 				else if (undercuttingAllowed && attacker.getAttackSpeed().fasterThan(target.getMoveSpeed())) {
 					// Undercut!
 					boolean stopsUndercut = ((RealmComponent)target).affectedByKey(Constants.STOP_UNDERCUT);
 					if (stopsUndercut) {
-						logBattleInfo("Miss! ("+attacker.getAttackSpeed()+" is faster than "+target.getMoveSpeed()+", but "+target.getName()+" cannot be undercut!)");
+						logBattleInfo("Miss! ("+attacker.getAttackSpeed()+" is faster than "+target.getMoveSpeed()+", but "+target.getGameObject().getNameWithNumber()+" cannot be undercut!)");
 					}
 					else {
 						hitType = UNDERCUT;
 						attackerCombat.setHitResult("Undercut");
+						setWeaponHitForCharacter(attacker);
 						logBattleInfo("Undercut! ("+attacker.getAttackSpeed()+" is faster than "+target.getMoveSpeed()+")");
 					}
 				}
@@ -978,10 +1906,11 @@ public class BattleModel {
 					// Check for the special case where a character has a HIT_TIE treasure alerted
 					hitType = UNDERCUT;
 					attackerCombat.setHitResult("Undercut");
+					setWeaponHitForCharacter(attacker);
 					logBattleInfo("Undercut (hits on tie)! ("+attacker.getAttackSpeed()+" is equal to "+target.getMoveSpeed()+")");
 				}
 				if (!undercuttingAllowed && hitType==MISS) {
-					logBattleInfo(attacker.getGameObject().getName()+" cannot be used to undercut the "+target.getGameObject().getName()+", and as such has missed.");
+					logBattleInfo(attacker.getGameObject().getNameWithNumber()+" cannot be used to undercut the "+target.getGameObject().getNameWithNumber()+", and as such has missed.");
 				}
 			}
 			attackerCombat.addHitType(hitType,target.getGameObject());
@@ -989,12 +1918,7 @@ public class BattleModel {
 			if (hitType>MISS) {
 				int fumbleModifier = 0;
 				if (hostPrefs.hasPref(Constants.OPT_FUMBLE)) {
-					fumbleModifier = attacker.getAttackSpeed().getNum() - target.getMoveSpeed().getNum();
-					logBattleInfo("fumble = "+attacker.getAttackSpeed().getNum()+" - "+target.getMoveSpeed().getNum()+" = "+fumbleModifier+" (base speed difference)");
-					if (hitType==UNDERCUT) {
-						fumbleModifier += 4;
-						logBattleInfo("fumble + 4 = "+fumbleModifier+" (for undercut)");
-					}
+					fumbleModifier = calculateBaseFumbleModifier(attacker, target, hitType, hostPrefs);
 					/*
 					 * Possibilities:
 					 * 		No OPT_SEPARATE_RIDER
@@ -1041,30 +1965,144 @@ public class BattleModel {
 				int currentNewWounds = 0;
 				boolean hitCausedHarm = false;
 				String magicType = attacker.getMagicType();
+				boolean transmorphed = false;
+				boolean spellCasted = false;
 				if (magicType!=null && magicType.trim().length()>0) {
-					if ("V".equals(magicType)) {
+					if (attacker.isCharacter()) {
+						if ((new CharacterWrapper(attacker.getGameObject())).isTransmorphed()) {
+							transmorphed = true;
+						}
+					}
+					if ((attacker.isMonster() || attacker.isNative() || transmorphed) && Constants.POWER_OF_THE_PIT.matches(attacker.getAttackSpell())) {
+						if (attacker instanceof SpellWrapper) {
+							// Spells belong to characters
+							SpellWrapper spell = (SpellWrapper)attacker;
+							attacker = new CharacterChitComponent(spell.getCaster().getGameObject());
+						}
 						// Demon's Power of the Pit
-						logBattleInfo(target.getGameObject().getName()+" was hit with Power of the Pit along box "+attacker.getAttackCombatBox());
-						PowerOfThePit pop = PowerOfThePit.doNow(SpellWrapper.dummyFrame,attacker.getGameObject(),target.getGameObject(),false,0);
-						ArrayList<GameObject> kills = new ArrayList<GameObject>(pop.getKills());
+						logBattleInfo(target.getGameObject().getNameWithNumber()+" was hit with Power of the Pit along box "+attacker.getAttackCombatBox());
+						PowerOfThePit pop = PowerOfThePit.doNow(SpellWrapper.dummyFrame,attacker.getGameObject(),target.getGameObject(),false,0,attacker.getAttackSpeed());
+						ArrayList<GameObject> kills = new ArrayList<>(pop.getKills());
 						kills.remove(targetCombat.getGameObject()); // Because targetCombat will be handled normally
 						
 						for (GameObject kill:kills) {
-							logBattleInfo(kill.getName()+" was killed!");
+							logBattleInfo(kill.getNameWithNumber()+" was killed!");
 							killedTallyHash.put(kill,attacker.getGameObject());
 							killTallyHash.put(attacker.getGameObject(),kill);
 							if (!killerOrder.contains(attacker.getGameObject())) killerOrder.add(attacker.getGameObject());
 							BattleUtility.handleSpoilsOfWar((RealmComponent)attacker,RealmComponent.getRealmComponent(kill));
 						}
-						hitCausedHarm = pop.harmWasApplied();
-						spellCasting = true;
+						hitCausedHarm = hitCausedHarm || pop.harmWasApplied();
+						setSpellCasting();
+						spellCasted = true;
 					}
-					else if ("VIII".equals(magicType)) {
+					if ((attacker.isMonster() || attacker.isNative() || transmorphed) && Constants.DEVILS_SPELL.matches(attacker.getAttackSpell())) {
+						if (attacker instanceof SpellWrapper) {
+							// Spells belong to characters
+							SpellWrapper spell = (SpellWrapper)attacker;
+							attacker = new CharacterChitComponent(spell.getCaster().getGameObject());
+						}
+						// Devils Spell
+						logBattleInfo(target.getGameObject().getNameWithNumber()+" was hit with Devil's Spell along box "+attacker.getAttackCombatBox());
+						DevilsSpell ds = DevilsSpell.doNow(SpellWrapper.dummyFrame,attacker.getGameObject(),target.getGameObject(),false,0,attacker.getAttackSpeed());
+						ArrayList<GameObject> kills = new ArrayList<>(ds.getKills());
+						kills.remove(targetCombat.getGameObject()); // Because targetCombat will be handled normally
+						
+						for (GameObject kill:kills) {
+							logBattleInfo(kill.getNameWithNumber()+" was killed!");
+							killedTallyHash.put(kill,attacker.getGameObject());
+							killTallyHash.put(attacker.getGameObject(),kill);
+							if (!killerOrder.contains(attacker.getGameObject())) killerOrder.add(attacker.getGameObject());
+							BattleUtility.handleSpoilsOfWar((RealmComponent)attacker,RealmComponent.getRealmComponent(kill));
+						}
+						hitCausedHarm = hitCausedHarm || ds.harmWasApplied();
+						setSpellCasting();
+						spellCasted = true;
+					}
+					if ((attacker.isMonster() || attacker.isNative() || transmorphed) && Constants.CURSE.toLowerCase().equals(attacker.getAttackSpell().toLowerCase())) {
 						// Imp's Curse
-						logBattleInfo(target.getGameObject().getName()+" was hit with a Curse along box "+attacker.getAttackCombatBox());
+						logBattleInfo(target.getGameObject().getNameWithNumber()+" was hit with a Curse along box "+attacker.getAttackCombatBox());
 						Curse curse = Curse.doNow(SpellWrapper.dummyFrame,attacker.getGameObject(),target.getGameObject());
-						hitCausedHarm = curse.harmWasApplied();
-						spellCasting = true;
+						hitCausedHarm = hitCausedHarm || curse.harmWasApplied();
+						setSpellCasting();
+						spellCasted = true;
+					}
+					if ((attacker.isMonster() || attacker.isNative() || transmorphed) && Constants.MESMERIZE.toLowerCase().equals(attacker.getAttackSpell().toLowerCase())) {
+						logBattleInfo(target.getGameObject().getNameWithNumber()+" was hit with a Curse along box "+attacker.getAttackCombatBox());
+						Mesmerize mesmerize = Mesmerize.doNow(SpellWrapper.dummyFrame,attacker.getGameObject(),target.getGameObject(),false,0);
+						hitCausedHarm = hitCausedHarm || mesmerize.harmWasApplied();
+						setSpellCasting();
+						spellCasted = true;
+					}
+					if ((attacker.isMonster() || attacker.isNative() || transmorphed) && !magicType.isEmpty()
+							&& !attacker.getGameObject().hasThisAttribute(Constants.SPELL_TARGETS_SELF) && !((ChitComponent)attacker).hasFaceAttribute(Constants.SPELL_TARGETS_SELF)) {
+						String spellName = attacker.getAttackSpell();
+						SpellWrapper spell = null;
+						if (round==1 || (!attacker.getGameObject().hasThisAttribute(Constants.CAST_ONLY_IN_FIRST_COMBAT_ROUND) && !((ChitComponent)attacker).hasFaceAttribute(Constants.CAST_ONLY_IN_FIRST_COMBAT_ROUND))) {
+							for (GameObject held : attacker.getGameObject().getHold()) {
+								if (held.getName().toLowerCase().matches(spellName.toLowerCase()) && held.hasThisAttribute(Constants.SPELL_DENIZEN)) {
+									spell = new SpellWrapper(held);
+									break;
+								}
+							}
+							if (spell!=null) {
+								if (!attacker.isNative() || !attackerCombat.isAffectedByExorcise() || colorSuppliedForDenizenSpell(spell)) {
+									spell.selectTargetForDenizen(hostPrefs, battleLocation, attacker, (RealmComponent)target);
+									spell.castSpellByDenizen(attacker.getGameObject());
+									if (spell.isAttackSpell()) {
+										int attacks = spell.getGameObject().getThisInt("min_targets");
+										if(attacks == 0) {
+											attacks = 1;
+										}
+										int i=1;
+										while (i<=attacks) {
+											Harm spellHarm = getAdjustedHarm(spell,fumbleModifier,targetCombat.getGameObject().getStringId());
+											CombatWrapper spellCaster = new CombatWrapper(spell.getCaster().getGameObject());
+											if (spell.freezingTarget()) {
+												targetCombat.freeze();
+											}
+											spellCaster.addHarmApplied(spellHarm,targetCombat.getGameObject());
+											// Apply the hit
+											targetCombat.addHitBy(attacker.getGameObject());
+											currentNewWounds = targetCombat.getNewWounds();
+											logBattleInfo(target.getGameObject().getNameWithNumber()+" is hit by the spell "+spell.getName()+" with "+spellHarm+" harm along box "+attacker.getAttackCombatBox());
+											hitCausedHarm = hitCausedHarm || target.applyHit(theGame,hostPrefs,attacker,attacker.getAttackCombatBox(),spellHarm,attackOrderPos);
+											i++;
+										}
+									}
+									else {
+										ArrayList<String> logs = new ArrayList<String>();
+										if (spell.isInstantSpell() && !spell.uneffectAtMidnight()) {
+											logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,true,null);
+										}
+										else if (spell.isCombatSpell() || spell.isDaySpell() || spell.isPermanentSpell() || spell.isPhaseSpell() || spell.isMoveSpell() || spell.uneffectAtMidnight()) {
+											logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,false,null);
+										}
+										if (logs != null && !logs.isEmpty()) {
+											for (String log : logs) {
+												logBattleInfo(log);
+											}
+										}
+										spell.recognizeCastedSpellByDenizen();
+									}
+									setSpellCasting();
+									spellCasted = true;
+								}
+								else {
+									logBattleInfo(attacker.getGameObject().getNameWithNumber()+" is affected by Exorcise and thus cannot cast "+spell.getName()+".");
+								}
+							}
+						}
+					}
+					if (attacker instanceof SpellWrapper && Constants.WALL_OF_FORCE.matches(magicType)) {
+						hitCausedHarm = hitCausedHarm || WallOfForce.apply(new SpellWrapper(attacker.getGameObject()),target.getGameObject());
+						logBattleInfo(target.getGameObject().getNameWithNumber()+" was shielded by 'wall of force' by "+attacker.getName()+" along box "+attacker.getAttackCombatBox());
+						setSpellCasting();
+					}
+					if (attacker instanceof SpellWrapper && Constants.FEAR.matches(magicType)) {
+						hitCausedHarm = hitCausedHarm || Fear.apply(new SpellWrapper(attacker.getGameObject()),target.getGameObject(),battleLocation);
+						logBattleInfo(target.getGameObject().getNameWithNumber()+" was hit with Fear by "+attacker.getName()+" along box "+attacker.getAttackCombatBox());
+						setSpellCasting();
 					}
 				}
 				else {
@@ -1075,8 +2113,15 @@ public class BattleModel {
 						// Spells should ref back to caster
 						SpellWrapper spell = (SpellWrapper)attacker;
 						CombatWrapper spellCaster = new CombatWrapper(spell.getCaster().getGameObject());
+						if (spell.freezingTarget()) {
+							targetCombat.freeze();;
+						}
+						if (spell.isSpiderWeb()) {
+							SpiderWebEffect.applySpiderWebEffect((RealmComponent)target,spell.getCaster().getGameObject(),gameData);
+							setSpellCasting();
+						}
 						spellCaster.addHarmApplied(attackerHarm,targetCombat.getGameObject());
-						spellCasting = true;
+						setSpellCasting();
 					}
 					else {
 						attackerCombat.addHarmApplied(attackerHarm,targetCombat.getGameObject());
@@ -1086,8 +2131,8 @@ public class BattleModel {
 					targetCombat.addHitBy(attacker.getGameObject());
 					currentNewWounds = targetCombat.getNewWounds();
 					
-					logBattleInfo(target.getGameObject().getName()+" is hit with "+attackerHarm+" harm along box "+attacker.getAttackCombatBox());
-					hitCausedHarm = target.applyHit(theGame,hostPrefs,attacker,attacker.getAttackCombatBox(),attackerHarm,attackOrderPos);
+					logBattleInfo(target.getGameObject().getNameWithNumber()+" is hit with "+attackerHarm+" harm along box "+attacker.getAttackCombatBox());
+					hitCausedHarm = hitCausedHarm || target.applyHit(theGame,hostPrefs,attacker,attacker.getAttackCombatBox(),attackerHarm,attackOrderPos);
 				}
 				
 				if (hitCausedHarm) {
@@ -1097,14 +2142,21 @@ public class BattleModel {
 					// Determine wounds (if any)
 					int woundsThisHit = targetCombat.getNewWounds() - currentNewWounds;
 					if (woundsThisHit>0) {
-						logBattleInfo(target.getGameObject().getName()+" takes "+woundsThisHit+" wound"+(woundsThisHit==1?"":"s"));
+						logBattleInfo(target.getGameObject().getNameWithNumber()+" takes "+woundsThisHit+" wound"+(woundsThisHit==1?"":"s"));
+					}
+				}
+				
+				if (spellCasted && (attacker.isDenizen() || transmorphed)) {
+					if ((attacker.isMonster() && ((MonsterChitComponent)attacker).changeTacticsAfterCasting())
+							|| (attacker.isNative() && ((NativeChitComponent)attacker).changeTacticsAfterCasting())) {
+						attacker.flip();
 					}
 				}
 				
 				// Check to see if the target was killed by this attacker,
 				// and if so, give the killing character some points!
 				if (targetCombat.getKilledBy()!=null && targetCombat.getKilledBy().equals(attacker.getGameObject())) {
-					logBattleInfo(target.getGameObject().getName()+" was killed!");
+					logBattleInfo(target.getGameObject().getNameWithNumber()+" was killed!");
 					RealmComponent rc;
 					if (attacker instanceof SpellWrapper) {
 						// Spells belong to characters
@@ -1119,7 +2171,7 @@ public class BattleModel {
 								RealmLogging.logMessage(
 										caster.getName(),
 										"Life force of the "
-											+target.getGameObject().getName()
+											+target.getGameObject().getNameWithNumber()
 											+" is worth "+amt+" asterisk"+(amt==1?"":"s"));
 							}
 						}
@@ -1152,7 +2204,7 @@ public class BattleModel {
 					BattleUtility.handleSpoilsOfWar(rc,targetRc);
 				}
 				else {
-					logBattleInfo(target.getGameObject().getName()+" was not killed.");
+					logBattleInfo(target.getGameObject().getNameWithNumber()+" was not killed.");
 				}
 			}
 			else {
@@ -1160,28 +2212,140 @@ public class BattleModel {
 					logBattleInfo("Missed! ("+attacker.getAttackSpeed()+" is not faster than "+target.getMoveSpeed()+")");
 				}
 				else {
-					logBattleInfo(attacker.getGameObject().getName()+" didn't attack, and thus does not harm the target.");
+					logBattleInfo(attacker.getGameObject().getNameWithNumber()+" didn't attack, and thus does not harm the target.");
 				}
 			}
+			if ((attacker.getGameObject().hasThisAttribute(Constants.ATTACK_AFTER_CASTING) || ((attacker.isMonster() || attacker.isNative()) && ((ChitComponent)attacker).hasFaceAttribute(Constants.ATTACK_AFTER_CASTING))) 
+					&& attackerCombat.hasCastSpell() && !attackerCombat.getAttackedAfterCasting()) {
+				doTargetAttack(attacker,target,round,attackOrderPos);
+			}
+			return;
 		}
-		else {
-			logBattleInfo("Attack Cancelled:  "+attackCancelled);
-			attackerCombat.addHitType(ATTACK_CANCELLED,target.getGameObject());
+		if (parry) {
+			if (attacker.isCharacter() && !((CharacterChitComponent)attacker).hasAnParry()) {
+				logBattleInfo(attacker.getGameObject().getNameWithNumber()+" didn't parry, and thus does not prevent an attack.");
+				return;
+			}
+			
+			ArrayList<BattleChit> targets = new ArrayList<>();
+			if (!target.isCharacter()) {
+				targets.add(target);
+				if (target.isMonster()) {
+					MonsterChitComponent monster = (MonsterChitComponent)target;
+					RealmComponent weapon = monster.getWeapon();
+					if (weapon!=null) {
+						targets.add((BattleChit)weapon);
+					}
+				}
+			}
+			else {
+				CharacterChitComponent chit = (CharacterChitComponent)target;
+				MonsterChitComponent transmorph = chit.getTransmorphedComponent();
+				if (transmorph!=null) {
+					targets.add(chit);
+					RealmComponent weapon = transmorph.getWeapon();
+					if (weapon!=null) {
+						targets.add((BattleChit)weapon);
+					}
+				}
+				CharacterWrapper character = new CharacterWrapper(target.getGameObject());
+				for (RealmComponent fightChit : BattleUtility.findFightComponentsWithCombatBox(character.getFightSpeedOptions(new Speed(), true))) {
+					CharacterChitComponent charChit = new CharacterChitComponent(chit.getGameObject());
+					charChit.setAttackChit(fightChit);
+					targets.add(charChit);
+				}
+			}
+			
+			CharacterChitComponent characterChit = (CharacterChitComponent) attacker;
+			int attackerDefenseBox = (new CombatWrapper(characterChit.getAttackChit().getGameObject())).getCombatBoxDefense();
+
+			for (BattleChit targetBc : targets) {
+				parryTarget(attacker,attackerCombat,attackerDefenseBox,targetBc);
+			}
 		}
 	}
-	private String getCombatantInformation(BattleChit chit,boolean attacker) {
-		StringBuffer sb = new StringBuffer();
-		sb.append(chit.getGameObject().getName());
-		if (chit instanceof RealmComponent) {
-			RealmComponent rc = (RealmComponent)chit;
-			if (rc.isMonster()) {
-				if (rc.getGameObject().hasThisAttribute(Constants.NUMBER)) {
-					sb.append("(");
-					sb.append(rc.getGameObject().getThisAttribute(Constants.NUMBER));
-					sb.append(")");
-				}
+	private void parryTarget(BattleChit attacker, CombatWrapper attackerCombat, int attackerDefenseBox, BattleChit targetBc) {
+		Speed targetAttackSpeed = targetBc.getAttackSpeed();
+		int targetAttackBox = targetBc.getAttackCombatBox();
+		RealmComponent targetRc = RealmComponent.getRealmComponent(targetBc.getGameObject());
+		int hitType = MISS;
+		boolean undercuttingAllowed = !attacker.getGameObject().hasThisAttribute(Constants.NO_UNDERCUT);
+		logBattleInfo(attacker.getGameObject().getNameWithNumber()+" vs. target "+targetBc.getGameObject().getNameWithNumber()+" (Speed: "+targetBc.getAttackSpeed()+" Strength: "+targetBc.getHarm().getStrength()+")");
+		
+		if(targetRc.getTarget() != null && targetRc.getTarget().getGameObject() != attacker.getGameObject() && targetRc.get2ndTarget() != null && targetRc.get2ndTarget().getGameObject() != attacker.getGameObject()) {
+			hitType = CANNOT_PARRY;
+			logBattleInfo(attacker.getGameObject().getNameWithNumber()+" didn't parry, as target ("+targetBc.getGameObject().getNameWithNumber()+") didn't aim at "+attacker.getGameObject().getNameWithNumber()+".");
+		}
+		else if (targetBc.isMissile() && !hostPrefs.hasPref(Constants.OPT_PARRY_MISSILE) && (!attacker.isCharacter() || !(new CharacterWrapper(attacker.getGameObject()).affectedByKey(Constants.PARRY_MISSILE)))) {
+			hitType = CANNOT_PARRY;
+			logBattleInfo(attacker.getGameObject().getNameWithNumber()+" cannot parry missile attacks.");
+		}
+		else if (targetBc instanceof SpellWrapper) {
+			hitType = CANNOT_PARRY;
+			logBattleInfo(attacker.getGameObject().getNameWithNumber()+" cannot parry spells.");
+		}
+		else if (targetBc.isMonster() && ((MonsterChitComponent)targetBc).isRedSideUp()) {
+			hitType = CANNOT_PARRY;
+			logBattleInfo(attacker.getGameObject().getNameWithNumber()+" cannot parry red side up tremendous monsters.");
+		}
+		else if (targetBc.getHarm().getStrength().equals(new Strength("X"))) {
+			hitType = CANNOT_PARRY;
+			logBattleInfo(attacker.getGameObject().getNameWithNumber()+" cannot parry attacks of maximum strength.");
+		}
+		else if (!attacker.getHarm().getStrength().strongerOrEqualTo(targetBc.getHarm().getStrength())) {
+			hitType=CANNOT_PARRY;
+			logBattleInfo("Cannot parry! ("+attacker.getGameObject().getNameWithNumber()+" cannot parry as strength of "+attacker.getHarm().getStrength()+" is not greater or equal as "+targetBc.getHarm().getStrength()+".)");
+		}
+		else if (attackerDefenseBox==targetAttackBox) {
+			// Intercepted!
+			hitType = INTERCEPT_PARRY;
+			attackerCombat.setHitResult("Intercepted");
+			setWeaponHitForCharacter(attacker);
+			logBattleInfo("Intercepted! (box "+attacker.getAttackCombatBox()+" matches box "+targetAttackBox+")");
+		}
+		else if (undercuttingAllowed && attacker.getAttackSpeed().fasterThan(targetAttackSpeed)) {
+			// Undercut!
+			boolean stopsUndercut = ((RealmComponent)targetBc).affectedByKey(Constants.STOP_UNDERCUT);
+			if (stopsUndercut) {
+				logBattleInfo("Miss! ("+attacker.getAttackSpeed()+" is faster than "+targetAttackSpeed+", but "+targetBc.getGameObject().getNameWithNumber()+" cannot be undercut!)");
+			}
+			else {
+				hitType = UNDERCUT_PARRY;
+				attackerCombat.setHitResult("Undercut");
+				setWeaponHitForCharacter(attacker);
+				logBattleInfo("Undercut! ("+attacker.getAttackSpeed()+" is faster than "+targetAttackSpeed+")");
 			}
 		}
+		else if (undercuttingAllowed && attacker.getAttackSpeed().equalTo(targetAttackSpeed) && attacker.hitsOnTie()) {
+			// Check for the special case where a character has a HIT_TIE treasure alerted
+			hitType = UNDERCUT_PARRY;
+			attackerCombat.setHitResult("Undercut");
+			setWeaponHitForCharacter(attacker);
+			logBattleInfo("Undercut (hits on tie)! ("+attacker.getAttackSpeed()+" is equal to "+targetAttackSpeed+")");
+		}
+		if (!undercuttingAllowed && hitType==MISS) {
+			logBattleInfo(attacker.getGameObject().getNameWithNumber()+" cannot be used to undercut the "+targetBc.getGameObject().getNameWithNumber()+", and as such has missed.");
+		}
+		
+		attackerCombat.addHitType(hitType,targetBc.getGameObject());
+		
+		if (hitType>MISS) {
+			CombatWrapper targetCombatWrapper = new CombatWrapper(targetBc.getGameObject());
+			targetCombatWrapper.setWasParried(attacker.getGameObject().getStringId()+":"+targetBc.getLength()+":"+targetBc.getAttackSpeed()+":"+targetBc.getAttackCombatBox()+":"+targetBc.getHarm().getStrength());
+			logBattleInfo("Parried! "+attacker.getGameObject().getNameWithNumber()+" parried "+targetBc.getGameObject().getNameWithNumber()+".");
+		}
+		else  {
+			if (hitType==MISS) {
+				logBattleInfo("Missed! ("+attacker.getAttackSpeed()+" is not faster than "+targetAttackSpeed+")");
+			}
+			else {
+				logBattleInfo(attacker.getGameObject().getNameWithNumber()+" didn't parry, and thus does not prevent the attack.");
+			}
+		}
+	}
+	private static String getCombatantInformation(BattleChit chit,boolean attacker) {
+		StringBuffer sb = new StringBuffer();
+		sb.append(chit.getGameObject().getNameWithNumber());
 		sb.append(" ");
 		if (attacker) {
 			Harm harm = chit.getHarm();
@@ -1197,45 +2361,49 @@ public class BattleModel {
 		sb.append(" ");
 		return sb.toString();
 	}
-	private Spoils getSpoils(GameObject attackerGo,GameObject victimGo) {
-		Spoils spoils = new Spoils();
-		RealmComponent attacker = RealmComponent.getRealmComponent(attackerGo);
-		RealmComponent victim = RealmComponent.getRealmComponent(victimGo);
-		RealmComponent attackerOwner = attacker.getOwner();
-		
-		if (attacker.isCharacter() || attackerOwner!=null) { // Attacker is Character or Hireling
-			// Use multiplier only if attacker is a character, and the victim is not
-			spoils.setUseMultiplier(attacker.isCharacter() && !victim.isCharacter());
-			
-			// Fame and Notoriety Bounty
-			spoils.addFame(victim.getGameObject().getThisInt("fame"));
-			spoils.addNotoriety(victim.getGameObject().getThisInt("notoriety"));
-			if (victim.isCharacter()) {
-				CharacterWrapper victimRecord = new CharacterWrapper(victim.getGameObject());
-				spoils.addNotoriety(victimRecord.getRoundedNotoriety()); // stored a bit differently
-				if (victimRecord.isTransmorphed()) {
-					GameObject go = victimRecord.getTransmorph();
-					spoils.addFame(go.getThisInt("fame"));
-					spoils.addNotoriety(go.getThisInt("notoriety"));
+	private static int calculateBaseFumbleModifier(BattleChit attacker, BattleChit target, int hitType, HostPrefWrapper hostPrefs) {
+		int fumbleModifier = attacker.getAttackSpeed().getNum() - target.getMoveSpeed().getNum();
+		CombatWrapper attackerCombat = new CombatWrapper(attacker.getGameObject());
+		if (hostPrefs.hasPref(Constants.OPT_TWO_HANDED_WEAPONS) && RealmComponent.getRealmComponent(attackerCombat.getGameObject()).isCharacter()) {
+			CharacterWrapper attackerCharacter = new CharacterWrapper(attackerCombat.getGameObject());
+			ArrayList<GameObject> activeInventory = attackerCharacter.getActiveInventory();
+			boolean shield = false;
+			boolean twoHandedWeapon = false;
+			if (!attackerCharacter.affectedByKey(Constants.STRONG)) {
+				for (GameObject item : activeInventory) {
+					if (item.hasThisAttribute(Constants.SHIELD) && item.getThisAttribute(Constants.WEIGHT) != "L") shield = true;
+					if (item.hasThisAttribute(Constants.TWO_HANDED)) twoHandedWeapon = true;
 				}
 			}
-			
-			if (attacker.isPlayerControlledLeader()) { // Attacker is a Character or hired leader or controlled monster
-				// Gold Bounty
-				if (!victim.isMonster()) {
-					spoils.setGoldBounty(victim.getGameObject().getThisInt("base_price"));
-				}
-				
-				// Recorded Gold
-				CharacterWrapper victimRecord = new CharacterWrapper(victim.getGameObject());
-				spoils.setGoldRecord(victimRecord.getRoundedGold());
+			if (twoHandedWeapon && shield) {
+				fumbleModifier = fumbleModifier+2;
+				logBattleInfo("fumble = "+attacker.getAttackSpeed().getNum()+" - "+target.getMoveSpeed().getNum()+" = "+fumbleModifier+" (base speed difference and two-handed weapon malus)");
 			}
 		}
-		return spoils;
+		else {
+			logBattleInfo("fumble = "+attacker.getAttackSpeed().getNum()+" - "+target.getMoveSpeed().getNum()+" = "+fumbleModifier+" (base speed difference)");
+		}
+		if (hitType==UNDERCUT) {
+			fumbleModifier += 4;
+			logBattleInfo("fumble + 4 = "+fumbleModifier+" (for undercut)");
+		}
+		return fumbleModifier;
+	}
+	private static void setWeaponHitForCharacter(BattleChit attacker) {
+		if (attacker.isCharacter() && !(new CharacterWrapper(attacker.getGameObject()).isTransmorphed())) {
+			RealmComponent attackChit = ((CharacterChitComponent)attacker).getAttackChit();
+			if (attackChit!=null) {
+				CombatWrapper combatAttack = new CombatWrapper(attackChit.getGameObject());
+				if (combatAttack.getWeaponId()!=null) {
+					CombatWrapper attackerCombat = new CombatWrapper(attacker.getGameObject());
+					attackerCombat.setWeaponHit(combatAttack.getWeaponId());
+				}
+			}
+		}
 	}
 	private Harm getAdjustedHarm(BattleChit attacker,int fumbleModifier,String targetId) {
 		if (hostPrefs.hasPref(Constants.OPT_FUMBLE)) {
-			logBattleInfo("fumbleModifier for attacker ("+attacker.getGameObject().getName()+") is "+fumbleModifier);
+			logBattleInfo("fumbleModifier for attacker ("+attacker.getGameObject().getNameWithNumber()+") is "+fumbleModifier);
 		}
 		Harm totalHarm = attacker.getHarm();
 		if (!totalHarm.isAdjustable()) {
@@ -1256,7 +2424,7 @@ public class BattleModel {
 		}
 
 		if (!totalHarm.isNegligible()) { // only apply missile/fumble if totalHarm is not completely negligible (like light side spear goblins)
-			if (attacker.isMissile()) {
+			if (attacker.isMissile() || (attacker.isDenizen() && ((ChitComponent)attacker).hasFaceAttribute("missile"))) {
 				// Do the missile roll
 				DieRoller roller;
 				RealmComponent rc = RealmComponent.getRealmComponent(combat.getGameObject());
@@ -1267,18 +2435,17 @@ public class BattleModel {
 						if (missileType.trim().length()==0) {
 							missileType = "missile";
 						}
-						roller = DieRollBuilder.getDieRollBuilder(null,character).createRoller(missileType);
+						roller = DieRollBuilder.getDieRollBuilder(CombatFrame.getSingleton(),character).createRoller(missileType);
 					}
 					else {
 						SpellWrapper spell = new SpellWrapper(combat.getCastSpell());
-						roller = DieRollBuilder.getDieRollBuilder(null,character,spell.getRedDieLock()).createRoller("magicmissil"); // the 'e' is left off intentionally here, so that "indexOf" doesn't find the word "missile"
+						roller = DieRollBuilder.getDieRollBuilder(CombatFrame.getSingleton(),character,spell.getRedDieLock()).createRoller("magicmissil"); // the 'e' is left off intentionally here, so that "indexOf" doesn't find the word "missile"
 					}
 				}
 				else {
 					// Monsters and Natives just get two dice, unless they are an archer
-					String icon = combat.getGameObject().getThisAttribute(Constants.ICON_TYPE);
 					int dice = 2;
-					if (icon!=null && "archer".equalsIgnoreCase(icon)) {
+					if (combat.getGameObject().hasThisAttribute("archer")) {
 						// If the native is an archer, they only roll one die
 						dice = 1;
 					}
@@ -1310,28 +2477,7 @@ public class BattleModel {
 				}
 				else if (hostPrefs.hasPref(Constants.REV_MISSILE)) {
 					// Revised Optional missile table
-					int change;
-					if (result<-1) {
-						change = 3;
-					}
-					else if (result<0) {
-						change = 2;
-					}
-					else if (result<2) {
-						change = 1;
-					}
-					else if (result<5) {
-						change = 0;
-					}
-					else if (result<7) {
-						change = -1;
-					}
-					else if (result<8) {
-						change = -2;
-					}
-					else {
-						change = -3;
-					}
+					int change = RealmUtility.revisedMissileTable(result);
 					totalHarm.changeLevels(change);
 					combat.addMissileRollSubtitle(RealmUtility.getLevelChangeString(change));
 					logBattleInfo("Missile table result (using revised): "+result+" = "+RealmUtility.getLevelChangeString(change));
@@ -1356,7 +2502,7 @@ public class BattleModel {
 				RealmComponent rc = RealmComponent.getRealmComponent(attacker.getGameObject());
 				if (rc.isCharacter()) {
 					CharacterWrapper character = new CharacterWrapper(attacker.getGameObject());
-					roller = DieRollBuilder.getDieRollBuilder(null,character).createRoller("fumble");
+					roller = DieRollBuilder.getDieRollBuilder(CombatFrame.getSingleton(),character).createRoller("fumble");
 				}
 				else {
 					// Monsters and Natives just get two dice
@@ -1395,27 +2541,36 @@ public class BattleModel {
 		}
 		return totalHarm;
 	}
-	private void repositionAndChangeTactics(String prefix,CombatWrapper sheetOwner,ArrayList groupList) {
+	private void repositionAndChangeTactics(String prefix,CombatWrapper sheetOwner,ArrayList<RealmComponent> groupList) {
 		if (groupList.size()>0) {
 			// Hash by box
-			HashLists boxHash = new HashLists();
-			for (Iterator i=groupList.iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
+			HashLists<Key, RealmComponent> boxHash = new HashLists<>();
+			for (RealmComponent rc : groupList) {
 				CombatWrapper combat = new CombatWrapper(rc.getGameObject());
-				int box = combat.getCombatBox();
-				if (box>0) {
-					boxHash.put(new Integer(box),rc);
+				int boxA = combat.getCombatBoxAttack();
+				int boxD = combat.getCombatBoxDefense();
+				if (boxA>0 || boxD>0 || hostPrefs.hasPref(Constants.SR_COMBAT)) {
+					boxHash.put(new Key(boxA,boxD),rc);
 					if (rc.isMonster()) {
 						// Make sure we get monster parts!
 						MonsterChitComponent monster = (MonsterChitComponent)rc;
 						RealmComponent weapon = monster.getWeapon();
 						if (weapon!=null) {
 							combat = new CombatWrapper(weapon.getGameObject());
-							box = combat.getCombatBox();
-							if (box==0) {
-								throw new IllegalStateException("box is zero for "+weapon.getGameObject().getName()+" during reposition!!");
+							boxA = combat.getCombatBoxAttack();
+							boxD = combat.getCombatBoxDefense();							
+							if ((boxA!=0 && boxD!=0) || hostPrefs.hasPref(Constants.SR_COMBAT)) {
+								boxHash.put(new Key(boxA,boxD),weapon);
 							}
-							boxHash.put(new Integer(box),weapon);
+						}
+						NativeSteedChitComponent horse = (NativeSteedChitComponent)rc.getHorse();
+						if (horse!=null) {
+							combat = new CombatWrapper(horse.getGameObject());
+							boxA = combat.getCombatBoxAttack();
+							boxD = combat.getCombatBoxDefense();
+							if ((boxA!=0 && boxD!=0) || hostPrefs.hasPref(Constants.SR_COMBAT)) {
+								boxHash.put(new Key(boxA,boxD),horse);
+							}
 						}
 					}
 					else if (rc.isNative()) {
@@ -1423,95 +2578,147 @@ public class BattleModel {
 						NativeSteedChitComponent horse = (NativeSteedChitComponent)rc.getHorse();
 						if (horse!=null) {
 							combat = new CombatWrapper(horse.getGameObject());
-							box = combat.getCombatBox();
-							if (box==0) {
-								throw new IllegalStateException("box is zero for "+horse.getGameObject().getName()+" during reposition!!");
+							boxA = combat.getCombatBoxAttack();
+							boxD = combat.getCombatBoxDefense();
+							if ((boxA!=0 && boxD!=0) || hostPrefs.hasPref(Constants.SR_COMBAT)) {
+								boxHash.put(new Key(boxA,boxD),horse);
 							}
-							boxHash.put(new Integer(box),horse);
 						}
 					}
 				}// box might be zero if targeting an unassigned monster with a spell
 			}
-			reposition(prefix,sheetOwner,boxHash);
-			if (!battleLocation.clearing.hasSpellEffect(Constants.BEWILDERED)) {
-				changeTactics(prefix,sheetOwner,boxHash);
+			
+			if (hostPrefs.hasPref(Constants.SR_COMBAT)) {
+				reposition3x3(prefix,sheetOwner,boxHash);
 			}
 			else {
-				RealmLogging.logMessage(RealmLogging.BATTLE,"No Change Tactics rolls were made because of bewilder effect in clearing.");
+				reposition(prefix,sheetOwner,boxHash);
+				if (!battleLocation.clearing.hasSpellEffect(Constants.BEWILDERED)) {
+					changeTactics(prefix,sheetOwner,boxHash);
+				}
+				else {
+					RealmLogging.logMessage(RealmLogging.BATTLE,"No Change Tactics rolls were made because of bewilder effect in clearing.");
+				}
 			}
 		}
 	}
-	private void reposition(String prefix,CombatWrapper combatTarget,HashLists boxHash) {
+	private void reposition3x3(String prefix,CombatWrapper combatTarget,HashLists<Key, RealmComponent> boxHash) {
+		boolean tacticChange = true;
+		if (battleLocation!=null && battleLocation.clearing!=null && battleLocation.clearing.hasSpellEffect(Constants.BEWILDERED)) {
+			tacticChange = false;
+			RealmLogging.logMessage(RealmLogging.BATTLE,"No Change Tactics rolls were made because of bewilder effect in clearing.");
+		}
+		for (Key key : boxHash.keySet()) {
+			ArrayList<RealmComponent> list = boxHash.getList(key);
+			for (RealmComponent rc : list) {
+				if (rc instanceof EventSpellCardComponent) continue;
+				int attackDie = RandomNumber.getRandom(6)+1;
+				int defenceDie = RandomNumber.getRandom(6)+1;
+				int boxA = (attackDie+1)/2;
+				int boxD = (defenceDie+1)/2;
+				ChitComponent chit = (ChitComponent)rc;
+				if (!SKIP_REPOSITIONING) {
+					CombatWrapper combat = new CombatWrapper(rc.getGameObject());
+					if (rc.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_ATTACK)) {
+						ArrayList<String> boxes = rc.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
+						String box = boxes.get(RandomNumber.getRandom(boxes.size()));
+						combat.setCombatBoxAttack(Integer.parseInt(box));
+					} else {
+						combat.setCombatBoxAttack(boxA);
+					}
+					if (rc.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_DEFENSE)) {
+						ArrayList<String> boxes = rc.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_DEFENSE);
+						String box = boxes.get(RandomNumber.getRandom(boxes.size()));
+						combat.setCombatBoxDefense(Integer.parseInt(box));
+					} else {
+						combat.setCombatBoxDefense(boxD);
+					}
+					RealmLogging.logMessage(chit.getGameObject().getNameWithNumber(),"Changes position: "+RealmUtility.getNameForDefensekBox(boxD)+" (die: "+defenceDie+") & "+RealmUtility.getNameForAttackBox(boxA)+" (die: "+attackDie+")");
+				}
+				if (tacticChange && (boxA==boxD || rc.getGameObject().hasThisAttribute(Constants.SENSITIVE_TACTICS) || FORCE_MONSTER_FLIP)) {
+					if (canChangeTactics(chit)) {
+						chit.flip();
+						if (chit instanceof BattleChit) {
+							RealmLogging.logMessage(chit.getGameObject().getNameWithNumber(),"Changes tactics:  "+getCombatantInformation((BattleChit)chit,true));
+						}
+					}
+				}
+			}
+		}
+	}
+	private static void reposition(String prefix,CombatWrapper combatTarget,HashLists<Key, RealmComponent> boxHash) {		
 		DieRoller roller = new DieRoller(); // Rule 22.5/2 specifies that modifiers do NOT affect this roll
 		roller.addRedDie();
 		roller.rollDice("Reposition");
-		if (DebugUtility.isMonsterLock()) {
+		if (SKIP_REPOSITIONING || DebugUtility.isMonsterLock()) {
 			// If this debug mode is enabled, don't allow monster repositioning to occur
 			roller.setValue(0,4);
 		}
 		int result = roller.getValue(0);
 		combatTarget.setRepositionResult(prefix,result); // Capture the result for purposes of displaying
-		ArrayList box1 = null;
-		ArrayList box2 = null;
-		ArrayList box3 = null;
+		ArrayList<RealmComponent> box1 = null;
+		ArrayList<RealmComponent> box2 = null;
+		ArrayList<RealmComponent> box3 = null;
 		// 1,2,3 means THAT box unchanged
 		// 4 no change
 		// 5 shift down/right
 		// 6 shift up/left
 		switch(result) {
 			case 1:
-				box1 = boxHash.getList(new Integer(1));
-				box2 = boxHash.getList(new Integer(3));
-				box3 = boxHash.getList(new Integer(2));
+				box1 = boxHash.getList(new Key(1,1));
+				box2 = boxHash.getList(new Key(3,3));
+				box3 = boxHash.getList(new Key(2,2));
 				break;
 			case 2:
-				box1 = boxHash.getList(new Integer(3));
-				box2 = boxHash.getList(new Integer(2));
-				box3 = boxHash.getList(new Integer(1));
+				box1 = boxHash.getList(new Key(3,3));
+				box2 = boxHash.getList(new Key(2,2));
+				box3 = boxHash.getList(new Key(1,1));
 				break;
 			case 3:
-				box1 = boxHash.getList(new Integer(2));
-				box2 = boxHash.getList(new Integer(1));
-				box3 = boxHash.getList(new Integer(3));
+				box1 = boxHash.getList(new Key(2,2));
+				box2 = boxHash.getList(new Key(1,1));
+				box3 = boxHash.getList(new Key(3,3));
 				break;
 			case 4:
-				box1 = boxHash.getList(new Integer(1));
-				box2 = boxHash.getList(new Integer(2));
-				box3 = boxHash.getList(new Integer(3));
+				box1 = boxHash.getList(new Key(1,1));
+				box2 = boxHash.getList(new Key(2,2));
+				box3 = boxHash.getList(new Key(3,3));
 				break;
 			case 5:
-				box1 = boxHash.getList(new Integer(3));
-				box2 = boxHash.getList(new Integer(1));
-				box3 = boxHash.getList(new Integer(2));
+				box1 = boxHash.getList(new Key(3,3));
+				box2 = boxHash.getList(new Key(1,1));
+				box3 = boxHash.getList(new Key(2,2));
 				break;
 			case 6:
-				box1 = boxHash.getList(new Integer(2));
-				box2 = boxHash.getList(new Integer(3));
-				box3 = boxHash.getList(new Integer(1));
+				box1 = boxHash.getList(new Key(2,2));
+				box2 = boxHash.getList(new Key(3,3));
+				box3 = boxHash.getList(new Key(1,1));
 				break;
 		}
 		boxHash.clear();
 		if (box1!=null) {
-			boxHash.putList(new Integer(1),box1);
-			repositionToBox(box1,1);
+			boxHash.putList(new Key(1,1),box1);
+			repositionToBox(box1,1,1);
 		}
 		if (box2!=null) {
-			boxHash.putList(new Integer(2),box2);
-			repositionToBox(box2,2);
+			boxHash.putList(new Key(2,2),box2);
+			repositionToBox(box2,2,2);
 		}
 		if (box3!=null) {
-			boxHash.putList(new Integer(3),box3);
-			repositionToBox(box3,3);
+			boxHash.putList(new Key(3,3),box3);
+			repositionToBox(box3,3,3);
 		}
 	}
-	private void repositionToBox(ArrayList list,int box) {
-		for (Iterator i=list.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+	private static void repositionToBox(ArrayList<RealmComponent> list,int boxA, int boxD) {
+		for (RealmComponent rc : list) {
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
-			combat.setCombatBox(box);
+			if (combat.canUseCombatBoxAttack(boxA) && combat.canUseCombatBoxDefense(boxD)) {
+				combat.setCombatBoxAttack(boxA);
+				combat.setCombatBoxDefense(boxD);
+			}
 		}
 	}
-	private void changeTactics(String prefix,CombatWrapper combatTarget,HashLists boxHash) {
+	private static void changeTactics(String prefix,CombatWrapper combatTarget,HashLists<Key, RealmComponent> boxHash) {		
 		DieRoller roller = new DieRoller(); // Rule 22.5/3 specifies that modifiers do NOT affect this roll
 		roller.addRedDie();
 		roller.addWhiteDie();
@@ -1520,23 +2727,23 @@ public class BattleModel {
 		changeTactics(prefix,combatTarget,boxHash,roller,2);
 		changeTactics(prefix,combatTarget,boxHash,roller,3);
 	}
-	private void changeTactics(String prefix,CombatWrapper combatTarget,HashLists boxHash,DieRoller roller,int boxNumber) {
+	private static void changeTactics(String prefix,CombatWrapper combatTarget,HashLists<Key, RealmComponent> boxHash,DieRoller roller,int boxNumber) {
 		roller.reset();
 		roller.rollDice("Change Tactics");
-		if (DebugUtility.isMonsterLock()) {
+		if (SKIP_REPOSITIONING || DebugUtility.isMonsterLock()) {
 			roller.setValue(0,2);
 			roller.setValue(1,2);
 		}
-		if (DebugUtility.isMonsterFlip()) {
+		if (FORCE_MONSTER_FLIP || DebugUtility.isMonsterFlip()) {
 			roller.setValue(0,6);
 		}
 		int result = roller.getHighDieResult();
-		ArrayList list = boxHash.getList(new Integer(boxNumber));
+		ArrayList<RealmComponent> list = boxHash.getList(new Key(boxNumber,boxNumber));
 		if (list!=null) {
 			// Make sure there is at least ONE chit to flip
 			boolean isOne = false;
-			for (Iterator i=list.iterator();i.hasNext();) {
-				ChitComponent chit = (ChitComponent)i.next(); // they should ALL be chits
+			for (RealmComponent rc : list) {
+				ChitComponent chit = (ChitComponent)rc; // they should ALL be chits
 				if (canChangeTactics(chit)) {
 					isOne = true;
 					break;
@@ -1550,12 +2757,18 @@ public class BattleModel {
 			}
 		}
 	}
-	private boolean canChangeTactics(ChitComponent chit) {
+	private static boolean canChangeTactics(ChitComponent chit) {
 		boolean flip = true;
 		if (chit.isMonster()) {
 			MonsterChitComponent monster = (MonsterChitComponent)chit;
-			if (monster.canPinOpponent()) {
+			if (monster.canPinOpponent() || monster.cannotChangeTactics()) {
 				// Tremendous monsters don't change tactics
+				flip = false;
+			}
+		}
+		else if (chit.isNative()) {
+			NativeChitComponent nativeChit = (NativeChitComponent)chit;
+			if (nativeChit.cannotChangeTactics()) {
 				flip = false;
 			}
 		}
@@ -1565,25 +2778,29 @@ public class BattleModel {
 		}
 		return flip;
 	}
-	private void changeTacticsOn(ArrayList list,int result,int boxNumber) {
+	private static void changeTacticsOn(ArrayList<RealmComponent> list,int result,int boxNumber) {
 		if (list!=null) {
 			boolean reportedChange = false;
-			for (Iterator i=list.iterator();i.hasNext();) {
-				ChitComponent chit = (ChitComponent)i.next(); // they should ALL be chits
+			for (RealmComponent rc : list) {
+				ChitComponent chit = (ChitComponent)rc; // they should ALL be chits
 				if (canChangeTactics(chit)) {
-					if (result==6 || chit.getGameObject().hasThisAttribute("sensitive_tactics")) {
+					if (result==6 || chit.getGameObject().hasThisAttribute(Constants.SENSITIVE_TACTICS)) {
 						if (!reportedChange) {
 							RealmLogging.logMessage(RealmLogging.BATTLE,"Change Tactics in Box "+boxNumber);
 							reportedChange = true;
 						}
 						chit.flip();
 						if (chit instanceof BattleChit) {
-							RealmLogging.logMessage(chit.getGameObject().getName(),"Changes tactics:  "+getCombatantInformation((BattleChit)chit,true));
+							RealmLogging.logMessage(chit.getGameObject().getNameWithNumber(),"Changes tactics:  "+getCombatantInformation((BattleChit)chit,true));
 						}
 					}
 				}
 			}
 		}
+	}
+	public Collection<GameObject> getKilledObjects() {
+		CombatWrapper cw = new CombatWrapper(battleLocation.tile.getGameObject());
+		return cw.getAllKills();
 	}
 	/**
 	 * This has to happen separate from disengagement, so that the fatigue/wound step isn't confusing.
@@ -1594,11 +2811,18 @@ public class BattleModel {
 			// Determine if character has wishStrength, and hit with a physical attack
 			if (rc.isCharacter()) {
 				CombatWrapper combat = new CombatWrapper(rc.getGameObject());
-				BattleChit battle = (BattleChit)rc;
 				CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 				if (character.getWishStrength()!=null) {
 					// Character has a "Wish for Strength" result applied
-					if (combat.getHitResult()!=null && !battle.getAttackSpeed().isInfinitelySlow()) {
+					Collection<RealmComponent> list = character.getActiveFightChitsAsRealmComponents();
+					// Add any gloves cards
+					for (GameObject go: character.getActiveInventory()) {
+						RealmComponent item = RealmComponent.getRealmComponent(go);
+						if (go.hasThisAttribute("gloves")) {
+							list.add(item);
+						}
+					}
+					if (combat.getHitResult()!=null && !BattleUtility.findFightComponentsWithCombatBox(list).isEmpty()) {
 						// Character hit a target this round with a physical attack (chit or gloves)
 						character.clearWishStrength();
 					}
@@ -1616,26 +2840,77 @@ public class BattleModel {
 		logBattleInfo("---- DISENGAGEMENT ----");
 		
 		// Flip all native horses to light side
-		for (Iterator i=getAllBattleGroups(true).iterator();i.hasNext();) {
-			BattleGroup bg = (BattleGroup)i.next();
+		for (BattleGroup bg : getAllBattleGroups(true)) {
 			bg.allHorsesWalk();
 		}
 		
 		// Need to get rid of dead participants here - wounds should have been handled already?  fatigued effort?
-		ArrayList attackSpellsToExpire = new ArrayList();
-		ArrayList<RealmComponent> rcsToMakeDead = new ArrayList<RealmComponent>();
+		ArrayList<SpellWrapper> attackSpellsToExpire = new ArrayList<>();
+		ArrayList<SpellWrapper> spellsToExpireAtRoundEnd = new ArrayList<>();
+		ArrayList<RealmComponent> rcsToMakeDead = new ArrayList<>();
 		ArrayList<RealmComponent> all = getAllBattleParticipants(true);
+	
+		if (hostPrefs.hasPref(Constants.SR_OPT_CORNERED)) {
+			for (RealmComponent rc:all) {
+				RealmComponent target = rc.getTarget();
+				if (!rc.getGameObject().hasThisAttribute(Constants.DEAD) && target!=null && !target.getGameObject().hasThisAttribute(Constants.DEAD)) {
+					CombatWrapper combat = new CombatWrapper(rc.getGameObject());
+					CombatWrapper targetCombat = new CombatWrapper(target.getGameObject());
+					if (combat.getKilledBy()==null && targetCombat.getKilledBy()==null) {
+						boolean pinningMonster = false;
+						if (rc.isCharacter()) {
+							MonsterChitComponent transmorph = ((CharacterChitComponent)rc).getTransmorphedComponent();
+							if (transmorph!=null && transmorph.canPinOpponent() && transmorph.isDarkSideUp()) {
+								pinningMonster = true;
+							}
+						}
+						if (rc.isMonster() && !rc.isMonsterPart() && ((MonsterChitComponent)rc).canPinOpponent() && ((MonsterChitComponent)rc).isDarkSideUp()) {
+							pinningMonster = true;
+						}
+						if (pinningMonster) {
+							int maneuver = 0;
+							int attack = combat.getCombatBoxAttack();
+							if (target.isCharacter()) {
+								maneuver = (new CharacterChitComponent(target.getGameObject())).getManeuverCombatBox();
+							}
+							else {
+								maneuver = targetCombat.getCombatBoxDefense();
+							}
+							if ((attack==1 && maneuver==2) || (attack==2 && maneuver==3) || (attack==3 && maneuver==1)) {
+								rc.flip();
+							}
+						}
+					}
+				}
+			}
+		}
+		
 		for (RealmComponent rc:all) {
+			if (rc instanceof EventSpellCardComponent) {
+				rc.clearTargets();
+				CombatWrapper.clearRoundCombatInfo(rc.getGameObject());
+				battleLocation.clearing.remove(rc.getGameObject());
+				battleLocation.tile.getGameObject().remove(rc.getGameObject());
+			}
 			boolean disengage=true;
+			boolean disengage1 = true;
+			boolean disengage2 = true;
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 			
 			// Adjust weapon alertness
 			BattleChit battle = (BattleChit)rc;
-			battle.changeWeaponState(combat.getHitResult()!=null);
+			battle.changeWeaponState(hostPrefs);
 			
 			// Get rid of destroyed stuff and fatigue magic
 			if (rc.isCharacter()) {
 				CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
+				
+				character.getGameObject().removeThisAttribute(Constants.RANDOM_ASSIGNMENT_WINNER);
+				for (CharacterActionChitComponent chit:character.getAllChits()) {
+					if (chit.isMagicMove()) {
+						chit.setMagicMove(false);
+					}
+				}
 				
 				if (character.isFortDamaged() && !character.isFortified()) { // destroyed fort
 					// completely remove fort
@@ -1643,8 +2918,7 @@ public class BattleModel {
 					character.setFortDamaged(false);
 				}
 				
-				for (Iterator n=character.getActiveInventory().iterator();n.hasNext();) {
-					GameObject thing = (GameObject)n.next();
+				for (GameObject thing : character.getActiveInventory()) {
 					CombatWrapper thingCombat = new CombatWrapper(thing);
 					if (thingCombat.getKilledBy()!=null) { // A dead thing means destroyed
 						rc.getGameObject().remove(thing);
@@ -1652,22 +2926,37 @@ public class BattleModel {
 						TreasureUtility.handleDestroyedItem(character,thing); // armor
 					}
 	
-					if (thing.hasThisAttribute("oneshot") && thing.hasThisAttribute("potion")) {
+					if (thing.hasThisAttribute(Constants.ONESHOT) && thing.hasThisAttribute(Constants.POTION)) {
 						character.expirePotion(thing);
+					}
+					
+					if (thingCombat.wasThrown() && battleLocation.isInClearing()) {
+						thing.removeThisAttribute(Constants.ACTIVATED);
+						RealmComponent thingRc = RealmComponent.getRealmComponent(thing);
+						if (thingRc instanceof ChitComponent) {
+							thingRc.setActivated(false);
+							if (thingRc.isWeapon()) {
+								((WeaponChitComponent)thingRc).setAlerted(false);
+							}
+						}
+						CombatWrapper.clearAllCombatInfo(thing);
+						battleLocation.clearing.add(thing, character);
 					}
 				}
 				
 				// Cue up attack spells to expire (don't expire until AFTER Grudges are determined)
-				for (Iterator n=character.getAliveSpells().iterator();n.hasNext();) {
-					SpellWrapper spell = (SpellWrapper)n.next();
+				for (SpellWrapper spell : character.getAliveSpells()) {
 					// Attack spells are over at the end of a round of combat
 					if (spell.isAttackSpell()) {
 						attackSpellsToExpire.add(spell);
 					}
+					else if (spell.expiresAtRoundEnd()) {
+						spellsToExpireAtRoundEnd.add(spell);
+					}
 				}
 				
 				// Expire active phase chits
-//				character.doEndActivePhaseChits();
+				character.endActivePhaseChits();
 				
 				// Check for COMBAT_HIDE
 				if (character.affectedByKey(Constants.COMBAT_HIDE) && !character.isHidden() && combat.getAttackerCount()==0) {
@@ -1677,9 +2966,13 @@ public class BattleModel {
 						if (!canHide && hostPrefs.hasPref(Constants.HOUSE3_SNOW_HIDE_EXCLUDE_CAVES) && battleLocation.isInClearing() && battleLocation.clearing.isCave()) {
 							canHide = true;
 						}
+						GameObject noHideItem = ClearingUtility.getItemInClearingWithKey(battleLocation,Constants.NO_HIDE);
+						if (noHideItem!=null) {
+							canHide = false;
+						}
 						
 						if (canHide) {
-							DieRoller roller = DieRollBuilder.getDieRollBuilder(null,character).createHideRoller();
+							DieRoller roller = DieRollBuilder.getDieRollBuilder(CombatFrame.getSingleton(),character).createHideRoller();
 							CombatFrame.broadcastMessage(character.getGameObject().getName(),"World Fades: "+roller.getDescription());
 							if (roller.getHighDieResult()<6) {
 								character.setHidden(true);
@@ -1687,7 +2980,11 @@ public class BattleModel {
 							}
 						}
 						else {
-							CombatFrame.broadcastMessage(character.getGameObject().getName(),"World Fades: Cannot HIDE due to inclement weather.");
+							if (noHideItem!=null) {
+								CombatFrame.broadcastMessage(character.getGameObject().getName(),"World Fades: Cannot HIDE due "+noHideItem.getName()+".");
+							} else {
+								CombatFrame.broadcastMessage(character.getGameObject().getName(),"World Fades: Cannot HIDE due to inclement weather.");
+							}
 						}
 					}
 					else {
@@ -1695,11 +2992,25 @@ public class BattleModel {
 					}
 				}
 			}
+			else {
+				for (GameObject go : rc.getHold()) {
+					if (go.hasThisAttribute(Constants.SPELL_DENIZEN)) {
+						SpellWrapper spell = new SpellWrapper(go);
+						if (spell.isAlive()) {
+							if (spell.isAttackSpell()) {
+								attackSpellsToExpire.add(spell);
+							}
+							else if (spell.expiresAtRoundEnd()) {
+								spellsToExpireAtRoundEnd.add(spell);
+							}
+						}
+					}
+				}
+			}
 			
 			// Test for deadness :)
-			RealmComponent target = rc.getTarget();
-			CombatWrapper targetCombat = target==null?null:(new CombatWrapper(target.getGameObject()));
-			if (rc.isNative()) {
+
+			if (rc.isNative() || rc.isMonster()) {
 				// Handle dead native horses separately
 				RealmComponent horse = (RealmComponent)rc.getHorse();
 				if (horse!=null) {
@@ -1711,11 +3022,18 @@ public class BattleModel {
 			}
 			if (combat.getKilledBy()!=null) {
 				// Dead - remove from wherever, and deal with whatever inventory
-				logBattleInfo(rc+" is dead.  Killed by "+combat.getKilledBy().getName());
+				logBattleInfo(rc+" is dead.  Killed by "+combat.getKilledBy().getNameWithNumber());
+				
+				RealmComponent killer = RealmComponent.getRealmComponent(combat.getKilledBy());
+				if (killer!=null && (rc.isMonster() || (rc.isHorse() && rc.getGameObject().hasThisAttribute(RealmComponent.MONSTER_STEED)))) {
+					if (killer.getGameObject().hasThisAttribute(Constants.KILL_MONSTERS_PERMANENTLY) ||
+							killer.isCharacter() && (new CharacterWrapper(killer.getGameObject()).affectedByKey(Constants.KILL_MONSTERS_PERMANENTLY))) {
+						rc.getGameObject().setThisAttribute(Constants.DEAD_PERMANENT);
+					}
+				}
 				
 				// Test for Grudges/Gratitudes
-				if (rc.isNative() && rc.getOwner()==null && hostPrefs.hasPref(Constants.OPT_GRUDGES)) {
-					RealmComponent killer = RealmComponent.getRealmComponent(combat.getKilledBy());
+				if (rc.isNative() && rc.getOwner()==null && (hostPrefs.hasPref(Constants.OPT_GRUDGES) || hostPrefs.hasPref(Constants.SR_DAMAGED_RELATIONS))) {
 					if (killer.isSpell()) {
 						SpellWrapper spell = new SpellWrapper(killer.getGameObject());
 						if (!"clearing".equals(spell.getGameObject().getThisAttribute("target"))) {
@@ -1750,99 +3068,116 @@ public class BattleModel {
 							responsibleCharacter = new CharacterWrapper(killer.getOwner().getGameObject());
 						}
 						int rel = responsibleCharacter.getRelationship(rc.getGameObject());
-						if (rel==RelationshipType.FRIENDLY) {
-							doGrudge(killer,responsibleCharacter,rc,2,"GRUDGES");
-						}
-						else if (rel>=RelationshipType.ALLY) {
-							doGrudge(killer,responsibleCharacter,rc,4,"GRUDGES");
-						}
-						else if (hostPrefs.hasPref(Constants.TE_EXTENDED_GRUDGES)) {
-							// but only once per character per native group per evening!   ...but how...
-							if (!responsibleCharacter.hasChangedRelationshipToday(rc.getGameObject())) {
-								doGrudge(killer,responsibleCharacter,rc,1,"EXTENDED GRUDGES");
+						
+						if (hostPrefs.hasPref(Constants.OPT_GRUDGES)) {
+							if (rel==RelationshipType.FRIENDLY) {
+								doGrudge(killer,responsibleCharacter,rc,2,"GRUDGES");
 							}
+							else if (rel>=RelationshipType.ALLY) {
+								doGrudge(killer,responsibleCharacter,rc,4,"GRUDGES");
+							}
+							else if (hostPrefs.hasPref(Constants.TE_EXTENDED_GRUDGES)) {
+								// but only once per character per native group per evening!   ...but how...
+								if (!responsibleCharacter.hasChangedRelationshipToday(rc.getGameObject())) {
+									doGrudge(killer,responsibleCharacter,rc,1,"EXTENDED GRUDGES");
+								}
+							}
+						}
+						if (hostPrefs.hasPref(Constants.SR_DAMAGED_RELATIONS)) {
+							doDamagedRelations(killer,responsibleCharacter,rc);
 						}
 					}
 				}
 				
 				rcsToMakeDead.add(rc);
 			}
-			else {
+			else {				
 				// Check first for Hurricane Winds
+				boolean hurricaneWindsEvent = rc.getGameObject().hasThisAttribute(Constants.EVENT_HURRICANE_WINDS);
 				String blownSpellId = rc.getGameObject().getThisAttribute(Constants.BLOWS_TARGET);
 				if (blownSpellId!=null) {
-					// Yep, getting blown away here
-					
-					// Flip to light side
-					RealmUtility.normalizeParticipant(rc);
-					
-					// Move to target tile
-					GameObject go = gameData.getGameObject(Long.valueOf(blownSpellId));
-					SpellWrapper spell = new SpellWrapper(go);
-					TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(spell.getSecondaryTarget());
-					TileLocation tl = new TileLocation(tile,true);
-					ClearingUtility.moveToLocation(rc.getGameObject(),tl);
-					
-					// Clear all attackers
-					for (GameObject attacker:combat.getAttackers()) {
-						RealmComponent arc = RealmComponent.getRealmComponent(attacker);
-						arc.clearTarget();
-						combat.removeAttacker(attacker);
-					}
-					
-					// Expire the wind spell if rc is a player controlled critter
-					if (rc.isAnyLeader()) {
-						spell.expireSpell();
-						rc.getGameObject().setThisAttribute(Constants.LAND_FIRST); // Forces a landing at the beginning of next turn
-					}
+					blowTarget(blownSpellId, rc);
 					disengage = true;
-					logBattleInfo(rc+" is blown away to "+tile.getGameObject().getName()+"!");
+				} else if (hurricaneWindsEvent) {
+					blowTarget(null, rc);
+					disengage = true;
 				}
 				else {
+					RealmComponent target1 = rc.getTarget();
+					RealmComponent target2 = rc.get2ndTarget();
+					CombatWrapper targetCombat1 = target1==null?null:new CombatWrapper(target1.getGameObject());
+					CombatWrapper targetCombat2 = target2==null?null:new CombatWrapper(target2.getGameObject());
+					
 					// Determine disengagement rules
 					if (rc.isMonster()) {
-						if (!testRedDeadDisengage((MonsterChitComponent)rc,combat,targetCombat)) {
+						if (!testRedDeadDisengage((MonsterChitComponent)rc,combat,targetCombat1)) {
 							disengage = false;
 						}
 					}
 					else if (rc.isCharacter()) {
 						MonsterChitComponent transmorph = ((CharacterChitComponent)rc).getTransmorphedComponent();
 						if (transmorph!=null) {
-							if (!testRedDeadDisengage(transmorph,combat,targetCombat)) {
+							if (!testRedDeadDisengage(transmorph,combat,targetCombat1)) {
 								disengage = false;
 							}
 						}
 					}
-					
-					if (target!=null) {
+					if (target1!=null) {
 						// If the target is a character, and the attacker is a denizen, then don't disengage
-						if (target.isCharacter() && rc.getOwner()==null) {
+						if (target1.isCharacter() && rc.getOwner()==null) {
 							logBattleInfo(rc+" won't disengage when fighting a character");
-							disengage = false; // don't disengage when fighting a character
+							disengage1 = false; // don't disengage when fighting a character
 						}
 						
-						if (!rc.isCharacter() && target.isMonster()) {
-							MonsterChitComponent monster = (MonsterChitComponent)target;
+						if (!rc.isCharacter() && target1.isMonster()) {
+							MonsterChitComponent monster = (MonsterChitComponent)target1;
 							if (monster.isPinningOpponent()) {
 								RealmComponent monsterTarget = monster.getTarget();
 								if (monsterTarget.equals(rc)) {
 									logBattleInfo(rc+" can't disengage when held by a Red-side-up Tremendous monster");
-									disengage = false;
+									disengage1 = false;
 								}
 							}
 						}
 						
 						// If the target is dead (regardless of who), always disengage
-						if (targetCombat.getKilledBy()!=null) { 
+						if (targetCombat1.getKilledBy()!=null) { 
 							logBattleInfo(rc+" disengages because target is dead");
-							disengage = true; // always disengage if target is dead
+							disengage1 = true; // always disengage if target is dead
+						}
+					}
+					if (target2!=null) {
+						// If the target is a character, and the attacker is a denizen, then don't disengage
+						if (target2.isCharacter() && rc.getOwner()==null) {
+							logBattleInfo(rc+" won't disengage when fighting a character");
+							disengage2 = false; // don't disengage when fighting a character
+						}
+						
+						if (!rc.isCharacter() && target2.isMonster()) {
+							MonsterChitComponent monster = (MonsterChitComponent)target2;
+							if (monster.isPinningOpponent()) {
+								RealmComponent monsterTarget = monster.getTarget();
+								if (monsterTarget.equals(rc)) {
+									logBattleInfo(rc+" can't disengage when held by a Red-side-up Tremendous monster");
+									disengage2 = false;
+								}
+							}
+						}
+						
+						// If the target is dead (regardless of who), always disengage
+						if (targetCombat2.getKilledBy()!=null) { 
+							logBattleInfo(rc+" disengages because target is dead");
+							disengage2 = true; // always disengage if target is dead
 						}
 					}
 				}
 			}
 				
-			if (disengage) {
+			if (disengage && disengage1) {
 				rc.clearTarget();
+			}
+			if (disengage && disengage2) {
+				rc.clear2ndTarget();
 			}
 		}
 		
@@ -1850,8 +3185,10 @@ public class BattleModel {
 		for (RealmComponent rc:rcsToMakeDead) {
 			RealmUtility.makeDead(rc);
 		}
-		for (Iterator i=attackSpellsToExpire.iterator();i.hasNext();) {
-			SpellWrapper spell = (SpellWrapper)i.next();
+		for (SpellWrapper spell : attackSpellsToExpire) {
+			spell.expireSpell();
+		}
+		for (SpellWrapper spell : spellsToExpireAtRoundEnd) {
 			spell.expireSpell();
 		}
 		for (RealmComponent rc:all) {
@@ -1869,16 +3206,18 @@ public class BattleModel {
 			if (expiredOne) {
 				character.updateChitEffects();
 			}
-				
+
 			// Clear out all round combat info (include all held stuff)
-			ArrayList removeList = new ArrayList();
-			ArrayList hold = new ArrayList(rc.getGameObject().getHold()); // to prevent concurrent mod issues when flychits are expired
-			for (Iterator n=hold.iterator();n.hasNext();) {
-				GameObject held = (GameObject)n.next();
+			ArrayList<GameObject> removeList = new ArrayList<>();
+			ArrayList<GameObject> hold = new ArrayList<>(rc.getGameObject().getHold()); // to prevent concurrent mod issues when flychits are expired
+			for (GameObject held : hold) {
 				CombatWrapper combat = new CombatWrapper(held);
 				
 				// If a "held" item is a horse, and its dead, then remove it
 				RealmComponent goc = RealmComponent.getRealmComponent(held);
+				if (goc==null) {
+					continue;
+				}
 				if (goc.isHorse()) {
 					if (combat.getKilledBy()!=null) {
 						removeList.add(held);
@@ -1889,16 +3228,24 @@ public class BattleModel {
 					fly.useFly();
 				}
 				CombatWrapper.clearRoundCombatInfo(held);
+				
+				if (held.hasThisAttribute(Quest.QUEST_MINOR_CHARS)) {
+					for (GameObject bonusChit : held.getHold()) {
+						CombatWrapper.clearRoundCombatInfo(bonusChit);
+					}
+				}
 			}
 			
 			if (rc.isCharacter()) {
 				// Expire any spells on fly chits (special case) - is this really necessary?  It seems like this happens above with fly.useFly()...
-				for (Iterator n=rcc.getUsedChits().iterator();n.hasNext();) {
-					GameObject go = (GameObject)n.next();
+				for (GameObject go : rcc.getUsedChits()) {
 					RealmComponent goc = RealmComponent.getRealmComponent(go);
 					if (goc.isFlyChit()) {
 						FlyChitComponent flyChit = (FlyChitComponent)goc;
 						flyChit.expireSourceSpell();
+					}
+					if (goc.isActionChit() && go.hasThisAttribute(Constants.BREAK_WHEN_USED)) {
+						((CharacterActionChitComponent)goc).expireSourceSpell();
 					}
 				}
 				
@@ -1924,12 +3271,10 @@ public class BattleModel {
 			CombatWrapper.clearRoundCombatInfo(rc.getGameObject());
 			
 			// Remove any dead horses...
-			for (Iterator n=removeList.iterator();n.hasNext();) {
-				GameObject held = (GameObject)n.next();
+			for (GameObject held : removeList) {
 				rc.getGameObject().remove(held);
 				CombatWrapper.clearAllCombatInfo(held);
 			}
-			
 			
 			if (dead) {
 				// Dead?  Then clear out everything!!
@@ -1941,6 +3286,11 @@ public class BattleModel {
 			RealmComponent target = rc.getTarget();
 			if (target!=null) {
 				CombatWrapper combat = new CombatWrapper(target.getGameObject());
+				combat.addAttacker(rc.getGameObject());
+			}
+			RealmComponent target2 = rc.get2ndTarget();
+			if (target2!=null) {
+				CombatWrapper combat = new CombatWrapper(target2.getGameObject());
 				combat.addAttacker(rc.getGameObject());
 			}
 		}
@@ -1958,13 +3308,55 @@ public class BattleModel {
 //			}
 //		}
 	}
-	private void doGrudge(RealmComponent killer,CharacterWrapper responsibleCharacter,RealmComponent rc,int penalty,String ruleName) {
+	private static void doGrudge(RealmComponent killer,CharacterWrapper responsibleCharacter,RealmComponent rc,int penalty,String ruleName) {
 		String currentRelString = RealmUtility.getRelationshipNameFor(responsibleCharacter,rc);
 		responsibleCharacter.changeRelationship(rc.getGameObject(),-penalty);
 		String newRelString = RealmUtility.getRelationshipNameFor(responsibleCharacter,rc);
 		
-		logBattleInfo(killer.getGameObject().getName()+" killed "+currentRelString+" "+rc.toString()+".");
+		logBattleInfo(killer.getGameObject().getNameWithNumber()+" killed "+currentRelString+" "+rc.toString()+".");
 		logBattleInfo(responsibleCharacter.getCharacterName()+" relationship is harmed by "+penalty+"! ("+ruleName+") --> "+newRelString);
+	}
+	private static void doDamagedRelations(RealmComponent killer,CharacterWrapper responsibleCharacter,RealmComponent rc) {
+		GameObject nativeMember = rc.getGameObject();
+		String nativeGroupName = nativeMember.getThisAttribute("native").toLowerCase();
+		boolean isFoe = false;
+		ArrayList<String> allFoes = new ArrayList<String>();
+		for (GameObject inv : responsibleCharacter.getInventory()) {
+			if (!isFoe && inv.hasThisAttribute(RealmComponent.GOLD_SPECIAL)) {
+				ArrayList<String> foes = ((GoldSpecialChitComponent)RealmComponent.getRealmComponent(inv)).getFoes();
+				for (String foe : foes) {
+					allFoes.add(foe.toLowerCase());
+					if (nativeGroupName.toLowerCase().matches(foe.toLowerCase())) {
+						isFoe = true;
+						break;
+					}
+				}
+			}
+		}		
+		if (!isFoe) {
+			String currentRelString = RealmUtility.getRelationshipNameFor(responsibleCharacter,rc);
+			responsibleCharacter.changeRelationshipTo(rc.getGameObject(),RelationshipType.ENEMY);
+			responsibleCharacter.addDamagedRelations(rc.getGameObject());
+			logBattleInfo(killer.getGameObject().getNameWithNumber()+" killed "+currentRelString+" "+rc.toString()+".");
+			logBattleInfo(responsibleCharacter.getCharacterName()+" relationship is harmed! (DAMAGED RELATIONS) --> ENEMY");
+			
+			String clanId = nativeMember.getThisAttribute(Constants.CLAN);
+			if (clanId!=null) {
+				GamePool pool = new GamePool(responsibleCharacter.getGameData().getGameObjects());
+				ArrayList<GameObject> hqs = pool.extract("native,rank=HQ,clan="+clanId);
+				ArrayList<String> affectedClans = new ArrayList<String>();
+				for (GameObject hq : hqs) {
+					String nativeClanName = hq.getThisAttribute("native").toLowerCase();
+					if (!affectedClans.contains(nativeClanName) && !allFoes.contains(nativeClanName) && !responsibleCharacter.hasChangedRelationshipToday(hq)) {
+						affectedClans.add(hq.getThisAttribute("native").toLowerCase());
+						responsibleCharacter.changeRelationship(hq,-1);
+						String newClanRelString = RealmUtility.getRelationshipNameFor(responsibleCharacter,RealmComponent.getRealmComponent(hq));
+						nativeClanName = nativeClanName.substring(0, 1).toUpperCase() + nativeClanName.substring(1);
+						logBattleInfo(responsibleCharacter.getCharacterName()+" relationship with "+nativeClanName+" is harmed by -1! (AFFECTED CLAN) --> "+newClanRelString);
+					}
+				}
+			}
+		}
 	}
 	/**
 	 * @return		The appropriate DieRoller for this BattleGroup
@@ -1990,11 +3382,10 @@ public class BattleModel {
 		return getAttackersFor(rc,true,true);
 	}
 	public ArrayList<RealmComponent> getAttackersFor(RealmComponent rc,boolean includeCharacters,boolean includeWeapons) {
-		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
-		for (Iterator i=getAllBattleParticipants(true).iterator();i.hasNext();) {
-			RealmComponent bp = (RealmComponent)i.next();
+		ArrayList<RealmComponent> list = new ArrayList<>();
+		for (RealmComponent bp : getAllBattleParticipants(true)) {
 			if (includeCharacters || !bp.isCharacter()) {
-				if (bp.getTarget()!=null && rc.equals(bp.getTarget())) {
+				if ((bp.getTarget()!=null && rc.equals(bp.getTarget())) || (bp.get2ndTarget()!=null && rc.equals(bp.get2ndTarget()))) {
 					list.add(bp);
 					if (includeWeapons && bp instanceof MonsterChitComponent) {
 						MonsterChitComponent monster = (MonsterChitComponent)bp;
@@ -2056,11 +3447,10 @@ public class BattleModel {
 	 * @return		A list of all RealmComponents in the clearing that are currently being affected
 	 * 				by Hurricane Winds
 	 */
-	public ArrayList getAllBlowees() {
-		ArrayList list = new ArrayList();
-		for (Iterator i=getAllBattleParticipants(true).iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
-			if (rc.getGameObject().hasThisAttribute(Constants.BLOWS_TARGET)) {
+	public ArrayList<RealmComponent> getAllBlowees() {
+		ArrayList<RealmComponent> list = new ArrayList<>();
+		for (RealmComponent rc : getAllBattleParticipants(true)) {
+			if (rc.getGameObject().hasThisAttribute(Constants.BLOWS_TARGET) || rc.getGameObject().hasThisAttribute(Constants.EVENT_HURRICANE_WINDS)) {
 				list.add(rc);
 			}
 		}
@@ -2068,11 +3458,10 @@ public class BattleModel {
 	}
 	public boolean somebodyIsTargeted() {
 		boolean ret = false;
-		for (Iterator i=getAllBattleParticipants(true).iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+		for (RealmComponent rc : getAllBattleParticipants(true)) {
 			logger.finest(rc.getGameObject().getName()+"...");
 			CombatWrapper rcCombat = new CombatWrapper(rc.getGameObject());
-			if (rc.getTarget()!=null) {
+			if (rc.getTarget()!=null || rc.get2ndTarget()!=null) {
 				ret = true;
 				logger.finest("is targeting someone");
 				break;
@@ -2091,12 +3480,86 @@ public class BattleModel {
 		}
 		return ret;
 	}
-
+	public void blowTarget(String blownSpellId, RealmComponent rc) {
+		// Yep, getting blown away here
+		
+		// Flip to light side
+		RealmUtility.normalizeParticipant(rc);
+		
+		// Move to target tile
+		SpellWrapper spell = null;
+		TileLocation tl = null;
+		if (blownSpellId!=null) {
+			GameObject go = gameData.getGameObject(Long.valueOf(blownSpellId));
+			spell = new SpellWrapper(go);
+			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(spell.getSecondaryTarget());
+			tl = new TileLocation(tile,true);
+		}
+		else {
+			TileLocation loc = rc.getCurrentLocation();
+			ArrayList<TileComponent> possibleTiles = new ArrayList<>();
+			Point basePosition = RealmUtility.getTilePositionFromGameObject(loc.tile.getGameObject());
+			GamePool pool = new GamePool(gameData.getGameObjects());
+			ArrayList<GameObject> tiles = pool.find("tile");
+			for (GameObject tile : tiles) {
+				Point position = RealmUtility.getTilePositionFromGameObject(tile);
+				if ((position.x==basePosition.x || position.x==basePosition.x-1 || position.x==basePosition.x+1)
+						&& (position.y==basePosition.y || position.y==basePosition.y-1 || position.y==basePosition.y+1)) {
+					possibleTiles.add(new TileComponent(tile));
+				}
+			}
+			TileComponent chosenTile = possibleTiles.get(RandomNumber.getRandom(possibleTiles.size()));
+			tl = new TileLocation(chosenTile,true);
+		}
+		
+		if (!hostPrefs.hasPref(Constants.HOUSE2_HURRICANE_WINDS_BLOWS_HIRELINGS)) {
+			TileLocation loc = rc.getCurrentLocation();
+			if (loc.clearing!=null) {
+				ArrayList<GameObject> leftBehindItems = new ArrayList<>();
+				for (GameObject item : rc.getGameObject().getHold()) {
+					RealmComponent itemRc = RealmComponent.getRealmComponent(item);
+					if ((itemRc.isHiredOrControlled() || itemRc.isNative() || itemRc.isMonster()) && itemRc.getCurrentLocation().equals(loc)) {
+						leftBehindItems.add(item);
+					}
+				}
+				for (GameObject item : leftBehindItems) {
+					loc.clearing.add(item, null);
+				}
+			}
+		}
+		
+		ClearingUtility.moveToLocation(rc.getGameObject(),tl);
+		
+		CombatWrapper combat = new CombatWrapper(rc.getGameObject());
+		// Clear all attackers
+		for (GameObject attacker:combat.getAttackers()) {
+			RealmComponent arc = RealmComponent.getRealmComponent(attacker);
+				arc.clearTargets();
+			combat.removeAttacker(attacker);
+		}
+		
+		// Expire the wind spell if rc is a player controlled critter
+		if (rc.isAnyLeader()) {
+			if (spell!=null) {
+				spell.expireSpell();
+			}
+			rc.getGameObject().setThisAttribute(Constants.LAND_FIRST); // Forces a landing at the beginning of next turn
+		}
+		logBattleInfo(rc+" is blown away to "+tl.tile.getGameObject().getNameWithNumber()+"!");
+	}
+	
 	private boolean testRedDeadDisengage(MonsterChitComponent monster,CombatWrapper combat,CombatWrapper targetCombat) {
-		if (monster.canPinOpponent()) {
+		if (targetCombat==null) {
+				if (monster.isPinningOpponent()) {
+					monster.flip();
+					logBattleInfo(monster+" does flip back, because no target available.");
+				}
+			return true;
+		}
+		if (monster.canPinOpponent() && targetCombat!=null) {
 			logBattleInfo(monster+" is a Tremendous monster");
 			logBattleInfo(monster+" hit result: "+combat.getHitResult());
-			if (monster.isPinningOpponent() && targetCombat!=null && targetCombat.getKilledBy()!=null) {
+			if (monster.isPinningOpponent() && targetCombat.getKilledBy()!=null) {
 				// Red-side up monsters should flip back when their target is dead!
 				monster.flip();
 				logBattleInfo(monster+" flips back to light side.");
@@ -2109,6 +3572,7 @@ public class BattleModel {
 				 */
 				monster.flip();
 				logBattleInfo(monster+" flips RED side up.");
+				setTremendousMonsterFlippedRedSideUp();
 			}
 			
 			// Also, test the monster weapon, if any
@@ -2125,12 +3589,12 @@ public class BattleModel {
 						// Target not dead, then monster goes RED (hey, that rhymes!)
 						monster.flip();
 						logBattleInfo(monster+" flips RED side up because of weapon hit.");
+						setTremendousMonsterFlippedRedSideUp();
 					}
 				}
 			}
 			
 			if (monster.isPinningOpponent()) {
-				
 				RealmComponent targetRc = RealmComponent.getRealmComponent(targetCombat.getGameObject());
 				if (targetRc.isCharacter()) {
 					CharacterWrapper character = new CharacterWrapper(targetCombat.getGameObject());
@@ -2152,22 +3616,39 @@ public class BattleModel {
 	 * Disengage ALL targets
 	 */
 	public void makePeace() {
-		for (Iterator i=getAllBattleParticipants(true).iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
-			rc.clearTarget();
+		for (RealmComponent rc : getAllBattleParticipants(true)) {
+			rc.clearTargets();
 		}
 	}
 	
-	public static ArrayList<RealmComponent> getParticipantsFromGroups(Collection battleGroups) {
-		ArrayList<RealmComponent> participants = new ArrayList<RealmComponent>();
-		for (Iterator i = battleGroups.iterator(); i.hasNext();) {
-			BattleGroup bg = (BattleGroup) i.next();
+	public static ArrayList<RealmComponent> getParticipantsFromGroups(Collection<BattleGroup> battleGroups) {
+		ArrayList<RealmComponent> participants = new ArrayList<>();
+		for (BattleGroup bg : battleGroups) {
 			participants.addAll(bg.getBattleParticipants());
 		}
 		return participants;
 	}
 	
-	public boolean wasSpellCasting() {
-		return spellCasting;
+	public void setSpellCasting() {
+		CombatWrapper cw = new CombatWrapper(battleLocation.tile.getGameObject());
+		cw.setWasSpellCasting(true);
+	}
+	
+	public void setGotUnhidden() {
+		CombatWrapper cw = new CombatWrapper(battleLocation.tile.getGameObject());
+		cw.setWasUnhiding(true);
+	}
+	
+	public void setTremendousMonsterFlippedRedSideUp() {
+		CombatWrapper cw = new CombatWrapper(battleLocation.tile.getGameObject());
+		cw.setTremendousMonsterFlippedRedSideUp(true);
+	}
+	public void autoPositioningForAttackers() {
+		for (RealmComponent rc : getAllBattleParticipants(false)) {
+			if (rc.isCharacter()) {
+				CharacterCombatSheet sheet = new CharacterCombatSheet(CombatFrame.getSingleton(),this,rc,false, hostPrefs);
+				sheet.autoPositioningForAttackers();
+			}
+		}
 	}
 }

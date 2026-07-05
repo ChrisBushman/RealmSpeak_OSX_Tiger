@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.table;
 
 import java.util.ArrayList;
@@ -24,14 +7,18 @@ import javax.swing.event.ChangeListener;
 
 import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
+import com.robin.game.objects.GamePool;
 import com.robin.game.server.GameClient;
 import com.robin.general.swing.DieRoller;
 import com.robin.general.swing.IconGroup;
 import com.robin.magic_realm.components.*;
 import com.robin.magic_realm.components.attribute.TileLocation;
+import com.robin.magic_realm.components.utility.ClearingUtility;
+import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.utility.RealmDirectInfoHolder;
 import com.robin.magic_realm.components.utility.RealmUtility;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
+import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public abstract class RealmTable {
 	
@@ -78,7 +65,7 @@ public abstract class RealmTable {
 		return null;
 	}
 	protected void sendMessage(GameData data,String clientName,String title,String message) {
-		ArrayList strings = new ArrayList();
+		ArrayList<String> strings = new ArrayList<>();
 		strings.add(title);
 		strings.add(message);
 		strings.add(roller==null?"":roller.getStringResult());
@@ -125,8 +112,28 @@ public abstract class RealmTable {
 	public String apply(CharacterWrapper character, DieRoller inRoller) {
 		this.roller = inRoller;
 		int result = getResult(roller);
+		
+		if (character!=null && character.hasLuck()) {
+			int ret = JOptionPane.showConfirmDialog(
+					parentFrame,
+					"Do you want to re-roll this roll ("+roller.getStringResult()+")?",
+					this.toString() + " - Luck",
+					JOptionPane.YES_NO_OPTION,
+					JOptionPane.INFORMATION_MESSAGE);
+			if (ret==JOptionPane.YES_OPTION) {
+				character.removeLuck(parentFrame);
+				inRoller.rollDice("");
+				this.roller = inRoller;
+				result = getResult(roller);
+				return apply(character,inRoller);
+			}
+		}
+		
+		return apply(character,result);
+	}
+	public String apply(CharacterWrapper character, int number) {
 		String message = null;
-		switch(result) {
+		switch(number) {
 			case 1:
 				message = applyOne(character);
 				break;
@@ -167,26 +174,50 @@ public abstract class RealmTable {
 	
 	// STATIC METHODS
 	
+	public static RealmTable search1ed(JFrame frame,ClearingDetail clearing) {
+		return new Search1ed(frame,clearing);
+	}
 	public static RealmTable peer(JFrame frame,ClearingDetail clearing) {
 		return new Peer(frame,clearing);
+	}
+	public static RealmTable peer1ed(JFrame frame,ClearingDetail clearing) {
+		return new Peer1ed(frame,clearing);
 	}
 	public static RealmTable mountainPeer(JFrame frame) {
 		return new MountainPeer(frame);
 	}
+	public static RealmTable mountainPeer1ed(JFrame frame) {
+		return new MountainPeer1ed(frame);
+	}
 	public static RealmTable peerAny(JFrame frame) {
 		return new AnyClearingPeer(frame);
+	}
+	public static RealmTable peerAny1ed(JFrame frame) {
+		return new AnyClearingPeer1ed(frame);
 	}
 	public static RealmTable locate(JFrame frame,ClearingDetail clearing) {
 		return new Locate(frame,clearing);
 	}
+	public static RealmTable locate1ed(JFrame frame,ClearingDetail clearing) {
+		return new Locate1ed(frame,clearing);
+	}
 	public static RealmTable loot(JFrame frame,CharacterWrapper character,TileLocation tl,ChangeListener listener) {
 		return new Loot(frame,character,tl,listener);
+	}
+	public static RealmTable loot(JFrame frame,CharacterWrapper character,TileLocation tl,ChangeListener listener,boolean ignorePit) {
+		return new Loot(frame,character,tl,listener,ignorePit);
 	}
 	public static RealmTable loot(JFrame frame,CharacterWrapper character,GameObject treasureLocation,ChangeListener listener) {
 		if (treasureLocation.hasAttributeBlock("table")) {
 			return new TableLoot(frame,treasureLocation,listener);
 		}
 		return new Loot(frame,character,treasureLocation,listener);
+	}
+	public static RealmTable loot(JFrame frame,CharacterWrapper character,GameObject treasureLocation,ChangeListener listener,boolean ignorePit) {
+		if (treasureLocation.hasAttributeBlock("table")) {
+			return new TableLoot(frame,treasureLocation,listener,ignorePit);
+		}
+		return new Loot(frame,character,treasureLocation,listener,ignorePit);
 	}
 	public static RealmTable readRunes(JFrame frame,GameObject spellLocation) {
 		return new ReadRunes(frame,spellLocation);
@@ -200,5 +231,22 @@ public abstract class RealmTable {
 	protected ImageIcon getIconForSearch(RealmComponent rc) {
 		if (rc.isCard() || rc.isTraveler() || rc.isGuild()) return rc.getMediumIcon();
 		return rc.getIcon();
+	}
+	
+	protected void revealTravelers(CharacterWrapper character, GameObject location) {
+		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
+		if (!hostPrefs.hasPref(Constants.SR_REVEAL_TRAVELERS)) return;
+		
+		String locationName = location.getThisAttribute(RealmComponent.TREASURE_LOCATION);
+		RealmComponent locationRc = RealmComponent.getRealmComponent(location);
+		TileLocation tl = locationRc.getCurrentLocation();
+		if (tl==null || tl.tile==null || tl.clearing==null) {
+			return;
+		}
+		GamePool pool = new GamePool(character.getGameData().getGameObjects());
+		ArrayList<GameObject> boxes = pool.find("summon="+locationName.toLowerCase());
+		for (GameObject box : boxes) {
+			ClearingUtility.dumpTravelersToTile(tl.tile.getGameObject(),box,tl.clearing.getNum());
+		}
 	}
 }

@@ -1,45 +1,30 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Iterator;
+
+import javax.swing.ImageIcon;
 
 import com.robin.game.objects.GameObject;
 import com.robin.general.graphics.StarShape;
 import com.robin.general.graphics.TextType;
 import com.robin.general.graphics.TextType.Alignment;
+import com.robin.general.swing.ImageCache;
 import com.robin.magic_realm.components.attribute.*;
 import com.robin.magic_realm.components.utility.*;
+import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 import com.robin.magic_realm.components.wrapper.CombatWrapper;
 import com.robin.magic_realm.components.wrapper.GameWrapper;
 import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
+import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
-public class MonsterChitComponent extends SquareChitComponent implements BattleChit {
+public class MonsterChitComponent extends SquareChitComponent implements BattleChit,Horsebackable {
 	protected int chitSize;
 	
 	private boolean alteredMoveSpeed = false;
 	
 	private MonsterFightChitComponent fightChit = null; // only used when a monster is absorbed!!
 	private MonsterMoveChitComponent moveChit = null; // only used when a monster is absorbed!!
-	
-	public static boolean showMonsterNumbers = false;
 	
 	public MonsterFightChitComponent getFightChit() {
 		if (fightChit==null) {
@@ -60,12 +45,15 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 	}
 	public void updateChit() {
 		int oldSize = chitSize;
-		if (isDisplayStyleFrenzel()) {
+		if (isDisplayStyleFrenzel() || isDisplayStyleAlternative()) {
 			chitSize = H_CHIT_SIZE;
 		}
 		else {
 			String vul = getVulnerability().getChar();
-			if (vul.equals("T") || vul.equals("!")) {
+			if (vul.equals("X")) {
+				chitSize = X_CHIT_SIZE;
+			}
+			else if (vul.equals("T") || vul.equals("!")) {
 				chitSize = T_CHIT_SIZE;
 			}
 			else if (vul.equals("H")) {
@@ -83,13 +71,21 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 		}
 
 		try {
-			if (isDisplayStyleFrenzel()) {
+			if (isDisplayStyleFrenzel() || isDisplayStyleAlternative()) {
 				lightColor = Color.white;
 				darkColor = Color.white;
 			}
 			else {
-				lightColor = MagicRealmColor.getColor(getAttribute("light", "chit_color"));
-				darkColor = MagicRealmColor.getColor(getAttribute("dark", "chit_color"));
+				String lightColorString = getAttribute("light", "chit_color");
+				if (lightColorString == null || lightColorString.isEmpty()) {
+					lightColorString = getAttribute("intact", "chit_color");
+				}
+				String darkColorString = getAttribute("dark", "chit_color");
+				if (darkColorString == null || darkColorString.isEmpty()) {
+					darkColorString = getAttribute("damaged", "chit_color");
+				}
+				lightColor = MagicRealmColor.getColor(lightColorString);
+				darkColor = MagicRealmColor.getColor(darkColorString);
 			}
 		}
 		catch (Exception ex) {
@@ -114,14 +110,20 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 	}
 
 	public MonsterPartChitComponent getWeapon() {
-		if (!getGameObject().hasThisAttribute("animal")) { // as long as the monster isn't transformed!
-			ArrayList list = getGameObject().getHold();
+		return getWeapon(false);
+	}
+	
+	public MonsterPartChitComponent getWeapon(boolean ignoreWeight) {
+		if (!getGameObject().hasThisAttribute("animal") && !getGameObject().hasThisAttribute("statue")) { // as long as the monster isn't transformed!
+			ArrayList<GameObject> list = getGameObject().getHold();
 			if (list != null && list.size() > 0) {
-				for (Iterator i=list.iterator();i.hasNext();) {
-					GameObject weapon = (GameObject)i.next();
+				for (GameObject weapon : list) {
 					RealmComponent rc = RealmComponent.getRealmComponent(weapon);
 					if (rc.isMonsterPart()) { // Might be a Hurricane Winds FLY chit
-						return (MonsterPartChitComponent) RealmComponent.getRealmComponent(weapon);
+						MonsterPartChitComponent monsterPart = (MonsterPartChitComponent) rc;
+						if (!monsterPart.isDestroyed() && (ignoreWeight || this.getMoveStrength().strongerOrEqualTo((RealmComponent.getRealmComponent(weapon).getWeight())))) {
+							return monsterPart;
+						}
 					}
 				}
 			}
@@ -129,14 +131,41 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 		return null;
 	}
 
-	public boolean isTremendous() {
-		return getVulnerability().isTremendous();
+	public boolean isTremendousWeight() {
+		Strength vul =  new Strength(getThisAttribute("vulnerability"));
+		return vul.isTremendous();
+	}
+	
+	public boolean isMaximumWeight() {
+		Strength vul =  new Strength(getThisAttribute("vulnerability"));
+		return vul.isMaximum();
+	}
+	
+	public boolean isSmall() {
+		return getGameObject().hasThisAttribute(Constants.SMALL);
 	}
 	
 	public boolean canPinOpponent() {
 		return getGameObject().hasAttribute("dark","pins");
 	}
+	
+	public boolean cannotChangeTactics() {
+		return getGameObject().hasThisAttribute(Constants.NO_CHANGE_TACTICS) || hasFaceAttribute(Constants.NO_CHANGE_TACTICS) || getWeight().isMaximum()
+				|| (getShield()!=null && !getShield().isDestroyed() && getShield().getWeight().isMaximum());
+	}
+	
+	public boolean changeTacticsAfterCasting() {
+		return getGameObject().hasThisAttribute(Constants.CHANGE_TACTICS_AFTER_CASTING) || hasFaceAttribute(Constants.CHANGE_TACTICS_AFTER_CASTING);
+	}
 
+	public boolean changeTacticsForNonSpellAttack() {
+		return getGameObject().hasThisAttribute(Constants.CHANGE_TACTICS_FOR_NON_SPELL_ATTACK) || hasFaceAttribute(Constants.CHANGE_TACTICS_FOR_NON_SPELL_ATTACK);
+	}
+	
+	public boolean castOnlyInFirstCombatRound() {
+		return getGameObject().hasThisAttribute(Constants.CAST_ONLY_IN_FIRST_COMBAT_ROUND) || hasFaceAttribute(Constants.CAST_ONLY_IN_FIRST_COMBAT_ROUND);
+	}
+	
 	public void changeTactics() {
 		flip();
 	}
@@ -169,8 +198,10 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 	public void paintAttackValues(Graphics2D g,int ox,int oy,Color attackBack) {
 		int cs = getChitSize();
 		TextType tt;
-		String attack_speed = getAttackSpeed().getSpeedString();
-		String strength = getStrength().getChitString();
+		Speed attack_speed_value = getAttackSpeed();
+		String attack_speed = attack_speed_value.getSpeedString();
+		Strength strength_value = getStrength();
+		String strength = strength_value.getChitString();
 		String magic_type = getFaceAttributeString("magic_type");
 		int sharpness = getSharpness();
 		
@@ -178,45 +209,91 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 		boolean red = strength.equals("!");
 		String statColor = "STAT_BLACK";
 		g.setColor(Color.black);
-		if (isDisplayStyleFrenzel()) {
+		if (isDisplayStyleFrenzel() || isDisplayStyleAlternative()) {
 			if (!pins) {
-				if (isLightSideUp()) {
-					statColor = "STAT_ORANGE";
+				statColor = isLightSideUp()?"STAT_ORANGE":"STAT_BRIGHT_ORANGE";
+				Integer length = getLength();
+				String textTypeLength = statColor;
+				if (RealmComponent.displayColoredStats) {
+					Integer defaultLength = getFaceAttributeInteger("length");
+					if (defaultLength==null) defaultLength = 0;
+					if (length>defaultLength) {
+						textTypeLength = "STAT_BLUE";
+					} else if(defaultLength>length) {
+						textTypeLength = "STAT_RED";
+					}
 				}
-				else {
-					statColor = "STAT_BRIGHT_ORANGE";
+				tt = new TextType("("+length+")", cs,textTypeLength);
+				int offset = 0;
+				if (this.isAbsorbed()) {
+					offset = 12;
 				}
-				
-				String length = getFaceAttributeString("length");
-				if (length.trim().length()==0) {
-					length="0";
-				}
-				tt = new TextType("("+length+")", cs,statColor);
-				tt.draw(g,cs>>1,oy - tt.getHeight(g),Alignment.Left);
+				tt.draw(g,(cs>>1)-offset,oy - tt.getHeight(g),Alignment.Left);
 			}
 		}
 		
 		int x;
 		int y;
 		if (red) {
-			tt = new TextType(attack_speed, cs,statColor);
+			String attack_speed_color = statColor;
+			if ((isDisplayStyleFrenzel() || isDisplayStyleAlternative()) && RealmComponent.displayColoredStats) {
+				Speed defaultAttackSpeed = new Speed(getFaceAttributeInteger("attack_speed"));
+				if (attack_speed_value.fasterThan(defaultAttackSpeed)) {
+					attack_speed_color = "STAT_BLUE";
+				}
+				else if (defaultAttackSpeed.fasterThan(attack_speed_value)) {
+					attack_speed_color = "STAT_RED";
+				}
+			}
+			tt = new TextType(attack_speed, cs,attack_speed_color);
 			x = ox + 8;
 			y = oy - 2 - tt.getHeight(g);
 			int rad = Math.max(tt.getWidth(g), tt.getHeight(g)) + 4;
 			g.fillOval(x - 6, y + 1, rad, rad);
 			g.setColor(attackBack);
 			g.fillOval(x - 4, y + 3, rad - 4, rad - 4);
+			tt.draw(g, x, y, Alignment.Left);
 		}
 		else {
 			String string = (strength + magic_type + attack_speed);
 			tt = new TextType(string, cs,statColor);
 			x = ox + 6;
 			y = oy - tt.getHeight(g);
+			if ((isDisplayStyleFrenzel() || isDisplayStyleAlternative()) && RealmComponent.displayColoredStats) {
+				String textTypeStrength = statColor;
+				Strength defaultStrength = new Strength(getFaceAttributeString("strength"));
+				if (strength_value.strongerThan(defaultStrength)) {
+					textTypeStrength = "STAT_BLUE";
+				} else if (defaultStrength.strongerThan(strength_value)) {
+					textTypeStrength = "STAT_RED";
+				}
+				String textTypeAttackSpeed = statColor;
+				Speed defaultAttackSpeed = new Speed(getFaceAttributeInteger("attack_speed"));
+				if (attack_speed_value.fasterThan(defaultAttackSpeed)) {
+					textTypeAttackSpeed = "STAT_BLUE";
+				} else if (defaultAttackSpeed.fasterThan(attack_speed_value)) {
+					textTypeAttackSpeed = "STAT_RED";
+				}
+				TextType ttStrength = new TextType(strength, cs,textTypeStrength);
+				TextType ttMagicType = new TextType(magic_type, cs,statColor);
+				TextType ttAttackSpeed = new TextType(attack_speed, cs,textTypeAttackSpeed);
+				ttStrength.draw(g, x, y, Alignment.Left);
+				ttMagicType.draw(g, x+ttStrength.getWidth(g), y, Alignment.Left);
+				ttAttackSpeed.draw(g, x+ttStrength.getWidth(g)+ttMagicType.getWidth(g), y, Alignment.Left);
+			} else {
+				tt.draw(g, x, y, Alignment.Left);
+			}
 		}
-		tt.draw(g, x, y, Alignment.Left);
 		x += tt.getWidth(g) + 4;
 		y += tt.getHeight(g) - 6;
+		int deafaultSharpness = getFaceAttributeInt("sharpness");
+		if ((isDisplayStyleFrenzel() || isDisplayStyleAlternative()) && RealmComponent.displayColoredStats && deafaultSharpness>sharpness) {
+			g.setColor(Color.RED);
+		}
 		for (int i = 0; i < sharpness; i++) {
+			if ((isDisplayStyleFrenzel() || isDisplayStyleAlternative()) && RealmComponent.displayColoredStats && i==deafaultSharpness) {
+				g.setColor(Color.BLUE);
+			}
 			StarShape star = new StarShape(x, y, 5, 7);
 			g.fill(star);
 			x += 10;
@@ -228,13 +305,29 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 		Speed move_speed = getMoveSpeed();
 		if (move_speed!=null) {
 			String string = String.valueOf(move_speed.getNum())+(alteredMoveSpeed?"!":"");
-			if (isDisplayStyleFrenzel()) {
+			boolean coloredSpeed = false;
+			if (isDisplayStyleFrenzel() || isDisplayStyleAlternative()) {
+				String textTypeSpeed = "STAT_WHITE";
+				if (RealmComponent.displayColoredStats) {
+					Speed defaultMoveSpeed = new Speed(getFaceAttributeInteger("move_speed"));
+					if (move_speed.fasterThan(defaultMoveSpeed)) {
+						textTypeSpeed = "STAT_BLUE";
+						coloredSpeed = true;
+					} else if (defaultMoveSpeed.fasterThan(move_speed)) {
+						textTypeSpeed = "STAT_RED";
+						coloredSpeed = true;
+					}
+				}
 				int x,y;
-				TextType tt = new TextType(string, cs, "STAT_WHITE");
+				TextType tt = new TextType(string, cs, textTypeSpeed);
 				x = ox - tt.getWidth(g)-4;
 				y = oy - tt.getHeight(g)-2;
 				int rad = Math.max(tt.getWidth(g), tt.getHeight(g)) + 2;
-				g.setColor(Color.blue);
+				if (coloredSpeed) {
+					g.setColor(Color.green);
+				} else {
+					g.setColor(Color.blue);
+				}
 				g.fillOval(x - 5, y + 2, rad, rad);
 				tt.draw(g, x, y, Alignment.Left);
 			}
@@ -263,12 +356,22 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 			tt.draw(g,cs-24,midy-11,Alignment.Left);
 		}
 		
-		boolean armored = getGameObject().hasThisAttribute(Constants.ARMORED);
+		boolean armored = isArmored();
 		int x = cs - 18;
 		int y = 5;
-		String vul = getVulnerability().getChar();//getGameObject().getThisAttribute("vulnerability");
+		Strength vul_value = getVulnerability();
+		String vul = vul_value.getChar();
 		if (vul!=null) {
-			tt = new TextType(vul, cs, "STAT_BLACK");
+			String textType = "STAT_BLACK";
+			if (RealmComponent.displayColoredStats) {
+				Strength defaultVul = new Strength(getThisAttribute( "vulnerability"));
+				if (vul_value.strongerThan(defaultVul)) {
+					textType = "STAT_BLUE";
+				} else if(defaultVul.strongerThan(vul_value)) {
+					textType = "STAT_RED";
+				}			
+			}
+			tt = new TextType(vul, cs, textType);
 			int rad = Math.max(tt.getWidth(g), tt.getHeight(g)) + 4;
 			g.setColor(armored?Color.lightGray:Color.yellow);
 			g.fillOval(x - 4, y + 1, rad, rad);
@@ -293,8 +396,11 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 		}
 	}
 	protected String getIconFolder() {
+		if (isDisplayStyleAlternative() && gameObject.hasThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE)) {
+			return gameObject.getThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE);
+		}
 		String iconDir = getGameObject().getThisAttribute(Constants.ICON_FOLDER);
-		if (useColorIcons()) {
+		if (useColorIcons() && !isDisplayStyleAlternative() && !gameObject.hasThisAttribute(Constants.SUPER_REALM)) {
 			iconDir = iconDir+"_c";
 		}
 		return iconDir;
@@ -304,6 +410,7 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 		return super.getSize();
 	}
 	public void paintComponent(Graphics g1) {
+		if (this.getGameObject().hasThisAttribute(Constants.OUT_OF_GAME)) return;
 		super.paintComponent(g1);
 		Graphics2D g = (Graphics2D) g1;
 		int cs = getChitSize();
@@ -311,13 +418,36 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 		Color attackBack = isLightSideUp()?lightColor:darkColor;
 
 		// Draw image
-		String icon_type = (String)gameObject.getThisAttribute(Constants.ICON_TYPE);
+		String icon_type = null;
+		if (isDisplayStyleAlternative() && gameObject.hasThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE)) {
+			icon_type = gameObject.getThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE);
+		}
+		else {
+			icon_type = gameObject.getThisAttribute(Constants.ICON_TYPE);
+		}
 		if (icon_type != null) {
-			if (isDisplayStyleFrenzel()) {
-				drawIcon(g, getIconFolder(), icon_type, 0.6,-5,1,null);
+			if (isDisplayStyleFrenzel() || isDisplayStyleAlternative()) {
+				double size = 0.6;
+				int yOffset = 1;
+				if (isDisplayStyleAlternative() && gameObject.hasThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE)) {
+					size = Double.parseDouble(gameObject.getThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE));
+				}
+				else if (gameObject.hasThisAttribute(Constants.ICON_SIZE)) {
+					size = Double.parseDouble(gameObject.getThisAttribute(Constants.ICON_SIZE));
+				}
+				if (isDisplayStyleAlternative() && gameObject.hasThisAttribute(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE)) {
+					yOffset = getThisInt(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE);
+				}
+				else if (gameObject.hasThisAttribute(Constants.ICON_Y_OFFSET)) {
+					yOffset = getThisInt(Constants.ICON_Y_OFFSET);
+				}
+				drawIcon(g, getIconFolder(), icon_type, size,-5,yOffset,null);
 			}
 			else {
-				if (chitSize == T_CHIT_SIZE) {
+				if (gameObject.hasThisAttribute(Constants.ICON_SIZE_OVERRIDE)) {
+					drawIcon(g, getIconFolder(), icon_type, Double.parseDouble(gameObject.getThisAttribute(Constants.ICON_SIZE_OVERRIDE)));
+				}
+				else if (chitSize == T_CHIT_SIZE) {
 					drawIcon(g, getIconFolder(), icon_type, 0.9);
 				}
 				else if (chitSize == S_CHIT_SIZE) {
@@ -329,19 +459,19 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 			}
 		}
 		
-		if (showMonsterNumbers && gameObject.hasThisAttribute(Constants.NUMBER)) {
+		if (GameObject.showNumbers && gameObject.hasThisAttribute(Constants.NUMBER)) {
 			g.setColor(Color.black);
 			g.setFont(new Font("Dialog",Font.BOLD,11));
 			int x = 5;
 			int y = cs>>1;
-			if (isDisplayStyleFrenzel()) {
+			if (isDisplayStyleFrenzel() || isDisplayStyleAlternative()) {
 				y += 10;
 			}
 			g.drawString(gameObject.getThisAttribute(Constants.NUMBER),x,y);
 		}
 		
 		
-		if (isDisplayStyleFrenzel() && isDarkSideUp()) {
+		if ((isDisplayStyleFrenzel() || isDisplayStyleAlternative()) && isDarkSideUp()) {
 			attackBack = isPinningOpponent()?Color.red:Color.black;
 			g.setColor(attackBack);
 			g.fillRect(4,cs-20,cs-8,18);
@@ -351,40 +481,110 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 		paintAttackValues(g,0,cs - 5,attackBack);
 		paintMoveValues(g,cs - 5,cs - 5);
 		
-		if (isDisplayStyleFrenzel()) {
+		if (isDisplayStyleFrenzel() || isDisplayStyleAlternative()) {
 			paintFrenzelValues(g);
 		}
+		
+		if (RealmComponent.displayArmor && isArmored()) {
+			Stroke stroke = g.getStroke();
+			g.setStroke(new BasicStroke(2));
+			g.setColor(Color.black);
+			g.drawRect(1,1,cs-1,cs-1);
+			g.setStroke(stroke);
+		}
 
+		drawHorse(g);
+		
 		drawEmployer(g);
 		drawHiddenStatus(g);
 		drawAttentionMarkers(g);
 		drawDamageAssessment(g);
 	}
 
+	private void drawHorse(Graphics g) {
+		int size = getChitSize();
+		NativeSteedChitComponent horse = (NativeSteedChitComponent)getHorse(false);
+		if (horse!=null) {
+			String[] ret = horse.getFolderAndType();
+			int horseSize = ret[2]==null?20:40*Integer.valueOf(ret[2]);
+			ImageIcon icon = ImageCache.getIcon(ret[0]+"/"+ret[1],horseSize);
+			g.drawImage(icon.getImage(),size-icon.getIconWidth()-2,(size>>1),null);
+		}
+	}
+	
 	// BattleChit Interface
 	public boolean targets(BattleChit chit) {
 		RealmComponent rc = getTarget();
-		return (rc != null && rc.equals(chit));
+		RealmComponent rc2 = get2ndTarget();
+		return ((rc != null && rc.equals(chit)) || (rc2 != null && rc2.equals(chit)));
 	}
 
 	public Integer getLength() {
+		if (getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON_LENGTH)) {
+			RealmComponent monsterRc = RealmComponent.getRealmComponent(getGameObject());
+			if (monsterRc.isMonsterPart()) {
+				MonsterPartChitComponent monsterPart = (MonsterPartChitComponent) monsterRc;
+				monsterRc = monsterPart.getWielder();
+			}
+			if (!monsterRc.getTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS) && !monsterRc.get2ndTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS)) {
+				return Integer.valueOf(getGameObject().getThisAttribute(Constants.ENCHANTED_WEAPON_LENGTH));
+			}
+		}
 		Integer length = getFaceAttributeInteger("length");
 		if (length == null) {
-			length = new Integer(0); // tooth and claw
+			length = Integer.valueOf(0); // tooth and claw
 		}
+		
+		if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT)) {
+			int difference = (new Strength(gameObject.getThisAttribute(Constants.ALTER_WEIGHT))).getLevels()-(new Strength((getWeightWithoutModifiers("L")))).getLevels();
+			length = length + difference;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT)) {
+			length--;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) {
+			length++;
+		}
+		if (length<=0) return 0;
+		if (length>=18) return 18;
 		return length;
 	}
 
 	public Speed getMoveSpeed() {
+		return getMoveSpeed(true);
+	}
+	public Speed getMoveSpeed(boolean includeHorse) {
+		if (includeHorse) {
+			BattleHorse horse = getHorse();
+			if (horse!=null) {
+				return horse.getMoveSpeed();
+			}
+		}
+		int mod = speedModifier();
+		if (mod!=0) {
+			alteredMoveSpeed = true;
+		}
 		int otherSpeed = getGameObject().getThisInt("move_speed_change");
 		if (otherSpeed>0) {
 			alteredMoveSpeed = true;
-			return new Speed(otherSpeed,speedModifier());
+			Speed speed = new Speed(otherSpeed,mod);
+			if (getGameObject().hasThisAttribute(Constants.GROW_WINGS) && (new Speed(Constants.GROW_WINGS_SPEED)).fasterThan(speed)) {
+				speed = new Speed(otherSpeed,mod-1);
+			}
+			return speed;
 		}
-		return new Speed(getFaceAttributeInteger("move_speed"),speedModifier());
+		int baseMoveSpeed = 6;
+		if (hasFaceAttribute("move_speed")) {
+			baseMoveSpeed = getFaceAttributeInteger("move_speed");
+		}
+		Speed speed = new Speed(baseMoveSpeed,mod);
+		if (getGameObject().hasThisAttribute(Constants.GROW_WINGS) && (new Speed(Constants.GROW_WINGS_SPEED)).fasterThan(speed)) {
+			speed = new Speed(baseMoveSpeed,mod-1);
+		}
+		return speed;
 	}
 	public boolean flies() {
-		return getGameObject().hasThisAttribute("flying");
+		return getGameObject().hasThisAttribute(Constants.FLYING) || getGameObject().hasThisAttribute(Constants.GROW_WINGS);
 	}
 	public Speed getFlySpeed() {
 		if (flies()) {
@@ -398,16 +598,14 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 		if (magicType!=null && magicType.trim().length()>0) {
 			return magicType+getAttackSpeed().getNum();
 		}
-		else {
-			Strength str = getStrength();
-			if (!str.isNegligible()) {
-				StringBuffer sb = new StringBuffer(str.toString());
-				sb.append(getAttackSpeed().getNum());
-				for (int i=0;i<getSharpness();i++) {
-					sb.append("*");
-				}
-				return sb.toString();
+		Strength str = getStrength();
+		if (!str.isNegligible()) {
+			StringBuffer sb = new StringBuffer(str.toString());
+			sb.append(getAttackSpeed().getNum());
+			for (int i=0;i<getSharpness();i++) {
+				sb.append("*");
 			}
+			return sb.toString();
 		}
 		return "";
 	}
@@ -420,21 +618,97 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 		if (getGameObject().hasThisAttribute(Constants.SHRINK)) {
 			mod--;
 		}
+		if (new CombatWrapper(getGameObject()).isFreezed()) {
+			mod++;
+		}
+		if (flies() && getCurrentLocation()!=null && getCurrentLocation().clearing!=null && getCurrentLocation().clearing.isAffectedByViolentWinds()) {
+			mod++;
+		}
+		if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT) && !getFaceAttributeString("speed").matches(Constants.WEIGHT)) {
+			int difference = (new Strength(gameObject.getThisAttribute(Constants.ALTER_WEIGHT))).getLevels()-(new Strength((getWeightWithoutModifiers("L")))).getLevels();
+			mod = mod + difference;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT)) {
+			mod--;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) {
+			mod++;
+		}
+		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX1) && getManeuverCombatBox()==1) {
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX1);
+		}
+		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX2) && getManeuverCombatBox()==2) {
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX2);
+		}
+		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX3) && getManeuverCombatBox()==3) {
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX3);
+		}
 		return mod;
+	}
+	protected boolean isShrunk() {
+		return getGameObject().hasThisAttribute(Constants.SHRINK);
 	}
 	protected int sizeModifier() {
 		int mod = 0;
-		if (getGameObject().hasThisAttribute(Constants.SHRINK)) {
+		if (isShrunk()) {
 			mod--;
+		}
+		if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT)) {
+			int difference = (new Strength(gameObject.getThisAttribute(Constants.ALTER_WEIGHT))).getLevels()-(new Strength((getWeightWithoutModifiers("L")))).getLevels();
+			mod = mod + difference;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT)) {
+			mod--;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) {
+			mod++;
 		}
 		return mod;
 	}
 
 	public Speed getAttackSpeed() {
+		if (getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON_SPEED)) {
+			RealmComponent monsterRc = RealmComponent.getRealmComponent(getGameObject());
+			if (monsterRc.isMonsterPart()) {
+				MonsterPartChitComponent monsterPart = (MonsterPartChitComponent) monsterRc;
+				monsterRc = monsterPart.getWielder();
+			}
+			if (!monsterRc.getTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS) && !monsterRc.get2ndTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS)) {
+				return new Speed(getGameObject().getThisAttribute(Constants.ENCHANTED_WEAPON_SPEED),0);
+			}
+		}
 		return new Speed(getFaceAttributeInteger("attack_speed"),speedModifier());
+	}
+	
+	public Strength getMoveStrength() {
+		Strength strength;
+		if (hasFaceAttribute("move_strength")) {
+			strength = new Strength(getFaceAttributeString("move_strength"));
+		} else {
+			strength = new Strength(getThisAttribute("vulnerability"));
+		}
+		int mod = sizeModifier();
+		if (mod<0) {
+			strength.moveRedToMaximum();
+		}
+		strength.modify(mod);
+		if (strength.getChar()!="T" && getGameObject().hasThisAttribute(Constants.STRONG_MF)) {
+			strength.modify(1);
+		}		
+		return strength;
 	}
 
 	public Strength getStrength() {
+		if (getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON_STRENGTH)) {
+			RealmComponent monsterRc = RealmComponent.getRealmComponent(getGameObject());
+			if (monsterRc.isMonsterPart()) {
+				MonsterPartChitComponent monsterPart = (MonsterPartChitComponent) monsterRc;
+				monsterRc = monsterPart.getWielder();
+			}
+			if (!monsterRc.getTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS) && !monsterRc.get2ndTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS)) {
+				return new Strength(getGameObject().getThisAttribute(Constants.ENCHANTED_WEAPON_STRENGTH));
+			}
+		}
 		Strength strength = new Strength(getFaceAttributeString("strength"));
 		int mod = sizeModifier();
 		if (mod<0) {
@@ -448,15 +722,31 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 	}
 
 	public Harm getHarm() {
+		if (getWeight().isNegligible()) return new Harm(new Strength("N"),0);
 		return new Harm(getStrength(), getSharpness());
 	}
 
 	public int getSharpness() {
+		if (getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON_SHARPNESS)) {
+			RealmComponent monsterRc = RealmComponent.getRealmComponent(getGameObject());
+			if (monsterRc.isMonsterPart()) {
+				MonsterPartChitComponent monsterPart = (MonsterPartChitComponent) monsterRc;
+				monsterRc = monsterPart.getWielder();
+			}
+			if (!monsterRc.getTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS) && !monsterRc.get2ndTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS)) {
+				return getGameObject().getThisInt(Constants.ENCHANTED_WEAPON_SHARPNESS);
+			}
+		}
 		int sharpness = getFaceAttributeInt("sharpness");
 		sharpness += getGameObject().getThisInt(Constants.ADD_SHARPNESS);
 		if (sharpness>0) {
 			TileLocation tl = ClearingUtility.getTileLocation(getGameObject());
 			if (tl!=null && tl.isInClearing() && tl.clearing.hasSpellEffect(Constants.BLUNTED)) {
+				sharpness--;
+			}
+			if (sharpness>0 && getGameObject().hasThisAttribute(Constants.BLUNT)
+					&& !getGameObject().hasThisAttribute(Constants.BLUNT_IMMUNITY)
+					&& !getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON)) {
 				sharpness--;
 			}
 		}
@@ -466,15 +756,30 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 	public String getMagicType() {
 		return getFaceAttributeString("magic_type");
 	}
+	public boolean hasMagicType() {
+		return !getAttribute(getLightSideStat(),"magic_type").isEmpty() || !getAttribute(getDarkSideStat(),"magic_type").isEmpty();
+	}
+	public String getAttackSpell() {
+		return getFaceAttributeString("attack_spell");
+	}
 
 	public int getManeuverCombatBox() {
+		return getManeuverCombatBox(true);
+	}
+	public int getManeuverCombatBox(boolean includeHorse) {
+		if (includeHorse) {
+			BattleHorse horse = getHorse();
+			if (horse!=null) {
+				return horse.getManeuverCombatBox();
+			}
+		}
 		CombatWrapper combat = new CombatWrapper(getGameObject());
-		return combat.getCombatBox();
+		return combat.getCombatBoxDefense();
 	}
 	
 	public int getAttackCombatBox() {
 		CombatWrapper combat = new CombatWrapper(getGameObject());
-		return combat.getCombatBox();
+		return combat.getCombatBoxAttack();
 	}
 	
 	public boolean hasAnAttack() {
@@ -483,40 +788,228 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 	}
 
 	public Strength getVulnerability() {
-		Strength vul =  new Strength(getAttribute("this", "vulnerability"));
-		vul.modify(sizeModifier());
+		if (isMistLike()) {
+			return new Strength("T");
+		}
+		Strength vul =  new Strength(getThisAttribute("vulnerability"));
+		int mod = 0;
+		if (isShrunk()) {
+			mod--;
+		}
+		if (getGameObject().hasThisAttribute(Constants.WEAKENED_VULNERABILITY)) {
+			mod--;
+		}
+		if (getGameObject().hasThisAttribute(Constants.STRENGTHENED_VULNERABILITY)) {
+			mod++;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_DECREASED_VULNERABILITY)) {
+			mod--;
+		}
+		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_VULNERABILITY)) {
+			mod++;
+		}
+		if (getGameObject().hasThisAttribute(Constants.WOUNDS)) {
+			mod = mod - getWounds();
+		}
+		vul.modify(mod);
 		return vul;
 	}
 	
 	public boolean isArmored() {
 		return getGameObject().hasThisAttribute(Constants.ARMORED);
 	}
-
-	public boolean applyHit(GameWrapper game,HostPrefWrapper hostPrefs, BattleChit attacker, int box, Harm attackerHarm,int attackOrderPos) {
-		Harm harm = new Harm(attackerHarm);
-		Strength vulnerability = getVulnerability();
-		if (!harm.getIgnoresArmor() && isArmored()) {
-			harm.dampenSharpness();
-			RealmLogging.logMessage(attacker.getGameObject().getName(),"Hits armor, and reduces sharpness: "+harm.toString());
+	
+	public boolean hasBarkskin() {
+		return getGameObject().hasThisAttribute(Constants.BARKSKIN);
+	}
+	
+	public boolean hasActiveShield() {
+		ArrayList<GameObject> hold = getGameObject().getHold();
+		for (GameObject item : hold) {
+			if (item.hasThisAttribute(Constants.SHIELD) && !item.hasThisAttribute(Constants.DESTROYED)
+			&& this.getMoveStrength().strongerOrEqualTo((RealmComponent.getRealmComponent(item).getWeight()))) {
+				return true;
+			}
 		}
-		Strength applied = harm.getAppliedStrength();
-		if (applied.strongerOrEqualTo(vulnerability)) {
-			// Dead monster!
-			CombatWrapper combat = new CombatWrapper(getGameObject());
-			combat.setKilledBy(attacker.getGameObject());
+		return false;
+	}
+	
+	public MonsterPartChitComponent getShield() {
+		ArrayList<GameObject> hold = getGameObject().getHold();
+		for (GameObject item : hold) {
+			if (item.hasThisAttribute(Constants.SHIELD)) {
+				return (MonsterPartChitComponent) RealmComponent.getRealmComponent(item);
+			}
+		}
+		return null;
+	}
+	
+	public boolean hasMaximumWeightItem() {
+		if (getShield()!=null && getShield().getWeight().equalTo(new Strength("X"))) {
+			return true;
+		}
+		if (getWeapon(true)!=null && getWeapon(true).getWeight().equalTo(new Strength("X"))) {
+			return true;
+		}
+		NativeSteedChitComponent horse = (NativeSteedChitComponent)getHorse(false);
+		if (horse!=null && horse.getWeight().isMaximum()) {
 			return true;
 		}
 		return false;
 	}
 
+	public boolean applyHit(GameWrapper game,HostPrefWrapper hostPrefs, BattleChit attacker, int box, Harm attackerHarm,int attackOrderPos) {
+		Harm harm = new Harm(attackerHarm);
+		Strength vulnerability = getVulnerability();
+		CombatWrapper combat = new CombatWrapper(getGameObject());
+		
+		BattleHorse horse = null;
+		if (!combat.isTargetingRider(attacker.getGameObject())) {
+			horse = getHorse(attackOrderPos);
+		}
+		boolean horseHarmed = false;
+		if (horse!=null) {
+			CombatWrapper horseCombat = new CombatWrapper(horse.getGameObject());
+			if (horseCombat.getKilledBy()==null || horseCombat.getHitByOrderNumber()==attackOrderPos) {
+				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits the "
+						+getGameObject().getNameWithNumber()+"'s "
+						+horse.getGameObject().getNameWithNumber());
+						
+				horseHarmed = horse.applyHit(game,hostPrefs,attacker,box,attackerHarm,attackOrderPos);
+				if (!attackerHarm.getStrength().isRed()) {
+					// If harm is NOT RED, then only the horse is hit, otherwise, the RED continues to the native!
+					return horseHarmed;
+				}
+			}
+		}
+		
+		ArrayList<SpellWrapper> holyShields = SpellUtility.getBewitchingSpellsWithKey(getGameObject(),Constants.HOLY_SHIELD);
+		if ((holyShields!=null&&!holyShields.isEmpty()) || affectedByKey(Constants.HOLY_SHIELD) || combat.hasHolyShield(attacker.getAttackSpeed(),attacker.getLength())) {
+			for (SpellWrapper spell : holyShields) {
+				spell.expireSpell();
+			}
+			combat.setHolyShield(attacker.getAttackSpeed(), attacker.getLength());
+			RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits Holy Shield and the attack is blocked.");
+			return false;
+		}
+		
+		if (getGameObject().hasThisAttribute(Constants.MAGIC_IMMUNITY)) {
+			if (attacker.isCharacter()) {
+				WeaponChitComponent weapon = ((CharacterChitComponent)attacker).getAttackingWeapon();
+				if (weapon!=null && weapon.getGameObject().hasThisAttribute(Constants.MAGIC_COLOR_BONUS_ACTIVE) && weapon.getFaceAttributeInt(Constants.MAGIC_COLOR_BONUS_SHARPNESS)!=0) {
+					String immunity = getGameObject().getThisAttribute(Constants.MAGIC_IMMUNITY);
+					ColorMagic monsterImmunityColor = ColorMagic.makeColorMagic(immunity,true);
+					ColorMagic weaponMagicColorBonus = ColorMagic.makeColorMagic(weapon.getGameObject().getThisAttribute(Constants.MAGIC_COLOR_BONUS),true);
+					if (immunity.matches("prism") || monsterImmunityColor.sameColorAs(weaponMagicColorBonus)) {	
+						int weaponBonus = weapon.getFaceAttributeInt(Constants.MAGIC_COLOR_BONUS_SHARPNESS);
+						for (int i = 0; i<weaponBonus ; i++) {
+							harm.dampenSharpness();
+						}
+						RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Monster has magic immunity and additional sharpness is ignored: "+harm.toString());
+					}
+				}
+			}
+		}
+		
+		if (getGameObject().hasThisAttribute(Constants.POISON_IMMUNITY)) {
+			if (attacker.isCharacter()) {
+				WeaponChitComponent weapon = ((CharacterChitComponent)attacker).getAttackingWeapon();
+				if (weapon!=null && weapon.getGameObject().hasThisAttribute(Constants.POISON)) {
+					harm.dampenSharpness();
+					RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Monster has poison immunity and additional sharpness is ignored: "+harm.toString());
+				}
+			}
+			if (attacker.getGameObject().hasThisAttribute(Constants.POISON)) {
+				harm.dampenSharpness();
+				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Monster has poison immunity and additional sharpness is ignored: "+harm.toString());
+			}
+		}
+		
+		boolean armorPiercing = attacker.getGameObject().hasThisAttribute(Constants.ARMOR_PIERCING) || (attacker.isCharacter() && (new CharacterWrapper(attacker.getGameObject())).affectedByKey(Constants.ARMOR_PIERCING));
+		if (!harm.getIgnoresArmor() && hasActiveShield()) {
+			MonsterPartChitComponent shield = getShield();
+			CombatWrapper shieldCombat = new CombatWrapper(getShield().getGameObject());
+			if (shieldCombat.getCombatBoxDefense() == box) {
+				harm.dampenSharpness();
+				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits shield, thus monster is not killed, and reduces sharpness: "+harm.toString());
+				if (harm.getAppliedStrength().equalTo(shield.getStrength()) && !shield.isDamaged() && !shield.getGameObject().hasThisAttribute(Constants.DAMAGEABLE_NOT)) {
+					shield.setDamaged(true);
+					RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Damages "+this.getName()+"'s shield.");
+				}
+				else if ((harm.getAppliedStrength().strongerThan(shield.getStrength())
+						|| (harm.getAppliedStrength().equalTo(shield.getStrength()) && shield.isDamaged()))) {
+					shield.setDestroyed(true);
+					shieldCombat.setKilledBy(attacker.getGameObject());
+					shieldCombat.setKilledLength(attacker.getLength());
+					shieldCombat.setKilledSpeed(attacker.getAttackSpeed());
+					shieldCombat.setHitByOrderNumber(attackOrderPos);
+					RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Destroys "+this.getName()+"'s shield.");
+				}
+				return false; // Any attack hitting the shield, does not harm the monster.
+			}
+		}
+		
+		if (!harm.getIgnoresArmor() && !armorPiercing && isArmored()) {
+			harm.dampenSharpness();
+			RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits armor, and reduces sharpness: "+harm.toString());
+		}
+		else if (!isArmored() && !armorPiercing && hasBarkskin()) {
+			ColorMagic attackerImmunityColor = ColorMagic.makeColorMagic(attacker.getGameObject().getThisAttribute(Constants.MAGIC_IMMUNITY),true);
+			if (attackerImmunityColor!=null && (attackerImmunityColor.isPrismColor()||attackerImmunityColor.getColorNumber()==ColorMagic.GRAY)) {
+				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Barkskin is ignored.");
+			}
+			else {
+				harm.dampenSharpness();
+				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits barkskin, and reduces sharpness: "+harm.toString());
+			}
+		}
+	
+		Strength applied = harm.getAppliedStrength();
+		
+		if (this.getGameObject().hasThisAttribute(Constants.DEMON) && attacker.isCharacter()) {
+			WeaponChitComponent weapon = ((CharacterChitComponent)attacker).getAttackingWeapon();
+			if (weapon!=null && weapon.getGameObject().hasThisAttribute(Constants.DEMON_CONTROL)) {
+				int neededSpeed = weapon.getGameObject().getThisInt(Constants.DEMON_CONTROL_SPEED);
+				if (attacker.getAttackSpeed().fasterThanOrEqual(new Speed(neededSpeed))) {
+					this.getGameObject().setThisAttribute(Constants.CONTROLLED_DEMON);
+					CharacterWrapper character = new CharacterWrapper(attacker.getGameObject());
+					character.addHireling(this.getGameObject(), 2);
+					this.clearTargets();
+					RealmLogging.logMessage(character.getName(),"Now controles "+getGameObject().getNameWithNumber());
+				}
+			}
+		}
+		
+		if (hostPrefs.hasPref(Constants.HOUSE2_DENIZENS_WOUNDS) && applied.equalTo(vulnerability)) {
+			addWound();
+			RealmLogging.logMessage(getGameObject().getNameWithNumber(),"Wounded.");
+			if (hostPrefs.hasPref(Constants.HOUSE2_DENIZENS_SERIOUS_WOUNDS) && applied.equalTo(vulnerability)) {
+				combat.getGameObject().setThisAttribute(Constants.SERIOUS_WOUND);
+				RealmLogging.logMessage(getGameObject().getNameWithNumber(),"Seriously wounded.");
+			}
+		}	
+		else if (applied.strongerOrEqualTo(vulnerability)) {
+			// Dead monster!
+			combat.setKilledBy(attacker.getGameObject());
+			combat.setKilledLength(attacker.getLength());
+			combat.setKilledSpeed(attacker.getAttackSpeed());
+			if (hostPrefs.hasPref(Constants.HOUSE2_DENIZENS_SERIOUS_WOUNDS) && applied.equalTo(vulnerability)) {
+				combat.getGameObject().setThisAttribute(Constants.SERIOUS_WOUND);
+				RealmLogging.logMessage(getGameObject().getNameWithNumber(),"Seriously wounded.");
+			}
+			if (!hostPrefs.hasPref(Constants.SR_ENDING_COMBAT)) return true;
+		}
+		return false;
+	}
+
 	public boolean isMissile() {
-		return gameObject.hasThisAttribute("missile");
+		return gameObject.hasThisAttribute("missile") && !gameObject.hasThisAttribute(Constants.ENCHANTED_WEAPON);
 	}
 	public String getMissileType() {
 		return gameObject.getThisAttribute("missile");
 	}
 	
-	public void changeWeaponState(boolean hit) {
+	public void changeWeaponState(HostPrefWrapper hostPrefs) {
 		// Do nothing
 	}
 
@@ -538,10 +1031,19 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 	}
 	
 	public boolean isMistLike() {
-		return getGameObject().hasThisAttribute("mist_like");
+		return getGameObject().hasThisAttribute(Constants.MIST_LIKE);
 	}
 	public boolean isAbsorbed() {
 		GameObject heldBy = getGameObject().getHeldBy();
 		return heldBy!=null && heldBy.hasThisAttribute("spell");
+	}
+	public void addWound() {
+		addWounds(1);
+	}
+	public void addWounds(int i) {
+		getGameObject().setThisAttribute(Constants.WOUNDS,getWounds()+i); 
+	}
+	public int getWounds() {
+		return getGameObject().getThisInt(Constants.WOUNDS);
 	}
 }

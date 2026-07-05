@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
 import java.awt.*;
@@ -26,6 +9,7 @@ import com.robin.game.objects.GameObject;
 import com.robin.general.graphics.*;
 import com.robin.general.graphics.TextType.Alignment;
 import com.robin.magic_realm.components.attribute.ColorMagic;
+import com.robin.magic_realm.components.attribute.Speed;
 import com.robin.magic_realm.components.attribute.Strength;
 import com.robin.magic_realm.components.utility.*;
 import com.robin.magic_realm.components.wrapper.SpellWrapper;
@@ -64,7 +48,7 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 			
 			// Draw spots first (text can overwrite without harm)
 			
-			String tSize = (String)gameObject.getAttribute("this","treasure");
+			String tSize = gameObject.getThisAttribute("treasure");
 			boolean large = tSize.equals("large");
 			boolean great = gameObject.hasKey("great");
 			
@@ -93,7 +77,7 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 			
 			pos = 0;
 			
-			// Save a line position for the word "Potion"			
+			// Save a line position for the word "Potion"
 			tt = new TextType("Potion",PRINT_WIDTH,"ITALIC");
 			if (gameObject.hasKey("potion")) {
 				// Draw the word "Potion" if the treasure is a potion
@@ -113,7 +97,7 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 			}
 			else {			
 				// Draw the description
-				String desc = (String)gameObject.getAttribute("this","text");
+				String desc = gameObject.getThisAttribute("text");
 				if (desc!=null) {
 					tt = new TextType(desc,PRINT_WIDTH,"NORMAL");
 					tt.draw(g,PRINT_MARGIN,pos,Alignment.Center);
@@ -135,7 +119,7 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 				}
 				
 				// Draw TWT designation
-				String twt = (String)gameObject.getAttribute("this","treasure_within_treasure");
+				String twt = gameObject.getThisAttribute(TREASURE_WITHIN_TREASURE);
 				if (twt!=null) {
 					tt = new TextType("P"+twt,PRINT_WIDTH,"TITLE_RED");
 					tt.draw(g,PRINT_MARGIN,CARD_HEIGHT - 50,Alignment.Center);
@@ -143,14 +127,14 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 				}
 				
 				// Draw magic
-				String magic = (String)gameObject.getThisAttribute("magic");
+				String magic = gameObject.getThisAttribute("magic");
 				if (magic!=null) {
 					ArrayList<String> tiedMagic = readTiedMagicTypes(getGameObject());
-					ArrayList enchantedMagic = gameObject.getThisAttributeList(Constants.ARTIFACT_ENHANCED_MAGIC);
-					ArrayList<String> finalList = new ArrayList<String>();
+					ArrayList<String> enchantedMagic = gameObject.getThisAttributeList(Constants.ARTIFACT_ENHANCED_MAGIC);
+					ArrayList<String> finalList = new ArrayList<>();
 					finalList.add(magic);
 					if (enchantedMagic!=null) {
-						TreeSet unique = new TreeSet();
+						TreeSet<String> unique = new TreeSet<>();
 						unique.addAll(enchantedMagic);
 						finalList.addAll(unique);
 					}
@@ -187,25 +171,37 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 				}
 				else {
 					// Weight
-					Strength weight = getWeight();
-					tt = new TextType(weight.getChar(),PRINT_WIDTH,"BOLD");
+					Strength weight = TreasureUtility.getWeightForTreasure(gameObject);
+					String textTpye = "BOLD";
+					if (RealmComponent.displayColoredStats) {
+						Strength defaultWeight = new Strength();
+						 if(getGameObject().hasThisAttribute(Constants.WEIGHT)) {
+							defaultWeight = new Strength(getGameObject().getThisAttribute(Constants.WEIGHT));
+						 }
+						 if (weight.strongerThan(defaultWeight)) {
+							 textTpye = "TITLE_RED";
+						 } else if (defaultWeight.strongerThan(weight)) {
+							 textTpye = "BOLD_BLUE";
+						 }
+					}
+					tt = new TextType(weight.getChar(),PRINT_WIDTH,textTpye);
 					tt.draw(g,PRINT_MARGIN+5,pos,Alignment.Left);
 					
 					// Gold
-					String gold = (String)gameObject.getThisAttribute("base_price");
+					String gold = gameObject.getThisAttribute("base_price");
 					gold = gold==null?"0":gold;
 					tt = new TextType(gold,PRINT_WIDTH,"BOLD");
 					tt.draw(g,CARD_WIDTH-PRINT_MARGIN-5-tt.getWidth(g),pos,Alignment.Left);
 					
 					// Notoriety
-					String notoriety = (String)gameObject.getThisAttribute("notoriety");
+					String notoriety = gameObject.getThisAttribute("notoriety");
 					notoriety = notoriety==null?"":("N: "+notoriety);
 					tt = new TextType(notoriety,PRINT_WIDTH,"NORMAL");
 					tt.draw(g,PRINT_MARGIN,pos,Alignment.Center);
 					
 					// Fame
-					String fame = (String)gameObject.getThisAttribute("fame");
-					String nativeCode = (String)gameObject.getThisAttribute("native");
+					String fame = gameObject.getThisAttribute("fame");
+					String nativeCode = gameObject.getThisAttribute("native");
 					if (nativeCode==null) {
 						fame = fame==null?"":("FAME: "+fame);
 					}
@@ -217,7 +213,8 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 					tt.draw(g,PRINT_MARGIN,pos,Alignment.Center);
 					
 					// Show awakened/not awakened
-					if ((magic!=null && magic.length()>0) || getGameObject().hasThisAttribute("book")) {
+					if ((magic!=null && magic.length()>0 && !getGameObject().hasThisAttribute("action"))
+							|| getGameObject().hasThisAttribute("book")) {
 						int total = SpellUtility.getSpellCount(getGameObject(),null,false);
 						int awakened = SpellUtility.getSpellCount(getGameObject(),Boolean.TRUE,false);
 						String awake = "Awakened "+awakened+"/"+total;
@@ -227,24 +224,73 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 					}
 				}
 				
-				// If attack card (Alchemists Mixture), show damage
+				// If attack card, show damage
 				if (getGameObject().hasThisAttribute("attack")) {
-					String strength = gameObject.getThisAttribute("strength");
-					String speed = gameObject.getThisAttribute("attack_speed");
-					if (speed==null) speed="";
-					tt = new TextType(strength+speed,PRINT_WIDTH,"CLOSED_RED");
+					Strength strength = TreasureUtility.getStrengthForTreasure(gameObject);
+					String strengthString = strength.toShortString();
+					String speedString = "";
+					Speed speed = TreasureUtility.getAttackSpeedForTreasure(gameObject);
+					if (speed!=null) speedString=speed.getSpeedString();
+					String textTpye = "CLOSED_RED";
+					String textTpye2 = "CLOSED_RED";
+					if (RealmComponent.displayColoredStats) {
+						Strength defaultStrength = new Strength();
+						if (gameObject.hasThisAttribute("strength")) {
+							defaultStrength = new Strength(gameObject.getThisAttribute("strength"));
+						}
+						if (strength.strongerThan(defaultStrength)) {
+							textTpye = "CLOSED_BLUE";
+						} else if(defaultStrength.strongerThan(strength)) {
+							textTpye = "CLOSED_ORANGE";
+						}
+						if (!speedString.isEmpty()) {
+							String defaultSpeed = gameObject.getThisAttribute("attack_speed");
+							if ((defaultSpeed==null || defaultSpeed.isEmpty()) && speed!=null) {
+								textTpye2 = "CLOSED_BLUE";
+							} else if(speed!=null && defaultSpeed!=null && !defaultSpeed.isEmpty() && speed.getNum()<Integer.parseInt(defaultSpeed)) {
+								textTpye2 = "CLOSED_BLUE";
+							} else if(speed!=null && defaultSpeed!=null && !defaultSpeed.isEmpty() && speed.getNum()>Integer.parseInt(defaultSpeed)) {
+								textTpye2 = "CLOSED_ORANGE";
+							}
+						}
+					}
+					tt = new TextType(strengthString,PRINT_WIDTH,textTpye);
+					TextType tt2 = new TextType(speedString,PRINT_WIDTH,textTpye2);
 					pos -= tt.getHeight(g);
-					int sharpness = gameObject.getThisInt("sharpness");
-					sharpness += gameObject.getThisInt(Constants.ADD_SHARPNESS);
+					int sharpness = TreasureUtility.getSharpnessForTreasure(gameObject);
+					int deafaultSharpness = gameObject.getThisInt("sharpness");
 					int x = PRINT_MARGIN+20;
 					x += (3-sharpness)*5;
 					tt.draw(g,x,pos,Alignment.Left);
-					x += tt.getWidth(g)+5;
+					tt2.draw(g,x+tt.getWidth(g),pos,Alignment.Left);
+					x += tt.getWidth(g)+tt2.getWidth(g)+5;
 					int y = pos+tt.getHeight(g)-8;
+					g.setColor(Color.red);
+					if (RealmComponent.displayColoredStats && deafaultSharpness>sharpness) {
+						g.setColor(Color.orange);
+					}
 					for (int i=0;i<sharpness;i++) {
+						if (RealmComponent.displayColoredStats && i==deafaultSharpness) {
+							g.setColor(Color.blue);
+						}
 						StarShape star = new StarShape(x,y,5,7);
 						g.fill(star);
 						x += 10;
+					}
+					g.setColor(Color.red);					
+					if (gameObject.hasThisAttribute("length")) {
+						int length = TreasureUtility.getLengthForTreasure(gameObject);
+						String textType = "MINI_RED";
+						if (RealmComponent.displayColoredStats) {
+							int defaultLength = gameObject.getThisInt("length");
+							if (length>defaultLength) {
+								textType = "MINI_BLUE";
+							} else if(defaultLength>length) {
+								textType = "MINI_ORANGE";
+							}
+						}
+						tt = new TextType(String.valueOf(length),PRINT_WIDTH,textType);
+						tt.draw(g,x-4,pos+6,Alignment.Left);
 					}
 				}
 				
@@ -255,8 +301,7 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 				}
 				
 				if (gameObject.hasThisAttribute(Constants.CAST_SPELL_ON_INIT)) {
-					for (Iterator i=gameObject.getHold().iterator();i.hasNext();) {
-						GameObject sgo = (GameObject)i.next();
+					for (GameObject sgo : gameObject.getHold()) {
 						if (sgo.hasThisAttribute("spell")) {
 							SpellWrapper spell = new SpellWrapper(sgo);
 							if (spell.isInert()) {
@@ -314,17 +359,17 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 		return null;
 	}
 	public ArrayList<Integer> getEnchantableNumbers() {
-		 // only 1-5 can be enchanted colors!
+		// only 1-5 can be enchanted colors!
 		return getAllMagicNumbers(5);
 	}
 	public ArrayList<Integer> getAllMagicNumbers(int maximum) {
-		ArrayList<Integer> list = new ArrayList<Integer>();
+		ArrayList<Integer> list = new ArrayList<>();
 		
 		ArrayList<String> types = readAvailableMagicTypes(null,getGameObject());
 		for(String type:types) {
 			int mn = CharacterActionChitComponent.getMagicNumber(type);
 			if (mn>0 && mn<=maximum) {
-				list.add(mn);
+				list.add(Integer.valueOf(mn));
 			}
 		}
 			
@@ -347,27 +392,27 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 	public void validateColor() {
 		if (isColor()) {
 			int color = getGameObject().getThisInt(Constants.ENCHANTED_COLOR);
-			if (!getEnchantableNumbers().contains(color)) {
+			if (!getEnchantableNumbers().contains(Integer.valueOf(color))) {
 				makeFatigued();
 			}
 		}
 	}
 	
 	private static ArrayList<String> readTiedMagicTypes(GameObject treasure) {
-		ArrayList<String> magicTypes = new ArrayList<String>();
+		ArrayList<String> magicTypes = new ArrayList<>();
 		
 		// for backward compatibility
 		Object test = treasure.getThisAttributeBlock().get(SpellWrapper.INCANTATION_TIE); 
 		if (test instanceof String) {
 			SpellWrapper spell = new SpellWrapper(treasure.getGameObjectFromThisAttribute(SpellWrapper.INCANTATION_TIE));
-			ArrayList newList = new ArrayList();
+			ArrayList<String> newList = new ArrayList<>();
 			newList.add(spell.getCastMagicType());
 			treasure.removeThisAttribute(SpellWrapper.INCANTATION_TIE);
 			treasure.setThisAttributeList(SpellWrapper.INCANTATION_TIE,newList);
 		}
 		
 		// Ok, back to normal now
-		ArrayList list = treasure.getThisAttributeList(SpellWrapper.INCANTATION_TIE);
+		ArrayList<String> list = treasure.getThisAttributeList(SpellWrapper.INCANTATION_TIE);
 		if (list!=null) {
 			magicTypes.addAll(list);
 		}
@@ -375,18 +420,21 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 	}
 
 	public static ArrayList<String> readAvailableMagicTypes(String dayKey,GameObject treasure) {
-		ArrayList<String> possMagicTypes = new ArrayList<String>();
+		ArrayList<String> possMagicTypes = new ArrayList<>();
 		
 		String magic = treasure.getThisAttribute("magic");
 		if (magic!=null) {
 			possMagicTypes.add(magic);
 		}
+		String magic2 = treasure.getThisAttribute("magic2");
+		if (magic2!=null) {
+			possMagicTypes.add(magic2);
+		}
 		
 		// Include any enchantments
-		ArrayList enchants = treasure.getThisAttributeList(Constants.ARTIFACT_ENHANCED_MAGIC);
+		ArrayList<String> enchants = treasure.getThisAttributeList(Constants.ARTIFACT_ENHANCED_MAGIC);
 		if (enchants!=null) {
-			for (Iterator i=enchants.iterator();i.hasNext();) {
-				String enchant = (String)i.next();
+			for (String enchant : enchants) {
 				if (!possMagicTypes.contains(enchant)) {
 					possMagicTypes.add(enchant);
 				}
@@ -396,17 +444,21 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 		// Figure out which magic types have already been used on this artifact today and remove them from possibilities
 		String usedKey = treasure.getThisAttribute(Constants.USED_SPELL);
 		if (usedKey!=null && usedKey.equals(dayKey)) {
-			ArrayList list = treasure.getThisAttributeList(Constants.USED_MAGIC_TYPE_LIST);
+			ArrayList<String> list = treasure.getThisAttributeList(Constants.USED_MAGIC_TYPE_LIST);
 			if (list!=null) {
-				for (Iterator n=list.iterator();n.hasNext();) {
-					String chitType = (String)n.next();
+				for (String chitType : list) {
 					possMagicTypes.remove(chitType);
 				}
 			}
 		}
 		
 		// Finally, remove any tied magic types
-		possMagicTypes.remove(readTiedMagicTypes(treasure));
+		ArrayList<String> tiedMagicTypes = readTiedMagicTypes(treasure);
+		for (String tiedMagicType : tiedMagicTypes) {
+			if (possMagicTypes.contains(tiedMagicType)) {
+				possMagicTypes.remove(tiedMagicType);
+			}
+		}
 
 		return possMagicTypes;
 	}

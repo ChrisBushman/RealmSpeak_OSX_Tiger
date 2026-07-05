@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.utility;
 
 import java.util.*;
@@ -37,7 +20,7 @@ public class DieRollBuilder {
 	}
 	public static DieRollBuilder getDieRollBuilder(JFrame parent,CharacterWrapper character,int redDie) {
 		if (builderHash==null) {
-			builderHash = new Hashtable<Long,DieRollBuilder>();
+			builderHash = new Hashtable<>();
 		}
 		DieRollBuilder drb = builderHash.get(character.getGameObject().getId());
 		if (drb == null) {
@@ -68,8 +51,14 @@ public class DieRollBuilder {
 	public DieRoller createRoller(String key) {
 		return createRoller(key,character.getCurrentLocation());
 	}
+	public DieRoller createRoller(String key,int numberOfDice) {
+		return createRoller(key,character.getCurrentLocation(),numberOfDice);
+	}
 	public DieRoller createRoller(String key,TileLocation tl) {
-		int dice = 2;
+		return createRoller(key,tl,2);
+	}
+	public DieRoller createRoller(String key,TileLocation tl,int numberOfDice) {
+		int dice = numberOfDice;
 		int mod = 0;
 		boolean controlsRed = false;
 		
@@ -82,16 +71,20 @@ public class DieRollBuilder {
 		ArrayList<String> chitDescriptionList = tl.tile.getChitDescriptionList();
 		
 		// Cycle through all activated treasures, bewitching spells, and character to determine modifiers
-		ArrayList objectsToTest = new ArrayList();
+		ArrayList<GameObject> objectsToTest = new ArrayList<>();
 		if (character!=null) {
-			objectsToTest.add(character.getGameObject()); // the character
-			objectsToTest.addAll(character.getEnhancingItems()); // active treasures and travelers
+			objectsToTest.add(character.getGameObject());
+			if (character.isCharacter()) {
+				objectsToTest.addAll(character.getEnhancingItemsAndNomads()); // active treasures, nomads and travelers
+			}
 			TileLocation current = character.getCurrentLocation();
 			for (SpellWrapper spell:SpellUtility.getBewitchingSpells(character.getGameObject())) {
 				objectsToTest.add(spell.getGameObject());
 			}
 			for (SpellWrapper spell:SpellUtility.getBewitchingSpells(current.tile.getGameObject())) {
-				objectsToTest.add(spell.getGameObject());
+				if (!spell.isInert()) {
+					objectsToTest.add(spell.getGameObject());
+				}
 			}
 		}
 		else {
@@ -99,24 +92,21 @@ public class DieRollBuilder {
 			mod += ClearingUtility.getClearingDieMod(tl);
 		}
 		
-		for (Iterator i=objectsToTest.iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
-			
-			ArrayList list = null;
+		for (GameObject go : objectsToTest) {			
+			ArrayList<String> list = null;
 			if (go.hasThisAttribute(Constants.DIEMOD)) {
-				list = new ArrayList(go.getThisAttributeList(Constants.DIEMOD));
+				list = new ArrayList<>(go.getThisAttributeList(Constants.DIEMOD));
 			}
 			if (go.hasAttribute(Constants.OPTIONAL_BLOCK,Constants.DIEMOD)) {
 				if (list==null) {
-					list = new ArrayList();
+					list = new ArrayList<>();
 				}
 				list.addAll(go.getAttributeList(Constants.OPTIONAL_BLOCK,Constants.DIEMOD));
 			}
 			
 			if (list!=null) {
 				String boardNumber = RealmUtility.updateNameToBoard(go,"");
-				for (Iterator n=list.iterator();n.hasNext();) {
-					String rule = (String)n.next();
+				for (String rule : list) {
 					rule = StringUtilities.findAndReplace(rule,Constants.BOARD_NUMBER_REPLACE_PATTERN,boardNumber);
 					DieRule dieRule = new DieRule(tl,rule);
 					if (dieRule.conditionsMet(key,chitDescriptionList)) {
@@ -140,6 +130,10 @@ public class DieRollBuilder {
 			if (redDieControl!=null && (redDieControl.indexOf(key)>=0)) {
 				controlsRed = true;
 			}
+		}
+		
+		if (character!=null && character.getGameObject().hasThisAttribute(Constants.DARK_FAVOR)) {
+			dice = 1;
 		}
 		
 		if (character!=null && character.isCharacter() && tl.hasClearing() && !"wounds".equals(key)) {
@@ -202,6 +196,9 @@ public class DieRollBuilder {
 	}
 	public DieRoller createFortifyRoller() {
 		return createRoller("Fortify");
+	}
+	public DieRoller createRoller(RealmTable table, int numDice) {
+		return createRoller(numDice,0,false,table.getTableKey());
 	}
 	private DieRoller createRoller(int numDice,int mod,boolean controlsRed,String text) {
 		DieRoller roller = new DieRoller();

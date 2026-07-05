@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmQuestBuilder;
 
 import java.awt.*;
@@ -58,7 +41,7 @@ public class RealmRegexHelper extends AggressiveDialog {
 			testField.setForeground(Color.red);
 			return;
 		}
-		ArrayList<String> matches = new ArrayList<String>();
+		ArrayList<String> matches = new ArrayList<>();
 		for(String val:names) {
 			Matcher match = pattern.matcher(val);
 			if (match.find()) {
@@ -109,14 +92,14 @@ public class RealmRegexHelper extends AggressiveDialog {
 		add(box,BorderLayout.SOUTH);
 		add(createGuidePanel(),BorderLayout.EAST);
 	}
-	private JLabel createTitleLabel(String val) {
+	private static JLabel createTitleLabel(String val) {
 		JLabel label = new JLabel(val);
 		label.setFont(titleFont);
 		return label;
 	}
 	private JPanel createListPanel() {
 		JPanel panel = new JPanel(new BorderLayout(5,5));
-		list = new JList();
+		list = new JList<>();
 		list.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent ev) {
 				if (ev.getClickCount()!=2) return;
@@ -131,7 +114,7 @@ public class RealmRegexHelper extends AggressiveDialog {
 		panel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 		return panel;
 	}
-	private JPanel createGuidePanel() {
+	private static JPanel createGuidePanel() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(".                 Match any single character\n");
   	    sb.append(".*                Match 0 or more characters\n");
@@ -167,7 +150,7 @@ public class RealmRegexHelper extends AggressiveDialog {
 		return panel;
 	}
 	public static void main(String[] args) {
-		ArrayList<String> names = new ArrayList<String>();
+		ArrayList<String> names = new ArrayList<>();
 		names.add("One");
 		names.add("Two");
 		names.add("Three");

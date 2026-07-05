@@ -1,22 +1,8 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.attribute;
 
+import java.util.Collection;
+
+import com.robin.magic_realm.components.quest.QuestDeck;
 import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
@@ -37,7 +23,7 @@ public class DevelopmentProgress {
 	private int vpsToNextLevel;
 	
 	public static DevelopmentProgress createDevelopmentProgress(HostPrefWrapper hostPrefs,CharacterWrapper character) {
-		boolean restrictToAssigned = !hostPrefs.getRequiredVPsOff() && !hostPrefs.hasPref(Constants.HOUSE3_NO_RESTRICT_VPS_FOR_DEV);
+		boolean restrictToAssigned = !hostPrefs.getRequiredVPsOff() && !hostPrefs.hasPref(Constants.HOUSE3_NO_RESTRICT_VPS_FOR_DEV) && !hostPrefs.hasPref(Constants.EXP_DEVELOPMENT_SR);
 		int evps = character.getTotalEarnedVps(restrictToAssigned,hostPrefs.hasPref(Constants.EXP_DEV_EXCLUDE_SW));
 		int maxEvps = character.getHighestEarnedVps();
 		if (evps>maxEvps) {
@@ -104,6 +90,12 @@ public class DevelopmentProgress {
 			
 			if (currentStage>stage) {
 				character.setCharacterStage(currentStage);
+				if (hostPrefs.hasPref(Constants.QST_SR_QUESTS)) {
+					if ((currentStage % 2) != 0) {
+						QuestDeck deck = QuestDeck.findDeck(character.getGameData());
+						deck.drawCard(character.getGameObject());
+					}
+				}
 			}
 		}
 	}
@@ -130,5 +122,28 @@ public class DevelopmentProgress {
 	}
 	public int getVpsToNextLevel() {
 		return vpsToNextLevel;
+	}
+	public int getNumberOfDiscoveredTreasures() {
+		if (character.getTreasureLocationDiscoveries() == null) return 0;
+		int amount = 0;
+		for(String discovery : character.getTreasureLocationDiscoveries()) {
+			if (!discovery.matches(".*"+Constants.CACHE_NAME+".*")) {
+				amount++;
+			}
+		}
+		return amount;
+	}
+	public int getNumberOfCompletedMissions() {
+		Collection<String> completed = character.getCompletedMissions();
+		if (completed == null) return 0;
+		return completed.size();
+	}
+	public int getNumberOfCompletedCampaigns() {
+		Collection<String> completed = character.getCompletedCampaigns();
+		if (completed == null) return 0;
+		return completed.size();
+	}
+	public int getVpsOfQuests() {
+		return character.getQuestPointScore().getOwnedPoints();
 	}
 }

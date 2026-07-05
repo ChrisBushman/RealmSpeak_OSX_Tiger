@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.attribute;
 
 public class Strength {
@@ -48,6 +31,10 @@ public class Strength {
 			strengthId = NEGLIGIBLE;
 		}
 	}
+	public Strength(String val,int mod) {
+		strengthId = readString(val);
+		modify(mod);
+	}
 	public int getLevels() {
 		return strengthId;
 	}
@@ -74,9 +61,9 @@ public class Strength {
 	}
 	public String getChitString() {
 		switch(strengthId) {
-			case LIGHT:			return "L";
+			case LIGHT:				return "L";
 			case MEDIUM:			return "M";
-			case HEAVY:			return "H";
+			case HEAVY:				return "H";
 			case TREMENDOUS:		return "T";
 			case MAXIMUM:			return "X";
 			case RED:				return "!";
@@ -85,9 +72,9 @@ public class Strength {
 	}
 	public String getChar() {
 		switch(strengthId) {
-			case LIGHT:			return "L";
+			case LIGHT:				return "L";
 			case MEDIUM:			return "M";
-			case HEAVY:			return "H";
+			case HEAVY:				return "H";
 			case TREMENDOUS:		return "T";
 			case MAXIMUM:			return "X";
 			case RED:				return "!";
@@ -96,9 +83,9 @@ public class Strength {
 	}
 	public String toString() {
 		switch(strengthId) {
-			case LIGHT:			return "L";
+			case LIGHT:				return "L";
 			case MEDIUM:			return "M";
-			case HEAVY:			return "H";
+			case HEAVY:				return "H";
 			case TREMENDOUS:		return "T";
 			case MAXIMUM:			return "X";
 			case RED:				return "RED";
@@ -107,14 +94,25 @@ public class Strength {
 	}
 	public String fullString() {
 		switch(strengthId) {
-			case LIGHT:			return "Light";
+			case LIGHT:				return "Light";
 			case MEDIUM:			return "Medium";
-			case HEAVY:			return "Heavy";
+			case HEAVY:				return "Heavy";
 			case TREMENDOUS:		return "Tremendous";
 			case MAXIMUM:			return "Maximum";
 			case RED:				return "RED";
 		}
 		return "Negligible";  // NEGLIGIBLE
+	}
+	public String toShortString() {
+		switch(strengthId) {
+			case LIGHT:				return "L";
+			case MEDIUM:			return "M";
+			case HEAVY:				return "H";
+			case TREMENDOUS:		return "T";
+			case MAXIMUM:			return "X";
+			case RED:				return "RED";
+		}
+		return "N";  // NEGLIGIBLE
 	}
 	public boolean isNegligible() {
 		return strengthId == NEGLIGIBLE;
@@ -137,11 +135,20 @@ public class Strength {
 	public boolean strongerThan(Strength other) {
 		return strengthId > other.strengthId;
 	}
+	public boolean weakerOrEqualTo(Strength other) {
+		return strengthId <= other.strengthId;
+	}
+	public boolean weakerTo(Strength other) {
+		return strengthId < other.strengthId;
+	}
 	public boolean isRed() {
 		return strengthId==RED;
 	}
 	public boolean isTremendous() {
 		return strengthId==TREMENDOUS;
+	}
+	public boolean isMaximum() {
+		return strengthId==MAXIMUM;
 	}
 	private static int readString(String val) {
 		int num = 0;
@@ -164,6 +171,9 @@ public class Strength {
 			}
 			else if ("RED".equals(val)) {
 				num = RED;
+			}
+			else if ("N".equals(val)) {
+				num = NEGLIGIBLE;
 			}
 		}
 		return num;

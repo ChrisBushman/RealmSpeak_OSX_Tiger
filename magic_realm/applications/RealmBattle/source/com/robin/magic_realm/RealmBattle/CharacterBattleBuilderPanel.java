@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle;
 
 import java.awt.*;
@@ -83,8 +66,7 @@ public class CharacterBattleBuilderPanel extends JPanel {
 	private void initPanel() {
 		setLayout(new BorderLayout());
 		
-		for (Iterator i=character.getInventory().iterator();i.hasNext();) {
-			GameObject item = (GameObject)i.next();
+		for (GameObject item : character.getInventory()) {
 			item.setThisAttribute(BattleBuilder.BATTLE_BUILDER_KEY);
 		}
 		
@@ -98,26 +80,45 @@ public class CharacterBattleBuilderPanel extends JPanel {
 		removeCharacterButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				character.getGameObject().removeThisAttribute(BattleBuilder.BATTLE_BUILDER_KEY);
-				Collection c = character.getInventory();
-				if (c!=null) {
-					for (Iterator i=character.getInventory().iterator();i.hasNext();) {
-						GameObject item = (GameObject)i.next();
+				if (character.getInventory()!=null) {
+					for (GameObject item : character.getInventory()) {
+						item.removeThisAttribute(Constants.ACTIVATED);
 						item.removeThisAttribute(BattleBuilder.BATTLE_BUILDER_KEY);
+						character.getGameObject().remove(item);
+						if (item.hasThisAttribute("artifact") || item.hasThisAttribute("book")) {
+							item.clearHold();
+						}
+						if (item.hasThisAttribute("potion")) {
+							TreasureUtility.handleExpiredPotion(item);
+						}
 					}
 				}
-				c = hirelingPanel.getAllRealmComponents();
-				if (c!=null) {
-					for (Iterator i=hirelingPanel.getAllRealmComponents().iterator();i.hasNext();) {
-						RealmComponent rc = (RealmComponent)i.next();
-						rc.getGameObject().removeThisAttribute(BattleBuilder.BATTLE_BUILDER_KEY);
+				if (hirelingPanel.getAllRealmComponents()!=null) {
+					for (RealmComponent hireling : hirelingPanel.getAllRealmComponents()) {
+						hireling.getGameObject().removeThisAttribute(BattleBuilder.BATTLE_BUILDER_KEY);
+						hireling.setHidden(false);
+						BattleHorse horse = hireling.getHorseIncludeDead();
+						if (horse!=null) {
+							horse.getGameObject().removeThisAttribute(Constants.DEAD);
+						}
+						character.removeHireling(hireling.getGameObject());
 					}
+				}
+				character.clearPlayerAttributes(); // puts it back in the player pool again
+				character.clearWishStrength();
+				character.setHidden(false);
+				for (CharacterActionChitComponent chit : character.getAllChits()) {
+					chit.makeActive();
+				}
+				character.moveToLocation(dummyFrame, null);
+				if (character.getGameObject().hasThisAttribute(Constants.CUSTOM_CHARACTER)) {
+					character.getGameData().removeObject(character.getGameObject());
 				}
 				builder.deleteTab(character.getGameObject().getName());
-				character.clearPlayerAttributes(); // puts it back in the player pool again
 			}
 		});
 		box.add(removeCharacterButton);
-		charToken = new JLabel(character.getCharacterName(),token.getIcon(),JLabel.LEADING);
+		charToken = new JLabel(character.getCharacterName(),token.getIcon(),SwingConstants.LEADING);
 		charToken.setFont(new Font("Arial",Font.PLAIN,18));
 		box.add(charToken);
 		toggleHiddenButton = new JButton("Toggle Hidden");
@@ -142,11 +143,9 @@ public class CharacterBattleBuilderPanel extends JPanel {
 		characterIsPresentCheckBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				if (characterIsPresentCheckBox.isSelected()) {
-					character.getGameObject().setThisAttribute(BattleBuilder.BATTLE_BUILDER_KEY);
 					character.getGameObject().setThisAttribute(BattleBuilder.CHARACTER_PRESENT);
 				}
 				else {
-					character.getGameObject().removeThisAttribute(BattleBuilder.BATTLE_BUILDER_KEY);
 					character.getGameObject().removeThisAttribute(BattleBuilder.CHARACTER_PRESENT);
 				}
 			}
@@ -177,6 +176,10 @@ public class CharacterBattleBuilderPanel extends JPanel {
 						else if (achit.isMagic()) {
 							achit.makeAlerted();
 						}
+						else if (achit.isFightAlert() && !achit.isBerserk()) {
+							achit.makeBerserk();
+							character.getGameObject().setThisAttribute(Constants.ENHANCED_VULNERABILITY,achit.getFightAlertVulnerability());
+						}
 						else {
 							achit.makeFatigued();
 							if (!achit.isFatigued()) { // some chits cannot be fatigued
@@ -199,6 +202,14 @@ public class CharacterBattleBuilderPanel extends JPanel {
 					else if (achit.isWounded()) {
 						achit.makeActive();
 					}
+					
+					boolean berserk = false;
+					for (CharacterActionChitComponent fightChit : character.getAllChits()) {
+						if (fightChit.isFightAlert() && fightChit.isBerserk()) {
+							berserk = true; break;					
+						}
+					}
+					if (!berserk) character.getGameObject().removeThisAttribute(Constants.ENHANCED_VULNERABILITY);
 				}
 				chitsPanel.repaint();
 			}
@@ -281,15 +292,21 @@ public class CharacterBattleBuilderPanel extends JPanel {
 		removeInventoryButton = new JButton("Remove Inventory");
 		removeInventoryButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList componentsToDitch = new ArrayList();
+				ArrayList<RealmComponent> componentsToDitch = new ArrayList<>();
 				componentsToDitch.addAll(activeInventoryPanel.getSelectedComponents());
 				componentsToDitch.addAll(inactiveInventoryPanel.getSelectedComponents());
-				for (Iterator i=componentsToDitch.iterator();i.hasNext();) {
-					RealmComponent rc = (RealmComponent)i.next();
+				for (RealmComponent rc : componentsToDitch) {
 					GameObject thing = rc.getGameObject();
 					thing.removeThisAttribute(Constants.ACTIVATED);
 					thing.removeThisAttribute(BattleBuilder.BATTLE_BUILDER_KEY);
 					character.getGameObject().remove(thing);
+					if (thing.hasThisAttribute("artifact") || thing.hasThisAttribute("book")) {
+						thing.clearHold();
+					}
+					if (thing.hasThisAttribute("potion")) {
+						TreasureUtility.handleExpiredPotion(thing);
+					}
+					
 				}
 				activeInventoryPanel.clearSelected();
 				inactiveInventoryPanel.clearSelected();
@@ -304,9 +321,8 @@ public class CharacterBattleBuilderPanel extends JPanel {
 		activateInventoryButton = new JButton("Activate");
 		activateInventoryButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				Collection c = inactiveInventoryPanel.getSelectedComponents();
-				for (Iterator i=c.iterator();i.hasNext();) {
-					RealmComponent rc = (RealmComponent)i.next();
+				Collection<RealmComponent> c = inactiveInventoryPanel.getSelectedComponents();
+				for (RealmComponent rc : c) {
 					GameObject thing = rc.getGameObject();
 					TreasureUtility.doActivate(dummyFrame,character,thing,dummyListener,false);
 				}
@@ -321,11 +337,14 @@ public class CharacterBattleBuilderPanel extends JPanel {
 		inactivateInventoryButton = new JButton("Inactivate");
 		inactivateInventoryButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				Collection c = activeInventoryPanel.getSelectedComponents();
-				for (Iterator i=c.iterator();i.hasNext();) {
-					RealmComponent rc = (RealmComponent)i.next();
+				Collection<RealmComponent> c = activeInventoryPanel.getSelectedComponents();
+				for (RealmComponent rc : c) {
 					GameObject thing = rc.getGameObject();
 					thing.removeThisAttribute(Constants.ACTIVATED);
+					if (thing.hasThisAttribute("potion")) {
+						TreasureUtility.handleExpiredPotion(thing);
+						character.getGameObject().add(thing);
+					}
 				}
 				activeInventoryPanel.clearSelected();
 				
@@ -353,7 +372,7 @@ public class CharacterBattleBuilderPanel extends JPanel {
 		addHirelingsButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				String keyVals = hostPrefs.getGameKeyVals();
-				Collection natives = builder.getPool().find(keyVals+",native,!horse,!treasure,!"+BattleBuilder.BATTLE_BUILDER_KEY);
+				Collection<GameObject> natives = builder.getPool().find(keyVals+",native,!virtual_dwelling,!horse,!treasure,!"+BattleBuilder.BATTLE_BUILDER_KEY);
 				ArrayList<GameObject> travelers = builder.getPool().find(keyVals+",traveler,!"+BattleBuilder.BATTLE_BUILDER_KEY);
 				for(GameObject go:travelers) {
 					RealmComponent traveler = RealmComponent.getRealmComponent(go);
@@ -362,7 +381,7 @@ public class CharacterBattleBuilderPanel extends JPanel {
 						chit.setFaceUp();
 					}
 				}
-				Collection monsters = builder.getPool().find(keyVals+",monster,name=Giant,!"+BattleBuilder.BATTLE_BUILDER_KEY);
+				Collection<GameObject> monsters = builder.getPool().find(keyVals+",monster,name=Giant,!"+BattleBuilder.BATTLE_BUILDER_KEY);
 				monsters.addAll(builder.getPool().find(keyVals+",monster,name=Ogre,!"+BattleBuilder.BATTLE_BUILDER_KEY));
 				monsters.addAll(builder.getPool().find(keyVals+",monster,name=Spear Goblin,!"+BattleBuilder.BATTLE_BUILDER_KEY));
 				monsters.addAll(builder.getPool().find(keyVals+",monster,name=Axe Goblin,!"+BattleBuilder.BATTLE_BUILDER_KEY));
@@ -375,13 +394,12 @@ public class CharacterBattleBuilderPanel extends JPanel {
 				hirelingChooser.addObjectsToChoose(travelers);
 				hirelingChooser.setVisible(true);
 				if (hirelingChooser.pressedOkay()) {
-					Collection chosenNatives = hirelingChooser.getChosenObjects();
+					Collection<GameObject> chosenNatives = hirelingChooser.getChosenObjects();
 					if (chosenNatives!=null && chosenNatives.size()>0) {
 						chosenNatives = builder.makeDuplicates(chosenNatives); // only if the option is selected
 						builder.checkHorses(chosenNatives);
 						
-						for (Iterator i=chosenNatives.iterator();i.hasNext();) {
-							GameObject go = (GameObject)i.next();
+						for (GameObject go : chosenNatives) {
 							character.addHireling(go);
 							go.setThisAttribute(BattleBuilder.BATTLE_BUILDER_KEY);
 							RealmComponent hireling = RealmComponent.getRealmComponent(go);
@@ -398,14 +416,17 @@ public class CharacterBattleBuilderPanel extends JPanel {
 		removeHirelingsButton = new JButton("Remove Hirelings");
 		removeHirelingsButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				Collection sel = hirelingPanel.getSelectedComponents();
-				for (Iterator i=sel.iterator();i.hasNext();) {
-					RealmComponent rc = (RealmComponent)i.next();
+				Collection<RealmComponent> sel = hirelingPanel.getSelectedComponents();
+				for (RealmComponent rc : sel) {
 					GameObject go = rc.getGameObject();
 					character.removeHireling(go);
 					go.removeThisAttribute(BattleBuilder.BATTLE_BUILDER_KEY);
-					NativeChitComponent hireling = (NativeChitComponent)RealmComponent.getRealmComponent(go);
-					hireling.setHidden(false);
+					rc.setHidden(false);
+					BattleHorse horse = rc.getHorseIncludeDead();
+					if (horse!=null) {
+						horse.getGameObject().removeThisAttribute(Constants.DEAD);
+					}
+					ClearingUtility.moveToLocation(rc.getGameObject(),null);
 				}
 				hirelingPanel.clearSelected();
 				updateHirelingPanel();
@@ -417,8 +438,7 @@ public class CharacterBattleBuilderPanel extends JPanel {
 		toggleHiddenHirelingsButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				nativesHidden = !nativesHidden;
-				for (Iterator i=character.getAllHirelings().iterator();i.hasNext();) {
-					RealmComponent hireling = (RealmComponent)i.next();
+				for (RealmComponent hireling : character.getAllHirelings()) {
 					hireling.setHidden(nativesHidden);
 				}
 				hirelingPanel.repaint();
@@ -435,9 +455,8 @@ public class CharacterBattleBuilderPanel extends JPanel {
 		
 		updatePanels();
 	}
-	private Collection setFaceUp(Collection in) {
-		for (Iterator i=in.iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+	private static Collection<GameObject> setFaceUp(Collection<GameObject> in) {
+		for (GameObject go : in) {
 			go.setThisAttribute(Constants.FACING_KEY,CardComponent.FACE_UP);
 		}
 		return in;
@@ -449,12 +468,10 @@ public class CharacterBattleBuilderPanel extends JPanel {
 		RealmObjectChooser invChooser = new RealmObjectChooser("Select other inventory for the "+character.getGameObject().getName(),builder.getGameData(),false);
 		invChooser.addObjectsToChoose(builder.getPool().find(keyVals+",armor,!character,!treasure,!"+BattleBuilder.BATTLE_BUILDER_KEY));
 		invChooser.addObjectsToChoose(builder.getPool().find(keyVals+",weapon,!character,!"+BattleBuilder.BATTLE_BUILDER_KEY));
-		ArrayList treasures = new ArrayList(setFaceUp(builder.getPool().find(keyVals+",treasure,!"+BattleBuilder.BATTLE_BUILDER_KEY)));
-		Collections.sort(treasures,new Comparator() {
-			public int compare(Object o1,Object o2) {
+		ArrayList<GameObject> treasures = new ArrayList<>(setFaceUp(builder.getPool().find(keyVals+",treasure,!"+BattleBuilder.BATTLE_BUILDER_KEY)));
+		Collections.sort(treasures,new Comparator<GameObject>() {
+			public int compare(GameObject go1,GameObject go2) {
 				int ret = 0;
-				GameObject go1 = (GameObject)o1;
-				GameObject go2 = (GameObject)o2;
 				ret = go1.getName().compareTo(go2.getName());
 				return ret;
 			}
@@ -462,10 +479,9 @@ public class CharacterBattleBuilderPanel extends JPanel {
 		invChooser.addObjectsToChoose(treasures);
 		invChooser.addObjectsToChoose(builder.getPool().find(keyVals+",horse,!native,!"+BattleBuilder.BATTLE_BUILDER_KEY));
 		invChooser.setVisible(true);
-		Collection otherInv = invChooser.getChosenObjects();
+		Collection<GameObject> otherInv = invChooser.getChosenObjects();
 		if (otherInv!=null && otherInv.size()>0) {
-			for (Iterator i=otherInv.iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
+			for (GameObject go : otherInv) {
 				go.setThisAttribute(BattleBuilder.BATTLE_BUILDER_KEY);
 				go.setThisAttribute(Constants.TREASURE_SEEN);
 				character.getGameObject().add(go);
@@ -500,9 +516,8 @@ public class CharacterBattleBuilderPanel extends JPanel {
 		SpellSelector ss = new SpellSelector(dummyFrame,go.getGameData(),choices,count);
 		ss.setTitle(title);
 		ss.setVisible(true);
-		Collection sel = ss.getSpellSelection();
-		for (Iterator n=sel.iterator();n.hasNext();) {
-			GameObject spell = (GameObject)n.next();
+		Collection<GameObject> sel = ss.getSpellSelection();
+		for (GameObject spell : sel) {
 			spell.setThisAttribute(Constants.SPELL_AWAKENED);
 			go.add(spell);
 		}
@@ -539,7 +554,7 @@ public class CharacterBattleBuilderPanel extends JPanel {
 	}
 	private void showAwakenedSpells(GameObject go) {
 		if (go!=null && go.hasThisAttribute("treasure") && go.hasThisAttribute("magic")) {
-			Collection c = SpellUtility.getSpells(go,Boolean.TRUE,false,true);
+			Collection<GameObject> c = SpellUtility.getSpells(go,Boolean.TRUE,false,true);
 			if (c.size()>0) {
 				RealmObjectPanel panel = new RealmObjectPanel();
 				panel.addObjects(c);

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
@@ -37,7 +20,10 @@ import com.robin.magic_realm.RealmBattle.CombatFrame;
 import com.robin.magic_realm.RealmBattle.RealmBattle;
 import com.robin.magic_realm.components.*;
 import com.robin.magic_realm.components.attribute.*;
+import com.robin.magic_realm.components.events.IEvent;
+import com.robin.magic_realm.components.events.RealmEvents;
 import com.robin.magic_realm.components.quest.*;
+import com.robin.magic_realm.components.quest.requirement.QuestRequirementParams;
 import com.robin.magic_realm.components.swing.*;
 import com.robin.magic_realm.components.table.Loot;
 import com.robin.magic_realm.components.utility.*;
@@ -54,9 +40,9 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	protected boolean updatingList = false;
 	protected JTable characterTable;
 	protected CharacterTableModel characterTableModel;
-	protected ArrayList characterList;
-	protected Hashtable characterFrames;
-	protected ArrayList characterFrameOrder;
+	protected ArrayList<CharacterWrapper> characterList;
+	protected Hashtable<String, CharacterFrame> characterFrames;
+	protected ArrayList<String> characterFrameOrder;
 
 	protected JLabel connectionStatus;
 	protected GameClient client;
@@ -66,7 +52,9 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	protected JButton suicideCharacterButton;
 	protected JButton transferCharacterButton;
 	protected JButton unlockCharacterButton;
+	protected JButton beginnerCharacterButton;
 
+	protected JButton toggleAddCharacterButton;
 	protected JButton showLogButton;
 
 	protected JButton startMapBuildingButton;
@@ -106,12 +94,13 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	protected String lastWeather = null;
 	private String clientPlayerPass;
 	private String clientEmail;
-	private ArrayList<String> playerWarned = new ArrayList<String>();
+	private ArrayList<String> playerWarned = new ArrayList<>();
+	private boolean addCharacterButtonEnabled = true;
 
 	// Update listener
 	protected ChangeListener updateFrameListener = new ChangeListener() {
 		public void stateChanged(ChangeEvent ev) {
-			updateCharacterFrames();
+			updateCharacterFramesWithoutMap();
 			if (tilePickFrame != null) {
 				tilePickFrame.updateFrame();
 			}
@@ -128,7 +117,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		this.clientEmail = email;
 		inspector = null;
 		initComponents();
-		setup(host, null, -1, name, pass);
+		setup(host, null, -1, name, pass, RealmLoader.DATA_PATH);
 	}
 
 	public RealmGameHandler(RealmSpeakFrame parent, String ip, int port, String name, String pass, String ppass, String email, boolean hostPlayer) {
@@ -140,12 +129,11 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		this.clientEmail = email;
 		inspector = null;
 		initComponents();
-		setup(null, ip, port, name, pass);
+		setup(null, ip, port, name, pass, RealmLoader.DATA_PATH);
 	}
 
 	public void removeAllCharacterFrames() {
-		for (Iterator i = characterFrames.values().iterator(); i.hasNext();) {
-			CharacterFrame frame = (CharacterFrame) i.next();
+		for (CharacterFrame frame : characterFrames.values()) {
 			parent.removeFrameFromDesktop(frame);
 		}
 		characterFrames.clear();
@@ -154,12 +142,13 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	public void initComponents() {
 		log = RealmLogWindow.getSingleton();
 
+		setFrameIcon(IconFactory.findIcon("images/interface/options.gif"));
 		setSize(500, 300);
 		setLocation(200, 100);
 		setContentPane(new JPanel(new BorderLayout()));
-		characterList = new ArrayList();
-		characterFrames = new Hashtable();
-		characterFrameOrder = new ArrayList();
+		characterList = new ArrayList<>();
+		characterFrames = new Hashtable<>();
+		characterFrameOrder = new ArrayList<>();
 		characterTableModel = new CharacterTableModel();
 		characterTable = new JTable(characterTableModel);
 		characterTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -174,10 +163,12 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 				CharacterWrapper character = getSelectedCharacter();
 				if (character != null && !character.isDead()) {
 					String id = character.getGameObject().getStringId();
-					CharacterFrame frame = (CharacterFrame) characterFrames.get(id);
+					CharacterFrame frame = characterFrames.get(id);
 					if (frame != null) {
 						frame.toFront();
-						frame.centerOnToken();
+						if (isOption(RealmSpeakOptions.MAP_CENTER_ON_CHARACTER)) {
+							frame.centerOnToken();
+						}
 						characterFrameOrder.remove(id);
 						characterFrameOrder.add(0, id);
 					}
@@ -218,12 +209,17 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		startGameButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				int ret;
+				String text = "Allow characters to place visitor/mission chits?";
+				String title = "Visitor/Mission";
+				if (hostPrefs.usesSuperRealm()) {
+					text = "Allow characters to place travelers chits?";
+					title = "Travelers";
+				}
 				if (!characterList.isEmpty()) {
-					ret = JOptionPane.showConfirmDialog(getMainFrame(), "Allow characters to place visitor/mission chits?", "Visitor/Mission", JOptionPane.YES_NO_OPTION);
+					ret = JOptionPane.showConfirmDialog(getMainFrame(), text, title, JOptionPane.YES_NO_OPTION);
 				}
 				else {
-					// If there are no characters yet, then there is no point
-					// asking
+					// If there are no characters yet, then there is no point asking
 					ret = JOptionPane.NO_OPTION;
 				}
 				broadcast("host", "Host has started the game.");
@@ -234,7 +230,16 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 				}
 				else if (ret == JOptionPane.NO_OPTION) {
 					randomGoldSpecialPlacement();
+					startGame();
 				}
+				RealmCalendar calendar = RealmCalendar.getCalendar(client.getGameData());
+				calendar.updateSeason(1, true);
+				boolean freezing = calendar.isFreezingWeather(game.getMonth());
+				RealmUtility.updateWaterClearings(game.getGameData(),freezing);
+				
+				broadcast("host", "========================================");
+				broadcast("host", "Month "+game.getMonth()+", Day "+game.getDay());
+				broadcast("host", "========================================");
 			}
 		});
 		box.add(startGameButton);
@@ -298,7 +303,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		editOptionsButton = createButton("images/interface/options.gif", "Game Options...");
 		editOptionsButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				HostGameSetupDialog setup = new HostGameSetupDialog(new JFrame(), "Game Options for Battle", client.getGameData());
+				HostGameSetupDialog setup = new HostGameSetupDialog(new JFrame(), "Game Options", client.getGameData());
 				setup.loadPrefsFromData();
 				setup.setVisible(true);
 				submitChanges();
@@ -377,7 +382,29 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			}
 		});
 		box.add(unlockCharacterButton);
+		beginnerCharacterButton = new JButton(BEGINNER_ICON);
+		beginnerCharacterButton.setToolTipText("Toggle Beginner Mode");
+		beginnerCharacterButton.setEnabled(false);
+		beginnerCharacterButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				CharacterWrapper character = getSelectedCharacter();
+				character.toggleBeginner();
+				submitChanges();
+				updateCharacterList();
+			}
+		});
+		box.add(beginnerCharacterButton);
 		box.add(Box.createVerticalGlue());
+		toggleAddCharacterButton = new JButton(IconFactory.findIcon("icons/cross.gif"));
+		toggleAddCharacterButton.setToolTipText("Toggle AddCharacterButton");
+		toggleAddCharacterButton.setEnabled(false);
+		toggleAddCharacterButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				toggleAddCharacterButton();
+				updateControls();
+			}
+		});
+		box.add(toggleAddCharacterButton);
 		showLogButton = new JButton(IconFactory.findIcon("icons/document.gif"));
 		showLogButton.setToolTipText("Toggle Game Log");
 		showLogButton.addActionListener(new ActionListener() {
@@ -393,7 +420,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		CharacterWrapper character = getSelectedCharacter();
 		RealmComponent rc = RealmComponent.getRealmComponent(character.getGameObject());
 		if (character != null && character.isActive()) {
-			ArrayList<String> playerNames = new ArrayList<String>();
+			ArrayList<String> playerNames = new ArrayList<>();
 			playerNames.add(client.getClientName());
 			for (String name : getMainFrame().getAllServerNames()) {
 				if (!playerNames.contains(name)) {
@@ -445,12 +472,11 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 	private void doCharacterTransfer(CharacterWrapper character, String newPlayerName) {
 		character.setPlayerName(newPlayerName);
-		character.setPlayerPassword(""); // so that it get's updated by the
-											// player's machine
+		character.setPlayerPassword(""); // so that it get's updated by the player's machine
 		character.setPlayerEmail("");
 
 		// Remove frame
-		CharacterFrame frame = (CharacterFrame) characterFrames.get(character.getGameObject().getStringId());
+		CharacterFrame frame = characterFrames.get(character.getGameObject().getStringId());
 		if (frame != null) {
 			characterTable.clearSelection();
 			String id = character.getGameObject().getStringId();
@@ -460,7 +486,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		}
 	}
 
-	private JButton createButton(String iconPath, String tipText) {
+	private static JButton createButton(String iconPath, String tipText) {
 		JButton button = new JButton(IconFactory.findIcon(iconPath));
 		button.setToolTipText(tipText);
 		button.setFocusable(false);
@@ -468,6 +494,15 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		return button;
 	}
 
+	public void toggleAddCharacterButton() {
+		if (addCharacterButtonEnabled) {
+			addCharacterButtonEnabled = false;
+		}
+		else {
+			addCharacterButtonEnabled = true;
+		}
+	}
+	
 	public void toggleLog() {
 		if (log.isVisible()) {
 			log.setVisible(false);
@@ -480,13 +515,15 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	}
 
 	private void finalizeGame() {
-		game.setDay(1);
-		game.setMonth(hostPrefs.getNumberMonthsToPlay() + 1);
 		game.setGameEnded(true);
 
 		// Expire ALL spells
 		SpellMasterWrapper smw = SpellMasterWrapper.getSpellMaster(getClient().getGameData());
-		smw.expireAllSpells();
+		if (hostPrefs.hasPref(Constants.SR_END_GAME_SCORING)) {
+			smw.expireAllSpellsBut(new String[] {"Enchant Artifact"});
+		} else {
+			smw.expireAllSpells();
+		}
 
 		// Penalize any mission/campaign chit carriers
 		GamePool pool = new GamePool(getClient().getGameData().getGameObjects());
@@ -494,16 +531,68 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		for (GameObject go : gs) {
 			GoldSpecialChitComponent chit = (GoldSpecialChitComponent) RealmComponent.getRealmComponent(go);
 			if (chit.stillInPlay()) {
-				// Set it to one day, so that the next midnight will cause it to
-				// expire
+				// Set it to one day, so that the next midnight will cause it to expire
 				chit.getGameObject().setThisAttribute("daysLeft", 1);
 			}
 		}
-
-		endGameButton.setEnabled(false);
-		revealAllButton.setEnabled(true);
+		ArrayList<GameObject> characters = pool.find(CharacterWrapper.NAME_KEY);
+		for (GameObject character : characters) {
+			CharacterWrapper ch = new CharacterWrapper(character);
+			ch.setGameOver(true);
+			
+			if (hostPrefs.hasPref(Constants.SR_END_GAME_SCORING)) {
+				boolean meltIntoMistAvailable = false;
+				for (SpellSet spellSet : ch.getPotentialCastableSpellSets()) {
+					if (spellSet.getSpell().getName().toLowerCase().matches("melt into mist")) {
+						meltIntoMistAvailable = true;
+						break;
+					}
+				}
+				if (!meltIntoMistAvailable) {
+					Speed slowestSpeed = new Speed();
+					for (CharacterActionChitComponent chit : ch.getAllChits()) {
+						chit.makeActive();
+						if ((chit.isMove() || chit.isFight()) && slowestSpeed.fasterThan(chit.getSpeed())) {
+							slowestSpeed = chit.getSpeed();
+						}
+					}
+					Strength unleashPowerStrength = null;
+					for (SpellSet spellSet : ch.getCastableSpellSets()) {
+						if (spellSet.getSpell().hasThisAttribute("action_change")) {
+							unleashPowerStrength = new Strength(spellSet.getSpell().getThisAttribute(slowestSpeed.toString()));
+							break;
+						}
+					}
+					Strength moveStrength = ch.getMoveStrength(true,true);
+					if (unleashPowerStrength!=null && unleashPowerStrength.strongerThan(moveStrength)
+							&& (!hostPrefs.hasPref(Constants.SR_MOVEMENT_RESTRICTION) || ch.hasMoveChit(true,true))) {
+						moveStrength = unleashPowerStrength;
+					}
+					TileLocation loc = ch.getCurrentLocation();
+					for (GameObject item : ch.getInventory()) {
+						if (RealmComponent.getRealmComponent(item).getWeight().strongerThan(moveStrength)) {
+							if (loc.clearing!=null) {
+								loc.clearing.add(item, ch);
+							}
+							else {
+								loc.tile.getGameObject().add(item);
+							}
+						}
+					}
+				}
+			}
+			
+			QuestRequirementParams params = new QuestRequirementParams();
+			ch.testQuestRequirements(null, params);
+			if (hostPrefs.hasPref(Constants.SR_DEDUCT_VPS) && !hostPrefs.hasPref(Constants.EXP_DEVELOPMENT_SR)) {
+				ch.addPenaltyVps();
+			}
+		}
+		
 		submitChanges();
 		updateControls();
+		endGameButton.setEnabled(false);
+		updateCharacterList();
 		updateCharacterFrames();
 		broadcastMapReplot();
 	}
@@ -523,30 +612,30 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		int ret = JOptionPane.showConfirmDialog(getMainFrame(), "This will affect all characters.  Are you sure?", "Extend Game 1 Month", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 		if (ret == JOptionPane.YES_OPTION) {
 			GameData data = client.getGameData();
-
+			
+			game.setDay(1);
+			game.setMonth(hostPrefs.getNumberMonthsToPlay() + 1);
+			
 			RealmCalendar cal = RealmCalendar.getCalendar(getClient().getGameData());
 			int vps = cal.getVictoryPoints(game.getMonth());
 
+			game.setGameEnded(false);
 			// Update prefs
 			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
 			hostPrefs.setNumberMonthsToPlay(hostPrefs.getNumberMonthsToPlay() + 1);
 
 			// Return game to recording state
 			game.setState(GameWrapper.GAME_STATE_RECORDING);
-
+			
 			// Return all characters to playing
-			for (Iterator i = data.getGameObjects().iterator(); i.hasNext();) {
-				GameObject go = (GameObject) i.next();
-				if (go.hasAttributeBlock(CharacterWrapper.PLAYER_BLOCK)) { // was
-																			// in
-																			// the
-																			// game
-																			// at
-																			// some
-																			// point
+			for (GameObject go : data.getGameObjects()) {
+				if (go.hasAttributeBlock(CharacterWrapper.PLAYER_BLOCK)) { // was in the game at some point
 					CharacterWrapper character = new CharacterWrapper(go);
 					if (character.isActive()) {
 						character.setGameOver(false);
+						if (hostPrefs.hasPref(Constants.SR_DEDUCT_VPS)) {
+							character.removePenaltyVps();
+						}
 						if (!hostPrefs.getRequiredVPsOff() && character.isCharacter()) {
 							if (hostPrefs.hasPref(Constants.HOUSE2_ANY_VPS)) {
 								character.setNewVPRequirement(-1);
@@ -564,16 +653,17 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			revealAllButton.setEnabled(false);
 			updateControls();
 			broadcastAttention();
-
-			// Send info
 			submitChanges();
+			updateCharacterFrames();
+			updateCharacterList();
 		}
 	}
 
 	private void startGoldSpecialPlacement() {
-		ArrayList chars = new ArrayList(characterList);
+		ArrayList<CharacterWrapper> chars = new ArrayList<>(characterList);
 		if (chars.isEmpty()) {
 			randomGoldSpecialPlacement();
+			startGame();
 		}
 		else {
 			incrementCharacterToPlace();
@@ -581,25 +671,32 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		}
 	}
 
-	private void randomGoldSpecialPlacement() {
+	public void randomGoldSpecialPlacement() {
 		broadcast("host", "Visitor/Mission/Campaign chits are placed at random.");
 		// Place the 6 gold specials randomly
 		GameData data = client.getGameData();
 		RealmObjectMaster rom = RealmObjectMaster.getRealmObjectMaster(data);
-		ArrayList query = new ArrayList();
+		ArrayList<String> query = new ArrayList<>();
 		query.add("!" + Constants.GOLD_SPECIAL_PLACED);
+		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
 		if (hostPrefs.hasPref(Constants.HOUSE2_IGNORE_CAMPAIGNS)) {
 			query.add("!campaign");
 		}
-		ArrayList<GameObject> gs = new ArrayList<GameObject>(rom.findObjects("gold_special", query, false));
-		ArrayList<GameObject> gt = new ArrayList<GameObject>(rom.findObjects("gold_special_target", query, false));
+		ArrayList<GameObject> gs = new ArrayList<>(rom.findObjects("gold_special", query));
+		ArrayList<GameObject> gt = new ArrayList<>(rom.findObjects("gold_special_target", query));
 		GameObject[] chit = new GameObject[2];
+		if (gs.isEmpty()) {
+			broadcast("host", "No Visitor/Mission/Campaign chits to place.");
+			return;
+		}
 		while (SetupCardUtility.stillChitsToPlace(hostPrefs)) {
 			int r = RandomNumber.getRandom(gs.size());
-			int s = hostPrefs.hasPref(Constants.HOUSE2_NO_MISSION_VISITOR_FLIPSIDE) ? 0 : RandomNumber.getRandom(2);
+			int s = hostPrefs.hasPref(Constants.HOUSE2_NO_MISSION_VISITOR_FLIPSIDE)||hostPrefs.usesSuperRealm() ? 0 : RandomNumber.getRandom(2);
 			chit[0] = gs.remove(r);
-			chit[1] = chit[0].getGameObjectFromThisAttribute("pairid");
-			if (!hostPrefs.hasPref(Constants.HOUSE2_NO_MISSION_VISITOR_FLIPSIDE)) {
+			if (!hostPrefs.usesSuperRealm()) {
+				chit[1] = chit[0].getGameObjectFromThisAttribute("pairid");
+			}
+			if (!hostPrefs.hasPref(Constants.HOUSE2_NO_MISSION_VISITOR_FLIPSIDE)&&!hostPrefs.usesSuperRealm()) {
 				gs.remove(chit[1]);
 			}
 
@@ -607,44 +704,39 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			GameObject target = gt.remove(t);
 			target.add(chit[s]);
 			chit[s].setThisAttribute(Constants.GOLD_SPECIAL_PLACED);
-			if (!hostPrefs.hasPref(Constants.HOUSE2_NO_MISSION_VISITOR_FLIPSIDE)) {
+			if (!hostPrefs.hasPref(Constants.HOUSE2_NO_MISSION_VISITOR_FLIPSIDE)&&!hostPrefs.usesSuperRealm()) {
 				chit[1 - s].setThisAttribute(Constants.GOLD_SPECIAL_PLACED);
 			}
+			if (hostPrefs.usesSuperRealm()) {
+				chit[s].setThisAttribute(Constants.DRAW_BACKSIDE);
+			}
 			target.setThisAttribute(Constants.GOLD_SPECIAL_PLACED);
-			// System.out.println(chit[s].getName()+" is added to "+target.getName());
 		}
 
-		// Need to also guarantee that no characters have the place vistor
-		// button
-		ArrayList chars = new ArrayList(characterList);
+		// Need to also guarantee that no characters have the place visitor button
+		ArrayList<CharacterWrapper> chars = new ArrayList<>(characterList);
 		if (!chars.isEmpty()) {
-			for (Iterator i = chars.iterator(); i.hasNext();) {
-				CharacterWrapper c = (CharacterWrapper) i.next();
+			for (CharacterWrapper c : chars) {
 				if (c.isCharacter()) {
 					c.setNeedsChooseGoldSpecial(false);
 				}
 			}
 		}
-
-		startGame();
 	}
 
 	public void incrementCharacterToPlace() {
-		ArrayList chars = new ArrayList(characterList);
+		ArrayList<CharacterWrapper> chars = new ArrayList<>(characterList);
 		if (!chars.isEmpty()) {
 			// Sort by join order
-			Collections.sort(chars, new Comparator() {
-				public int compare(Object o1, Object o2) {
-					CharacterWrapper c1 = (CharacterWrapper) o1;
-					CharacterWrapper c2 = (CharacterWrapper) o2;
+			Collections.sort(chars, new Comparator<CharacterWrapper>() {
+				public int compare(CharacterWrapper c1, CharacterWrapper c2) {
 					int ret = c1.getCharacterJoinOrder() - c2.getCharacterJoinOrder();
 					return ret;
 				}
 			});
 			boolean incremented = false;
 			boolean selectNext = false;
-			for (Iterator i = chars.iterator(); i.hasNext();) {
-				CharacterWrapper c = (CharacterWrapper) i.next();
+			for (CharacterWrapper c : chars) {
 				if (c.isCharacter()) {
 					if (selectNext) {
 						incremented = true;
@@ -662,7 +754,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			}
 			if (!incremented) {
 				incremented = true;
-				CharacterWrapper first = (CharacterWrapper) chars.iterator().next();
+				CharacterWrapper first = chars.iterator().next();
 				first.setNeedsChooseGoldSpecial(true);
 			}
 			submitChanges();
@@ -672,40 +764,38 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 	public void startMapBuilding() {
 		// Find all players
-		ArrayList playerNames = parent.realmHostFrame.getPlayerNames();
+		ArrayList<String> playerNames = parent.realmHostFrame.getPlayerNames();
 
-		if (playerNames.size() > 0) { // FIXME for now
-			// Randomize playerNames here?
+		if (playerNames.size() > 0) {
+			// Randomize playerNames here
+			Collections.shuffle(playerNames);
 
-			// If more than one player, then assign tiles randomly to each
-			// player
-			// Find player with borderland, and activate (how?) for placing
-			// tiles
-			ArrayList tileObjects = new ArrayList(RealmObjectMaster.getRealmObjectMaster(client.getGameData()).getTileObjects());
+			// If more than one player, then assign tiles randomly to each player
+			// Find player with borderland, and activate (how?) for placing tiles
+			ArrayList<GameObject> tileObjects = new ArrayList<>(RealmObjectMaster.getRealmObjectMaster(client.getGameData()).getTileObjects());
 			int nameIndex = 0;
-			String playerName = (String) playerNames.get(nameIndex);
+			String playerName = playerNames.get(nameIndex);
 			while (!tileObjects.isEmpty()) {
 				int r = RandomNumber.getRandom(tileObjects.size());
-				GameObject tile = (GameObject) tileObjects.remove(r);
+				GameObject tile = tileObjects.remove(r);
 
 				// Just in case this is a "remake"
 				tile.removeAttribute("mapGrid", "mapPosition");
 				tile.removeAttribute("mapGrid", "mapRotation");
 
-				if (tile.getName().equals("Borderland") && !tile.hasThisAttribute(Constants.BOARD_NUMBER)) {
+				if (tile.hasThisAttribute(Constants.ANCHOR_TILE) && !tile.hasThisAttribute(Constants.BOARD_NUMBER)) {
 					game.setGameMapBuilder(playerName);
 				}
 				tile.setThisAttribute(Constants.PLAYER_TO_PLACE, playerName);
 				nameIndex = (nameIndex + 1) % playerNames.size();
-				playerName = (String) playerNames.get(nameIndex);
+				playerName = playerNames.get(nameIndex);
 				tile.setThisAttribute(Constants.PLAYER_TO_PLACE_NEXT, playerName);
 			}
 		}
 		else {
 			// If a single player, assign no tiles, and activate.
-			// An active player with no tiles, but tiles left to place, will get
-			// a random tile.
-			game.setGameMapBuilder((String) playerNames.iterator().next());
+			// An active player with no tiles, but tiles left to place, will get a random tile.
+			game.setGameMapBuilder(playerNames.iterator().next());
 		}
 
 		submitChanges();
@@ -715,6 +805,23 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		broadcastAttention();
 		game.setPlaceGoldSpecials(false);
 		game.setGameStarted(true);
+		if (hostPrefs.hasPref(Constants.OPT_SUSPICIOUS_CHARACTERS)) {
+			ArrayList<GameObject> allChars = RealmUtility.getLivingCharacters(client.getGameData());
+			for (int i = 0; i < allChars.size(); i++) {
+				CharacterWrapper cw1 = new CharacterWrapper(allChars.get(i));
+				if (cw1.isMinion()) continue;
+				cw1.setBlocking(true);
+				cw1.setKeepBlocking(true);
+				cw1.setWantsCombat(true);
+				cw1.setWantsDayEndTrades(true);
+				for (int j = i + 1; j < allChars.size(); j++) {
+					CharacterWrapper cw2 = new CharacterWrapper(allChars.get(j));
+					if (cw2.isMinion()) continue;
+					cw1.setEnemyCharacter(allChars.get(j), true);
+					cw2.setEnemyCharacter(allChars.get(i), true);
+				}
+			}
+		}
 		submitChanges();
 		inspector.getMap().setShowEmbellishments(true);
 		inspector.redrawMap();
@@ -756,25 +863,20 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			}
 		}
 
-		editOptionsButton.setEnabled(isHostPlayer()); // ONLY the host can
-														// change options
-														// in-game
-
+		editOptionsButton.setEnabled(isHostPlayer()); // ONLY the host can change options in-game
+		toggleAddCharacterButton.setEnabled(isHostPlayer());
+		beginnerCharacterButton.setEnabled(character != null && isHostPlayer());
+		
 		suicideCharacterButton.setEnabled(canMakeChanges && canModifyCharacter);
 		transferCharacterButton.setEnabled(!charPoolLocked && inspector.getMap().isMapReady() && canModifyCharacter && !localGame);
 		unlockCharacterButton.setEnabled(!charPoolLocked && inspector.getMap().isMapReady() && canModifyCharacter && !localGame && character.hasPlayerPassword());
-		addCharacterButton.setEnabled(canMakeChanges);
+		addCharacterButton.setEnabled(canMakeChanges && (addCharacterButtonEnabled || isHostPlayer()));
 
 		boolean mapBuilder = hostPrefs.getBoardPlayerSetup() && !inspector.getMap().isMapReady();
 		startGameButton.setEnabled(isHostPlayer() && !mapBuilder && !game.getGameStarted() && !charPoolLocked && game.getGameMapBuilder() == null);
-		boolean canExtend = isHostPlayer() && !game.getGameEnded() && game.getState() == GameWrapper.GAME_STATE_GAMEOVER && !game.hasBeenRevealed();
-		endGameButton.setEnabled(isHostPlayer() && game.getGameStarted() && (canMakeChanges || canExtend));
-		extendGameButton.setEnabled(canExtend && !hostPrefs.hasPref(Constants.EXP_SUDDEN_DEATH)); // No
-																									// game
-																									// extensions
-																									// for
-																									// sudden
-																									// death!!
+		boolean canExtend = isHostPlayer() && !game.getGameEnded() && game.isGameOver() && !game.hasBeenRevealed();
+		endGameButton.setEnabled(isHostPlayer() && game.getGameStarted() && !game.getGameEnded() && (canMakeChanges || canExtend));
+		extendGameButton.setEnabled(canExtend && !hostPrefs.hasPref(Constants.EXP_SUDDEN_DEATH)); // No game extensions for sudden death!!
 
 		showDeadOption.setEnabled(hostPrefs != null && hostPrefs.hasPref(Constants.HOUSE1_DONT_RECYCLE_CHARACTERS));
 	}
@@ -785,12 +887,12 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 	public CharacterTradeFrame createCharacterTradeFrame(CharacterWrapper active, CharacterWrapper include) {
 		if (characterTradeFrame == null) {
-			CharacterFrame activeCharFrame = (CharacterFrame) characterFrames.get(active.getGameObject().getStringId());
+			CharacterFrame activeCharFrame = characterFrames.get(active.getGameObject().getStringId());
 			CharacterInventoryPanel activeInv = null;
 			if (activeCharFrame != null) {
 				activeInv = activeCharFrame.inventoryPanel;
 			}
-			CharacterFrame includeCharFrame = (CharacterFrame) characterFrames.get(include.getGameObject().getStringId());
+			CharacterFrame includeCharFrame = characterFrames.get(include.getGameObject().getStringId());
 			CharacterInventoryPanel includeInv = null;
 			if (includeCharFrame != null) {
 				includeInv = includeCharFrame.inventoryPanel;
@@ -883,38 +985,37 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			killCharacterTradeFrame();
 		}
 		else if (RealmDirectInfoHolder.SPELL_AFFECT_TARGETS.equals(command)) {
-			for (Iterator i = info.getGameObjects().iterator(); i.hasNext();) {
-				GameObject spellObject = (GameObject) i.next();
+			for (GameObject spellObject : info.getGameObjects()) {
 				SpellWrapper spell = new SpellWrapper(spellObject);
-				spell.affectTargets(CombatFrame.getSingleton(), game, false);
+				spell.affectTargets(CombatFrame.getSingleton(), game, false, null);
 			}
 			// If a spell is being applied through direct info, then make sure
 			// the combat frame reflects the change!!
 			resetCombatFrame();
 		}
 		else if (RealmDirectInfoHolder.SPELL_AFFECT_TARGETS_EXPIRE_IMMEDIATE.equals(command)) {
-			for (Iterator i = info.getGameObjects().iterator(); i.hasNext();) {
-				GameObject spellObject = (GameObject) i.next();
-				SpellWrapper spell = new SpellWrapper(spellObject);
-				TileLocation before = spell.getCurrentLocation();
-				spell.affectTargets(CombatFrame.getSingleton(), game, true); // this
-																				// is
-																				// STILL
-																				// happening
-																				// in
-																				// a
-																				// thread...
-				TileLocation after = spell.getCurrentLocation();
-				// System.out.println("before="+before);
-				// System.out.println("after="+after);
-				if (!before.equals(after)) {
-					// The spell transported its target, so update combat
-					RealmBattle.testCombatInClearing(before, client.getGameData());
+			// Run on the EDT so that any blocking dialog (e.g. TileLocationChooser for Teleport)
+			// does not stall the GameClient thread and cause the server to time out
+			SwingUtilities.invokeLater(() -> {
+				boolean teleported = false;
+				for (GameObject spellObject : info.getGameObjects()) {
+					SpellWrapper spell = new SpellWrapper(spellObject);
+					TileLocation before = spell.getCurrentLocation();
+					spell.affectTargets(CombatFrame.getSingleton(), game, true, null); // this is STILL happening in a thread...
+					TileLocation after = spell.getCurrentLocation();
+					if (before != null && !before.equals(after)) {
+						// The spell transported its target, so update combat
+						RealmBattle.testCombatInClearing(before, client.getGameData());
+						teleported = true;
+					}
 				}
-			}
-			// If a spell is being applied through direct info, then make sure
-			// the combat frame reflects the change!!
-			resetCombatFrame();
+				// If a spell is being applied through direct info, then make sure the combat frame reflects the change!!
+				resetCombatFrame();
+				if (teleported) {
+					// Character left the combat clearing — submit to unblock server-side combat state machine.
+					submitChangesWithTimeout();
+				}
+			});
 		}
 		// else if
 		// (RealmDirectInfoHolder.SPELL_WISH_FORCE_TRANSPORT.equals(command)) {
@@ -936,16 +1037,24 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			}
 		}
 		else if (RealmDirectInfoHolder.QUERY_YN.equals(command)) {
+			// THREADING: this branch runs on the GameClient thread (via receiveInfoDirect ->
+			// handleDirectInfo) via invokeLater so handleDirectInfo() returns immediately,
+			// unblocking the GameClient thread. The GameClient continues polling normally
+			// while the user thinks. When the user clicks Yes/No the EDT callback sends
+			// the response via sendInfoDirect(), which queues it on the GameClient's
+			// requestQueue for delivery on the next loop iteration.
 			String string = info.getString();
 			int colon = string.indexOf(":");
-			long id = Long.valueOf(string.substring(0, colon)).longValue();
-			string = string.substring(colon + 1);
-			int ret = JOptionPane.showConfirmDialog(CombatFrame.getSingleton(), string, "End Combat?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-
-			RealmDirectInfoHolder infoResponse = new RealmDirectInfoHolder(getClient().getGameData(), getClient().getClientName());
-			infoResponse.setCommand(RealmDirectInfoHolder.QUERY_RESPONSE);
-			infoResponse.setString(id + ":" + (ret == JOptionPane.YES_OPTION ? RealmDirectInfoHolder.QUERY_RESPONSE_YES : RealmDirectInfoHolder.QUERY_RESPONSE_NO));
-			getClient().sendInfoDirect(info.getPlayerName(), infoResponse.getInfo());
+			final long id = Long.valueOf(string.substring(0, colon)).longValue();
+			final String message = string.substring(colon + 1);
+			final String playerName = info.getPlayerName();
+			SwingUtilities.invokeLater(() -> {
+				int ret = JOptionPane.showConfirmDialog(CombatFrame.getSingleton(), message, "End Combat?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+				RealmDirectInfoHolder infoResponse = new RealmDirectInfoHolder(getClient().getGameData(), getClient().getClientName());
+				infoResponse.setCommand(RealmDirectInfoHolder.QUERY_RESPONSE);
+				infoResponse.setString(id + ":" + (ret == JOptionPane.YES_OPTION ? RealmDirectInfoHolder.QUERY_RESPONSE_YES : RealmDirectInfoHolder.QUERY_RESPONSE_NO));
+				getClient().sendInfoDirect(playerName, infoResponse.getInfo());
+			});
 		}
 		else if (RealmDirectInfoHolder.POPUP_MESSAGE.equals(command)) {
 			RealmUtility.popupMessage(CombatFrame.getSingleton(), info);
@@ -1015,7 +1124,6 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			}
 		}
 		else if (Constants.BROADCAST_SUMMARY_ACTION.equals(key) && isHostPlayer()) {
-			// FIXME for now:
 			handleSummaryMessage(message);
 		}
 		else if (key.startsWith(Constants.BROADCAST_PRIVATE_MESSAGE)) {
@@ -1078,8 +1186,8 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		}
 	}
 
-	public void setup(GameHost host, String ip, int port, String name, String pass) {
-		client = new GameClient(RealmLoader.DATA_PATH, ip, name, pass, port) {
+	public void setup(GameHost host, String ip, int port, String name, String pass, String dataPath) {
+		client = new GameClient(dataPath, ip, name, pass, port) {
 			public void receiveInfoDirect(ArrayList inList) {
 				RealmDirectInfoHolder info = new RealmDirectInfoHolder(client.getGameData(), inList);
 				handleDirectInfo(info);
@@ -1132,49 +1240,46 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			}
 			return;
 		}
+		// Client is connected
+		if (!client.isDataLoaded()) {
+			setConnectionStatus("Connected.  Receiving data...");
+		}
 		else {
-			// Client is connected
-			if (!client.isDataLoaded()) {
-				setConnectionStatus("Connected.  Receiving data...");
-			}
-			else {
-				// Data is loaded
-				if (inspector == null) {
-					setConnectionStatus("Data loaded.  Building map view...");
+			// Data is loaded
+			if (inspector == null) {
+				setConnectionStatus("Data loaded.  Building map view...");
 
-					// Load game
-					game = findGame();
-					// if (!RealmUtility.ignoreGameVersion()) {
-					if (!Constants.REALM_SPEAK_VERSION.equals(game.getVersion())) {
-						// Incompatability!
-						parent.killHandler();
-						client.kill();
-						JOptionPane.showMessageDialog(getMainFrame(), "The host is using version " + game.getVersion() + " and you are using " + Constants.REALM_SPEAK_VERSION, "Incompatible Versions!", JOptionPane.ERROR_MESSAGE);
-						return;
-					}
-					else {
-						System.out.println("Versions match!");
-					}
-					// }
+				// Load game
+				game = findGame();
+				// if (!RealmUtility.ignoreGameVersion()) {
+				if (!Constants.REALM_SPEAK_VERSION.equals(game.getVersion())) {
+					// Incompatability!
+					parent.killHandler();
+					client.kill();
+					JOptionPane.showMessageDialog(getMainFrame(), "The host is using version " + game.getVersion() + " and you are using " + Constants.REALM_SPEAK_VERSION, "Incompatible Versions!", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				System.out.println("Versions match!");
 
-					DieRoller.setDieRollerLog(RealmUtility.getDieRollerLog(client.getGameData()));
+				DieRoller.setDieRollerLog(RealmUtility.getDieRollerLog(client.getGameData()));
 
-					// Energize permanent spells as necessary
-					SpellMasterWrapper spellMaster = SpellMasterWrapper.getSpellMaster(client.getGameData());
-					spellMaster.energizePermanentSpells(getMainFrame(), game);
+				// Energize permanent spells as necessary
+				SpellMasterWrapper spellMaster = SpellMasterWrapper.getSpellMaster(client.getGameData());
+				spellMaster.energizePermanentSpells(getMainFrame(), game);
 
-					// Create inspector and map singleton
-					CenteredMapView.initSingleton(client.getGameData());
-					inspector = new RealmInspectorFrame(getMainFrame(), client.getGameData(), game);
-					inspector.setZoomSlider(parent.getRealmSpeakOptions().getOptions().getBoolean(RealmSpeakOptions.MAP_SLIDER));
-					inspector.setClearingHighlight(parent.getRealmSpeakOptions().getOptions().getBoolean(RealmSpeakOptions.HIGHLIGHT_CLEARING_NUMBERS));
-					inspector.setShowSeasonIcon(parent.getRealmSpeakOptions().getOptions().getBoolean(RealmSpeakOptions.SHOW_SEASON_ICON));
-					inspector.setShowChatLines(parent.getRealmSpeakOptions().getOptions().getInt(RealmSpeakOptions.NUMBER_OF_CHAT_LINES));
-					// parent.updateChatLines();
-					inspector.revalidate();
-					inspector.repaint();
-					inspector.getMap().addActionListener(new ActionListener() {
-						public void actionPerformed(ActionEvent aev) {
+				// Create inspector and map singleton
+				CenteredMapView.initSingleton(client.getGameData());
+				inspector = new RealmInspectorFrame(getMainFrame(), client.getGameData(), game);
+				inspector.setZoomSlider(parent.getRealmSpeakOptions().getOptions().getBoolean(RealmSpeakOptions.MAP_SLIDER));
+				inspector.setClearingHighlight(parent.getRealmSpeakOptions().getOptions().getBoolean(RealmSpeakOptions.HIGHLIGHT_CLEARING_NUMBERS));
+				inspector.setShowSeasonIcon(parent.getRealmSpeakOptions().getOptions().getBoolean(RealmSpeakOptions.SHOW_SEASON_ICON));
+				inspector.setShowChatLines(parent.getRealmSpeakOptions().getOptions().getInt(RealmSpeakOptions.NUMBER_OF_CHAT_LINES));
+				// parent.updateChatLines();
+				inspector.revalidate();
+				inspector.repaint();
+				inspector.getMap().addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent aev) {
+						if (!inspector.getMap().hasClearingSelectionInProgress()) {
 							if (aev.getID() == CenteredMapView.CLICK_CLEARING_ACTION) {
 								TileLocation tl = TileLocation.parseTileLocation(client.getGameData(), aev.getActionCommand());
 								handleClearingClick(tl);
@@ -1185,86 +1290,97 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 								view.showSeasonDetail();
 							}
 						}
-					});
-					parent.addFrameToDesktop(inspector);
-
-					setConnectionStatus("Data loaded.  Initialize..");
-
-					// Load host prefs
-					hostPrefs = HostPrefWrapper.findHostPrefs(client.getGameData());
-					ArrayList<String> missing = CustomCharacterLibrary.getSingleton().getMissingCharacterNames(hostPrefs.getAllCharacterKeys());
-					if (missing.size() > 0 && !DebugUtility.isIgnoreChars()) {
-						StringBuffer sb = new StringBuffer();
-						sb.append("You are missing custom characters.  Contact the host, and get files for:");
-						for (String name : missing) {
-							sb.append("\n   ");
-							sb.append(name);
-						}
-						sb.append("\n\nYou can continue to play, but you may encounter fatal errors when dealing with custom characters during the game.");
-						JOptionPane.showMessageDialog(getMainFrame(), sb.toString());
 					}
+				});
+				parent.addFrameToDesktop(inspector);
 
-					if (isHostPlayer()) {
-						if (hostPrefs.getBoardPlayerSetup() && !inspector.getMap().isMapReady()) {
-							startMapBuildingButton.setEnabled(true);
-							startGameButton.setEnabled(false);
+				setConnectionStatus("Data loaded.  Initialize..");
+
+				// Load host prefs
+				hostPrefs = HostPrefWrapper.findHostPrefs(client.getGameData());
+				ArrayList<String> missing = CustomCharacterLibrary.getSingleton().getMissingCharacterNames(hostPrefs.getAllCharacterKeys());
+				if (missing.size() > 0 && !DebugUtility.isIgnoreChars()) {
+					StringBuffer sb = new StringBuffer();
+					sb.append("You are missing custom characters.  Contact the host, and get files for:");
+					for (String name : missing) {
+						sb.append("\n   ");
+						sb.append(name);
+					}
+					sb.append("\n\nYou can continue to play, but you may encounter fatal errors when dealing with custom characters during the game.");
+					JOptionPane.showMessageDialog(getMainFrame(), sb.toString());
+				}
+
+				if (isHostPlayer()) {
+					if (hostPrefs.getBoardPlayerSetup() && !inspector.getMap().isMapReady()) {
+						startMapBuildingButton.setEnabled(true);
+						startGameButton.setEnabled(false);
+					}
+					else {
+						if (game.getGameStarted()) {
+							if (game.getGameEnded()) {
+								revealAllButton.setEnabled(!game.hasBeenRevealed());
+							}
+							else {
+								endGameButton.setEnabled(true);
+							}
 						}
 						else {
-							if (game.getGameStarted()) {
-								if (game.getGameEnded()) {
-									revealAllButton.setEnabled(!game.hasBeenRevealed());
-								}
-								else {
-									endGameButton.setEnabled(true);
-								}
-							}
-							else {
-								startGameButton.setEnabled(true);
-							}
+							startGameButton.setEnabled(true);
 						}
 					}
-
-					// Ready!
-					setConnectionStatus("Ready.");
-					updateControls();
-				}
-				else {
-					if (hostPrefs.isUsingSeasons()) {
-						RealmCalendar cal = RealmCalendar.getCalendar(getClient().getGameData());
-						int month = game.getMonth();
-						String weather = game.getWeather();
-						if (month != lastMonth) {
-							lastMonth = month;
-							lastWeather = weather;
-							if (hostPrefs.hasPref(Constants.OPT_WEATHER)) {
-								inspector.getMap().setMapAttentionMessage(cal.getSeasonName(month) + " -- " + cal.getWeatherName(month));
-							}
-							else {
-								inspector.getMap().setMapAttentionMessage(cal.getSeasonName(month));
-							}
-						}
-						else if (hostPrefs.hasPref(Constants.OPT_WEATHER) && !weather.equals(lastWeather)) {
-							lastWeather = weather;
-							inspector.getMap().setMapAttentionMessage(cal.getWeatherName(month));
-						}
-					}
-
-					logger.fine("RealmGameHandler notes a change in the client!  Redraw map.");
-					inspector.redrawMap();
 				}
 
-				// Update character table
-				updateCharacterList();
+				// Ready!
+				setConnectionStatus("Ready.");
 				updateControls();
 			}
+			else {
+				if (hostPrefs.isUsingSeasons()) {
+					RealmCalendar cal = RealmCalendar.getCalendar(getClient().getGameData());
+					int month = game.getMonth();
+					String weather = game.getWeather();
+					if (month != lastMonth) {
+						lastMonth = month;
+						lastWeather = weather;
+						if (hostPrefs.hasPref(Constants.OPT_WEATHER)) {
+							inspector.getMap().setMapAttentionMessage(cal.getSeasonName(month) + " -- " + cal.getWeatherName(month));
+						}
+						else {
+							inspector.getMap().setMapAttentionMessage(cal.getSeasonName(month));
+						}
+					}
+					else if (hostPrefs.hasPref(Constants.OPT_WEATHER) && !weather.equals(lastWeather)) {
+						lastWeather = weather;
+						inspector.getMap().setMapAttentionMessage(cal.getWeatherName(month));
+					}
+				}
+				
+				if (hostPrefs.hasPref(Constants.SR_EVENTS)) {
+					ArrayList<IEvent> events = RealmEvents.getCurrentEvents(getClient().getGameData());
+					if (events!=null && !events.isEmpty()) {
+						inspector.getMap().clearMapAttentionMessage2();
+						for (IEvent event : events) {
+							inspector.getMap().addMapAttentionMessage2(event.getTitle());
+							inspector.getMap().addMapAttentionMessage2(event.getDescription(getClient().getGameData()));
+						}
+					}
+				}
+
+				logger.fine("RealmGameHandler notes a change in the client!  Redraw map.");
+				inspector.redrawMap();
+			}
+
+			// Update character table
+			updateCharacterList();
+			updateControls();
 		}
 	}
 
 	private CharacterFrame getTopmostFrame() {
 		if (characterFrameOrder.size() > 0) {
 			try {
-				String topmostId = (String) characterFrameOrder.get(0);
-				return (CharacterFrame) characterFrames.get(topmostId);
+				String topmostId = characterFrameOrder.get(0);
+				return characterFrames.get(topmostId);
 			}
 			catch (IndexOutOfBoundsException ex) {
 				// Ignore this exception
@@ -1277,12 +1393,11 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		CharacterActionControlManager acm = null;
 		CharacterFrame topmostFrame = getTopmostFrame();
 		if (topmostFrame != null) {
-			// Okay, the topmost character frame is still recording, so now we
-			// can add a move
+			// Okay, the topmost character frame is still recording, so now we can add a move
 			if (topmostFrame.getCharacter().isDoRecord()) {
 				acm = topmostFrame.getActionPanel().getActionControlManager();
 			}
-			if (topmostFrame.getCharacter().canDoDaytimeRecord() && topmostFrame.showingTurn()) {
+			if (topmostFrame.getCharacter().canDoDaytimeRecord() && topmostFrame.showingTurn() && topmostFrame.getTurnPanel().hasActionsLeft()){
 				acm = topmostFrame.getTurnPanel().getActionControlManager();
 			}
 		}
@@ -1305,12 +1420,11 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		 */
 		CharacterFrame topmostFrame = getTopmostFrame();
 		if (topmostFrame != null) {
-			// Okay, the topmost character frame is still recording, so now we
-			// can add a move
+			// Okay, the topmost character frame is still recording, so now we can add a move
 			if (topmostFrame.getCharacter().isDoRecord()) {
 				topmostFrame.getActionPanel().getActionControlManager().recordExternalMoveAction(tl);
 			}
-			if (topmostFrame.getCharacter().canDoDaytimeRecord() && topmostFrame.showingTurn()) {
+			if (topmostFrame.getCharacter().canDoDaytimeRecord() && topmostFrame.showingTurn() && topmostFrame.getTurnPanel().hasActionsLeft()) {
 				topmostFrame.getTurnPanel().getActionControlManager().recordExternalMoveAction(tl);
 			}
 		}
@@ -1319,21 +1433,37 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	public ArrayList<String[]> getRelationshipNames() {
 		if (relationshipNames == null) {
 			GamePool pool = getGamePool();
-			relationshipNames = new ArrayList<String[]>();
+			relationshipNames = new ArrayList<>();
 			for (GameObject nativeLeader : pool.find("native,rank=HQ")) {
 				String nativeName = nativeLeader.getThisAttribute("native");
 				String relBlock = RealmUtility.getRelationshipBlockFor(nativeLeader);
-				String[] ret = new String[2];
+				String[] ret = new String[3];
 				ret[0] = relBlock;
 				ret[1] = "N" + StringUtilities.capitalize(nativeName);
+				if (nativeLeader.hasThisAttribute(Constants.ROVING_NATIVE)) {
+					ret[2] = Constants.ROVING_NATIVE;
+				}
 				relationshipNames.add(ret);
 			}
-			for (GameObject visitor : pool.find("visitor")) {
-				String visitorName = visitor.getThisAttribute("visitor");
+			for (GameObject visitor : pool.find(Constants.VISITOR)) {
+				String visitorName = visitor.getThisAttribute(Constants.VISITOR);
 				String relBlock = RealmUtility.getRelationshipBlockFor(visitor);
-				String[] ret = new String[2];
+				String[] ret = new String[3];
 				ret[0] = relBlock;
 				ret[1] = "V" + StringUtilities.capitalize(visitorName);
+				if (visitor.hasThisAttribute(Constants.ROVING_NATIVE)) {
+					ret[2] = Constants.ROVING_NATIVE;
+				}
+				relationshipNames.add(ret);
+			}
+			for (GameObject guild : pool.find(Constants.GUILD)) {
+				String guildNmae = guild.getThisAttribute(Constants.GUILD);
+				String relBlock = RealmUtility.getRelationshipBlockFor(guild);
+				String[] ret = new String[4];
+				ret[0] = relBlock;
+				ret[1] = "G" + StringUtilities.capitalize(guildNmae);
+				ret[2] = "";
+				ret[3] = Constants.GUILD;
 				relationshipNames.add(ret);
 			}
 			Collections.sort(relationshipNames, new Comparator<String[]>() {
@@ -1362,7 +1492,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	 * objects for the current game
 	 */
 	public GamePool getGamePool() {
-		ArrayList keyVals = new ArrayList();
+		ArrayList<String> keyVals = new ArrayList<>();
 		if (hostPrefs == null) { // this only happens when running the character
 									// frame standalone
 			hostPrefs = HostPrefWrapper.findHostPrefs(client.getGameData());
@@ -1375,22 +1505,42 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	public TreasureSetupCardView getTreasureSetupCardView() {
 		TreasureSetupCardView ret = null;
 		if (treasureSetupCardView == null) {
+			boolean setupCardLayout = getMainFrame().getRealmSpeakOptions().getOptions().getBoolean(RealmSpeakOptions.SETUP_CARD_LAYOUT);
 			if (hostPrefs.getMultiBoardEnabled()) {
 				int count = hostPrefs.getMultiBoardCount();
-				treasureSetupCardView = new TreasureSetupCardView[count];
-				treasureSetupCardView[0] = new TreasureSetupCardView(client.getGameData(), client.getClientName(), "!" + Constants.BOARD_NUMBER);
-				for (int n = 1; n < count; n++) {
-					String boardNumber = Constants.MULTI_BOARD_APPENDS.substring(n - 1, n);
-					treasureSetupCardView[n] = new TreasureSetupCardView(client.getGameData(), client.getClientName(), Constants.BOARD_NUMBER + "=" + boardNumber);
+				if (hostPrefs.usesSuperRealm()) {
+					treasureSetupCardView = new TreasureSetupCardView[count*2];
+					treasureSetupCardView[0] = new TreasureSetupCardView(client.getGameData(), client.getClientName(), "!" + Constants.BOARD_NUMBER,setupCardLayout);
+					treasureSetupCardView[1] = new TreasureSetupCardView(client.getGameData(), client.getClientName(), "!" + Constants.BOARD_NUMBER,setupCardLayout,true);
+					int j = 2;
+					for (int n = 1; n < count; n++) {
+						String boardNumber = Constants.MULTI_BOARD_APPENDS.substring(n - 1, n);
+						treasureSetupCardView[j] = new TreasureSetupCardView(client.getGameData(), client.getClientName(), Constants.BOARD_NUMBER + "=" + boardNumber,setupCardLayout);
+						treasureSetupCardView[j+1] = new TreasureSetupCardView(client.getGameData(), client.getClientName(), Constants.BOARD_NUMBER + "=" + boardNumber,setupCardLayout,true);
+						j=j+2;
+					}	
+				} else {
+					treasureSetupCardView = new TreasureSetupCardView[count];
+					treasureSetupCardView[0] = new TreasureSetupCardView(client.getGameData(), client.getClientName(), "!" + Constants.BOARD_NUMBER,setupCardLayout);
+					for (int n = 1; n < count; n++) {
+						String boardNumber = Constants.MULTI_BOARD_APPENDS.substring(n - 1, n);
+						treasureSetupCardView[n] = new TreasureSetupCardView(client.getGameData(), client.getClientName(), Constants.BOARD_NUMBER + "=" + boardNumber,setupCardLayout);
+					}
 				}
 			}
 			else {
-				treasureSetupCardView = new TreasureSetupCardView[1];
-				treasureSetupCardView[0] = new TreasureSetupCardView(client.getGameData(), client.getClientName());
+				if (hostPrefs.usesSuperRealm()) {
+					treasureSetupCardView = new TreasureSetupCardView[2];
+					treasureSetupCardView[0] = new TreasureSetupCardView(client.getGameData(), client.getClientName(),setupCardLayout);
+					treasureSetupCardView[1] = new TreasureSetupCardView(client.getGameData(), client.getClientName(),setupCardLayout,true);
+				} else {
+					treasureSetupCardView = new TreasureSetupCardView[1];
+					treasureSetupCardView[0] = new TreasureSetupCardView(client.getGameData(), client.getClientName(),setupCardLayout);
+				}
 			}
 		}
 		if (treasureSetupCardView.length > 1) {
-			ButtonOptionDialog chooser = new ButtonOptionDialog(getMainFrame(), null, "View setup for which board?", "Setup Card", true);
+			ButtonOptionDialog chooser = new ButtonOptionDialog(getMainFrame(), null, "View which setup?", "Setup Card", true);
 			for (int i = 0; i < treasureSetupCardView.length; i++) {
 				chooser.addSelectionObject(treasureSetupCardView[i]);
 			}
@@ -1423,11 +1573,9 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		logger.fine("Done");
 
 		GamePool pool = getGamePool();
-		ArrayList characters = pool.find("character,!" + CharacterWrapper.NAME_KEY);
-		Collections.sort(characters, new Comparator() {
-			public int compare(Object o1, Object o2) {
-				GameObject go1 = (GameObject) o1;
-				GameObject go2 = (GameObject) o2;
+		ArrayList<GameObject> characters = pool.find("character,!" + CharacterWrapper.NAME_KEY);
+		Collections.sort(characters, new Comparator<GameObject>() {
+			public int compare(GameObject go1, GameObject go2) {
 				return go1.getName().compareTo(go2.getName());
 			}
 		});
@@ -1483,14 +1631,14 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 					character.setPlayerName(name);
 					character.setPlayerPassword(clientPlayerPass);
 					character.setPlayerEmail(clientEmail);
-					String levelName = (String) dialog.getChosenLevelName();
+					String levelName = dialog.getChosenLevelName();
 					int level;
 					// Handle special case for level 10
 					if (levelName.substring(0, 2).equals("10")) {
 						level = 10;
 					}
 					else {
-						level = Integer.valueOf(levelName.substring(0, 1)).intValue();
+						level = Integer.parseInt(levelName.substring(0, 1));
 					}
 					int bonusChits = dialog.getChosenBonusChits();
 					character.setStartingLevel(level);
@@ -1504,7 +1652,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 					character.initChits();
 					// Allow player to pick bonus chits
 					for (int i = 0; i < bonusChits; i++) {
-						ArrayList list = character.getAdvancementChits();
+						ArrayList<CharacterActionChitComponent> list = character.getAdvancementChits();
 						if (!list.isEmpty()) {
 							RealmComponentOptionChooser chitChooser = new RealmComponentOptionChooser(getMainFrame(), "Choose a Bonus Chit", true);
 							chitChooser.addRealmComponents(list, false);
@@ -1512,7 +1660,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 							if (chitChooser.getSelectedText() == null)
 								continue;
 							CharacterActionChitComponent chit = (CharacterActionChitComponent) chitChooser.getFirstSelectedComponent();
-							chit.getGameObject().setThisAttribute("chitEarned");
+							chit.getGameObject().setThisAttribute(Constants.CHIT_EARNED);
 							character.updateChitEffects();
 						}
 					}
@@ -1520,48 +1668,17 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 					character.setWantsCombat(getMainFrame().getRealmSpeakOptions().dailyCombatOn(character));
 					character.clearRelationships(hostPrefs);
 					character.initRelationships(hostPrefs);
-
-					if (!hostPrefs.getRequiredVPsOff() && !hostPrefs.hasPref(Constants.QST_BOOK_OF_QUESTS)) {
-						RealmCalendar cal = RealmCalendar.getCalendar(getClient().getGameData());
-						int vps = 0;
-						if (hostPrefs.hasPref(Constants.EXP_SUDDEN_DEATH)) {
-							vps = hostPrefs.getVpsToAchieve();
-						}
-						else {
-							int totalMonths = hostPrefs.getNumberMonthsToPlay();
-							for (int i = 0; i < totalMonths; i++) {
-								int vp = cal.getVictoryPoints(i + 1);
-								vps += vp;
-							}
-						}
-
-						// Lower level characters get to choose fewer VPs
-						vps -= (Constants.MAX_LEVEL - level);
-
-						if (vps < Constants.MINIMUM_VPS) {
-							vps = Constants.MINIMUM_VPS;
-						}
-
-						if (hostPrefs.hasPref(Constants.HOUSE2_ANY_VPS)) {
-							vps = -1;
-						}
-
-						if (hostPrefs.hasPref(Constants.QST_QUEST_CARDS) && vps!=-1) {
-							character.addVictoryRequirements(vps,0,0,0,0,0);
-						}
-						else {
-							character.setNewVPRequirement(vps);
-						}
-					}
+					RealmCalendar cal = RealmCalendar.getCalendar(getClient().getGameData());
+					character.initializeVpsSetup(hostPrefs,level,cal);
 
 					// Figure out starting location
 					// 1) Find the dwelling or ghost gameObject
 					if (!hostPrefs.hasPref(Constants.EXP_NO_DWELLING_START)) {
 						String starting = dialog.getChosenStartName().toLowerCase();
-						ArrayList dwellingKeyVals = new ArrayList();
+						ArrayList<String> dwellingKeyVals = new ArrayList<>();
 						if (starting.equals("ghost")) {
 							dwellingKeyVals.add("monster");
-							dwellingKeyVals.add("icon_type=ghost");
+							dwellingKeyVals.add("ghost");
 						}
 						else {
 							dwellingKeyVals.add("dwelling=" + starting);
@@ -1575,9 +1692,9 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 								dwellingKeyVals.add("!" + Constants.BOARD_NUMBER);
 							}
 						}
-						Collection startingChits = pool.find(dwellingKeyVals);
+						Collection<GameObject> startingChits = pool.find(dwellingKeyVals);
 						if (startingChits != null && !startingChits.isEmpty()) {
-							GameObject startingChit = (GameObject) startingChits.iterator().next();
+							GameObject startingChit = startingChits.iterator().next();
 							// 2) Get the heldBy (tile)
 							GameObject tile = startingChit.getHeldBy();
 
@@ -1608,9 +1725,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 					character.fetchStartingInventory(getMainFrame(), client.getGameData(), !dialog.wantsRandomInventorySourceSelection());
 
 					// Initialize
-					character.tagUnplayableChits(); // this need only happen
-													// once, because it examines
-													// ALL the chits
+					character.tagUnplayableChits(); // this need only happen once, because it examines ALL the chits
 					character.updateLevelAttributes(hostPrefs);
 					character.setGold(character.getStartingGold());
 
@@ -1630,15 +1745,34 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 					// equipment
 					character.calculateStartingWorth();
 					
-					if (hostPrefs.hasPref(Constants.QST_QUEST_CARDS)) {
+					if (hostPrefs.hasPref(Constants.QST_QUEST_CARDS) || hostPrefs.hasPref(Constants.QST_SR_QUESTS)) {
 						QuestDeck deck = QuestDeck.findDeck(client.getGameData());
 						deck.setupAllPlayCards(getMainFrame(),character);
 						deck.drawCards(getMainFrame(),character);
+					}
+					if (hostPrefs.hasPref(Constants.QST_BOOK_OF_QUESTS)) {
+						QuestBookEvents book = QuestBookEvents.findBook(client.getGameData());
+						book.setupEvents(getMainFrame(),character);
 					}
 
 					// No need to send again - it'll get sent quickly enough
 
 					// Done
+					if (hostPrefs.hasPref(Constants.OPT_SUSPICIOUS_CHARACTERS) && !character.isMinion()) {
+						character.setBlocking(true);
+						character.setKeepBlocking(true);
+						character.setWantsCombat(true);
+						character.setWantsDayEndTrades(true);
+						ArrayList<GameObject> livingCharacters = RealmUtility.getLivingCharacters(client.getGameData());
+						for (GameObject existing : livingCharacters) {
+							if (!existing.equals(character.getGameObject())) {
+								CharacterWrapper existingWrapper = new CharacterWrapper(existing);
+								if (existingWrapper.isMinion()) continue;
+								character.setEnemyCharacter(existing, true);
+								existingWrapper.setEnemyCharacter(character.getGameObject(), true);
+							}
+						}
+					}
 					broadcast(character.getGameObject().getName(), "Joins the game.");
 					broadcastSummaryMessage(character.getGameObject().getName() + " joins the game.");
 				}
@@ -1677,12 +1811,11 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		// Find all native leaders that have treasure cards
 		GamePool pool = getGamePool();
 		ArrayList<GameObject> leaders = pool.find("rank=HQ");
-		Hashtable<GameObject, ArrayList<GameObject>> hash = new Hashtable<GameObject, ArrayList<GameObject>>();
+		Hashtable<GameObject, ArrayList<GameObject>> hash = new Hashtable<>();
 		for (GameObject leader : leaders) {
 			GameObject dwelling = SetupCardUtility.getDenizenHolder(leader);
-			ArrayList<GameObject> treasures = new ArrayList<GameObject>();
-			for (Iterator i = dwelling.getHold().iterator(); i.hasNext();) {
-				GameObject item = (GameObject) i.next();
+			ArrayList<GameObject> treasures = new ArrayList<>();
+			for (GameObject item : dwelling.getHold()) {
 				if (item.hasThisAttribute("treasure")) {
 					treasures.add(item);
 				}
@@ -1720,11 +1853,10 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		// Find all available horses
 		GamePool pool = getGamePool();
 		ArrayList<GameObject> leaders = pool.find("rank=HQ");
-		ArrayList<GameObject> horses = new ArrayList<GameObject>();
+		ArrayList<GameObject> horses = new ArrayList<>();
 		for (GameObject leader : leaders) {
 			GameObject dwelling = SetupCardUtility.getDenizenHolder(leader);
-			for (Iterator i = dwelling.getHold().iterator(); i.hasNext();) {
-				GameObject item = (GameObject) i.next();
+			for (GameObject item : dwelling.getHold()) {
 				if (item.hasThisAttribute("horse")) {
 					horses.add(item);
 				}
@@ -1770,7 +1902,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		// Record one extra spell of any type
 		GamePool pool = getGamePool();
 		ArrayList<GameObject> spells = pool.find("spell");
-		ArrayList<GameObject> learnable = new ArrayList<GameObject>();
+		ArrayList<GameObject> learnable = new ArrayList<>();
 		for (GameObject go : spells) {
 			String spellType = go.getThisAttribute("spell");
 			boolean instance = go.hasThisAttribute("Instance");
@@ -1800,13 +1932,12 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		// Take one weapon or armor counter from any native group
 		GamePool pool = getGamePool();
 		ArrayList<GameObject> leaders = pool.find("rank=HQ");
-		ArrayList<GameObject> counters = new ArrayList<GameObject>();
+		ArrayList<GameObject> counters = new ArrayList<>();
 		for (GameObject leader : leaders) {
 			GameObject dwelling = SetupCardUtility.getDenizenHolder(leader);
-			for (Iterator i = dwelling.getHold().iterator(); i.hasNext();) {
-				GameObject item = (GameObject) i.next();
-				if (!item.hasThisAttribute("treasure")) {
-					if (item.hasThisAttribute("weapon") || item.hasThisAttribute("armor")) {
+			for (GameObject item : dwelling.getHold()) {
+				if (!item.hasThisAttribute(RealmComponent.TREASURE)) {
+					if (item.hasThisAttribute(RealmComponent.WEAPON) || item.hasThisAttribute(RealmComponent.ARMOR)) {
 						counters.add(item);
 					}
 				}
@@ -1835,12 +1966,18 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		GameClient.submitAndWait(client);
 		characterTable.repaint();
 	}
+	
+	public void submitChangesWithTimeout() {
+		logger.finer("submitChanges()");
+		client.submitWithTimeout();
+		characterTable.repaint();
+	}
 
 	private GameWrapper findGame() {
 		GamePool pool = new GamePool(client.getGameData().getGameObjects());
-		Collection mrGameObjects = pool.extract(GameWrapper.getKeyVals());
+		Collection<GameObject> mrGameObjects = pool.extract(GameWrapper.getKeyVals());
 		if (mrGameObjects.size() == 1) {
-			GameObject go = (GameObject) mrGameObjects.iterator().next();
+			GameObject go = mrGameObjects.iterator().next();
 			return new GameWrapper(go);
 		}
 		return null;
@@ -1886,13 +2023,10 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 				parent.addFrameToDesktop(tilePickFrame);
 			}
 		}
-		else {
-			if (tilePickFrame != null) {
-				getInspector().getMap().updateGrid(); // Guarantee that the map
-														// is built properly
+		else if (tilePickFrame != null) {
+				getInspector().getMap().updateGrid(); // Guarantee that the map is built properly
 				parent.removeFrameFromDesktop(tilePickFrame);
 				tilePickFrame = null;
-			}
 		}
 		if (tilePickFrame != null) {
 			// tilePickFrame.refreshPlaceables();
@@ -1923,14 +2057,27 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		spellMaster.energizePermanentSpells(getMainFrame(), game);
 
 		GamePool pool = new GamePool(RealmObjectMaster.getRealmObjectMaster(client.getGameData()).getPlayerCharacterObjects());
-		Collection characterGameObjects = pool.extract(CharacterWrapper.getKeyVals());
-		ArrayList charactersAndMinions = new ArrayList();
-		for (Iterator i = characterGameObjects.iterator(); i.hasNext();) {
-			GameObject go = (GameObject) i.next();
+		ArrayList<GameObject> characterGameObjects = pool.extract(CharacterWrapper.getKeyVals());
+		if (hostPrefs!=null && hostPrefs.hasPref(Constants.HOUSE_CHARACTERLIST_SORTING_BY_PLAY_ORDER)) { 
+			Collections.sort(characterGameObjects,new Comparator<GameObject>() {
+				public int compare(GameObject g1,GameObject g2) {
+					return new CharacterWrapper(g1).getPlayerOrdering()-new CharacterWrapper(g2).getPlayerOrdering();
+				}
+			});
+		}
+		else {
+			Collections.sort(characterGameObjects,new Comparator<GameObject>() {
+				public int compare(GameObject g1,GameObject g2) {
+					return g1.getName().compareTo(g2.getName());
+				}
+			});
+		}
+		ArrayList<GameObject> charactersAndMinions = new ArrayList<>();
+		for (GameObject go : characterGameObjects) {
 			CharacterWrapper character = new CharacterWrapper(go);
 			charactersAndMinions.add(go);
 			if (character.isActive()) {
-				Collection minions = character.getMinions();
+				Collection<GameObject> minions = character.getMinions();
 				if (minions != null) {
 					charactersAndMinions.addAll(minions);
 				}
@@ -1939,15 +2086,13 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		boolean needSubmit = false;
 		characterList.clear();
 		CharacterWrapper interactiveCharacter = null;
-		ArrayList allFound = new ArrayList();
-		for (Iterator i = charactersAndMinions.iterator(); i.hasNext();) {
-			GameObject go = (GameObject) i.next();
+		ArrayList<String> allFound = new ArrayList<>();
+		for (GameObject go : charactersAndMinions) {
 			CharacterWrapper character = new CharacterWrapper(go);
 			characterList.add(character);
 
-			// don't forget to update any active frames! (maybe this is how they
-			// could be created...)
-			CharacterFrame frame = (CharacterFrame) characterFrames.get(character.getGameObject().getStringId());
+			// don't forget to update any active frames! (maybe this is how they could be created...)
+			CharacterFrame frame = characterFrames.get(character.getGameObject().getStringId());
 			allFound.add(character.getGameObject().getStringId());
 
 			if (frame == null && !character.isDead() && character.getPlayerName().equals(client.getClientName())) {
@@ -1962,14 +2107,14 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 						needSubmit = true;
 						// character.setWantsCombat(getMainFrame().dailyCombatOn(character));
 						frame = new CharacterFrame(this, character, iconSize);
-						frame.centerOnToken();
+						if (isOption(RealmSpeakOptions.MAP_CENTER_ON_CHARACTER)) {
+							frame.centerOnToken();
+						}
 						parent.addFrameToDesktop(frame);
 						String id = character.getGameObject().getStringId();
 						characterFrames.put(id, frame);
 						characterFrameOrder.add(0, id);
-						playerWarned.remove(character.getGameObject().getStringId()); // just
-																						// in
-																						// case
+						playerWarned.remove(character.getGameObject().getStringId()); // just in case
 						framesCreated = true;
 						// broadcastChat(character,"<JOINED>"); // This just
 						// looks ugly in the chat
@@ -1990,8 +2135,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 			if (frame != null) {
 				if (!character.isDead() && !character.getPlayerName().equals(client.getClientName())) {
-					// The frame was probably transferred, and needs to be
-					// removed!
+					// The frame was probably transferred, and needs to be removed!
 					characterTable.clearSelection();
 					String id = character.getGameObject().getStringId();
 					characterFrames.remove(id);
@@ -2006,15 +2150,12 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 					characterFrameOrder.remove(id);
 					parent.removeFrameFromDesktop(frame);
 					if (character.isCharacter() && !hostPrefs.hasPref(Constants.HOUSE1_DONT_RECYCLE_CHARACTERS)) {
-						character.clearPlayerAttributes(); // puts it back in
-															// the player pool
-															// again
+						character.clearPlayerAttributes(); // puts it back in the player pool again
 						character.getGameObject().removeThisAttribute(Constants.DEAD);
 						characterList.remove(character);
 					}
 				}
-				else if (character.isJustUnhired()) { // A hired leader becomes
-														// unhired
+				else if (character.isJustUnhired()) { // A hired leader becomes unhired
 					characterTable.clearSelection();
 					String id = character.getGameObject().getStringId();
 					characterFrames.remove(id);
@@ -2039,20 +2180,24 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 						interactiveCharacter = character;
 					}
 					else if (active && character.getPlayOrder() == 1) {
-						// Becomes unhidden at the start of the turn, unless he
-						// is hidden as a result
-						// of following a guide...
-
-						if (!character.hasDoneActionsToday()) {
+						// Becomes unhidden at the start of the turn, unless he can postpone his turn or is hidden as a result of following a guide...
+						if (!character.hasDoneActionsToday() && (!character.affectedByKey(Constants.CHOOSE_TURN) || character.isLastPlayer()) && !character.getGameObject().hasThisAttribute(Constants.NO_UNHIDE)) {
 							character.setHidden(false);
 							character.unhideAllCharacterFollowers();
 						}
 						if (!frame.showingTurn()) {
-							broadcast(character.getGameObject().getName(), "Starts turn: " + character.getCurrentLocation());
+							TileLocation loc = character.getCurrentLocation();
+							broadcast(character.getGameObject().getName(), "Starts turn: " + loc);
+							if (loc!=null) {
+								character.getCurrentLocation().energizeItems();
+							}
+							frame.checkDenizenControlToContinue();
 							RealmTurnPanel turn = new RealmTurnPanel(frame, game, hostPrefs);
 							needSubmit = true;
 							frame.showYourTurn(turn);
-							getInspector().getMap().centerOn(character.getCurrentLocation());
+							if(isOption(RealmSpeakOptions.MAP_CENTER_ON_CHARACTER)) {
+								getInspector().getMap().centerOn(loc);
+							}
 							frame.toFront();
 							String id = character.getGameObject().getStringId();
 							characterFrameOrder.remove(id);
@@ -2063,13 +2208,14 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 					}
 					else if (character.isGameOver()) {
 						// Update Hall of Fame if VPs are used
-						if (!hostPrefs.getRequiredVPsOff() && character.isCharacter()) {
+						if (game.isGameOver() && !hostPrefs.getRequiredVPsOff() && character.isCharacter()) {
 							HallOfFame.consider(hostPrefs, character);
 						}
 
 						// Show game results panel
 						frame.showGameOver();
-
+						
+						revealAllButton.setEnabled(true);
 						if (isHostPlayer()) {
 							endGameButton.setEnabled(true);
 						}
@@ -2078,12 +2224,11 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			}
 		}
 		// Remove any leftover frames (Phantasms, or Familiar)
-		ArrayList leftover = new ArrayList(characterFrames.keySet());
+		ArrayList<String> leftover = new ArrayList<>(characterFrames.keySet());
 		leftover.removeAll(allFound);
-		for (Iterator i = leftover.iterator(); i.hasNext();) {
-			String id = (String) i.next();
+		for (String id : leftover) {
 			characterTable.clearSelection();
-			CharacterFrame frame = (CharacterFrame) characterFrames.remove(id);
+			CharacterFrame frame = characterFrames.remove(id);
 			characterFrameOrder.remove(id);
 			parent.removeFrameFromDesktop(frame);
 			frame.getCharacter().clearPlayerAttributes();
@@ -2095,6 +2240,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			if (interactiveCharacter != null) {
 				showCharacterFrame(interactiveCharacter);
 				boolean did = CombatFrame.doDisplayInteractive(getMainFrame(), client.getGameData(), client.getClientName(), clientSubmitter, local, isHostPlayer());
+				getMainFrame().updateConnectionTitle();
 				if (!did) {
 					needSubmit = true;
 				}
@@ -2102,6 +2248,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			else {
 				// Observation only mode!
 				CombatFrame.doDisplayObserving(getMainFrame(), client.getGameData(), client.getClientName(), clientSubmitter, local, isHostPlayer());
+				getMainFrame().updateConnectionTitle();
 			}
 		}
 		else {
@@ -2109,8 +2256,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 			// This guarantees all characters have their combat reset when
 			// combat ends
-			for (Iterator i = charactersAndMinions.iterator(); i.hasNext();) {
-				GameObject go = (GameObject) i.next();
+			for (GameObject go : charactersAndMinions) {
 				CharacterWrapper character = new CharacterWrapper(go);
 				if (character.getCombatStatus() > 0) {
 					character.clearCombat();
@@ -2118,7 +2264,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			}
 		}
 		if (needSubmit) {
-			submitChanges();
+			submitChangesWithTimeout();
 		}
 
 		characterTableModel.rebuild();
@@ -2136,12 +2282,13 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	};
 
 	public void showCharacterFrame(CharacterWrapper character) {
-		for (Iterator i = characterFrames.values().iterator(); i.hasNext();) {
-			CharacterFrame frame = (CharacterFrame) i.next();
+		for (CharacterFrame frame : characterFrames.values()) {
 			CharacterWrapper test = frame.getCharacter();
 			if (test.getGameObject().equals(character.getGameObject())) {
 				frame.toFront();
-				frame.centerOnToken();
+				if (isOption(RealmSpeakOptions.MAP_CENTER_ON_CHARACTER)) {
+					frame.centerOnToken();
+				}
 				String id = character.getGameObject().getStringId();
 				characterFrameOrder.remove(id);
 				characterFrameOrder.add(0, id);
@@ -2154,8 +2301,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	 * Brings the next recording frame to front, if any
 	 */
 	public void showNextRecordFrame() {
-		for (Iterator i = characterFrames.values().iterator(); i.hasNext();) {
-			CharacterFrame frame = (CharacterFrame) i.next();
+		for (CharacterFrame frame : characterFrames.values()) {
 			CharacterWrapper character = frame.getCharacter();
 			if (character.isDoRecord()) {
 				characterTable.clearSelection();
@@ -2165,7 +2311,9 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 				}
 				frame.showActionPanel();
 				frame.toFront();
-				frame.centerOnToken();
+				if (isOption(RealmSpeakOptions.MAP_CENTER_ON_CHARACTER)) {
+					frame.centerOnToken();
+				}
 				String id = character.getGameObject().getStringId();
 				characterFrameOrder.remove(id);
 				characterFrameOrder.add(0, id);
@@ -2175,54 +2323,82 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	}
 
 	/**
-	 * A convenient way to update all the player's character frames (like when
-	 * an item is picked up)
+	 * A convenient way to update all the player's character frames (like when an item is picked up)
 	 */
 	public void updateCharacterFrames() {
-		for (Iterator i = characterFrames.values().iterator(); i.hasNext();) {
-			CharacterFrame frame = (CharacterFrame) i.next();
+		for (CharacterFrame frame : characterFrames.values()) {
 			if (frame.getCharacter().isActive()) {
 				frame.updateCharacter();
 			}
 		}
 		getInspector().redrawMap();
 	}
+	
+	public void updateCharacterFramesWithoutMap() {
+		for (CharacterFrame frame : characterFrames.values()) {
+			if (frame.getCharacter().isActive()) {
+				frame.updateCharacter();
+			}
+		}
+	}
 
 	private static final ImageIcon LOCK_ICON = IconFactory.findIcon("icons/lock.gif");
+	private static final ImageIcon BEGINNER_ICON = IconFactory.findIcon("icons/question.gif");
 
 	private class CharacterTableModel extends AbstractTableModel {
-		protected String[] columnName = { " ", " ", "Character", "Player", "Status", };
-		protected Class[] columnClass = { ImageIcon.class, ImageIcon.class, String.class, String.class, String.class, };
-		private ArrayList list;
+		protected String[] columnName = { " ", " ", " ", "Character", "Player", "Status", };
+		protected Class[] columnClass = { ImageIcon.class, ImageIcon.class, ImageIcon.class, String.class, String.class, String.class, };
+		private ArrayList<CharacterWrapper> list;
 
 		public CharacterTableModel() {
 			rebuild();
 		}
 
 		public void rebuild() {
-			list = new ArrayList();
+			list = new ArrayList<>();
 			if (characterList != null) {
-				for (Iterator i = characterList.iterator(); i.hasNext();) {
-					CharacterWrapper character = (CharacterWrapper) i.next();
+				for (CharacterWrapper character : characterList) {
 					if (showDeadOption.isSelected() || !character.isDead()) {
 						list.add(character);
 					}
 				}
 			}
-			fireTableDataChanged();
+			if (hostPrefs!=null && hostPrefs.hasPref(Constants.HOUSE_CHARACTERLIST_SORTING_BY_PLAY_ORDER)) {
+				sort();
+			}
+			else {
+				fireTableDataChanged();
+			}
 		}
 
+		public void sort() {
+			if (list!=null) {
+				Collections.sort(list,new Comparator<CharacterWrapper>() {
+					public int compare(CharacterWrapper c1,CharacterWrapper c2) {
+						return c1.getPlayerOrdering()-c2.getPlayerOrdering();
+					}
+				});
+			}
+			if (characterList!=null) {
+				Collections.sort(characterList,new Comparator<CharacterWrapper>() {
+					public int compare(CharacterWrapper c1,CharacterWrapper c2) {
+						return c1.getPlayerOrdering()-c2.getPlayerOrdering();
+					}
+				});
+			}
+			fireTableDataChanged();
+		}
+		
 		public CharacterWrapper getCharacter(int row) {
 			if (row >= 0 && row < list.size()) {
-				return (CharacterWrapper) list.get(row);
+				return list.get(row);
 			}
 			return null;
 		}
 
 		public int getCharacterRow(CharacterWrapper character) {
 			int row = 0;
-			for (Iterator i = list.iterator(); i.hasNext();) {
-				CharacterWrapper test = (CharacterWrapper) i.next();
+			for (CharacterWrapper test : list) {
 				if (test.equals(character)) {
 					return row;
 				}
@@ -2253,21 +2429,23 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		public Object getValueAt(int row, int column) {
 			String hostName = hostPrefs.getHostName();
 			if (row < list.size()) {
-				CharacterWrapper character = (CharacterWrapper) list.get(row);
+				CharacterWrapper character = list.get(row);
 				switch (column) {
 					case 0:
-						return character.hasPlayerPassword() ? LOCK_ICON : null;
+						return character.isBeginner() ? BEGINNER_ICON : null;
 					case 1:
-						return character.getIcon();
+						return character.hasPlayerPassword() ? LOCK_ICON : null;
 					case 2:
-						return character.getCharacterLevelName();
+						return character.getIcon();
 					case 3:
+						return character.getCharacterLevelName();
+					case 4:
 						String name = character.getPlayerName();
 						if (name != null && name.equals(hostName) && !localGame) {
 							return name + " (host)";
 						}
 						return name;
-					case 4:
+					case 5:
 						boolean waiting = !game.getPlaceGoldSpecials() && !game.getGameStarted();
 						return character.getGameStatus(waiting);
 				}
@@ -2308,8 +2486,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 	public void updateToolbarOptions(int inIconSize) {
 		this.iconSize = inIconSize;
-		for (Iterator i = characterFrames.values().iterator(); i.hasNext();) {
-			CharacterFrame frame = (CharacterFrame) i.next();
+		for (CharacterFrame frame : characterFrames.values()) {
 			frame.actionPanel.modifyToolbarIconStyle(iconSize);
 			frame.updateControls();
 		}

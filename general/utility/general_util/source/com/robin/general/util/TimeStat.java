@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.util;
 
 import java.sql.*;
@@ -25,10 +8,10 @@ public class TimeStat {
 //	private static final long NANOS_PER_MILLISECOND = 1000000l;
 	
 	/** Hash that holds a single start time for any single key */
-	private Hashtable starts = new Hashtable();
+	private Hashtable<String, Timestamp> starts = new Hashtable<>();
 	
 	/** Hash that holds all the measurement (duration) times for any single key */
-	private Hashtable times = new Hashtable();
+	private Hashtable<String, ArrayList<Long>> times = new Hashtable<>();
 	
 	/**
 	 * Sole constructor
@@ -41,8 +24,8 @@ public class TimeStat {
 	 * Resets all measurements by deleting all times.
 	 */
 	public void reset() {
-		starts = new Hashtable();
-		times = new Hashtable();
+		starts = new Hashtable<>();
+		times = new Hashtable<>();
 	}
 	
 	/**
@@ -60,7 +43,7 @@ public class TimeStat {
 	 */
 	public void markEndTime(String key) {
 		Timestamp end = new Timestamp((new java.util.Date()).getTime());
-		Timestamp start = (Timestamp)starts.get(key);
+		Timestamp start = starts.get(key);
 		if (start!=null) {
 			starts.remove(key);
 			long endMs = end.getTime();// + (long)end.getNanos()/NANOS_PER_MILLISECOND;
@@ -74,12 +57,12 @@ public class TimeStat {
 //				System.out.println(diff);
 //				throw new IllegalStateException("Aggghh! "+start+" and "+end);
 //			}
-			ArrayList all = (ArrayList)times.get(key);
+			ArrayList<Long> all = times.get(key);
 			if (all==null) {
-				all = new ArrayList();
+				all = new ArrayList<>();
 				times.put(key,all);
 			}
-			all.add(new Long(diff));
+			all.add(Long.valueOf(diff));
 		}
 	}
 	
@@ -88,8 +71,8 @@ public class TimeStat {
 	 */
 	public String getAverageSummary() {
 		StringBuffer sb = new StringBuffer("Average Summary:\n\n");
-		for (Enumeration e=times.keys();e.hasMoreElements();) {
-			String key = (String)e.nextElement();
+		for (Enumeration<String> e=times.keys();e.hasMoreElements();) {
+			String key = e.nextElement();
 			double avgmSec = getAverageMilliseconds(key);
 			sb.append("     "+key+" averaged "+avgmSec+" milliseconds. ("+getTotalMeasurements(key)+" total measurements)\n");
 		}
@@ -100,7 +83,7 @@ public class TimeStat {
 	/**
 	 * Returns an Enumeration of all keys used for measurements.
 	 */
-	public Enumeration keys() {
+	public Enumeration<String> keys() {
 		return times.keys();
 	}
 	
@@ -108,7 +91,7 @@ public class TimeStat {
 	 * Returns the total number of measurements for a given key.
 	 */
 	public int getTotalMeasurements(String key) {
-		ArrayList all = (ArrayList)times.get(key);
+		ArrayList<Long> all = times.get(key);
 		if (all!=null) {
 			return all.size();
 		}
@@ -120,11 +103,10 @@ public class TimeStat {
 	 * all start/end measurements for the provided key
 	 */
 	public double getAverageMilliseconds(String key) {
-		ArrayList all = (ArrayList)times.get(key);
+		ArrayList<Long> all = times.get(key);
 		if (all!=null) {
 			long total = 0;
-			for (Iterator i=all.iterator();i.hasNext();) {
-				Long msec = (Long)i.next();
+			for (Long msec : all) {
 				total += msec.longValue();
 			}
 			return ((double)total/(double)all.size());
@@ -137,14 +119,13 @@ public class TimeStat {
 	 * all start/end measurements for the provided key
 	 */
 	public double getTotalMilliseconds(String key) {
-		ArrayList all = (ArrayList)times.get(key);
+		ArrayList<Long> all = times.get(key);
 		if (all!=null) {
 			long total = 0;
-			for (Iterator i=all.iterator();i.hasNext();) {
-				Long msec = (Long)i.next();
+			for (Long msec : all) {
 				total += msec.longValue();
 			}
-			return (double)total;
+			return total;
 		}
 		return 0.0;
 	}

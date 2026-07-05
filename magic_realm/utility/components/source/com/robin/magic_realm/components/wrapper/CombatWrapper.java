@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.wrapper;
 
 import java.util.*;
@@ -22,7 +5,10 @@ import java.util.*;
 import com.robin.game.objects.*;
 import com.robin.magic_realm.components.RealmComponent;
 import com.robin.magic_realm.components.attribute.Harm;
+import com.robin.magic_realm.components.attribute.Speed;
 import com.robin.magic_realm.components.attribute.Spoils;
+import com.robin.magic_realm.components.quest.Quest;
+import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.utility.RealmLogging;
 
 /**
@@ -34,7 +20,7 @@ public class CombatWrapper extends GameObjectWrapper {
 	public static final String GROUP_CIRCLE = "C";
 	public static final String GROUP_SQUARE = "S";
 	
-	private static final String COMBAT_BLOCK = "CMB_BLK_";
+	public static final String COMBAT_BLOCK = "CMB_BLK_";
 	
 	// Combat Information
 	private static final String COMBAT_HIT_RESULT_LIST = "CMB_RES_LIST";
@@ -42,15 +28,26 @@ public class CombatWrapper extends GameObjectWrapper {
 	private static final String COMBAT_KILL_RESULT_LIST = "CMB_KILL_LIST";
 	private static final String COMBAT_SPOILS_RESULT_LIST = "CMB_SPLS_LIST";
 	private static final String COMBAT_SHEET_OWNER = "CMB_SH_OWN";
+	private static final String SHEET_OWNER_ID = "CMB_SH_OWN_ID";
 	private static final String PEACE = "PEACE";
 	private static final String PEACE_CLEARING = "PEACE_CLEARING";
+	private static final String SLEEP_CLEARING = "SLEEP_CLEARING";
 	private static final String WATCHFUL = "WATCHFUL";
 	private static final String LOCK_NEXT = "LOCK_NEXT";
+	private static final String CASTED_RAISE_THE_DEAD = "CAST_RAISE_THE_DEAD";
+	private static final String RAISED_UNDEADS_IN_COMBAT = "RAISED_UNDEADS";
+	private static final String BETRAYED = "BETRAYED";
+	private static final String BETRAYED_BY = "BETRAYED_BY";
+	private static final String AFFECTED_BY_EXORCISE = "AFFECTED_BY_EXORCISE";
+	private static final String COMBAT_PREBATTLE_DONE = "COMBAT_PREBATTLE_DONE";
 	
 	// Round-only Information
-	private static final String COMBAT_BOX = "CMB_BOX";
+	private static final String COMBAT_BOXES_ATTACK = "CMB_BOXES_ATT";
+	private static final String COMBAT_BOXES_DEFENSE = "CMB_BOXES_DEF";
 	private static final String PLACED_AS_MOVE = "PAM"; // this is only important for the Unleash Power MOVE/FIGHT chits
 	private static final String PLACED_AS_FIGHT = "PAF"; // this is only important for the Unleash Power MOVE/FIGHT chits
+	private static final String PLACED_AS_PARRY = "PAP";
+	private static final String PLACED_AS_PARRY_SHIELD = "PAPS";
 	private static final String HAS_CHARGED = "CHRG";
 	private static final String CHARGED_BY_IDS = "CHRG_IDS"; // List of game object ids of the MOVE chits used (
 	private static final String USED_IDS = "USED_IDS"; // List of chit ids used this round
@@ -60,8 +57,12 @@ public class CombatWrapper extends GameObjectWrapper {
 	private static final String CHANGE_TACTICS_RESULT = "CHTC_BX";
 	private static final String HIT_RESULT = "HIT_RSLT";
 	private static final String HIT_BY_IDS = "HIT_BY_IDS"; // A list of all ids of killers, in the order they hit
+	private static final String PARRIED = "PARRIED";
 	private static final String KILLED_BY_ID = "KILLED_BY_ID"; // The fastest or longest killer (sounds silly, but I know what I mean here!)
+	private static final String KILLED_LENGTH = "KILLED_LENGTH";
+	private static final String KILLED_SPEED = "KILLED_SPEED";
 	private static final String NEW_WOUNDS = "NEW_WOUNDS";
+	private static final String KILLED_BY_WOUNDS = "KILLED_BY_WOUNDS";
 	private static final String MISSILE_ROLLS = "MISSILE_ROLLS";
 	private static final String MISSILE_ROLL_SUBTITLES = "M_ROLL_SS";
 	private static final String MISSILE_ROLL_TARGETIDS = "M_ROLL_TI";
@@ -74,8 +75,18 @@ public class CombatWrapper extends GameObjectWrapper {
 	private static final String BURNED_COLOR = "BURNED_COLOR"; // indicates the player burned a color chit this combat round
 	private static final String SERIOUS_WOUND_ROLLS = "S_W_ROLLS";
 	private static final String PLAYED_ATTACK = "PLAYED_ATTACK";
+	private static final String PLAYED_SPELL = "PLAYED_SPELL";
+	private static final String PLAYED_BONUS_PARRY = "PLAYED_BONUS_PARRY";
+	private static final String THROWN = "THROWN";
 	private static final String TARGETING_RIDER = "TARGETING_RIDER";
 	private static final String GALLOPED = "GALLOPED";
+	private static final String RAISE_THE_DEAD = "RAISE_THE_DEAD";
+	private static final String STEAL = "STEAL";
+	private static final String SPELL_CANCELED = "SPELL_CANCELED";
+	private static final String ATTACKED_AFTER_CASTING = "ATTACKED_AFTER_CASTING";
+	private static final String FREEZED = "FREEZED";
+	private static final String PACIFIED = "PACIFIED";
+	private static final String HORSE_CANNOT_MANEUVER = "HORSE_CANNOT_MANEUVER";
 	
 	private static final String HEALING = "HEALING";
 	
@@ -83,10 +94,17 @@ public class CombatWrapper extends GameObjectWrapper {
 	private static final String HARM_APPLIED_ID = "HAID_";
 	private static final String HIT_TYPE = "HT_";
 	private static final String HIT_TYPE_ID = "HTID_";
+	private static final String WEAPON_ID = "WID_";
+	private static final String HIT_WEAPON_ID = "HIT_WID_";
 	
 	private static final String HIT_BY_ORDER_NUMBER = "HIT_BY_ORDER_NUMBER";
 	
 	private static final String WAS_FATIGUE = "WAS_FATIGUE";
+	private static final String WAS_SPELL_CASTING = "WAS_SPELL_CASTING";
+	private static final String WAS_UNHIDING = "WAS_UNHIDING";
+	private static final String T_MONSTER_FLIPPED_RED_SIDE_UP = "T_MONSTER_FLIPPED_RED_SIDE_UP";
+	
+	private static final String TELEPORT_TO = "TELEPORT_TO";
 	
 	public CombatWrapper(GameObject obj) {
 		super(obj);
@@ -105,6 +123,12 @@ public class CombatWrapper extends GameObjectWrapper {
 	public void setSheetOwner(boolean val) {
 		setBoolean(COMBAT_SHEET_OWNER,val);
 	}
+	public void setSheetOwnerId(RealmComponent owner) {
+		setString(SHEET_OWNER_ID,owner.getGameObject().getStringId());
+	}
+	public String getSheetOwnerId() {
+		return getString(SHEET_OWNER_ID);
+	}
 	public boolean isSheetOwner() {
 		return getBoolean(COMBAT_SHEET_OWNER);
 	}
@@ -113,6 +137,30 @@ public class CombatWrapper extends GameObjectWrapper {
 	}
 	public boolean isWatchful() {
 		return getBoolean(WATCHFUL);
+	}
+	public void setBetrayed(GameObject go) {
+		addListItem(BETRAYED,go.getStringId());
+	}
+	public ArrayList<String> getBetrayedIds() {
+		return getList(BETRAYED);
+	}
+	public void setBetrayedBy(GameObject go) {
+		addListItem(BETRAYED_BY,go.getStringId());
+	}
+	public ArrayList<String> getBetrayedByIds() {
+		return getList(BETRAYED_BY);
+	}
+	public void setAffectedByExorcise(boolean val) {
+		setBoolean(AFFECTED_BY_EXORCISE,val);
+	}
+	public boolean isAffectedByExorcise() {
+		return getBoolean(AFFECTED_BY_EXORCISE);
+	}
+	public void setCombatPreBattleDone() {
+		setBoolean(COMBAT_PREBATTLE_DONE,true);
+	}
+	public boolean hasCombatPreBattleDone() {
+		return getBoolean(COMBAT_PREBATTLE_DONE);
 	}
 	public void setBurnedColor(boolean val) {
 		setBoolean(BURNED_COLOR,val);
@@ -142,6 +190,10 @@ public class CombatWrapper extends GameObjectWrapper {
 		}
 		return null;
 	}
+	public boolean hasCastSpell() {
+		String id = getString(CAST_SPELL);
+		return id!=null && !id.isEmpty();
+	}
 	public void clearCastSpell() {
 		GameObject go = getCastSpell();
 		if (go!=null) {
@@ -150,17 +202,91 @@ public class CombatWrapper extends GameObjectWrapper {
 			setBoolean(CAST_SPELL,false);
 		}
 	}
+	public void setCancelSpell() {
+		setBoolean(SPELL_CANCELED, true);
+	}
+	public boolean getCancelSpell() {
+		return getBoolean(SPELL_CANCELED);
+	}
+	public void setAttackedAfterCasting() {
+		setBoolean(ATTACKED_AFTER_CASTING, true);
+	}
+	public boolean getAttackedAfterCasting() {
+		return getBoolean(ATTACKED_AFTER_CASTING);
+	}
+	public void setRaiseTheDead() {
+		setBoolean(RAISE_THE_DEAD, true);
+	}
+	public boolean getRaiseTheDead() {
+		return getBoolean(RAISE_THE_DEAD);
+	}
+	public void setRaisedDead() {
+		setBoolean(CASTED_RAISE_THE_DEAD, true);
+	}
+	public boolean getRaisedDead() {
+		return getBoolean(CASTED_RAISE_THE_DEAD);
+	}
+	public void setHasStolen() {
+		setBoolean(STEAL, true);
+	}
+	public boolean hasStolen() {
+		return getBoolean(STEAL);
+	}
+	public void setInstantTeleport(String destination) {
+		setString(TELEPORT_TO, destination);
+	}
+	public String getInstantTeleport() {
+		return getString(TELEPORT_TO);
+	}
+	public void removeInstantTeleport() {
+		setBoolean(TELEPORT_TO,false);
+	}
+	public void freeze() {
+		setBoolean(FREEZED, true);
+	}
+	public boolean isFreezed() {
+		return getBoolean(FREEZED);
+	}
+	public void targetsRemoveAttackers() {
+		RealmComponent rc = RealmComponent.getRealmComponent(this.getGameObject());
+		if (rc.getTarget()!=null) {
+			(new CombatWrapper(rc.getTarget().getGameObject())).removeAttacker(this.getGameObject());
+		}
+		if (rc.get2ndTarget()!=null) {
+			(new CombatWrapper(rc.get2ndTarget().getGameObject())).removeAttacker(this.getGameObject());
+		}
+		rc.clearTargets();
+	}
+	public void pacify() {
+		setBoolean(PACIFIED, true);
+		targetsRemoveAttackers();
+	}
+	public void removePacified() {
+		setBoolean(PACIFIED, false);
+	}
+	public boolean isPacified() {
+		return getBoolean(PACIFIED);
+	}
 	public void setSkipCombat(boolean val) {
 		setBoolean(SKIP_COMBAT,val);
 	}
 	public boolean getSkipCombat() {
 		return getBoolean(SKIP_COMBAT);
 	}
-	public void setCombatBox(int val) {
-		setInt(COMBAT_BOX,val);
+	public void setCombatBoxAttack(int val) {
+		setInt(COMBAT_BOXES_ATTACK,val);
 	}
-	public int getCombatBox() {
-		return getInt(COMBAT_BOX);
+	public int getCombatBoxAttack() {
+		return getInt(COMBAT_BOXES_ATTACK);
+	}
+	public void setCombatBoxDefense(int val) {
+		setInt(COMBAT_BOXES_DEFENSE,val);
+	}
+	public int getCombatBoxDefense() {
+		return getInt(COMBAT_BOXES_DEFENSE);
+	}
+	public boolean hasCombatBox() {
+		return getInt(COMBAT_BOXES_ATTACK)>0 || getInt(COMBAT_BOXES_DEFENSE)>0;
 	}
 	public void setPeace(boolean peace) {
 		setBoolean(PEACE,peace);
@@ -171,23 +297,33 @@ public class CombatWrapper extends GameObjectWrapper {
 	public void addPeaceClearing(int clearing) {
 		addListItem(PEACE_CLEARING,String.valueOf(clearing));
 	}
-	public ArrayList getPeaceClearings() {
+	public ArrayList<String> getPeaceClearings() {
 		return getList(PEACE_CLEARING);
 	}
 	public boolean isPeaceClearing(int clearing) {
 		if (isPeaceful()) {
-			ArrayList list = getPeaceClearings();
+			ArrayList<String> list = getPeaceClearings();
 			return (list!=null && list.contains(String.valueOf(clearing)));
 		}
 		return false;
 	}
+	public void addSleepClearing(int clearing) {
+		addListItem(SLEEP_CLEARING,String.valueOf(clearing));
+	}
+	public ArrayList<String> getSleepClearings() {
+		return getList(SLEEP_CLEARING);
+	}
+	public boolean isSleepClearing(int clearing) {
+		ArrayList<String> list = getSleepClearings();
+		return (list!=null && list.contains(String.valueOf(clearing)));
+	}
 	private void addRandomizePrefix(String prefix) {
-		ArrayList list = getRandomPrefices();
+		ArrayList<String> list = getRandomPrefices();
 		if (list==null || !list.contains(prefix)) {
 			addListItem(RANDOMIZE_PREFICES,prefix);
 		}
 	}
-	private ArrayList getRandomPrefices() {
+	private ArrayList<String> getRandomPrefices() {
 		return getList(RANDOMIZE_PREFICES);
 	}
 	public void setRepositionResult(String prefix,int val) {
@@ -210,7 +346,15 @@ public class CombatWrapper extends GameObjectWrapper {
 	public String getHitResult() {
 		return getString(HIT_RESULT);
 	}
-	
+	public void setWasParried(String val) {
+		addListItem(PARRIED,val);
+	}
+	public boolean wasParried() {
+		return getBoolean(PARRIED);
+	}
+	public ArrayList<String> getParriedBy() {
+		return getList(PARRIED);
+	}
 	public void setHitByOrderNumber(int val) {
 		setInt(HIT_BY_ORDER_NUMBER,val);
 	}
@@ -220,43 +364,43 @@ public class CombatWrapper extends GameObjectWrapper {
 	public void addSeriousWoundRoll(String val) {
 		addListItem(SERIOUS_WOUND_ROLLS,val);
 	}
-	public ArrayList getSeriousWoundRolls() {
+	public ArrayList<String> getSeriousWoundRolls() {
 		return getList(SERIOUS_WOUND_ROLLS);
 	}
 	public void addMissileRoll(String val) {
 		addListItem(MISSILE_ROLLS,val);
 	}
-	public ArrayList getMissileRolls() {
+	public ArrayList<String> getMissileRolls() {
 		return getList(MISSILE_ROLLS);
 	}
 	public void addMissileRollSubtitle(String val) {
 		addListItem(MISSILE_ROLL_SUBTITLES,val);
 	}
-	public ArrayList getMissileRollSubtitles() {
+	public ArrayList<String> getMissileRollSubtitles() {
 		return getList(MISSILE_ROLL_SUBTITLES);
 	}
 	public void addMissileRollTargetId(String val) {
 		addListItem(MISSILE_ROLL_TARGETIDS,val);
 	}
-	public ArrayList getMissileRollTargetIds() {
+	public ArrayList<String> getMissileRollTargetIds() {
 		return getList(MISSILE_ROLL_TARGETIDS);
 	}
 	public void addFumbleRoll(String val) {
 		addListItem(FUMBLE_ROLLS,val);
 	}
-	public ArrayList getFumbleRolls() {
+	public ArrayList<String> getFumbleRolls() {
 		return getList(FUMBLE_ROLLS);
 	}
 	public void addFumbleRollSubtitle(String val) {
 		addListItem(FUMBLE_ROLL_SUBTITLES,val);
 	}
-	public ArrayList getFumbleRollSubtitles() {
+	public ArrayList<String> getFumbleRollSubtitles() {
 		return getList(FUMBLE_ROLL_SUBTITLES);
 	}
 	public void addFumbleRollTargetId(String val) {
 		addListItem(FUMBLE_ROLL_TARGETIDS,val);
 	}
-	public ArrayList getFumbleRollTargetIds() {
+	public ArrayList<String> getFumbleRollTargetIds() {
 		return getList(FUMBLE_ROLL_TARGETIDS);
 	}
 	public void addHitType(int hitType,GameObject target) {
@@ -264,15 +408,15 @@ public class CombatWrapper extends GameObjectWrapper {
 		addListItem(HIT_TYPE_ID,target.getStringId());
 	}
 	public Integer getHitType(GameObject target) {
-		ArrayList types = getList(HIT_TYPE);
-		ArrayList targetids = getList(HIT_TYPE_ID);
+		ArrayList<String> types = getList(HIT_TYPE);
+		ArrayList<String> targetids = getList(HIT_TYPE_ID);
 		if (types!=null) {
 			String id = target.getStringId();
-			Iterator h = types.iterator();
-			Iterator hi = targetids.iterator();
+			Iterator<String> h = types.iterator();
+			Iterator<String> hi = targetids.iterator();
 			while(h.hasNext()) {
-				String type = (String)h.next();
-				String tid = (String)hi.next();
+				String type = h.next();
+				String tid = hi.next();
 				if (id.equals(tid)) {
 					return Integer.valueOf(type);
 				}
@@ -285,15 +429,15 @@ public class CombatWrapper extends GameObjectWrapper {
 		addListItem(HARM_APPLIED_ID,target.getStringId());
 	}
 	public String getHarmApplied(GameObject target) {
-		ArrayList harms = getList(HARM_APPLIED);
-		ArrayList harmids = getList(HARM_APPLIED_ID);
+		ArrayList<String> harms = getList(HARM_APPLIED);
+		ArrayList<String> harmids = getList(HARM_APPLIED_ID);
 		if (harms!=null) {
 			String id = target.getStringId();
-			Iterator h = harms.iterator();
-			Iterator hi = harmids.iterator();
+			Iterator<String> h = harms.iterator();
+			Iterator<String> hi = harmids.iterator();
 			while(h.hasNext()) {
-				String harm = (String)h.next();
-				String tid = (String)hi.next();
+				String harm = h.next();
+				String tid = hi.next();
 				if (id.equals(tid)) {
 					return harm;
 				}
@@ -307,6 +451,24 @@ public class CombatWrapper extends GameObjectWrapper {
 	public boolean getPlayedAttack() {
 		return getBoolean(PLAYED_ATTACK);
 	}
+	public void setPlayedSpell(boolean val) {
+		setBoolean(PLAYED_SPELL,val);
+	}
+	public boolean getPlayedSpell() {
+		return getBoolean(PLAYED_SPELL);
+	}
+	public void setPlayedBonusParry(boolean val) {
+		setBoolean(PLAYED_BONUS_PARRY,val);
+	}
+	public boolean getPlayedBonusParry() {
+		return getBoolean(PLAYED_BONUS_PARRY);
+	}
+	public void setThrown(boolean val) {
+		setBoolean(THROWN,val);
+	}
+	public boolean wasThrown() {
+		return getBoolean(THROWN);
+	}
 	public void setTargetingRider(GameObject attacker) {
 		addListItem(TARGETING_RIDER,attacker.getStringId());
 	}
@@ -319,8 +481,20 @@ public class CombatWrapper extends GameObjectWrapper {
 	public boolean hasGalloped() {
 		return getBoolean(GALLOPED);
 	}
+	public void setHorseCannotManeuver(boolean val) {
+		setBoolean(HORSE_CANNOT_MANEUVER,val);
+	}
+	public boolean getHorseCannotManeuver() {
+		return getBoolean(HORSE_CANNOT_MANEUVER);
+	}
 	public void setKilledBy(GameObject killer) {
 		setString(KILLED_BY_ID,String.valueOf(killer.getId()));
+	}
+	public void setKilledLength(Integer length) {
+		setInt(KILLED_LENGTH,length.intValue());
+	}
+	public void setKilledSpeed(Speed speed) {
+		setInt(KILLED_SPEED,speed.getNum());
 	}
 	public GameObject getKilledBy() {
 		String id = getString(KILLED_BY_ID);
@@ -330,6 +504,12 @@ public class CombatWrapper extends GameObjectWrapper {
 		}
 		return null;
 	}
+	public int getKilledLength() {
+		return getInt(KILLED_LENGTH);
+	}
+	public int getKilledSpeed() {
+		return getInt(KILLED_SPEED);
+	}
 	public boolean isDead() {
 		return getString(KILLED_BY_ID)!=null;
 	}
@@ -337,11 +517,10 @@ public class CombatWrapper extends GameObjectWrapper {
 		addListItem(HIT_BY_IDS,String.valueOf(attacker.getId()));
 	}
 	public boolean wasHitBy(GameObject attacker) {
-		ArrayList list = getList(HIT_BY_IDS);
+		ArrayList<String> list = getList(HIT_BY_IDS);
 		if (list!=null && !list.isEmpty()) {
 			String aid = attacker.getStringId();
-			for (Iterator i=list.iterator();i.hasNext();) {
-				String id = (String)i.next();
+			for (String id : list) {
 				if (aid.equals(id)) {
 					return true;
 				}
@@ -349,13 +528,12 @@ public class CombatWrapper extends GameObjectWrapper {
 		}
 		return false;
 	}
-	public ArrayList getHitByList() {
-		ArrayList list = getList(HIT_BY_IDS);
+	public ArrayList<GameObject> getHitByList() {
+		ArrayList<String> list = getList(HIT_BY_IDS);
 		if (list!=null && !list.isEmpty()) {
 			GameData data = getGameObject().getGameData();
-			ArrayList ret = new ArrayList();
-			for (Iterator i=list.iterator();i.hasNext();) {
-				String id = (String)i.next();
+			ArrayList<GameObject> ret = new ArrayList<>();
+			for (String id : list) {
 				ret.add(data.getGameObject(Long.valueOf(id)));
 			}
 			return ret;
@@ -375,6 +553,15 @@ public class CombatWrapper extends GameObjectWrapper {
 	public int getNewWounds() {
 		return getInt(NEW_WOUNDS);
 	}
+	public void clearNewWounds() {
+		getGameObject().removeAttribute(COMBAT_BLOCK,NEW_WOUNDS);
+	}
+	public void setKilledByWounds(boolean val) {
+		setBoolean(KILLED_BY_WOUNDS,val);
+	}
+	public boolean killedByWounds() {
+		return getBoolean(KILLED_BY_WOUNDS);
+	}
 	public void addHealing(int val) {
 		int current = getInt(HEALING);
 		setInt(HEALING,val+current);
@@ -382,11 +569,32 @@ public class CombatWrapper extends GameObjectWrapper {
 	public int getHealing() {
 		return getInt(HEALING);
 	}
+	public void clearHealing() {
+		getGameObject().removeAttribute(COMBAT_BLOCK,HEALING);
+	}
 	public void setWasFatigue(boolean val) {
 		setBoolean(WAS_FATIGUE,val); // only used by tile to track fatigue by characters running away this round
 	}
 	public boolean getWasFatigue() {
 		return getBoolean(WAS_FATIGUE);
+	}
+	public void setWasSpellCasting(boolean val) {
+		setBoolean(WAS_SPELL_CASTING,val);
+	}
+	public boolean getWasSpellCasting() {
+		return getBoolean(WAS_SPELL_CASTING);
+	}
+	public void setWasUnhiding(boolean val) {
+		setBoolean(WAS_UNHIDING,val);
+	}
+	public boolean getWasUnhiding() {
+		return getBoolean(WAS_UNHIDING);
+	}
+	public void setTremendousMonsterFlippedRedSideUp(boolean val) {
+		setBoolean(T_MONSTER_FLIPPED_RED_SIDE_UP,val);
+	}
+	public boolean getTremendousMonsterFlippedRedSideUp() {
+		return getBoolean(T_MONSTER_FLIPPED_RED_SIDE_UP);
 	}
 	public void addHitResult() {
 		addListItem(COMBAT_HIT_RESULT_LIST,"H"); // only used by tile to record total combat hits
@@ -397,6 +605,9 @@ public class CombatWrapper extends GameObjectWrapper {
 	public void addKillResult() {
 		addListItem(COMBAT_HIT_RESULT_LIST,"K"); // only used by battle participants to record kills
 	}
+	public void addKill(GameObject kill) {
+		addListItem(COMBAT_KILL_RESULT_LIST,kill.getStringId());; // only used by battle location to record kills
+	}
 	public void addSpoilsInfo(int round,GameObject kill,Spoils spoils) {
 		addListItem(COMBAT_ROUND_RESULT_LIST,String.valueOf(round));
 		addListItem(COMBAT_KILL_RESULT_LIST,kill.getStringId());
@@ -405,20 +616,19 @@ public class CombatWrapper extends GameObjectWrapper {
 	public ArrayList<Integer> getAllRounds() {
 		ArrayList<Integer> rounds = null;
 		if (getBoolean(COMBAT_ROUND_RESULT_LIST)) {
-			rounds = new ArrayList<Integer>();
-			for (Iterator i=getList(COMBAT_ROUND_RESULT_LIST).iterator();i.hasNext();) {
-				rounds.add(Integer.valueOf((String)i.next()));
+			rounds = new ArrayList<>();
+			for (String i : getList(COMBAT_ROUND_RESULT_LIST)) {
+				rounds.add(Integer.valueOf(i));
 			}
 		}
 		return rounds;
 	}
 	public ArrayList<GameObject> getAllKills() {
 		GameData gameData = getGameObject().getGameData();
-		ArrayList<GameObject> kills = null;
+		ArrayList<GameObject> kills = new ArrayList<>();
 		if (getBoolean(COMBAT_KILL_RESULT_LIST)) {
-			kills = new ArrayList<GameObject>();
-			for (Iterator i=getList(COMBAT_KILL_RESULT_LIST).iterator();i.hasNext();) {
-				kills.add(gameData.getGameObject(Long.valueOf((String)i.next())));
+			for (String i : getList(COMBAT_KILL_RESULT_LIST)) {
+				kills.add(gameData.getGameObject(Long.valueOf(i)));
 			}
 		}
 		return kills;
@@ -426,9 +636,9 @@ public class CombatWrapper extends GameObjectWrapper {
 	public ArrayList<Spoils> getAllSpoils() {
 		ArrayList<Spoils> spoils = null;
 		if (getBoolean(COMBAT_SPOILS_RESULT_LIST)) {
-			spoils = new ArrayList<Spoils>();
-			for (Iterator i=getList(COMBAT_SPOILS_RESULT_LIST).iterator();i.hasNext();) {
-				spoils.add(new Spoils((String)i.next()));
+			spoils = new ArrayList<>();
+			for (String i : getList(COMBAT_SPOILS_RESULT_LIST)) {
+				spoils.add(new Spoils(i));
 			}
 		}
 		return spoils;
@@ -436,20 +646,23 @@ public class CombatWrapper extends GameObjectWrapper {
 	public void clearHitResults() {
 		setBoolean(COMBAT_HIT_RESULT_LIST,false);
 	}
+	public void clearKillResults() {
+		setBoolean(COMBAT_KILL_RESULT_LIST,false);
+	}
 	public int getHitResultCount() {
-		ArrayList results = getList(COMBAT_HIT_RESULT_LIST);
+		ArrayList<String> results = getList(COMBAT_HIT_RESULT_LIST);
 		if (results!=null) {
 			return results.size();
 		}
 		return 0;
 	}
 	public int getRoundsOfMissing() {
-		ArrayList list = getList(COMBAT_HIT_RESULT_LIST);
+		ArrayList<String> list = getList(COMBAT_HIT_RESULT_LIST);
 		if (list!=null) {
-			ArrayList results = new ArrayList(list);
+			ArrayList<String> results = new ArrayList<>(list);
 			int count = 0;
 			for (int i=results.size()-1;i>=0;i--) {
-				String result = (String)results.get(i);
+				String result = results.get(i);
 				if ("M".equals(result)) {
 					count++;
 				}
@@ -462,12 +675,12 @@ public class CombatWrapper extends GameObjectWrapper {
 		return 0;
 	}
 	public boolean lastTwoAreMisses() {
-		ArrayList list = getList(COMBAT_HIT_RESULT_LIST);
+		ArrayList<String> list = getList(COMBAT_HIT_RESULT_LIST);
 		if (list!=null) {
-			ArrayList results = new ArrayList(list);
-			if (results!=null && results.size()>=2) {
-				String val1 = (String)results.remove(results.size()-1);
-				String val2 = (String)results.remove(results.size()-1);
+			ArrayList<String> results = new ArrayList<>(list);
+			if (results.size()>=2) {
+				String val1 = results.remove(results.size()-1);
+				String val2 = results.remove(results.size()-1);
 				return ("M".equals(val1) && "M".equals(val2));
 			}
 		}
@@ -480,11 +693,41 @@ public class CombatWrapper extends GameObjectWrapper {
 	public void setPlacedAsFight(boolean val) {
 		setBoolean(PLACED_AS_FIGHT,val);
 	}
+	public void setPlacedAsParry(boolean val) {
+		setBoolean(PLACED_AS_PARRY,val);
+	}
+	public void setPlacedAsParryShield(boolean val) {
+		setBoolean(PLACED_AS_PARRY_SHIELD,val);
+	}
+	public void setWeaponId(RealmComponent weapon) {
+		setString(WEAPON_ID,weapon.getGameObject().getStringId());
+	}
+	public void setWeaponHit(String weaponId) {
+		addListItem(HIT_WEAPON_ID,weaponId);
+	}
 	public boolean getPlacedAsMove() {
 		return getBoolean(PLACED_AS_MOVE);
 	}
 	public boolean getPlacedAsFight() {
 		return getBoolean(PLACED_AS_FIGHT);
+	}
+	public boolean getPlacedAsParry() {
+		return getBoolean(PLACED_AS_PARRY);
+	}
+	public boolean getPlacedAsParryShield() {
+		return getBoolean(PLACED_AS_PARRY_SHIELD);
+	}
+	public boolean getPlacedAsFightOrParryOrParryShield() {
+		return getPlacedAsFight() || getPlacedAsParry() || getPlacedAsParryShield();
+	}
+	public String getWeaponId() {
+		return getString(WEAPON_ID);
+	}
+	public ArrayList<String> getWeaponsHit() {
+		return getList(HIT_WEAPON_ID);
+	}
+	public boolean weaponHasHit(String weaponId) {
+		return hasListItem(HIT_WEAPON_ID, weaponId);
 	}
 	
 	// Charging
@@ -497,13 +740,12 @@ public class CombatWrapper extends GameObjectWrapper {
 	public void addChargeChit(GameObject chit) {
 		addListItem(CHARGED_BY_IDS,String.valueOf(chit.getId()));
 	}
-	public Collection getChargeChits() {
+	public Collection<GameObject> getChargeChits() {
 		GameData data = getGameObject().getGameData();
-		ArrayList list = new ArrayList();
-		ArrayList ids = getList(CHARGED_BY_IDS);
+		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<String> ids = getList(CHARGED_BY_IDS);
 		if (ids!=null) {
-			for (Iterator i=ids.iterator();i.hasNext();) {
-				String id = (String)i.next();
+			for (String id : ids) {
 				GameObject go = data.getGameObject(Long.valueOf(id));
 				list.add(go);
 			}
@@ -511,7 +753,7 @@ public class CombatWrapper extends GameObjectWrapper {
 		return list;
 	}
 	public int getChargeChitCount() {
-		ArrayList ids = getList(CHARGED_BY_IDS);
+		ArrayList<String> ids = getList(CHARGED_BY_IDS);
 		if (ids!=null) {
 			return ids.size();
 		}
@@ -523,11 +765,10 @@ public class CombatWrapper extends GameObjectWrapper {
 	}
 	public ArrayList<GameObject> getUsedChits() {
 		GameData data = getGameObject().getGameData();
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
-		ArrayList ids = getList(USED_IDS);
+		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<String> ids = getList(USED_IDS);
 		if (ids!=null) {
-			for (Iterator i=ids.iterator();i.hasNext();) {
-				String id = (String)i.next();
+			for (String id : ids) {
 				GameObject go = data.getGameObject(Long.valueOf(id));
 				list.add(go);
 			}
@@ -535,7 +776,7 @@ public class CombatWrapper extends GameObjectWrapper {
 		return list;
 	}
 	public int getUsedChitCount() {
-		ArrayList ids = getList(USED_IDS);
+		ArrayList<String> ids = getList(USED_IDS);
 		if (ids!=null) {
 			return ids.size();
 		}
@@ -550,7 +791,10 @@ public class CombatWrapper extends GameObjectWrapper {
 					getGameObject().getName(),
 					"No longer affected by PEACE, because of attack by "+attacker.getName());
 		}
-		ArrayList ids = getList(ATTACKER_IDS);
+		if (isPacified()) {
+			removePacified();
+		}
+		ArrayList<String> ids = getList(ATTACKER_IDS);
 		if (ids==null || !ids.contains(attacker.getStringId())) {
 			addListItem(ATTACKER_IDS,attacker.getStringId());
 		}
@@ -563,11 +807,10 @@ public class CombatWrapper extends GameObjectWrapper {
 	}
 	public ArrayList<GameObject> getAttackers() {
 		GameData data = getGameObject().getGameData();
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
-		ArrayList ids = getList(ATTACKER_IDS);
+		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<String> ids = getList(ATTACKER_IDS);
 		if (ids!=null) {
-			for (Iterator i=ids.iterator();i.hasNext();) {
-				String id = (String)i.next();
+			for (String id : ids) {
 				GameObject go = data.getGameObject(Long.valueOf(id));
 				list.add(go);
 			}
@@ -575,19 +818,37 @@ public class CombatWrapper extends GameObjectWrapper {
 		return list;
 	}
 	public ArrayList<RealmComponent> getAttackersAsComponents() {
-		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
+		ArrayList<RealmComponent> ret = new ArrayList<>();
 		for (GameObject go:getAttackers()) {
 			ret.add(RealmComponent.getRealmComponent(go));
 		}
 		return ret;
 	}
 	public int getAttackerCount() {
-		ArrayList ids = getList(ATTACKER_IDS);
+		ArrayList<String> ids = getList(ATTACKER_IDS);
 		if (ids!=null) {
 			return ids.size();
 		}
 		return 0;
 	}
+	
+	public void addRaisedUndead(GameObject undead) {
+		addListItem(RAISED_UNDEADS_IN_COMBAT,undead.getStringId());
+	}
+	
+	public ArrayList<GameObject> getRaisedUndeads() {
+		GameData data = getGameObject().getGameData();
+		ArrayList<GameObject> list = new ArrayList<>();
+		ArrayList<String> ids = getList(RAISED_UNDEADS_IN_COMBAT);
+		if (ids!=null) {
+			for (String id : ids) {
+				GameObject go = data.getGameObject(Long.valueOf(id));
+				list.add(go);
+			}
+		}
+		return list;
+	}
+	
 	/**
 	 * Strips all round related information - leaves other combat info (like number of consecutive rounds without hits)
 	 */
@@ -597,12 +858,19 @@ public class CombatWrapper extends GameObjectWrapper {
 			go.removeAttribute(COMBAT_BLOCK,CHARGED_BY_IDS);
 			go.removeAttribute(COMBAT_BLOCK,USED_IDS);
 			go.removeAttribute(COMBAT_BLOCK,ATTACKER_IDS);
-			go.removeAttribute(COMBAT_BLOCK,COMBAT_BOX);
+			go.removeAttribute(COMBAT_BLOCK,COMBAT_BOXES_ATTACK);
+			go.removeAttribute(COMBAT_BLOCK,COMBAT_BOXES_DEFENSE);
 			go.removeAttribute(COMBAT_BLOCK,PLACED_AS_FIGHT);
+			go.removeAttribute(COMBAT_BLOCK,PLACED_AS_PARRY);
+			go.removeAttribute(COMBAT_BLOCK,PLACED_AS_PARRY_SHIELD);
 			go.removeAttribute(COMBAT_BLOCK,PLACED_AS_MOVE);
 			go.removeAttribute(COMBAT_BLOCK,HIT_RESULT);
+			go.removeAttribute(COMBAT_BLOCK,PARRIED);
 			go.removeAttribute(COMBAT_BLOCK,KILLED_BY_ID);
+			go.removeAttribute(COMBAT_BLOCK,KILLED_LENGTH);
+			go.removeAttribute(COMBAT_BLOCK,KILLED_SPEED);
 			go.removeAttribute(COMBAT_BLOCK,NEW_WOUNDS);
+			go.removeAttribute(COMBAT_BLOCK,KILLED_BY_WOUNDS);
 			go.removeAttribute(COMBAT_BLOCK,HEALING);
 			go.removeAttribute(COMBAT_BLOCK,MISSILE_ROLLS);
 			go.removeAttribute(COMBAT_BLOCK,MISSILE_ROLL_SUBTITLES);
@@ -617,18 +885,34 @@ public class CombatWrapper extends GameObjectWrapper {
 			go.removeAttribute(COMBAT_BLOCK,SERIOUS_WOUND_ROLLS);
 			go.removeAttribute(COMBAT_BLOCK,HIT_BY_ORDER_NUMBER);
 			go.removeAttribute(COMBAT_BLOCK,WAS_FATIGUE);
+			go.removeAttribute(COMBAT_BLOCK,WAS_SPELL_CASTING);
+			go.removeAttribute(COMBAT_BLOCK,WAS_UNHIDING);
+			go.removeAttribute(COMBAT_BLOCK,T_MONSTER_FLIPPED_RED_SIDE_UP);
 			go.removeAttribute(COMBAT_BLOCK,PLAYED_ATTACK);
+			go.removeAttribute(COMBAT_BLOCK,PLAYED_SPELL);
+			go.removeAttribute(COMBAT_BLOCK,PLAYED_BONUS_PARRY);
+			go.removeAttribute(COMBAT_BLOCK,THROWN);
 			go.removeAttribute(COMBAT_BLOCK,TARGETING_RIDER);
 			go.removeAttribute(COMBAT_BLOCK,GALLOPED);
+			go.removeAttribute(COMBAT_BLOCK,HORSE_CANNOT_MANEUVER);
 			go.removeAttribute(COMBAT_BLOCK,HARM_APPLIED);
 			go.removeAttribute(COMBAT_BLOCK,HARM_APPLIED_ID);
 			go.removeAttribute(COMBAT_BLOCK,HIT_TYPE);
 			go.removeAttribute(COMBAT_BLOCK,HIT_TYPE_ID);
+			go.removeAttribute(COMBAT_BLOCK,WEAPON_ID);
+			go.removeAttribute(COMBAT_BLOCK,HIT_WEAPON_ID);
+			go.removeAttribute(COMBAT_BLOCK,SHEET_OWNER_ID);
+			go.removeAttribute(COMBAT_BLOCK,RAISE_THE_DEAD);
+			go.removeAttribute(COMBAT_BLOCK,STEAL);
+			go.removeAttribute(COMBAT_BLOCK,SPELL_CANCELED);
+			go.removeAttribute(COMBAT_BLOCK,ATTACKED_AFTER_CASTING);
+			go.removeAttribute(COMBAT_BLOCK,FREEZED);
+			go.removeAttribute(COMBAT_BLOCK,Constants.HOLY_SHIELD);
+			go.removeAttribute(COMBAT_BLOCK,TELEPORT_TO);
 			
-			ArrayList list = go.getAttributeList(COMBAT_BLOCK,RANDOMIZE_PREFICES);
+			ArrayList<String> list = go.getAttributeList(COMBAT_BLOCK,RANDOMIZE_PREFICES);
 			if (list!=null) {
-				for (Iterator i=list.iterator();i.hasNext();) {
-					String prefix = (String)i.next();
+				for (String prefix : list) {
 					go.removeAttribute(COMBAT_BLOCK,prefix+REPOSITION_RESULT);
 					for (int n=1;n<=3;n++) {
 						go.removeAttribute(COMBAT_BLOCK,prefix+CHANGE_TACTICS_RESULT+n);
@@ -644,14 +928,67 @@ public class CombatWrapper extends GameObjectWrapper {
 		if (hasCombatInfo(go)) {
 			go.removeAttributeBlock(COMBAT_BLOCK);
 			if (go.getHoldCount()>0) {
-				for (Iterator i=go.getHold().iterator();i.hasNext();) {
-					GameObject held = (GameObject)i.next();
+				for (GameObject held : go.getHold()) {
 					clearAllCombatInfo(held);
+					if (held.hasThisAttribute(Quest.QUEST_MINOR_CHARS)) {
+						for (GameObject bonusChit : held.getHold()) {
+							clearAllCombatInfo(bonusChit);
+						}
+					}
 				}
 			}
 		}
+		go.removeThisAttribute(Constants.SPIDER_WEB_BOXES_ATTACK);
+		go.removeThisAttribute(Constants.SPIDER_WEB_BOXES_DEFENSE);
 	}
 	public static boolean hasCombatInfo(GameObject test) {
-		return test.hasAttributeBlock(COMBAT_BLOCK);
+		return (test.hasAttributeBlock(COMBAT_BLOCK) && !test.getAttributeBlock(COMBAT_BLOCK).isEmpty()) || affectedBySpiderWeb(test);
 	}
+	
+	private static boolean affectedBySpiderWeb(GameObject test) {
+		return test.hasThisAttribute(Constants.SPIDER_WEB_BOXES_ATTACK) || test.hasThisAttribute(Constants.SPIDER_WEB_BOXES_DEFENSE);
+	}
+	
+	public void setHolyShield(Speed attackSpeed, int length) {
+		getGameObject().addAttributeListItem(COMBAT_BLOCK,Constants.HOLY_SHIELD,"s_"+String.valueOf(attackSpeed.getNum())+"l_"+String.valueOf(length));
+	}
+	public boolean hasHolyShield(Speed attackSpeed, int length) {
+		ArrayList<String> holyShields = getGameObject().getAttributeList(COMBAT_BLOCK,Constants.HOLY_SHIELD);
+		if (holyShields==null||holyShields.isEmpty()) return false;
+		for (String shield : holyShields) {
+			if (shield.matches("s_"+String.valueOf(attackSpeed.getNum())+"l_"+String.valueOf(length))) return true;
+		}
+		return false;
+	}
+    public boolean canUseCombatBoxAttack(int box) {
+    	if (box==0) return true;
+		if (getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_ATTACK)) {
+			ArrayList<String> availableBoxes = getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
+			boolean boxAllowed = false;
+			for (String availableBox : availableBoxes) {
+				if (Integer.parseInt(availableBox) == box) {
+					boxAllowed = true;
+					break;
+				}
+			}
+			return boxAllowed;
+		}
+		return true;
+    }
+    
+    public boolean canUseCombatBoxDefense(int box) {
+    	if (box==0) return true;
+		if (getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_DEFENSE)) {
+			ArrayList<String> availableBoxes = getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_DEFENSE);
+			boolean boxAllowed = false;
+			for (String availableBox : availableBoxes) {
+				if (Integer.parseInt(availableBox) == box) {
+					boxAllowed = true;
+					break;
+				}
+			}
+			return boxAllowed;
+		}
+		return true;
+    }
 }

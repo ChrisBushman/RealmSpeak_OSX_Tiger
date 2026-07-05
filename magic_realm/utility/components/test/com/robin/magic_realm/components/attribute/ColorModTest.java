@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.attribute;
 
 import static org.junit.Assert.*;
@@ -46,7 +29,7 @@ public class ColorModTest {
 	public void tearDown() {
 	}
 	
-	private GameObject createColorModThing(String modString) {
+	private static GameObject createColorModThing(String modString) {
 		GameObject go = GameObject.createEmptyGameObject();
 		go.setThisAttribute("color_mod",modString);
 		return go;
@@ -54,10 +37,10 @@ public class ColorModTest {
 
 	@Test
 	public void testConvertNoColor() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList<GameObject> things = new ArrayList<>();
 		things.add(GameObject.createEmptyGameObject());
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList<ColorMagic> colors = new ArrayList<>();
 		colors.add(new ColorMagic(ColorMagic.WHITE,true));
 		
 		ArrayList<ColorMagic> result = ColorMod.getConvertedColorsForThings(things,colors);
@@ -68,10 +51,10 @@ public class ColorModTest {
 	
 	@Test
 	public void testConvertOneColor() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList<GameObject> things = new ArrayList<>();
 		things.add(createColorModThing("1.2"));
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList<ColorMagic> colors = new ArrayList<>();
 		colors.add(new ColorMagic(ColorMagic.WHITE,true));
 		
 		ArrayList<ColorMagic> result = ColorMod.getConvertedColorsForThings(things,colors);
@@ -83,10 +66,10 @@ public class ColorModTest {
 	
 	@Test
 	public void testConvertMultipleColorsInOne() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList<GameObject> things = new ArrayList<>();
 		things.add(createColorModThing("1.2;1.3"));
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList<ColorMagic> colors = new ArrayList<>();
 		colors.add(new ColorMagic(ColorMagic.WHITE,true));
 		
 		ArrayList<ColorMagic> result = ColorMod.getConvertedColorsForThings(things,colors);
@@ -99,11 +82,11 @@ public class ColorModTest {
 	
 	@Test
 	public void testConvertOneColorInMultiple() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList<GameObject> things = new ArrayList<>();
 		things.add(createColorModThing("1.2"));
 		things.add(createColorModThing("1.3"));
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList<ColorMagic> colors = new ArrayList<>();
 		colors.add(new ColorMagic(ColorMagic.WHITE,true));
 		
 		ArrayList<ColorMagic> result = ColorMod.getConvertedColorsForThings(things,colors);
@@ -116,11 +99,11 @@ public class ColorModTest {
 	
 	@Test
 	public void testConvertColorSwap() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList<GameObject> things = new ArrayList<>();
 		things.add(createColorModThing("1.5"));
 		things.add(createColorModThing("5.1"));
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList<ColorMagic> colors = new ArrayList<>();
 		colors.add(new ColorMagic(ColorMagic.WHITE,true));
 		colors.add(new ColorMagic(ColorMagic.GOLD,true));
 		
@@ -134,12 +117,12 @@ public class ColorModTest {
 	
 	@Test
 	public void testAllThreeInPlayWithWhite() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList<GameObject> things = new ArrayList<>();
 		things.add(createColorModThing("1.5;4.2"));
 		things.add(createColorModThing("1.2;1.3;1.4"));
 		things.add(createColorModThing("1.5"));
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList<ColorMagic> colors = new ArrayList<>();
 		colors.add(new ColorMagic(ColorMagic.WHITE,true));
 		
 		ArrayList<ColorMagic> result = ColorMod.getConvertedColorsForThings(things,colors);
@@ -153,12 +136,12 @@ public class ColorModTest {
 	}
 	@Test
 	public void testAllThreeInPlayWithWhiteAndPurple() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList<GameObject> things = new ArrayList<>();
 		things.add(createColorModThing("1.5;4.2"));
 		things.add(createColorModThing("1.2;1.3;1.4"));
 		things.add(createColorModThing("1.5"));
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList<ColorMagic> colors = new ArrayList<>();
 		colors.add(new ColorMagic(ColorMagic.WHITE,true));
 		colors.add(new ColorMagic(ColorMagic.PURPLE,true));
 		
@@ -174,12 +157,12 @@ public class ColorModTest {
 	
 	@Test
 	public void testAllThreeInPlayWithPurple() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList<GameObject> things = new ArrayList<>();
 		things.add(createColorModThing("1.5;4.2"));
 		things.add(createColorModThing("1.2;1.3;1.4"));
 		things.add(createColorModThing("1.5"));
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList<ColorMagic> colors = new ArrayList<>();
 		colors.add(new ColorMagic(ColorMagic.PURPLE,true));
 		
 		ArrayList<ColorMagic> result = ColorMod.getConvertedColorsForThings(things,colors);
@@ -191,10 +174,10 @@ public class ColorModTest {
 	
 	@Test
 	public void testReversePowerWithWhiteAndPurple() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList<GameObject> things = new ArrayList<>();
 		things.add(createColorModThing("1.5;4.2"));
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList<ColorMagic> colors = new ArrayList<>();
 		colors.add(new ColorMagic(ColorMagic.WHITE,true));
 		colors.add(new ColorMagic(ColorMagic.PURPLE,true));
 		colors.add(new ColorMagic(ColorMagic.GOLD,true));

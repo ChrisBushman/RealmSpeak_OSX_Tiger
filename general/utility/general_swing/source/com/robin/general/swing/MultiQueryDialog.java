@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.swing;
 
 import java.util.*;
@@ -26,9 +9,9 @@ import javax.swing.text.*;
 
 public class MultiQueryDialog extends AggressiveDialog {
 
-	protected Hashtable textComponents = new Hashtable();
-	protected Hashtable comboBoxes = new Hashtable();
-	protected ArrayList requiredInputComponents = new ArrayList();
+	protected Hashtable<String, JTextComponent> textComponents = new Hashtable<>();
+	protected Hashtable<String, JComboBox<String>> comboBoxes = new Hashtable<>();
+	protected ArrayList<JTextComponent> requiredInputComponents = new ArrayList<>();
 	
 	protected Box layoutBox;
 	protected JButton okay;
@@ -76,8 +59,7 @@ public class MultiQueryDialog extends AggressiveDialog {
 	}
 	public void updateButtons() {
 		boolean allClear = true;
-		for (Iterator i=requiredInputComponents.iterator();i.hasNext();) {
-			JTextComponent tc = (JTextComponent)i.next();
+		for (JTextComponent tc : requiredInputComponents) {
 			if (tc.getText().trim().length()==0) {
 				allClear = false;
 				break;
@@ -112,19 +94,19 @@ public class MultiQueryDialog extends AggressiveDialog {
 		addComponent(label,textComponent);
 		textComponents.put(key,textComponent);
 	}
-	public void addQueryLine(String key,String label,JComboBox comboBox) {
+	public void addQueryLine(String key,String label,JComboBox<String> comboBox) {
 		addComponent(label,comboBox);
 		comboBoxes.put(key,comboBox);
 	}
 	public String getText(String key) {
-		JTextComponent textComponent = (JTextComponent)textComponents.get(key);
+		JTextComponent textComponent = textComponents.get(key);
 		if (textComponent!=null) {
 			return textComponent.getText().trim();
 		}
 		return null;
 	}
 	public Object getComboChoice(String key) {
-		JComboBox comboBox = (JComboBox)comboBoxes.get(key);
+		JComboBox<String> comboBox = comboBoxes.get(key);
 		if (comboBox!=null) {
 			return comboBox.getSelectedItem();
 		}
@@ -137,7 +119,7 @@ public class MultiQueryDialog extends AggressiveDialog {
 		MultiQueryDialog dialog = new MultiQueryDialog(new JFrame(),"test");
 		dialog.addQueryLine("name","Name",new JTextField(),true);
 		dialog.addQueryLine("address","Address",new JTextField(),true);
-			JComboBox cb = new JComboBox();
+			JComboBox<String> cb = new JComboBox<>();
 			cb.addItem("Northern");
 			cb.addItem("Southern");
 			cb.addItem("Norweestum");

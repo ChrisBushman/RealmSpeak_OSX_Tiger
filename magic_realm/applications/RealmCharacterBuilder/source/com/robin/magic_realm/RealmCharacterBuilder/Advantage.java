@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmCharacterBuilder;
 
 import java.util.ArrayList;
@@ -82,14 +65,14 @@ public class Advantage {
 	
 	public static Advantage createFromCharacter(GameObject character,String levelKey) {
 		String first = null;
-		ArrayList list = character.getAttributeList(levelKey,"advantages");
+		ArrayList<String> list = character.getAttributeList(levelKey,"advantages");
 		if (list!=null && !list.isEmpty()) {
-			first = (String)list.get(0); // For new characters, only ONE advantage per level is allowed
+			first = list.get(0); // For new characters, only ONE advantage per level is allowed
 		}
 		if (first==null) {
 			list = character.getAttributeList(levelKey,"optional");
 			if (list!=null && !list.isEmpty()) {
-				first = (String)list.get(0); // For new characters, only ONE advantage per level is allowed
+				first = list.get(0); // For new characters, only ONE advantage per level is allowed
 			}
 		}
 		if (first!=null) {
@@ -105,17 +88,4 @@ public class Advantage {
 		}
 		return null;
 	}
-//	public static Advantage createFromCharacter(GameObject character,String levelKey) {
-//		String badgeName = character.getAttribute(levelKey,"badge_icon");
-//		if (badgeName!=null) {
-//			Advantage advantage = new Advantage(badgeName);
-//			ArrayList list = character.getAttributeList(levelKey,"advantages");
-//			if (list!=null && !list.isEmpty()) {
-//				String first = (String)list.get(0); // For new characters, only ONE advantage per level is allowed
-//				advantage.setFullSring(first);
-//				return advantage;
-//			}
-//		}
-//		return null;
-//	}
 }

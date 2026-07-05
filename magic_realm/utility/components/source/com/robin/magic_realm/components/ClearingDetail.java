@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
 import java.awt.Color;
@@ -22,9 +5,13 @@ import java.awt.Point;
 import java.util.*;
 
 import com.robin.game.objects.GameObject;
+import com.robin.game.objects.GamePool;
+import com.robin.general.swing.DieRoller;
 import com.robin.magic_realm.components.attribute.*;
 import com.robin.magic_realm.components.utility.*;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
+import com.robin.magic_realm.components.wrapper.GameWrapper;
+import com.robin.magic_realm.components.wrapper.SpellWrapper;
 import com.robin.magic_realm.map.Tile;
 
 public class ClearingDetail {
@@ -36,10 +23,11 @@ public class ClearingDetail {
 	public static final int MAGIC_GOLD		= 2;
 	public static final int MAGIC_PURPLE	= 3;
 	public static final int MAGIC_BLACK		= 4;
+	public static final int MAGIC_VARIED	= 5;
 	
 	private static Color DEFAULT_MARK_COLOR = Color.green;
 	
-	public static final char[] MAGIC_CHAR = {'W','R','G','P','B'};
+	public static final char[] MAGIC_CHAR = {'W','R','G','P','B','V'};
 
 	protected TileComponent parent;
 	protected int num;
@@ -65,10 +53,10 @@ public class ClearingDetail {
 		this.num = num;
 		this.type = type;
 		this.position = position;
-		this.magic = new boolean[5];
+		this.magic = new boolean[6];
 		this.side = side;
 		Arrays.fill(magic,false);
-		extras = new ArrayList<String>();
+		extras = new ArrayList<>();
 	}
 	public TileLocation getTileLocation() {
 		return new TileLocation(this);
@@ -151,24 +139,68 @@ public class ClearingDetail {
 		else if (magic[MAGIC_BLACK]) {
 			return Color.black;
 		}
+		else if (magic[MAGIC_VARIED]) {
+			return MagicRealmColor.LIGHTGREEN;
+		}
 		return null;
 	}
 	public boolean isNormal() {
-		return type.equals("normal");
+		return type.equals("normal") && !hasSpellEffect(Constants.MOUNTAIN_SURGE) && !hasEventEffect(Constants.EVENT_MOUNTAIN_SURGE);
 	}
 	public boolean isCave() {
-		return type.equals("caves");
+		return type.equals("caves") && !hasSpellEffect(Constants.MOUNTAIN_SURGE) && !hasEventEffect(Constants.EVENT_MOUNTAIN_SURGE);
+	}
+	public boolean isWater() {
+		return type.equals("water") && !parent.getGameObject().hasThisAttribute(Constants.FROZEN_WATER) && !hasSpellEffect(Constants.MOUNTAIN_SURGE) && !hasEventEffect(Constants.EVENT_MOUNTAIN_SURGE);
+	}
+	public boolean isFrozenWater() {
+		return (type.equals(Constants.FROZEN_WATER) || parent.getGameObject().hasThisAttribute(Constants.FROZEN_WATER) || parent.getGameObject().hasThisAttribute(Constants.EVENT_FROZEN_WATER)) && !hasSpellEffect(Constants.MOUNTAIN_SURGE) && !hasEventEffect(Constants.EVENT_MOUNTAIN_SURGE);
+	}
+	public boolean isLighted() {
+		if (!parent.getGameObject().hasThisAttribute(Constants.LIGHTED)) return false;
+		for (String clearing : parent.getGameObject().getThisAttributeList(Constants.LIGHTED)) {
+			if (clearing.matches(String.valueOf(num))) return true;
+		}
+		return false;
+	}
+	public void setLighted(boolean light) {
+		if (light && !isLighted()) {
+			parent.getGameObject().addThisAttributeListItem(Constants.LIGHTED, String.valueOf(num));
+		}
+		if (!light && isLighted()) {
+			parent.getGameObject().removeThisAttributeListItem(Constants.LIGHTED, String.valueOf(num));
+		}
 	}
 	public boolean isMountain() {
-		return type.equals("mountain");
+		return type.equals("mountain") || hasSpellEffect(Constants.MOUNTAIN_SURGE) || hasEventEffect(Constants.EVENT_MOUNTAIN_SURGE);
 	}
 	public boolean isWoods() {
-		return type.equals("woods");
+		return (type.equals("woods") || type.equals(Constants.FROZEN_WATER) || parent.getGameObject().hasThisAttribute(Constants.FROZEN_WATER) || parent.getGameObject().hasThisAttribute(Constants.EVENT_FROZEN_WATER)) && !hasSpellEffect(Constants.MOUNTAIN_SURGE) && !hasEventEffect(Constants.EVENT_MOUNTAIN_SURGE); //treat frozen water clearings as woods clearings
 	}
-	public int moveCost(CharacterWrapper character) {
+	public int moveCost(CharacterWrapper character,TileLocation currentLocation) {
 		int val = 1;
 		if (isMountain()) {
 			val = character.getMountainMoveCost();
+		}
+		if (isWater() && !character.affectedByKey(Constants.SEAFARING) && !character.canWaterRun(currentLocation.clearing,this)) {
+			if (!character.isTransmorphed()) val++;
+			if (character.affectedByKey(Constants.WATER_MOVE_ADJ)) val--;
+			if (!character.isTransmorphed() && currentLocation.clearing!=null && currentLocation.clearing.isWater()) {
+				GamePool pool = new GamePool(this.parent.getGameObject().getGameData().getGameObjects());
+				ArrayList<GameObject> waterSources = pool.find("tile,water_source_clearing");
+				if (!waterSources.isEmpty()) {
+					if (this.distanceToWaterSource(waterSources)>=currentLocation.clearing.distanceToWaterSource(waterSources)) {
+						if (currentLocation.isBetweenClearings()) {
+							if (this.distanceToWaterSource(waterSources)>=currentLocation.getOther().clearing.distanceToWaterSource(waterSources)) {
+								val--;
+							}
+						}
+						else {
+							val--;
+						}
+					}
+				}
+			}
 		}
 		if (!isCave() && character.addsOneToMoveExceptCaves()) {
 			val++;
@@ -201,10 +233,9 @@ public class ClearingDetail {
 			sb.append(type);
 			sb.append(")");
 		}
-		Collection c = getClearingColorMagic();
+		Collection<ColorMagic> c = getClearingColorMagic();
 		if (c.size()>0) {
-			for (Iterator i=c.iterator();i.hasNext();) {
-				ColorMagic cm = (ColorMagic)i.next();
+			for (ColorMagic cm : c) {
 				sb.append(" ");
 				sb.append(cm.getColorName());
 			}
@@ -252,6 +283,55 @@ public class ClearingDetail {
 		}
 		return sb.toString();
 	}
+	private int distanceToWaterSource(Collection<GameObject> waterSources) {
+		int distance = 0;
+		ArrayList<ClearingDetail> touchedWaterClearings = new ArrayList<>();
+		touchedWaterClearings.add(this);
+		if (this.parent.getGameObject().hasThisAttribute("water_source_clearing") && this.parent.getGameObject().getThisAttribute("water_source_clearing").matches(this.getNumString())) {
+			return distance;
+		}
+		
+		boolean foundNewClearings = true;
+		ArrayList<ClearingDetail> newWaterClearings = new ArrayList<>();
+		newWaterClearings.add(this);
+		ArrayList<ClearingDetail> waterClearingsToCheck = new ArrayList<>();
+		while (foundNewClearings) {
+			foundNewClearings = false;
+			distance++;
+			waterClearingsToCheck.clear();
+			waterClearingsToCheck.addAll(newWaterClearings);
+			newWaterClearings.clear();
+			for (ClearingDetail clearing : waterClearingsToCheck) {
+				Collection<PathDetail> c = clearing.getConnectedPathsWithDirection();
+				if (c!=null) {
+					for (PathDetail path : c) {
+						if (!path.connectsToAnEdge()) {
+							if (path.getTo().isWater() && path.getType().matches("river") && !touchedWaterClearings.contains(path.getTo())) {
+								if (path.getTo().parent.getGameObject().hasThisAttribute("water_source_clearing") && path.getTo().parent.getGameObject().getThisAttribute("water_source_clearing").matches(path.getTo().getNumString())) {
+									return distance;
+								}
+								foundNewClearings = true;
+								touchedWaterClearings.add(path.getTo());
+								newWaterClearings.add(path.getTo());
+							}
+						} else {
+							ClearingDetail connectedClearing = path.findConnection(path.getFrom());
+							if (connectedClearing.isWater() && path.getType().matches("river") && !touchedWaterClearings.contains(connectedClearing)) {
+								if (connectedClearing.parent.getGameObject().hasThisAttribute("water_source_clearing") && connectedClearing.parent.getGameObject().getThisAttribute("water_source_clearing").matches(connectedClearing.getNumString())) {
+									return distance;
+								}
+								foundNewClearings = true;
+								touchedWaterClearings.add(connectedClearing);
+								newWaterClearings.add(connectedClearing);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return distance;
+	}
 	/**
 	 * Returns a PathDetail that connects two clearings, or null if none.
 	 */
@@ -259,18 +339,28 @@ public class ClearingDetail {
 		if (other.isEdge()) {
 			return parent.getEdgePath(Tile.convertEdge(other.getType(),parent.getRotation()));
 		}
-		else {
-			ArrayList paths = (ArrayList)getConnectedPaths();
-			if (paths!=null) { // might be null if this clearing is not connected to any other
-				for (Iterator i=paths.iterator();i.hasNext();) {
-					PathDetail path = (PathDetail)i.next();
-					if (path.findConnection(this)==other) {
-						return path;
-					}
+		ArrayList<PathDetail> paths = getConnectedPaths();
+		if (paths!=null) { // might be null if this clearing is not connected to any other
+			for (PathDetail path : paths) {
+				if (path.findConnection(this)==other) {
+					return path;
 				}
 			}
 		}
 		return null;
+	}
+	public ArrayList<PathDetail> getConnectedPathsWithDirection() {
+		ArrayList<PathDetail> paths = parent.findConnections(this);
+		if (paths==null) return null;
+		ArrayList<PathDetail> pathsDirected = new ArrayList<>(); 
+		for (PathDetail path : paths) {
+			if (path.getFrom().equals(this)) pathsDirected.add(path);
+			else {
+				PathDetail newPath = new PathDetail(path.parent,path.num,path.to,path.from,path.c2,path.c1,path.arc,path.type,path.tileSideName);
+				pathsDirected.add(newPath);
+			}
+		}
+		return pathsDirected;
 	}
 	public ArrayList<PathDetail> getConnectedPaths() {
 		return parent.findConnections(this);
@@ -280,7 +370,7 @@ public class ClearingDetail {
 	}
 	public ArrayList<PathDetail> getAllConnectedPaths() {
 		ArrayList<PathDetail> p;
-		ArrayList<PathDetail> allPaths = new ArrayList<PathDetail>();
+		ArrayList<PathDetail> allPaths = new ArrayList<>();
 		p = getConnectedPaths();
 		if (p!=null) allPaths.addAll(p);
 		p = getConnectedMapEdges();
@@ -301,7 +391,7 @@ public class ClearingDetail {
 	}
 	public ArrayList<RealmComponent> getClearingComponentsInPlainSight(CharacterWrapper character) {
 		boolean hidden = character.isHidden();
-		ArrayList<RealmComponent> plainSight = new ArrayList<RealmComponent>();
+		ArrayList<RealmComponent> plainSight = new ArrayList<>();
 		ArrayList<RealmComponent> list = getClearingComponents(false);
 		for(RealmComponent item:list) {
 			if (item.isPlainSight()) {
@@ -328,13 +418,11 @@ public class ClearingDetail {
 	public ArrayList<RealmComponent> getClearingComponents(boolean includeSites) {
 		ArrayList<RealmComponent> c = getParent().getRealmComponentsAt(getNum());
 		if (includeSites) {
-			ArrayList<RealmComponent> more = new ArrayList<RealmComponent>();
-			for (Iterator i=c.iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
+			ArrayList<RealmComponent> more = new ArrayList<>();
+			for (RealmComponent rc : c) {
 				if (rc.isTreasureLocation() && !rc.isCacheChit()) {
 					// Check TLs for face up SITE CARDS, cuz those should be painted too
-					for (Iterator n=rc.getGameObject().getHold().iterator();n.hasNext();) {
-						GameObject thing = (GameObject)n.next();
+					for (GameObject thing : rc.getGameObject().getHold()) {
 						RealmComponent trc = RealmComponent.getRealmComponent(thing);
 						if (trc.isTreasure()) {
 							TreasureCardComponent treasure = (TreasureCardComponent)trc;
@@ -353,18 +441,56 @@ public class ClearingDetail {
 		}
 		return c;
 	}
+	public ArrayList<RealmComponent> getTreasureLocations() {
+		ArrayList<RealmComponent> c = getParent().getRealmComponentsAt(getNum());
+		ArrayList<RealmComponent> sites = new ArrayList<>();
+		for (RealmComponent rc : c) {
+			if (rc.isTreasureLocation() && !rc.isCacheChit()) {
+				sites.add(rc);
+			}
+		}
+		return sites;
+	}
+	public ArrayList<RealmComponent> getTreasureLocationsAndRedSpecialsAndDwellings() {
+		ArrayList<RealmComponent> c = getParent().getRealmComponentsAt(getNum());
+		ArrayList<RealmComponent> sites = new ArrayList<>();
+		for (RealmComponent rc : c) {
+			if ((rc.isTreasureLocation() || rc.isRedSpecial() || rc.isDwelling()) && !rc.isCacheChit()) {
+				sites.add(rc);
+			}
+		}
+		return sites;
+	}
+	public ArrayList<RealmComponent> getSounds() {
+		ArrayList<RealmComponent> c = getParent().getRealmComponentsAt(getNum());
+		ArrayList<RealmComponent> sounds = new ArrayList<>();
+		for (RealmComponent rc : c) {
+			if (rc.isSound()) {
+				sounds.add(rc);
+			}
+		}
+		return sounds;
+	}
+	public ArrayList<RealmComponent> getSoundsAndWarnings() {
+		ArrayList<RealmComponent> c = getParent().getRealmComponentsAt(getNum());
+		ArrayList<RealmComponent> chits = new ArrayList<>();
+		for (RealmComponent rc : c) {
+			if (rc.isSound() || rc.isWarning()) {
+				chits.add(rc);
+			}
+		}
+		return chits;
+	}
 	/**
 	 * Returns a complete collection of all RealmComponents in the clearing, including those that are held by
 	 * other objects.  In fact, this will get all objects, regardless of depth.
 	 */
 	public ArrayList<RealmComponent> getDeepClearingComponents() {
-		ArrayList<RealmComponent> found = new ArrayList<RealmComponent>();
-		for (Iterator i=getParent().getRealmComponentsAt(getNum()).iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+		ArrayList<RealmComponent> found = new ArrayList<>();
+		for (RealmComponent rc : getParent().getRealmComponentsAt(getNum())) {
 			found.add(rc);
-			Collection gos = RealmUtility.getAllGameObjectsIn(rc.getGameObject(),true);
-			for (Iterator n=gos.iterator();n.hasNext();) {
-				GameObject go = (GameObject)n.next();
+			Collection<GameObject> gos = RealmUtility.getAllGameObjectsIn(rc.getGameObject(),true);
+			for (GameObject go : gos) {
 				RealmComponent inrc = RealmComponent.getRealmComponent(go);
 				if (!found.contains(inrc)) {
 					found.add(inrc);
@@ -379,7 +505,7 @@ public class ClearingDetail {
 	 * 				clearing's own color magic)
 	 */
 	public ArrayList<ColorMagic> getClearingColorMagic() {
-		ArrayList<ColorMagic> list = new ArrayList<ColorMagic>();
+		ArrayList<ColorMagic> list = new ArrayList<>();
 		if (magic[MAGIC_WHITE]) {
 			list.add(new ColorMagic(ColorMagic.WHITE,true));
 		}
@@ -395,6 +521,49 @@ public class ClearingDetail {
 		if (magic[MAGIC_BLACK]) {
 			list.add(new ColorMagic(ColorMagic.BLACK,true));
 		}
+		if (magic[MAGIC_VARIED]) {
+			GameWrapper gameWrapper = GameWrapper.findGame(this.parent.getGameObject().getGameData());
+			DieRoller monsterDie = gameWrapper.getMonsterDie();
+			if (monsterDie != null) {
+				int number = monsterDie.getValue(0);
+				switch (number) {
+				case 1:
+				case 4:
+					list.add(new ColorMagic(ColorMagic.GRAY,true));
+					break;
+				case 2:
+				case 5:
+					list.add(new ColorMagic(ColorMagic.GOLD,true));
+					break;
+				case 3:
+				case 6:
+					list.add(new ColorMagic(ColorMagic.PURPLE,true));
+					break;
+				default:
+					break;
+				}
+			}
+			DieRoller nativeDie = gameWrapper.getNativeDie();
+			if (nativeDie != null) {
+				int number = nativeDie.getValue(0);
+				switch (number) {
+				case 1:
+				case 4:
+					list.add(new ColorMagic(ColorMagic.GRAY,true));
+					break;
+				case 2:
+				case 5:
+					list.add(new ColorMagic(ColorMagic.GOLD,true));
+					break;
+				case 3:
+				case 6:
+					list.add(new ColorMagic(ColorMagic.PURPLE,true));
+					break;
+				default:
+					break;
+				}
+			}
+		}
 		if (parent.getGameObject().hasThisAttribute(Constants.MOD_COLOR_SOURCE)) {
 			ColorMod colorMod = ColorMod.createColorMod(parent.getGameObject().getThisAttribute(Constants.MOD_COLOR_SOURCE));
 			list = colorMod.getModifiedColors(list);
@@ -405,13 +574,13 @@ public class ClearingDetail {
 	 * Returns all sources of magic in this clearing, available to everyone.
 	 */
 	public ArrayList<ColorMagic> getAllSourcesOfColor(boolean checkForColorMods) {
-		ArrayList<ColorMagic> list = new ArrayList<ColorMagic>();
+		ArrayList<ColorMagic> list = new ArrayList<>();
 		for (RealmComponent rc:getClearingComponents()) {
 			list.addAll(SpellUtility.getSourcesOfColor(rc));
 		}
 		list.addAll(getClearingColorMagic());
 		
-		ArrayList<ColorMagic> uniqueList = new ArrayList<ColorMagic>();
+		ArrayList<ColorMagic> uniqueList = new ArrayList<>();
 		for (ColorMagic cm:list) {
 			if (!uniqueList.contains(cm)) {
 				uniqueList.add(cm);
@@ -427,7 +596,7 @@ public class ClearingDetail {
 		return uniqueList;
 	}
 	public ArrayList<GameObject> getAllActivatedStuff() {
-		ArrayList<GameObject> stuff = new ArrayList<GameObject>();
+		ArrayList<GameObject> stuff = new ArrayList<>();
 		for (RealmComponent rc:getClearingComponents()) {
 			for (RealmComponent seen:ClearingUtility.dissolveIntoSeenStuff(rc)) {
 				GameObject thing = seen.getGameObject();
@@ -447,21 +616,50 @@ public class ClearingDetail {
 	public void setAbsolutePosition(Point absolutePosition) {
 		this.absolutePosition = absolutePosition;
 	}
+	public RealmComponent getDwellingWitShelter() {
+		for (RealmComponent rc : getClearingComponents()) {
+			if (rc.isDwelling() && !rc.getGameObject().hasThisAttribute(Constants.NO_SHELTER)) {
+				return rc;
+			}
+		}
+		return null;
+	}
 	public RealmComponent getDwelling() {
-		for (Iterator n=getClearingComponents().iterator();n.hasNext();) {
-			RealmComponent rc = (RealmComponent)n.next();
+		for (RealmComponent rc : getClearingComponents()) {
 			if (rc.isDwelling()) {
 				return rc;
 			}
 		}
 		return null;
 	}
+	public RealmComponent getGuild() {
+		for (RealmComponent rc : getClearingComponents()) {
+			if (rc.isGuild()) {
+				return rc;
+			}
+		}
+		return null;
+	}
+	public ArrayList<RealmComponent> getRedSpecials() {
+		ArrayList<RealmComponent> reds = new ArrayList<>();
+		for (RealmComponent rc : getClearingComponents()) {
+			if (rc.isRedSpecial()) {
+				reds.add(rc);
+			}
+		}
+		return reds;
+	}
 	public boolean holdsDwelling() {
 		return getDwelling()!=null;
 	}
+	public boolean holdsDwellingWithShelter() {
+		return getDwellingWitShelter()!=null;
+	}
+	public boolean holdsGuild() {
+		return getGuild()!=null;
+	}
 	public boolean holdsRedSpecial() {
-		for (Iterator n=getClearingComponents().iterator();n.hasNext();) {
-			RealmComponent rc = (RealmComponent)n.next();
+		for (RealmComponent rc : getClearingComponents()) {
 			if (rc.isRedSpecial()) {
 				return true;
 			}
@@ -473,10 +671,9 @@ public class ClearingDetail {
 	 * Visitor, or if the chit is a 2nd campaign chit (characters can only carry ONE campaign chit at a time)
 	 */
 	public boolean holdsGoldSpecial(String currentCampaign) {
-		for (Iterator n=getClearingComponents().iterator();n.hasNext();) {
-			RealmComponent rc = (RealmComponent)n.next();
-			if (rc.isGoldSpecial() && !rc.getGameObject().hasThisAttribute("visitor")) {
-				if (currentCampaign==null || !rc.getGameObject().hasThisAttribute("campaign")) {
+		for (RealmComponent rc : getClearingComponents()) {
+			if (rc.isGoldSpecial() && !rc.getGameObject().hasThisAttribute(Constants.VISITOR) && !rc.getGameObject().hasThisAttribute(Constants.NOMAD) && !rc.getGameObject().hasThisAttribute(Constants.DRAW_BACKSIDE)) {
+				if (currentCampaign==null || !rc.getGameObject().hasThisAttribute(Constants.CAMPAIGN)) {
 					return true;
 				}
 			}
@@ -494,12 +691,12 @@ public class ClearingDetail {
 		getParent().getGameObject().addThisAttributeListItem(freeActionObjectKey(),go.getStringId());
 	}
 	public boolean removeFreeAction(String action) {
-		ArrayList list = getParent().getGameObject().getThisAttributeList(freeActionKey());
+		ArrayList<String> list = getParent().getGameObject().getThisAttributeList(freeActionKey());
 		if (list!=null) {
 			int index = list.indexOf(action);
 			if (index>=0) {
 				list.remove(index);
-				ArrayList objectList = getParent().getGameObject().getThisAttributeList(freeActionObjectKey());
+				ArrayList<String> objectList = getParent().getGameObject().getThisAttributeList(freeActionObjectKey());
 				objectList.remove(index);
 				if (list.isEmpty()) {
 					getParent().getGameObject().removeThisAttribute(freeActionKey());
@@ -514,16 +711,16 @@ public class ClearingDetail {
 		}
 		return false;
 	}
-	public ArrayList getFreeActions() {
+	public ArrayList<String> getFreeActions() {
 		return getParent().getGameObject().getThisAttributeList(freeActionKey());
 	}
 	public GameObject getFreeActionObject(String action) {
-		ArrayList list = getParent().getGameObject().getThisAttributeList(freeActionKey());
+		ArrayList<String> list = getParent().getGameObject().getThisAttributeList(freeActionKey());
 		if (list!=null) {
 			int index = list.indexOf(action);
 			if (index>=0) {
-				ArrayList objectList = getParent().getGameObject().getThisAttributeList(freeActionObjectKey());
-				String id = (String)objectList.get(index);
+				ArrayList<String> objectList = getParent().getGameObject().getThisAttributeList(freeActionObjectKey());
+				String id = objectList.get(index);
 				return parent.getGameObject().getGameData().getGameObject(Long.valueOf(id));
 			}
 		}
@@ -536,7 +733,7 @@ public class ClearingDetail {
 		getParent().getGameObject().addThisAttributeListItem(spellEffectKey(),effect);
 	}
 	public boolean removeSpellEffect(String effect) {
-		ArrayList list = getParent().getGameObject().getThisAttributeList(spellEffectKey());
+		ArrayList<String> list = getParent().getGameObject().getThisAttributeList(spellEffectKey());
 		if (list!=null) {
 			int index = list.indexOf(effect);
 			if (index>=0) {
@@ -555,11 +752,14 @@ public class ClearingDetail {
 	public boolean hasSpellEffect(String effect) {
 		return getParent().getGameObject().hasThisAttributeListItem(spellEffectKey(),effect);
 	}
+	public boolean hasEventEffect(String effect) {
+		return getParent().getGameObject().hasThisAttributeListItem(effect,this.getNumString());
+	}
 	public boolean hasKnownGate(CharacterWrapper character) {
 		boolean usableGate = false;
 		for (RealmComponent rc:getDeepClearingComponents()) {
 			if (rc.isGate()) {
-				if (character.hasOtherChitDiscovery(rc.getGameObject().getName()) || character.hasActiveInventoryThisKey(Constants.ALL_GATE)) {
+				if (character.hasOtherChitDiscovery(rc.getGameObject().getName()) || character.affectedByKey(Constants.ALL_GATE)) {
 					usableGate = true;
 				}
 			}
@@ -582,5 +782,113 @@ public class ClearingDetail {
 	}
 	public boolean isConnectsToBorderland() {
 		return parent.getGameObject().hasThisAttributeListItem(BL_CONNECT,getNumString());
+	}
+	
+	public void energizeItems() {
+		ArrayList<ColorMagic> colors = getAllSourcesOfColor(true);
+		for (RealmComponent rc : getClearingComponents()) {
+			if (rc.isItem()) {
+				energizeItem(rc.getGameObject(),colors);
+			}
+			if (rc.isCharacter()) {
+				for (GameObject go : (new CharacterWrapper(rc.getGameObject()).getInventory())) {
+					energizeItem(go,colors);
+				}
+			}
+		}
+	}
+	private static void energizeItem(GameObject item, Collection<ColorMagic> colors) {
+		if (item.hasThisAttribute(Constants.MAGIC_COLOR_BONUS)) {
+			ColorMagic requiredColor = ColorMagic.makeColorMagic(item.getThisAttribute(Constants.MAGIC_COLOR_BONUS),true);
+			for (ColorMagic c : colors) {
+				if (c.sameColorAs(requiredColor)) item.setThisAttribute(Constants.MAGIC_COLOR_BONUS_ACTIVE);
+				break;
+			}
+		}
+		if (item.hasThisAttribute(Constants.REENERGIZE)) {
+			boolean energized = false;
+			ColorMagic requiredColor = ColorMagic.makeColorMagic(item.getThisAttribute("magic_color"),true);
+			for (ColorMagic c : colors) {
+				if (c.sameColorAs(requiredColor)) {
+					energized = true;
+					break;
+				}
+			}
+
+			for (GameObject spell : item.getHold()) {
+				if (spell.hasThisAttribute("spell")) {
+					SpellWrapper spellWrapper = new SpellWrapper(spell);
+					if (energized) {
+						GameWrapper game = GameWrapper.findGame(item.getGameData());
+						spellWrapper.affectTargets(null,game,false,null);
+					}
+					if (!energized) {
+						spellWrapper.unaffectTargets();
+						spellWrapper.makeInert();
+					}
+				}
+			}
+		}
+	}
+	
+	public boolean connectionHasThorns(TileLocation other) {
+		return this.connectionHasThorns(other.clearing);
+	}
+	public boolean connectionHasThorns(ClearingDetail other) {
+		if (this.getTileLocation().tile==null || other==null || other.getTileLocation().tile==null) return false;
+		TileComponent tile = this.getTileLocation().tile;
+		TileComponent otherTile = other.getTileLocation().tile;
+		if (testThorns(tile,otherTile,other)) return true;
+		if (testThorns(otherTile,tile,other)) return true;
+		return false;
+	}
+	private boolean testThorns(TileComponent tile, TileComponent otherTile, ClearingDetail other) {
+		if (tile==null||otherTile==null||other==null) return false;
+		if ((tile!=null && tile.getGameObject().hasThisAttribute(Constants.EVENT_THORNS)) || (otherTile!=null && otherTile.getGameObject().hasThisAttribute(Constants.EVENT_THORNS))) {
+			return true;
+		}
+		if (tile.equals(otherTile)) {
+			if (tile.getGameObject().hasThisAttribute(Constants.THORNS)) {
+				ArrayList<String> allThorns = tile.getGameObject().getThisAttributeList(Constants.THORNS);
+				String num1 = this.isEdge()?this.toString():this.getNumString();
+				String num2 = other.isEdge()?other.toString():other.getNumString();
+				for (String thorns : allThorns) {
+					if (thorns.matches(num1+"_"+num2)) return true;
+					if (thorns.matches(num2+"_"+num1)) return true;
+				}
+			}
+		}
+		else {
+			ClearingDetail clearing1 = this;
+			ClearingDetail clearing2 = other;
+			String edgeName1 = ClearingUtility.getEdgeNameBetweenClearings(clearing1,clearing2);
+			String edgeName2 = ClearingUtility.getEdgeNameBetweenClearings(clearing2,clearing1);
+			String string1 = clearing1.getNum()+"_"+edgeName1;
+			String string2 = clearing2.getNum()+"_"+edgeName2;
+			ArrayList<String> list1 = tile.getGameObject().getThisAttributeList(Constants.THORNS);
+			ArrayList<String> list2 = otherTile.getGameObject().getThisAttributeList(Constants.THORNS);
+			if (list1!=null && list1.contains(string1)) return true;
+			if (list2!=null && list2.contains(string2)) return true;
+		}
+		return false;
+	}
+	public boolean isAffectedByViolentWinds() {
+		GameObject tile = getTileLocation().tile.getGameObject();
+		return tile.hasThisAttributeListItem(Constants.VIOLENT_WINDS, String.valueOf(getNum())) || tile.hasThisAttribute(Constants.EVENT_VIOLENT_WINDS);
+	}
+	public boolean isAffectedByViolentWindsSpell() {
+		GameObject tile = getTileLocation().tile.getGameObject();
+		return tile.hasThisAttributeListItem(Constants.VIOLENT_WINDS, String.valueOf(getNum()));
+	}
+	public void setAffectedByViolentWinds(boolean val) {
+		GameObject tile = getTileLocation().tile.getGameObject();
+		if (val && !tile.hasThisAttributeListItem(Constants.VIOLENT_WINDS, String.valueOf(getNum()))) {
+			tile.addThisAttributeListItem(Constants.VIOLENT_WINDS, String.valueOf(getNum()));
+			return;
+		}
+		if (!val && tile.hasThisAttributeListItem(Constants.VIOLENT_WINDS, String.valueOf(getNum()))) {
+			tile.removeThisAttributeListItem(Constants.VIOLENT_WINDS, String.valueOf(getNum()));
+			return;
+		}
 	}
 }

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmCharacterWeb.build;
 
 import java.io.File;
@@ -85,7 +68,7 @@ public class Menu extends Builder {
 		"</div></div>",
 	};
 
-	private HashLists hash = new HashLists();
+	private HashLists<String,Page> hash = new HashLists<>();
 	
 	public Menu() {
 	}
@@ -93,7 +76,7 @@ public class Menu extends Builder {
 		String folder = page.getLayout().getWebFolder();
 		hash.put(folder,page);
 	}
-	private String createPersonKey(String folderName) {
+	private static String createPersonKey(String folderName) {
 		String strip = StringUtilities.findAndReplace(folderName," ",""); // strip spaces
 		return strip.toLowerCase();
 	}
@@ -103,10 +86,9 @@ public class Menu extends Builder {
 			sb.append(HTML_HEAD[i]);
 			sb.append("\n");
 		}
-		ArrayList folders = new ArrayList(hash.keySet());
+		ArrayList<String> folders = new ArrayList<>(hash.keySet());
 		Collections.sort(folders);
-		for (Iterator i=folders.iterator();i.hasNext();) {
-			String folder = (String)i.next();
+		for (String folder : folders) {
 			String personKey = createPersonKey(folder);
 			String iconKey = personKey+"icon";
 			for (int p=0;p<HTML_PERSON.length;p++) {
@@ -121,9 +103,8 @@ public class Menu extends Builder {
 					append = folder;
 				}
 				else if (ENTRIES.equals(HTML_PERSON[p])) {
-					ArrayList list = hash.getList(folder);
-					for (Iterator n=list.iterator();n.hasNext();) {
-						Page page = (Page)n.next();
+					ArrayList<Page> list = hash.getList(folder);
+					for (Page page : list) {
 						String html = FileUtilities.getFilename(page.getHtml(),true);
 						String href = "images/"+folder+"/"+html;
 						sb.append("<b><font size=-1><a href=\"");

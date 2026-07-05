@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.GameBuilder;
 
 import java.awt.*;
@@ -29,6 +12,7 @@ import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameSetup;
 import com.robin.general.io.PreferenceManager;
 import com.robin.general.swing.ComponentTools;
+import com.robin.general.swing.IconFactory;
 
 public class GameBuilderFrame extends JFrame {
 	public static final String LAST_DIR = "last_dir";
@@ -52,14 +36,14 @@ public class GameBuilderFrame extends JFrame {
 		
 	protected JDesktopPane desktop;
 	protected int desktopWindowCount;
-	protected ArrayList gameDataFrames;
-	protected ArrayList openGameNames;
+	protected ArrayList<GameDataFrame> gameDataFrames;
+	protected ArrayList<String> openGameNames;
 	
 	protected File lastPath;
 	
 	public GameBuilderFrame() {
-		gameDataFrames = new ArrayList();
-		openGameNames = new ArrayList();
+		gameDataFrames = new ArrayList<>();
+		openGameNames = new ArrayList<>();
 		prefs = new PreferenceManager("GameBuilder","GameBuilder.cfg") {
 			protected void createDefaultPreferences(Properties props) {
 				props.put(LAST_DIR,System.getProperty("user.home"));
@@ -201,9 +185,17 @@ public class GameBuilderFrame extends JFrame {
 
 						if (setup==null) return;
 						StringBuffer result = new StringBuffer();
-						ArrayList<String> keyVals = new ArrayList<String>();
-						//keyVals.add("original_game");
-						//keyVals.add("rw_expansion_1"); // TODO These keyVals need to be available with each setup somehow
+						ArrayList<String> keyVals = new ArrayList<>();
+						String game = (String)JOptionPane.showInputDialog(
+								GameBuilderFrame.this,
+								"Game Name",
+								"Test Setup",
+								JOptionPane.QUESTION_MESSAGE,
+								null,
+								new String[] { "", "original_game", "rw_expansion_1", "super_realm"},
+								"");
+						if (game==null) return;
+						if (!game.isEmpty()) keyVals.add(game);
 						GameObjectTreeView view = new GameObjectTreeView(data.doSetup(result,setup,keyVals));
 						view.setTitle("Test Setup");
 						view.setVisible(true);
@@ -218,13 +210,14 @@ public class GameBuilderFrame extends JFrame {
 	}
 	public void initComponents() {
 		setTitle("GBuilder");
-		ComponentTools.maximize(this);
-		setLocation(0,0);
+		setIconImage(IconFactory.findIcon("images/tab/disc.gif").getImage());
+		setSize(1600,900);
+		setLocationRelativeTo(null);
 		desktop = new JDesktopPane();
 		desktopWindowCount = 0;
 		setContentPane(desktop);
 		setJMenuBar(createMenu());
-		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent ev) {
 				exitApp();
@@ -295,8 +288,7 @@ public class GameBuilderFrame extends JFrame {
 		updateMenu();
 	}
 	public void saveAllGame() {
-		for (Iterator i=gameDataFrames.iterator();i.hasNext();) {
-			GameDataFrame frame = (GameDataFrame)i.next();
+		for (GameDataFrame frame : gameDataFrames) {
 			if (frame.isModified()) {
 				frame.save(this);
 			}
@@ -304,8 +296,6 @@ public class GameBuilderFrame extends JFrame {
 		updateMenu();
 	}
 	public void saveAsGame() {
-		// Find active GameData window
-//		Saveable obj = (Saveable)desktop.getSelectedFrame();
 		GameDataFrame activeDataFrame = getFrontDataFrame();
 		activeDataFrame.saveAs(this);
 		updateMenu();
@@ -313,7 +303,7 @@ public class GameBuilderFrame extends JFrame {
 	public void revertGame() {
 		if (JOptionPane.showConfirmDialog(this,"Reverting to old version will lose any changes made since last save.\nContinue?","Revert to saved version",JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION) {
 			GameDataFrame activeDataFrame = getFrontDataFrame();
-			if (activeDataFrame.revert(this)) {
+			if (activeDataFrame.revert()) {
 				JOptionPane.showMessageDialog(this,"Game successfully reverted.","Done",JOptionPane.INFORMATION_MESSAGE);
 			}
 			updateMenu();
@@ -329,8 +319,7 @@ public class GameBuilderFrame extends JFrame {
 		System.exit(0);
 	}
 	public GameDataFrame getFrontDataFrame() {
-		for (Iterator i=gameDataFrames.iterator();i.hasNext();) {
-			GameDataFrame frame = (GameDataFrame)i.next();
+		for (GameDataFrame frame : gameDataFrames) {
 			if (frame.getLayer()==0) {
 				return frame;
 			}
@@ -338,10 +327,6 @@ public class GameBuilderFrame extends JFrame {
 		return null;
 	}
 	public void addDataFrame(GameDataFrame frame) {
-		Dimension size = desktop.getSize();
-		int width = Math.min(600,size.width);
-		int height = size.height;
-		frame.setSize(new Dimension(width,height));
 		openGameNames.add(frame.getGameData().getGameName());
 		gameDataFrames.add(frame);
 		frame.setVisible(true);
@@ -365,8 +350,7 @@ public class GameBuilderFrame extends JFrame {
 		closeFile.setEnabled(activeDataFrame!=null);
 		saveFile.setEnabled(activeDataFrame!=null && activeDataFrame.isModified());
 		boolean foundModified = false;
-		for (Iterator i=gameDataFrames.iterator();i.hasNext();) {
-			GameDataFrame frame = (GameDataFrame)i.next();
+		for (GameDataFrame frame : gameDataFrames) {
 			if (frame.isModified()) {
 				// Only the first modified file is needed to set enabled status
 				foundModified = true;

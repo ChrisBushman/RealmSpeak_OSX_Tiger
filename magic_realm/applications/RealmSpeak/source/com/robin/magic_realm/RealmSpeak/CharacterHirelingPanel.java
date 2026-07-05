@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.BorderLayout;
@@ -31,6 +14,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import com.robin.game.objects.GameObject;
 import com.robin.general.swing.IconFactory;
+import com.robin.general.swing.ImageCache;
 import com.robin.general.util.HashLists;
 import com.robin.magic_realm.components.ChitComponent;
 import com.robin.magic_realm.components.RealmComponent;
@@ -44,7 +28,7 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 	
 	private JTable hirelingTable;
 	private HirelingTableModel tableModel;
-	private ArrayList hirelings;
+	private ArrayList<HirelingDetailComponent> hirelings;
 	
 	private JButton assignUnderlings;
 	private JButton unassignUnderlings;
@@ -63,7 +47,7 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 		hirelingTable = new JTable(tableModel);
 		hirelingTable.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
-		renderer.setHorizontalAlignment(JLabel.CENTER);
+		renderer.setHorizontalAlignment(SwingConstants.CENTER);
 //		renderer.setFont(new Font("Dialog",Font.BOLD,20));
 		hirelingTable.setFont(new Font("Dialog",Font.BOLD,20));
 		hirelingTable.setDefaultRenderer(Integer.class,renderer);
@@ -100,21 +84,17 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 		updateControls();
 	}
 	public void updatePanel() {
-		hirelings = new ArrayList();
-		ArrayList allHirelings = getCharacter().getAllHirelings();
-		ArrayList fHirelings = getCharacter().getFollowingHirelings(); // likely the same group
-		for (Iterator i=fHirelings.iterator();i.hasNext();) {
-			RealmComponent fHireling = (RealmComponent)i.next();
+		hirelings = new ArrayList<>();
+		ArrayList<RealmComponent> allHirelings = getCharacter().getAllHirelings();
+		ArrayList<RealmComponent> fHirelings = getCharacter().getFollowingHirelings(); // likely the same group
+		for (RealmComponent fHireling : fHirelings) {
 			if (!allHirelings.contains(fHireling)) {
 				allHirelings.add(fHireling);
 			}
 		}
 		// Sort hirelings here
-		Collections.sort(allHirelings,new Comparator() {
-			public int compare(Object o1,Object o2) {
-				RealmComponent r1 = (RealmComponent)o1;
-				RealmComponent r2 = (RealmComponent)o2;
-				
+		Collections.sort(allHirelings,new Comparator<RealmComponent>() {
+			public int compare(RealmComponent r1,RealmComponent r2) {
 				String group1 = r1.getGameObject().getThisAttribute("native");
 				if (group1==null) {
 					group1 = r1.getGameObject().getName();
@@ -135,8 +115,8 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 						rank2="0";
 					}
 					
-					int nRank1 = "HQ".equals(rank1)?0:Integer.valueOf(rank1).intValue();
-					int nRank2 = "HQ".equals(rank2)?0:Integer.valueOf(rank2).intValue();
+					int nRank1 = "HQ".equals(rank1)?0:Integer.parseInt(rank1);
+					int nRank2 = "HQ".equals(rank2)?0:Integer.parseInt(rank2);
 					
 					ret = nRank1 - nRank2;
 				}
@@ -144,8 +124,7 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 				return ret;
 			}
 		});
-		for (Iterator i=allHirelings.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+		for (RealmComponent rc : allHirelings) {
 			hirelings.add(new HirelingDetailComponent(rc));
 		}
 		if (tableModel!=null) {
@@ -155,11 +134,11 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 	}
 	public void updateControls() {
 		if (hirelingTable!=null) {
-			selectedUnderlings = new ArrayList<RealmComponent>();
+			selectedUnderlings = new ArrayList<>();
 			if (hirelingTable.getSelectedRowCount()>0) {
 				int[] selRow = hirelingTable.getSelectedRows();
 				for (int i=0;i<selRow.length;i++) {
-					HirelingDetailComponent detail = (HirelingDetailComponent)hirelings.get(selRow[i]);
+					HirelingDetailComponent detail = hirelings.get(selRow[i]);
 					if (!detail.realmComponent.isNativeLeader()) {
 						if (detail.mine && !detail.captured) {
 							selectedUnderlings.add(detail.realmComponent);
@@ -178,6 +157,12 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 	}
 	private void doUnassign() {
 		if (selectedUnderlings.isEmpty()) return;
+		for (RealmComponent underling : selectedUnderlings) {
+			if (underling.getGameObject().hasThisAttribute(Constants.DOPPLEGANGER)) {
+				JOptionPane.showMessageDialog(this, "Doppleganger cannot be unassigned", "Doppleganger selected", JOptionPane.PLAIN_MESSAGE, ImageCache.getIcon("interface/hiddenenemies"));
+				return;
+			}
+		}
 		
 		int ret = JOptionPane.showConfirmDialog(
 				getMainFrame(),
@@ -197,23 +182,49 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 	}
 	private void doAssign() {
 		if (selectedUnderlings.isEmpty()) return;
+		boolean rovingUnderlings = false;
+		ArrayList<String> rovingNatives = new ArrayList<>();
 		
 		// Need to group underlings by location - assignment may not be the same for all
-		HashLists underlingHash = new HashLists();
-		for (Iterator i=selectedUnderlings.iterator();i.hasNext();) {
-			RealmComponent underling = (RealmComponent)i.next();
+		HashLists<TileLocation,RealmComponent> underlingHash = new HashLists<>();
+		for (RealmComponent underling : selectedUnderlings) {
 			TileLocation location = ClearingUtility.getTileLocation(underling);
 			if (location!=null && location.isInClearing()) { // This should always be true, I think
 				underlingHash.put(location,underling);
+			}
+			if (underling.getGameObject().hasThisAttribute(Constants.ROVING_NATIVE)) {
+				rovingUnderlings = true;
+				rovingNatives.add(underling.getGameObject().getThisAttribute(RealmComponent.NATIVE));
 			}
 		}
 		
 		// Now, query each group of hirelings according to their clearing
 		boolean wasQueried = false; // Need to know this, in case there are no characters/leaders to assign hirelings to
-		for (Iterator i=underlingHash.keySet().iterator();i.hasNext();) {
-			TileLocation location = (TileLocation)i.next();
-			ArrayList list = underlingHash.getList(location);
-			Collection guides = ClearingUtility.getGuidesInClearing(location);
+		for (TileLocation location : underlingHash.keySet()) {
+			ArrayList<RealmComponent> list = underlingHash.getList(location);
+			Collection<RealmComponent> guides = new ArrayList<>();
+			Collection<RealmComponent> allGuides = ClearingUtility.getGuidesInClearing(location);
+			if (rovingUnderlings) {
+				for (RealmComponent guide : allGuides) {
+					boolean allGroupnamesFound = true;
+					for (String groupname : rovingNatives) {
+						if (!guide.getGameObject().hasThisAttribute(RealmComponent.NATIVE) || !guide.getGameObject().getThisAttribute(RealmComponent.NATIVE).matches(groupname)
+								|| !guide.getGameObject().hasThisAttribute("rank") || !guide.getGameObject().getThisAttribute("rank").toLowerCase().matches("hq")) {
+							allGroupnamesFound = false;
+							break;
+						}
+					}
+					if (allGroupnamesFound) {
+						guides.add(guide);
+					}
+				}
+			}
+			else {
+				guides.addAll(allGuides);
+			}
+			for (RealmComponent hireling : selectedUnderlings) {
+				guides.remove(hireling);
+			}
 			if (!guides.isEmpty()) {
 				wasQueried = true;
 				RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(
@@ -227,8 +238,7 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 				if (text!=null) {
 					if ("None".equals(text)) {
 						// Unassign
-						for (Iterator n=list.iterator();n.hasNext();) {
-							RealmComponent underling = (RealmComponent)n.next();
+						for (RealmComponent underling : list) {
 							location.clearing.add(underling.getGameObject(),null);
 						}
 					}
@@ -236,8 +246,7 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 						// Assign to selected guide
 						RealmComponent guide = chooser.getFirstSelectedComponent();
 						boolean extraActions = false;
-						for (Iterator n=list.iterator();n.hasNext();) {
-							RealmComponent underling = (RealmComponent)n.next();
+						for (RealmComponent underling : list) {
 							guide.getGameObject().add(underling.getGameObject());
 							if (underling.getGameObject().hasThisAttribute(Constants.EXTRA_ACTIONS)) {
 								extraActions = true;
@@ -285,7 +294,7 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 		}
 		public Object getValueAt(int row, int column) {
 			if (row<hirelings.size()) {
-				HirelingDetailComponent detail = (HirelingDetailComponent)hirelings.get(row);
+				HirelingDetailComponent detail = hirelings.get(row);
 				switch(column) {
 					case 0:	return detail.getOwner();
 					case 1:	return detail.getFollowing();
@@ -327,10 +336,11 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 					RealmComponent h = RealmComponent.getRealmComponent(heldBy);
 					if (h!=null && h.isPlayerControlledLeader()) {
 						following = h.getMediumIcon();
+					} else {
+						following = IconFactory.findIcon("icons/minus.gif");
 					}
 				}
-				if (realmComponent.isAnyLeader()) {
-					// Leaders never have follow assignments
+				else {
 					following = IconFactory.findIcon("icons/minus.gif");
 				}
 				
@@ -347,8 +357,8 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 					horseSide2 = null;
 				}
 				termOfHire = null;
-				if (!rc.getGameObject().hasThisAttribute("companion")) {
-					termOfHire = new Integer(rc.getTermOfHire());
+				if (!rc.getGameObject().hasThisAttribute(Constants.COMPANION)) {
+					termOfHire = Integer.valueOf(rc.getTermOfHire());
 				}
 			}
 			else {

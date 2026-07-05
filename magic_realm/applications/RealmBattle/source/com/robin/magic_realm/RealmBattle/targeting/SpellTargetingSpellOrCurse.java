@@ -1,29 +1,13 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle.targeting;
 
 import java.util.Collection;
-import java.util.Iterator;
 
 import com.robin.game.objects.GameData;
+import com.robin.game.objects.GameObject;
 import com.robin.magic_realm.RealmBattle.BattleModel;
 import com.robin.magic_realm.RealmBattle.CombatFrame;
 import com.robin.magic_realm.components.RealmComponent;
+import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 import com.robin.magic_realm.components.wrapper.SpellMasterWrapper;
 import com.robin.magic_realm.components.wrapper.SpellWrapper;
@@ -39,8 +23,7 @@ public class SpellTargetingSpellOrCurse extends SpellTargetingSingle {
 		GameData gameData = spell.getGameObject().getGameData();
 		if (targetType.indexOf("spell")>=0) {
 			SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(gameData);
-			for (Iterator i=sm.getAllSpellsInClearing(battleModel.getBattleLocation(),true).iterator();i.hasNext();) {
-				SpellWrapper targetSpell = (SpellWrapper)i.next();
+			for (SpellWrapper targetSpell : sm.getAllSpellsInClearing(battleModel.getBattleLocation(),true)) {
 				if (targetSpell.isAlive()) {
 					identifiers.add(targetSpell.getTargetsName());
 					gameObjects.add(targetSpell.getGameObject());
@@ -48,15 +31,25 @@ public class SpellTargetingSpellOrCurse extends SpellTargetingSingle {
 			}
 		}
 		if (targetType.indexOf("curse")>=0) {
-			for (Iterator i=battleModel.getAllParticipatingCharacters().iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
+			for (RealmComponent rc : battleModel.getAllParticipatingCharacters()) {
 				CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
-				Collection curses = character.getAllCurses();
+				Collection<String> curses = character.getAllCurses();
 				if (curses.size()>0) {
-					for (Iterator n=curses.iterator();n.hasNext();) {
-						String curse = (String)n.next();
+					for (String curse : curses) {
 						identifiers.add(curse);
 						gameObjects.add(rc.getGameObject());
+					}
+				}
+			}
+		}
+		if (spell.getGameObject().hasThisAttribute(Constants.TARGETS_SITES_FREED_SPELL)) {
+			for (RealmComponent rc : battleModel.getBattleLocation().clearing.getClearingComponents()) {
+				if (rc.isTreasureLocation() && spell.getCaster().hasTreasureLocationDiscovery(rc.toString())) {
+					for (GameObject held : rc.getHold()) {
+						if (held.hasThisAttribute(RealmComponent.SPELL)) {
+							gameObjects.add(rc.getGameObject());
+							break;
+						}
 					}
 				}
 			}

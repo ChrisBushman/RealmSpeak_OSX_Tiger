@@ -23,7 +23,7 @@ public class ChangeToCompanionEffect implements ISpellEffect {
 				go.hasAttribute(Constants.CHANGE_TO_COMPANION,"armored"),
 				go.hasAttribute(Constants.CHANGE_TO_COMPANION,"flying"));
 		companion.setThisAttribute("icon_folder",go.getAttribute(Constants.CHANGE_TO_COMPANION,"icon_folder"));
-		monsterCreator.setupSide(
+		MonsterCreator.setupSide(
 				companion,
 				"light",
 				go.getAttribute(Constants.CHANGE_TO_COMPANION,"strength"),
@@ -32,7 +32,7 @@ public class ChangeToCompanionEffect implements ISpellEffect {
 				go.getAttributeInt(Constants.CHANGE_TO_COMPANION,"length"),
 				go.getAttributeInt(Constants.CHANGE_TO_COMPANION,"move_speed"),
 				go.getAttribute(Constants.CHANGE_TO_COMPANION,"chit_color"));
-		monsterCreator.setupSide(
+		MonsterCreator.setupSide(
 				companion,
 				"dark",
 				go.getAttribute(Constants.CHANGE_TO_COMPANION,"strength"),
@@ -44,11 +44,14 @@ public class ChangeToCompanionEffect implements ISpellEffect {
 				
 		SpellUtility.bringSummonToClearing(context.getCharacterCaster(), companion, context.Spell, monsterCreator.getMonstersCreated());
 		go.add(context.Target.getGameObject()); // move target into spell (since it is being converted)
+		GameObject held = context.Target.getGameObject().getHeldBy();
+		if (held!=null) {
+			held.remove(context.Target.getGameObject());
+		}
 	}
 
 	@Override
 	public void unapply(SpellEffectContext context) {
-		// TODO Auto-generated method stub
 		boolean companionDied = false;
 		for (GameObject go:SpellUtility.getCreatedCompanions(context.Spell)) {
 			if (go.hasThisAttribute(Constants.DEAD)) {
@@ -61,9 +64,12 @@ public class ChangeToCompanionEffect implements ISpellEffect {
 		GameObject caster = context.Spell.getCaster().getGameObject();
 		if (companionDied) {
 			// Target is destroyed
-			RealmLogging.logMessage(caster.getName(),"Lost the "+ context.Target.getGameObject().getName()+".");
+			RealmLogging.logMessage(caster.getName(),"Lost the "+ context.Target.getGameObject().getNameWithNumber()+".");
 			String targetForItem = context.Spell.getGameObject().getThisAttribute(Constants.CHANGE_TO_COMPANION);
 			GameObject dwelling = context.Spell.getGameData().getGameObjectByName(targetForItem);
+			if (dwelling==null) {
+				dwelling = context.Spell.getGameData().getGameObjectByName("Inn");
+			}
 			dwelling.add(context.Target.getGameObject());
 		}
 		else {

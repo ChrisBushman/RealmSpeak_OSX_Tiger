@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.swing;
 
 import java.awt.BorderLayout;
@@ -51,7 +34,7 @@ public class RealmPaymentDialog extends AggressiveDialog {
 	private CharacterWrapper character;
 	private HostPrefWrapper hostPrefs;
 	
-	private ArrayList onTheTable;
+	private ArrayList<GameObject> onTheTable;
 	
 	private JTextArea info;
 	private JLabel currentInventorySale;
@@ -70,6 +53,8 @@ public class RealmPaymentDialog extends AggressiveDialog {
 	private JFrame mainFrame;
 	
 	private ChangeListener listener;
+	
+	private boolean characterNeedsToRunAway = false;
 		
 	public RealmPaymentDialog(JFrame parent,String title,CharacterWrapper character,TradeInfo tradeInfo,GameObject mer,int mul,ChangeListener listener) {
 		super(parent,title,true);
@@ -82,21 +67,21 @@ public class RealmPaymentDialog extends AggressiveDialog {
 		hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameObject().getGameData());
 		mc = RealmComponent.getRealmComponent(merchandise);
 		repair = mc.isArmor() && ((ArmorChitComponent)mc).isDamaged();
-		onTheTable = new ArrayList();
+		onTheTable = new ArrayList<>();
 		initComponents();
 		setLocationRelativeTo(parent);
 	}
-	private Border getLabelBorder() {
+	private static Border getLabelBorder() {
 		Border b = BorderFactory.createEtchedBorder();
 		Border a = BorderFactory.createEmptyBorder(5,5,5,5);
 		Border r = BorderFactory.createCompoundBorder(b,a);
 		return r;
 	}
-	private JLabel createNumberLabel() {
+	private static JLabel createNumberLabel() {
 		return createNumberLabel(0);
 	}
-	private JLabel createNumberLabel(int num) {
-		JLabel label = new JLabel(String.valueOf(num),JLabel.CENTER);
+	private static JLabel createNumberLabel(int num) {
+		JLabel label = new JLabel(String.valueOf(num),SwingConstants.CENTER);
 		ComponentTools.lockComponentSize(label,40,25);
 		label.setBorder(getLabelBorder());
 		return label;
@@ -224,11 +209,23 @@ public class RealmPaymentDialog extends AggressiveDialog {
 		if (askingPrice<0) {
 			bonusGold = -askingPrice;
 		}
-		askingPrice -= getTradeItemValue();
-		if (askingPrice<0) {
-			askingPrice = 0; // The seller does NOT give change for trade items!!
+		
+		boolean paidByItem = false;
+		for (GameObject item : onTheTable) {
+			if (item.hasThisAttribute(Constants.VALUABLE)) {
+				paidByItem = true;
+				break;
+			}
 		}
-		character.addGold(-askingPrice);
+		
+		if (!paidByItem) {
+			askingPrice -= getTradeItemValue();
+			if (askingPrice<0) {
+				askingPrice = 0; // The seller does NOT give change for trade items!!
+			}
+			character.addGold(-askingPrice);
+		}
+		
 		character.addGold(bonusGold); // This happens when a seller is paying you to take it off his hands!
 		loseTradeItems();
 		receiveItem();
@@ -246,7 +243,7 @@ public class RealmPaymentDialog extends AggressiveDialog {
 		
 		String groupName = denizen.getThisAttribute("native");
 		if (groupName==null) {
-			groupName = denizen.getThisAttribute("visitor");
+			groupName = denizen.getThisAttribute(Constants.VISITOR);
 		}
 		
 		boon.setThisAttribute("boon",groupName);
@@ -254,9 +251,11 @@ public class RealmPaymentDialog extends AggressiveDialog {
 		return boon;
 	}
 	private void loseTradeItems() {
-		for (Iterator i=onTheTable.iterator();i.hasNext();) {
-			GameObject item = (GameObject)i.next();
-			TradeUtility.loseItem(character,item,tradeInfo.getGameObject(),hostPrefs.hasPref(Constants.OPT_GRUDGES));
+		for (GameObject item : onTheTable) {
+			TradeUtility.loseItem(character,item,tradeInfo.getGameObject(),hostPrefs.hasPref(Constants.OPT_GRUDGES)||hostPrefs.hasPref(Constants.SR_ADV_SENTIMENTAL_VALUE));
+			if (item.hasThisAttribute(Constants.FOOLS_GOLD)) {
+				characterNeedsToRunAway = true;
+			}
 		}
 	}
 	private void receiveItem() {
@@ -272,9 +271,13 @@ public class RealmPaymentDialog extends AggressiveDialog {
 			return;
 		}
 		
+		receiveItemNoBoon(mainFrame,hostPrefs,character,tradeInfo,merchandise,repair,listener);
+	}
+	public static void receiveItemNoBoon(JFrame frame,HostPrefWrapper hostPrefs,CharacterWrapper character,TradeInfo tradeInfo,GameObject merchandise,boolean repair,ChangeListener listener) {
+		RealmComponent mc = RealmComponent.getRealmComponent(merchandise);
 		// Some treasures have special value to native groups...
 		int fame = TreasureUtility.getFamePrice(merchandise,tradeInfo.getGameObject());
-		if (fame>0 && hostPrefs.hasPref(Constants.OPT_GRUDGES)) {
+		if (fame>0 && (hostPrefs.hasPref(Constants.OPT_GRUDGES)||hostPrefs.hasPref(Constants.SR_ADV_SENTIMENTAL_VALUE))) {
 			// Decrease friendship
 			character.changeRelationship(tradeInfo.getGameObject(), -1);
 			RealmLogging.logMessage(character.getGameObject().getName(),"Loses a level of friendliness with "+tradeInfo.getGameObject().getName()+".");
@@ -283,7 +286,7 @@ public class RealmPaymentDialog extends AggressiveDialog {
 		
 		if (mc.isSpell()) {
 			// spells are learned
-			character.recordNewSpell(mainFrame,merchandise);
+			character.recordNewSpell(frame,merchandise);
 			RealmLogging.logMessage(character.getGameObject().getName(),"Learns a new spell from the "+tradeInfo.getGameObject().getName()+": "+merchandise.getName());
 		}
 		else {
@@ -307,17 +310,17 @@ public class RealmPaymentDialog extends AggressiveDialog {
 				dwelling = SetupCardUtility.getDenizenHolder(tradeInfo.getGameObject());
 			}
 			character.addNoteTrade(tradeInfo.getGameObject(),dwelling.getHold());
-			character.checkInventoryStatus(mainFrame,merchandise,listener);
+			character.checkInventoryStatus(frame,merchandise,listener);
 			RealmLogging.logMessage(character.getGameObject().getName(),"Buys the "+merchandise.getName()+" from the "+tradeInfo.getGameObject().getName());
 		}
 		
 		QuestRequirementParams params = new QuestRequirementParams();
 		params.actionType = CharacterActionType.Trading;
 		params.actionName = TradeType.Buy.toString();
-		params.objectList = new ArrayList<GameObject>();
+		params.objectList = new ArrayList<>();
 		params.objectList.add(merchandise);
 		params.targetOfSearch = tradeInfo.getGameObject();
-		character.testQuestRequirements(mainFrame,params);
+		character.testQuestRequirements(frame,params);
 	}
 	private void doCancel() {
 		if (mc.isBoon()) {
@@ -339,12 +342,14 @@ public class RealmPaymentDialog extends AggressiveDialog {
 		setVisible(false);
 		dispose();
 	}
+	public boolean characterNeedsToRunAway() {
+		return characterNeedsToRunAway;
+	}
 	private void doAdd() {
-		ArrayList unpresentedInventory = new ArrayList();
-		for (Iterator i=character.getInventory().iterator();i.hasNext();) {
-			GameObject item = (GameObject)i.next();
+		ArrayList<GameObject> unpresentedInventory = new ArrayList<>();
+		for (GameObject item : character.getInventory()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(item);
-			if (rc.isItem() && !rc.isNativeHorse()) {
+			if (rc.isItem() && !rc.isNativeHorse() && !item.hasThisAttribute(Constants.CONTROLLED_HORSE)) {
 				unpresentedInventory.add(item);
 			}
 		}
@@ -353,13 +358,13 @@ public class RealmPaymentDialog extends AggressiveDialog {
 			RealmTradeDialog chooser = new RealmTradeDialog((JFrame)parent,"Add items to TRADE",true,true,false);
 			chooser.setTradeObjects(unpresentedInventory);
 			chooser.setVisible(true);
-			Collection newInventory = chooser.getSelectedObjects();
+			Collection<GameObject> newInventory = chooser.getSelectedObjects();
 			if (newInventory!=null && !newInventory.isEmpty()) {
 				addInventory(newInventory);
 			}
 		}
 	}
-	private void addInventory(Collection newInventory) {
+	private void addInventory(Collection<GameObject> newInventory) {
 		onTheTable.addAll(newInventory);
 		invTradeView.clearSelected();
 		invTradeView.addObjects(newInventory);
@@ -369,11 +374,11 @@ public class RealmPaymentDialog extends AggressiveDialog {
 	private void doRemove() {
 		GameObject[] selGo = invTradeView.getSelectedGameObjects();
 		if (selGo.length>0) {
-			Collection toRemove = new ArrayList(Arrays.asList(selGo));
+			Collection<GameObject> toRemove = new ArrayList<>(Arrays.asList(selGo));
 			removeInventory(toRemove);
 		}
 	}
-	private void removeInventory(Collection toRemove) {
+	private void removeInventory(Collection<GameObject> toRemove) {
 		onTheTable.removeAll(toRemove);
 		invTradeView.clearSelected();
 		invTradeView.removeAll();
@@ -406,7 +411,7 @@ public class RealmPaymentDialog extends AggressiveDialog {
 			sb.append(" you for ");
 			sb.append(askingPrice==0?basePrice:askingPrice);
 			sb.append(" gold");
-			if (askingPrice==0 && !mc.isBoon()) { // boons can't be offered as a boon!!
+			if (askingPrice==0 && !mc.isBoon() && !mc.isCredit()) { // boons can't be offered as a boon!!
 				sb.append(",\nor give it to you as a BOON (lose 1 level friendliness)");
 				askingPrice = basePrice;
 				boonOffer = true;
@@ -444,8 +449,8 @@ public class RealmPaymentDialog extends AggressiveDialog {
 	}
 	private int getTradeItemValue() {
 		int invSale = 0;
-		for (Iterator i=onTheTable.iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		for (GameObject go : onTheTable) {
+			if (go.hasThisAttribute(Constants.VALUABLE)) return askingPrice;
 			invSale += TreasureUtility.getBasePrice(tradeInfo.getTrader(),RealmComponent.getRealmComponent(go));
 		}
 		return invSale;

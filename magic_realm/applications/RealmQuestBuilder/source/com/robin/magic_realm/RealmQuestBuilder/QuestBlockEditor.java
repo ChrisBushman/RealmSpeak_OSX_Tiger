@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmQuestBuilder;
 
 import java.awt.BorderLayout;
@@ -22,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
-
 import javax.swing.*;
 import javax.swing.text.*;
 
@@ -89,6 +71,7 @@ public abstract class QuestBlockEditor extends GenericEditor {
 				case NoSpacesTextLine:
 				case SmartTextLine:
 				case Regex:
+				case RegexIgnoreChitTypes:
 					go.setString(block.getKeyName(),((JTextField)block.getComponent()).getText().trim());
 					break;
 				case SmartTextArea:
@@ -96,6 +79,7 @@ public abstract class QuestBlockEditor extends GenericEditor {
 					go.setString(block.getKeyName(),((JTextArea)block.getComponent()).getText().trim());
 					break;
 				case Number:
+				case NumberAll:
 					go.setInt(block.getKeyName(),((IntegerField)block.getComponent()).getInt());
 					break;
 				case StringSelector:
@@ -110,14 +94,14 @@ public abstract class QuestBlockEditor extends GenericEditor {
 					break;
 				case CompanionSelector:
 					go.setString(QuestConstants.KEY_PREFIX+block.getKeyName(),((JLabel)block.getComponent()).getText());
-					go.setString(QuestConstants.VALUE_PREFIX+block.getKeyName(),((JLabel)block.getComponent()).getToolTipText());
+					go.setString(QuestConstants.VALUE_PREFIX+block.getKeyName(),block.getComponent().getToolTipText());
 					break;
 			}
 		}
 	}
 	private void initComponents() {
 		setTitle(getEditorTitle());
-		setSize(400,300);
+		setSize(450,450);
 		setLayout(new BorderLayout());
 		add(buildForm(),BorderLayout.CENTER);
 		add(buildOkCancelLine(),BorderLayout.SOUTH);
@@ -189,6 +173,11 @@ public abstract class QuestBlockEditor extends GenericEditor {
 					component = new IntegerField(n==0?1:n);
 					ComponentTools.lockComponentSize(component,150,25);
 					break;
+				case NumberAll:
+					int i = go.getInt(block.getKeyName());
+					component = new IntegerField(i);
+					ComponentTools.lockComponentSize(component,150,25);
+					break;
 				case StringSelector:
 				case GameObjectWrapperSelector:
 					JComboBox cb = new JComboBox(block.getSelections());
@@ -210,6 +199,21 @@ public abstract class QuestBlockEditor extends GenericEditor {
 							PropertyButton me = (PropertyButton)ev.getSource();
 							JTextField field = (JTextField)me.getMyComponent();
 							String text = launchRegexHelper(field.getText(),me.getBlock());
+							if (text!=null) {
+								field.setText(text);
+							}
+						}
+					});
+					break;
+				case RegexIgnoreChitTypes:
+					component = new JTextField(go.getString(block.getKeyName()));
+					ComponentTools.lockComponentSize(component,150,25);
+					button = new PropertyButton("...",component,block);
+					button.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent ev) {
+							PropertyButton me = (PropertyButton)ev.getSource();
+							JTextField field = (JTextField)me.getMyComponent();
+							String text = launchRegexHelper(field.getText(),me.getBlock(),true);
 							if (text!=null) {
 								field.setText(text);
 							}
@@ -286,8 +290,11 @@ public abstract class QuestBlockEditor extends GenericEditor {
 		return go==null?null:(ChitComponent)RealmComponent.getRealmComponent(go);
 	}
 	private String launchRegexHelper(String text,QuestPropertyBlock block) {
-		ArrayList<String> objectNames = new ArrayList<String>();
-		if (chitTypePanel!=null) {
+		return launchRegexHelper(text,block,false);
+	}
+	private String launchRegexHelper(String text,QuestPropertyBlock block,boolean ignoreChitTypePanel) {
+		ArrayList<String> objectNames = new ArrayList<>();
+		if (chitTypePanel!=null&&!ignoreChitTypePanel) {
 			ArrayList<GameObject> objects = QuestRewardItem.getObjectList(realmSpeakData.getGameObjects(),chitTypePanel.getChitItemTypes(),null); 
 			for(GameObject go:objects) {
 				if (!objectNames.contains(go.getName())) {
@@ -307,7 +314,7 @@ public abstract class QuestBlockEditor extends GenericEditor {
 				}
 			}
 			else {
-				objectNames = new ArrayList<String>(realmSpeakData.getAllGameObjectNames());
+				objectNames = new ArrayList<>(realmSpeakData.getAllGameObjectNames());
 			}
 		}
 		Collections.sort(objectNames);
@@ -327,7 +334,9 @@ public abstract class QuestBlockEditor extends GenericEditor {
 			String id = go.getString(block.getKeyName());
 			if (id!=null) {
 				GameObject ref = go.getGameData().getGameObject(Long.valueOf(id));
-				current = ref.getName();
+				if (ref != null) {
+					current = ref.getName();
+				}
 			}
 		}
 		else {

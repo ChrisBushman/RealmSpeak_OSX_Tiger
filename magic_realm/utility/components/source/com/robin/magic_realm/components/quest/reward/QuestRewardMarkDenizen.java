@@ -1,22 +1,7 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest.reward;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.regex.Pattern;
 
 import javax.swing.JFrame;
@@ -30,6 +15,7 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 public class QuestRewardMarkDenizen extends QuestReward {
 	
 	public static final String DENIZEN_REGEX = "_regex";
+	public static final String DENIZEN_AMOUNT = "_amount";
 
 	public QuestRewardMarkDenizen(GameObject go) {
 		super(go);
@@ -40,15 +26,26 @@ public class QuestRewardMarkDenizen extends QuestReward {
 		if (!current.isInClearing()) return;
 		String regex = getDenizenRegEx().trim();
 		Pattern pattern = regex.length()==0?null:Pattern.compile(regex);
-		for(RealmComponent rc:current.clearing.getClearingComponents()) {
+		int markedDenizen = 0;
+		ArrayList<RealmComponent> denizens = current.clearing.getClearingComponents();
+		if (getDenizenAmount()!=0) {
+			Collections.shuffle(denizens);
+		}
+		for (RealmComponent rc:denizens) {
 			if (pattern==null || pattern.matcher(rc.getGameObject().getName()).find()) {
 				rc.getGameObject().setThisAttribute(QuestConstants.QUEST_MARK,getParentQuest().getGameObject().getStringId());
+				markedDenizen++;
+				if (getDenizenAmount()!=0 && markedDenizen>=getDenizenAmount()) return;
 			}
 		}
 	}
 
 	public String getDescription() {
-		return "Mark all denizens in current clearing matching name: "+getDenizenRegEx();
+		int number = getDenizenAmount();
+		if (number != 0) {
+			return "Mark up to "+number+" denizens in current clearing matching the name: "+getDenizenRegEx();
+		}
+		return "Mark all denizens in current clearing the matching name: "+getDenizenRegEx();
 	}
 
 	public RewardType getRewardType() {
@@ -57,5 +54,9 @@ public class QuestRewardMarkDenizen extends QuestReward {
 
 	public String getDenizenRegEx() {
 		return getString(DENIZEN_REGEX);
+	}
+	
+	public int getDenizenAmount() {
+		return getInt(DENIZEN_AMOUNT);
 	}
 }

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
@@ -27,7 +10,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import com.robin.game.objects.GameObject;
 import com.robin.general.swing.ImageCache;
 import com.robin.magic_realm.components.MagicRealmColor;
-import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.utility.RealmObjectMaster;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
@@ -38,7 +20,7 @@ public class GameOverPanel extends JPanel {
 	private static Font tableFont = new Font("Dialog",Font.PLAIN,18);
 	private static Font titleFont = new Font("Dialog",Font.BOLD,36);
 	
-	private ArrayList results;
+	private ArrayList<CharacterResult> results;
 	
 	private GameObject owningChar;
 	private HostPrefWrapper hostPrefs;
@@ -52,10 +34,9 @@ public class GameOverPanel extends JPanel {
 		initComponents();
 	}
 	private void buildResults() {
-		results = new ArrayList();
-		Collection c = RealmObjectMaster.getRealmObjectMaster(owningChar.getGameData()).getPlayerCharacterObjects();
-		for (Iterator i=c.iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		results = new ArrayList<>();
+		ArrayList<GameObject> c = RealmObjectMaster.getRealmObjectMaster(owningChar.getGameData()).getPlayerCharacterObjects();
+		for (GameObject go : c) {
 			CharacterWrapper cw = new CharacterWrapper(go);
 			if (cw.isCharacter()) {
 				if (go.hasAttributeBlock(CharacterWrapper.PLAYER_BLOCK)) { // was in the game at some point
@@ -68,21 +49,16 @@ public class GameOverPanel extends JPanel {
 			}
 		}
 		
-		Collections.sort(results,new Comparator() {
-			public int compare(Object o1,Object o2) {
-				CharacterResult r1 = (CharacterResult)o1;
-				CharacterResult r2 = (CharacterResult)o2;
+		Collections.sort(results,new Comparator<CharacterResult>() {
+			public int compare(CharacterResult r1,CharacterResult r2) {
 				int ret=0;
-				if (usingQuests()) {
+				if (hostPrefs.isUsingBookOfQuests()) {
 					ret = r2.getCharacter().getCompletedQuestCount() - r1.getCharacter().getCompletedQuestCount();
 				}
 				if (ret==0) ret = r2.getCharacter().getTotalScore() - r1.getCharacter().getTotalScore(); 
 				return ret;
 			}
 		});
-	}
-	private boolean usingQuests() {
-		return hostPrefs.hasPref(Constants.QST_BOOK_OF_QUESTS);
 	}
 	private void initComponents() {
 		setLayout(new BorderLayout());
@@ -91,7 +67,7 @@ public class GameOverPanel extends JPanel {
 		resultTable.setRowHeight(40);
 		resultTable.setDefaultRenderer(ImageIcon.class,new CharacterResultTableCellRenderer());
 		resultTable.setDefaultRenderer(Integer.class,new ScoreCellRenderer());
-		if (!usingQuests()) {
+		if (!hostPrefs.isUsingBookOfQuests()) {
 			resultTable.getColumnModel().getColumn(4).setMaxWidth(0);
 		}
 		resultTable.getColumnModel().getColumn(0).setMaxWidth(60);
@@ -165,13 +141,13 @@ public class GameOverPanel extends JPanel {
 			return columnClass[column];
 		}
 		private int getTopScore() {
-			CharacterResult result = (CharacterResult)results.get(0);
+			CharacterResult result = results.get(0);
 			CharacterWrapper character = result.getCharacter();
 			return character.getTotalScore();
 		}
 		public Object getValueAt(int row, int column) {
 			if (row<results.size()) {
-				CharacterResult result = (CharacterResult)results.get(row);
+				CharacterResult result = results.get(row);
 				CharacterWrapper character = result.getCharacter();
 				String rank = "";
 				if (row==0 || character.getTotalScore()==getTopScore()) {
@@ -187,11 +163,11 @@ public class GameOverPanel extends JPanel {
 					case 3:
 						return character.getCharacterName();
 					case 4:
-						return character.getCompletedQuestCount()+" / "+character.getQuestCount();
+						return character.getCompletedQuestCount()+" / "+character.getAllNonEventQuests().size();
 					case 5:
 						return character.isDead()?"DEAD":String.valueOf(character.getTotalAssignedVPs());
 					case 6:
-						return new Integer(character.getTotalScore());
+						return Integer.valueOf(character.getTotalScore());
 				}
 			}
 			return null;

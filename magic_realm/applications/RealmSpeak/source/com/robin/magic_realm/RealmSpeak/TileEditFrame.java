@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
@@ -22,7 +5,6 @@ import java.awt.event.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Vector;
 
 import javax.swing.*;
@@ -33,60 +15,76 @@ import javax.swing.event.MouseInputAdapter;
 import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
 import com.robin.general.io.ArgumentParser;
+import com.robin.general.io.PreferenceManager;
 import com.robin.general.io.ResourceFinder;
 import com.robin.general.swing.ButtonOptionDialog;
 import com.robin.general.swing.ComponentTools;
+import com.robin.general.swing.IconFactory;
 import com.robin.magic_realm.components.ClearingDetail;
 import com.robin.magic_realm.components.PathDetail;
 import com.robin.magic_realm.components.RealmComponent;
+import com.robin.magic_realm.components.TileComponent;
 import com.robin.magic_realm.components.TileEditComponent;
+import com.robin.magic_realm.components.utility.GameFileFilters;
+import com.robin.magic_realm.components.utility.RealmLoader;
 import com.robin.magic_realm.components.utility.RealmUtility;
 
 public class TileEditFrame extends JFrame {
-
+	private static final String MetalLookAndFeel = "MLAF";
+	private static final String TilesDisplayStyle = "TS";	
+	
+	private PreferenceManager prefs;
 	protected GameData data;
+	public static String dataFilename = null;
 	
 	protected JButton saveButton;
-	
+		
 	protected JPanel tileView;
 	protected TileEditComponent activeTile;
 	protected JButton flipButton;
 	protected JButton applyButton;
 	protected JButton toggleDetailButton;
-	protected JList tileList;
+	protected JList<GameObject> tileList;
 	
 	protected boolean selectionLock = false;
 	protected boolean editOffroad = false;
 	protected boolean editClearing = false;
 	protected boolean editPath = false;
 	
+	protected JLabel nameLabel;
 	protected JLabel changeWarningLabel;
 	
 	protected JPanel clearingView;
-		protected JList clearingList;
+		protected JList<ClearingDetail> clearingList;
 		protected Box clearingControls;
 			protected ButtonGroup clearingTypeGroup;
 				protected JRadioButton normalClearingType;
 				protected JRadioButton woodsClearingType;
 				protected JRadioButton mountainClearingType;
 				protected JRadioButton caveClearingType;
+				protected JRadioButton waterClearingType;
 			
-				protected JCheckBox whiteClearingMagic;		// W
-				protected JCheckBox grayClearingMagic;		// Y
-				protected JCheckBox goldClearingMagic;		// G
-				protected JCheckBox purpleClearingMagic;	// P
-				protected JCheckBox blackClearingMagic;		// B
+				protected JCheckBox whiteClearingMagic;
+				protected JCheckBox grayClearingMagic;
+				protected JCheckBox goldClearingMagic;
+				protected JCheckBox purpleClearingMagic;
+				protected JCheckBox blackClearingMagic;
+				protected JCheckBox variedClearingMagic;
+
+				protected JButton addClearingButton;
+				protected JButton removeClearingButton;
 				
 	protected JPanel pathView;
-		protected JList pathList;
+		protected JList<PathDetail> pathList;
 		protected JPanel pathControls;
 			protected ButtonGroup pathTypeGroup;
 				protected JRadioButton normalPathType;
 				protected JRadioButton hiddenPathType;
 				protected JRadioButton secretPathType;
 				protected JRadioButton cavePathType;
-				protected JButton addPathButton;
-				protected JButton removePathButton;
+				protected JRadioButton riverPathType;
+			protected JButton addPathButton;
+			protected JButton removePathButton;
 			protected JButton moveUp;
 			protected JButton moveDn;
 			protected JButton clearArc;
@@ -100,14 +98,19 @@ public class TileEditFrame extends JFrame {
 	}
 	private void initComponents() {
 		setTitle("Tile Editor");
+		setIconImage(IconFactory.findIcon("images/interface/build.gif").getImage());
 		setSize(900,600);
 		getContentPane().setLayout(new BorderLayout());
 		setLocation(50,50);
 		
+		prefs = new PreferenceManager("RealmSpeak","TileEditor");
+		prefs.loadPreferences();
+		setJMenuBar(buildMenuBar());
+		
 		Box box;
 		JScrollPane sp;
-			
-		tileList = new JList(getTiles());
+		
+		tileList = new JList<>(getTiles());
 		tileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		tileList.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent ev) {
@@ -127,11 +130,10 @@ public class TileEditFrame extends JFrame {
 		sp = new JScrollPane(tileList);
 		ComponentTools.lockComponentSize(sp,200,100);
 		getContentPane().add(sp,"West");
-		
 			JPanel editPanel = new JPanel(new GridLayout(2,1));
 				JPanel clearingEditPanel = new JPanel(new BorderLayout());
-				clearingEditPanel.add(new JLabel("Clearings:"),"North");
-					clearingList = new JList();
+				clearingEditPanel.add(new JLabel("CLEARINGS:"),"North");
+					clearingList = new JList<>();
 					clearingList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 					clearingList.addListSelectionListener(new ListSelectionListener() {
 						public void valueChanged(ListSelectionEvent ev) {
@@ -185,6 +187,14 @@ public class TileEditFrame extends JFrame {
 								});
 							clearingTypeGroup.add(caveClearingType);
 							clearingTypeButtons.add(caveClearingType);
+							waterClearingType = new JRadioButton("Water");
+							waterClearingType.addActionListener(new ActionListener() {
+								public void actionPerformed(ActionEvent ev) {
+									updateClearings();
+								}
+							});
+						clearingTypeGroup.add(waterClearingType);
+						clearingTypeButtons.add(waterClearingType);
 					clearingControls.add(clearingTypeButtons);
 					clearingControls.add(new JSeparator());
 						JPanel clearingColorButtons = new JPanel(new GridLayout(2,3));
@@ -223,13 +233,38 @@ public class TileEditFrame extends JFrame {
 								}
 							});
 						clearingColorButtons.add(blackClearingMagic);
-						clearingColorButtons.add(Box.createGlue());
+						variedClearingMagic = new JCheckBox("Varied");
+						variedClearingMagic.addActionListener(new ActionListener() {
+							public void actionPerformed(ActionEvent ev) {
+								updateClearings();
+							}
+						});
+						clearingColorButtons.add(variedClearingMagic);
 					clearingControls.add(clearingColorButtons);
+						JPanel clearingEditButtons = new JPanel(new GridLayout(1,2));
+							addClearingButton = new JButton("Add");
+							addClearingButton.addActionListener(new ActionListener() {
+								public void actionPerformed(ActionEvent ev) {
+									addClearing();
+								}
+							});
+						clearingEditButtons.add(addClearingButton);
+							removeClearingButton = new JButton("Remove");
+							removeClearingButton.addActionListener(new ActionListener() {
+								public void actionPerformed(ActionEvent ev) {
+									removeClearing();
+								}
+							});
+							clearingEditButtons.add(removeClearingButton);
+					clearingControls.add(clearingEditButtons);
+					clearingControls.add(new JSeparator());
+					clearingControls.add(new JSeparator());
+					clearingControls.add(new JSeparator());
 				clearingEditPanel.add(clearingControls,"South");
 			editPanel.add(clearingEditPanel);
 				JPanel pathEditPanel = new JPanel(new BorderLayout());
-				pathEditPanel.add(new JLabel("Paths:"),"North");
-					pathList = new JList();
+				pathEditPanel.add(new JLabel("PATHS:"),"North");
+					pathList = new JList<>();
 					pathList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 					pathList.addListSelectionListener(new ListSelectionListener() {
 						public void valueChanged(ListSelectionEvent ev) {
@@ -249,8 +284,8 @@ public class TileEditFrame extends JFrame {
 					ComponentTools.lockComponentSize(sp,220,100);
 				pathEditPanel.add(sp,"Center");
 					pathControls = new JPanel(new BorderLayout());
-						JPanel pathButtons = new JPanel(new GridLayout(3,2));
-							pathTypeGroup = new ButtonGroup();
+						JPanel pathTypeButtons = new JPanel(new GridLayout(2,3));
+						pathTypeGroup = new ButtonGroup();
 								normalPathType = new JRadioButton("Normal");
 								normalPathType.addActionListener(new ActionListener() {
 									public void actionPerformed(ActionEvent ev) {
@@ -258,7 +293,7 @@ public class TileEditFrame extends JFrame {
 									}
 								});
 							pathTypeGroup.add(normalPathType);
-							pathButtons.add(normalPathType);
+							pathTypeButtons.add(normalPathType);
 								hiddenPathType = new JRadioButton("Hidden");
 								hiddenPathType.addActionListener(new ActionListener() {
 									public void actionPerformed(ActionEvent ev) {
@@ -266,7 +301,7 @@ public class TileEditFrame extends JFrame {
 									}
 								});
 							pathTypeGroup.add(hiddenPathType);
-							pathButtons.add(hiddenPathType);
+							pathTypeButtons.add(hiddenPathType);
 								secretPathType = new JRadioButton("Secret");
 								secretPathType.addActionListener(new ActionListener() {
 									public void actionPerformed(ActionEvent ev) {
@@ -274,7 +309,7 @@ public class TileEditFrame extends JFrame {
 									}
 								});
 							pathTypeGroup.add(secretPathType);
-							pathButtons.add(secretPathType);
+							pathTypeButtons.add(secretPathType);
 								cavePathType = new JRadioButton("Caves");
 								cavePathType.addActionListener(new ActionListener() {
 									public void actionPerformed(ActionEvent ev) {
@@ -282,35 +317,27 @@ public class TileEditFrame extends JFrame {
 									}
 								});
 							pathTypeGroup.add(cavePathType);
-							pathButtons.add(cavePathType);
-								addPathButton = new JButton("Add");
-								addPathButton.addActionListener(new ActionListener() {
-									public void actionPerformed(ActionEvent ev) {
-										addPath();
-									}
-								});
-							pathTypeGroup.add(addPathButton);
-							pathButtons.add(addPathButton);
-								removePathButton = new JButton("Remove");
-								removePathButton.addActionListener(new ActionListener() {
-									public void actionPerformed(ActionEvent ev) {
-										removePath();
-									}
-								});
-							pathTypeGroup.add(removePathButton);
-							pathButtons.add(removePathButton);
-					pathControls.add(pathButtons,"Center");
-						box = Box.createHorizontalBox();
-							moveUp = new JButton("UP");
-							moveUp.addActionListener(new ActionListener() {
+							pathTypeButtons.add(cavePathType);
+							riverPathType = new JRadioButton("River");
+							riverPathType.addActionListener(new ActionListener() {
 								public void actionPerformed(ActionEvent ev) {
-									movePathUp();
+									updatePaths();
 								}
 							});
-							moveDn = new JButton("DOWN");
-							moveDn.addActionListener(new ActionListener() {
+							pathTypeGroup.add(riverPathType);
+							pathTypeButtons.add(riverPathType);
+					pathControls.add(pathTypeButtons,"Center");
+					JPanel pathEditButtons = new JPanel(new GridLayout(2,3));
+							addPathButton = new JButton("Add");
+							addPathButton.addActionListener(new ActionListener() {
 								public void actionPerformed(ActionEvent ev) {
-									movePathDown();
+									addPath();
+								}
+							});
+							removePathButton = new JButton("Remove");
+							removePathButton.addActionListener(new ActionListener() {
+								public void actionPerformed(ActionEvent ev) {
+									removePath();
 								}
 							});
 							clearArc = new JButton("ClearARC");
@@ -319,10 +346,24 @@ public class TileEditFrame extends JFrame {
 									addPathArcPoint(null);
 								}
 							});
-						box.add(moveUp);
-						box.add(moveDn);
-						box.add(clearArc);
-					pathControls.add(box,"South");
+							moveUp = new JButton("Up");
+							moveUp.addActionListener(new ActionListener() {
+								public void actionPerformed(ActionEvent ev) {
+									movePathUp();
+								}
+							});
+							moveDn = new JButton("Down");
+							moveDn.addActionListener(new ActionListener() {
+								public void actionPerformed(ActionEvent ev) {
+									movePathDown();
+								}
+							});
+						pathEditButtons.add(addPathButton);
+						pathEditButtons.add(removePathButton);
+						pathEditButtons.add(clearArc);
+						pathEditButtons.add(moveUp);
+						pathEditButtons.add(moveDn);
+					pathControls.add(pathEditButtons,"South");
 				pathEditPanel.add(pathControls,"South");
 			editPanel.add(pathEditPanel);
 		getContentPane().add(editPanel,"East");
@@ -342,11 +383,15 @@ public class TileEditFrame extends JFrame {
 					});
 				box.add(flipButton);
 				box.add(Box.createHorizontalGlue());
-				changeWarningLabel = new JLabel("Tile has changes!");
+				nameLabel = new JLabel("",SwingConstants.CENTER);
+				changeWarningLabel = new JLabel("Tile has changes!",SwingConstants.CENTER);
 				changeWarningLabel.setFont(new Font("Dialog",Font.BOLD,18));
 				changeWarningLabel.setForeground(Color.red);
 				changeWarningLabel.setVisible(false);
-				box.add(changeWarningLabel);
+				JPanel namePanel = new JPanel(new GridLayout(2,1));
+				namePanel.add(nameLabel);
+				namePanel.add(changeWarningLabel);
+				box.add(namePanel);
 				box.add(Box.createHorizontalGlue());
 					toggleDetailButton = new JButton("Toggle Detail");
 					toggleDetailButton.addActionListener(new ActionListener() {
@@ -439,7 +484,9 @@ public class TileEditFrame extends JFrame {
 		updateClearingButtons();
 		updatePathButtons();
 		changeWarningLabel.setVisible(activeTile!=null && activeTile.isChanged());
-		
+		if (activeTile!=null) {
+			nameLabel.setText(activeTile+" ("+activeTile.getGameObject().getThisAttribute("code")+")"+" - Type: "+activeTile.getGameObject().getThisAttribute(RealmComponent.TILE_TYPE));
+		}
 		saveButton.setEnabled(changed);
 		applyButton.setEnabled(activeTile!=null && activeTile.isChanged());
 	}
@@ -447,7 +494,7 @@ public class TileEditFrame extends JFrame {
 		if (activeTile!=null) {
 			tileView.remove(activeTile);
 		}
-		GameObject tile = (GameObject)tileList.getSelectedValue();
+		GameObject tile = tileList.getSelectedValue();
 		if (tile!=null) {
 			activeTile = new TileEditComponent(tile);
 			activeTile.initSize();
@@ -464,10 +511,10 @@ public class TileEditFrame extends JFrame {
 	}
 	public void updateClearingList() {
 		if (activeTile!=null) {
-			clearingList.setListData(new Vector(activeTile.getClearingDetail()));
+			clearingList.setListData(new Vector<>(activeTile.getClearingDetail()));
 		}
 		else {
-			clearingList.setListData(new Vector());
+			clearingList.setListData(new Vector<>());
 		}
 		clearingList.revalidate();
 		clearingList.repaint();
@@ -475,7 +522,7 @@ public class TileEditFrame extends JFrame {
 	public void updateClearingButtons() {
 		ClearingDetail selected = null;
 		if (activeTile!=null) {
-			selected = (ClearingDetail)clearingList.getSelectedValue();
+			selected = clearingList.getSelectedValue();
 			if (selected!=null) {
 				String type = selected.getType();
 				if (type.equals("normal")) {
@@ -490,12 +537,16 @@ public class TileEditFrame extends JFrame {
 				else if (type.equals("caves")) {
 					caveClearingType.setSelected(true);
 				}
+				else if (type.equals("water")) {
+					waterClearingType.setSelected(true);
+				}
 				
 				whiteClearingMagic.setSelected(selected.getMagic(ClearingDetail.MAGIC_WHITE));
 				grayClearingMagic.setSelected(selected.getMagic(ClearingDetail.MAGIC_GRAY));
 				goldClearingMagic.setSelected(selected.getMagic(ClearingDetail.MAGIC_GOLD));
 				purpleClearingMagic.setSelected(selected.getMagic(ClearingDetail.MAGIC_PURPLE));
 				blackClearingMagic.setSelected(selected.getMagic(ClearingDetail.MAGIC_BLACK));
+				variedClearingMagic.setSelected(selected.getMagic(ClearingDetail.MAGIC_VARIED));
 			}
 		}
 		
@@ -503,17 +554,19 @@ public class TileEditFrame extends JFrame {
 		woodsClearingType.setEnabled(activeTile!=null && selected!=null);
 		mountainClearingType.setEnabled(activeTile!=null && selected!=null);
 		caveClearingType.setEnabled(activeTile!=null && selected!=null);
+		waterClearingType.setEnabled(activeTile!=null && selected!=null);
 		
 		whiteClearingMagic.setEnabled(activeTile!=null && selected!=null);
 		grayClearingMagic.setEnabled(activeTile!=null && selected!=null);
 		goldClearingMagic.setEnabled(activeTile!=null && selected!=null);
 		purpleClearingMagic.setEnabled(activeTile!=null && selected!=null);
 		blackClearingMagic.setEnabled(activeTile!=null && selected!=null);
+		variedClearingMagic.setEnabled(activeTile!=null && selected!=null);
 	}
 	public void updateClearings() {
 		ClearingDetail selected = null;
 		if (activeTile!=null) {
-			selected = (ClearingDetail)clearingList.getSelectedValue();
+			selected = clearingList.getSelectedValue();
 			if (selected!=null) {
 				if (normalClearingType.isSelected()) {
 					selected.setType("normal");
@@ -527,12 +580,16 @@ public class TileEditFrame extends JFrame {
 				else if (caveClearingType.isSelected()) {
 					selected.setType("caves");
 				}
+				else if (waterClearingType.isSelected()) {
+					selected.setType("water");
+				}
 				
 				selected.setMagic(ClearingDetail.MAGIC_WHITE,whiteClearingMagic.isSelected());
 				selected.setMagic(ClearingDetail.MAGIC_GRAY,grayClearingMagic.isSelected());
 				selected.setMagic(ClearingDetail.MAGIC_GOLD,goldClearingMagic.isSelected());
 				selected.setMagic(ClearingDetail.MAGIC_PURPLE,purpleClearingMagic.isSelected());
 				selected.setMagic(ClearingDetail.MAGIC_BLACK,blackClearingMagic.isSelected());
+				selected.setMagic(ClearingDetail.MAGIC_VARIED,variedClearingMagic.isSelected());
 				
 				activeTile.repaint();
 				
@@ -543,7 +600,7 @@ public class TileEditFrame extends JFrame {
 	}
 	public void changeClearingPos(Point p) {
 		if (activeTile!=null) {
-			ClearingDetail selected = (ClearingDetail)clearingList.getSelectedValue();
+			ClearingDetail selected = clearingList.getSelectedValue();
 			if (selected!=null) {
 				activeTile.didChange();
 				updateControls();
@@ -552,15 +609,73 @@ public class TileEditFrame extends JFrame {
 			}
 		}
 	}
+	public void addClearing() {
+		if (activeTile==null) return;
+		
+		ArrayList<ClearingDetail> allClearings = (ArrayList<ClearingDetail>) activeTile.getClearingDetail();
+		if (allClearings.size()>=6) return;
+		
+		int side = 0;
+		if (activeTile.isDarkSideUp()) {
+			side = 1;
+		}
+		ArrayList<Integer> allClearingsNums = new ArrayList<>();
+		int num = 1;
+		for (ClearingDetail cl : allClearings) {
+			allClearingsNums.add(cl.getNum());
+		}
+		while (num<=6) {
+			if (!allClearingsNums.contains(num)) break;
+			num++;
+		}
+		
+		allClearings.add(new ClearingDetail(activeTile,num,"normal",new Point(50,50),side));
+		activeTile.setClearingDetail(allClearings);
+		
+		clearingList.clearSelection();
+		updateClearingList();
+		activeTile.repaint();
+		activeTile.didChange();
+		updateControls();
+	}
+	public void removeClearing() {
+		if (activeTile == null) return;
+		ClearingDetail selected = clearingList.getSelectedValue();
+		if (selected == null) return;
+		
+		ArrayList<ClearingDetail> allClearings = (ArrayList<ClearingDetail>) activeTile.getClearingDetail();
+		for (ClearingDetail cl : allClearings) {
+			if (cl.getNum()==selected.getNum()) {
+				allClearings.remove(cl);
+				break;
+			}
+		}
+		ArrayList<PathDetail> paths = new ArrayList<>(activeTile.getPathDetail());
+		ArrayList<PathDetail> validPaths = new ArrayList<>();
+		for (PathDetail path : paths) {
+			if (path.getTo().getNum()!=selected.getNum() && path.getFrom().getNum()!=selected.getNum()) {
+				validPaths.add(path);
+			}
+		}
+		
+		activeTile.setClearingDetail(allClearings);
+		activeTile.setPathDetail(validPaths);
+		clearingList.clearSelection();
+		updateClearingList();
+		updatePathList();
+		activeTile.repaint();
+		activeTile.didChange();
+		updateControls();
+	}
 	public void updatePathList() {
 		updatePathList(-1);
 	}
 	public void updatePathList(int newIndex) {
 		if (activeTile!=null) {
-			pathList.setListData(new Vector(activeTile.getPathDetail()));
+			pathList.setListData(new Vector<>(activeTile.getPathDetail()));
 		}
 		else {
-			pathList.setListData(new Vector());
+			pathList.setListData(new Vector<>());
 		}
 		if (newIndex>=0) {
 			pathList.setSelectedIndex(newIndex);
@@ -571,7 +686,7 @@ public class TileEditFrame extends JFrame {
 	public void updatePathButtons() {
 		PathDetail selected = null;
 		if (activeTile!=null) {
-			selected = (PathDetail)pathList.getSelectedValue();
+			selected = pathList.getSelectedValue();
 			if (selected!=null) {
 				String type = selected.getType();
 				if (type.equals("normal")) {
@@ -586,6 +701,9 @@ public class TileEditFrame extends JFrame {
 				else if (type.equals("caves")) {
 					cavePathType.setSelected(true);
 				}
+				else if (type.equals("river")) {
+					riverPathType.setSelected(true);
+				}
 			}
 		}
 		
@@ -593,6 +711,7 @@ public class TileEditFrame extends JFrame {
 		hiddenPathType.setEnabled(activeTile!=null && selected!=null);
 		secretPathType.setEnabled(activeTile!=null && selected!=null);
 		cavePathType.setEnabled(activeTile!=null && selected!=null);
+		riverPathType.setEnabled(activeTile!=null && selected!=null);
 		
 		addPathButton.setEnabled(activeTile!=null);
 		removePathButton.setEnabled(activeTile!=null && selected!=null);
@@ -600,7 +719,7 @@ public class TileEditFrame extends JFrame {
 	public void updatePaths() {
 		PathDetail selected = null;
 		if (activeTile!=null) {
-			selected = (PathDetail)pathList.getSelectedValue();
+			selected = pathList.getSelectedValue();
 			if (selected!=null) {
 				if (normalPathType.isSelected()) {
 					selected.setType("normal");
@@ -614,6 +733,9 @@ public class TileEditFrame extends JFrame {
 				else if (cavePathType.isSelected()) {
 					selected.setType("caves");
 				}
+				else if (riverPathType.isSelected()) {
+					selected.setType("river");
+				}
 				activeTile.repaint();
 				
 				activeTile.didChange();
@@ -622,16 +744,13 @@ public class TileEditFrame extends JFrame {
 		}
 	}
 	public void addPath() {
-		// TODO Working here
 		if (activeTile!=null) {
-			ArrayList list = new ArrayList(activeTile.getClearingDetail());
+			ArrayList<Object> list = new ArrayList<>(activeTile.getClearingDetail());
 			ButtonOptionDialog chooser = new ButtonOptionDialog(this,null,"From which clearing?","");
 			chooser.addSelectionObjects(list);
 			chooser.setVisible(true);
 			if (chooser.getSelectedObject()!=null) {
 				ClearingDetail c1 = (ClearingDetail)chooser.getSelectedObject();
-				
-				// FIXME Should eliminate paths that are already there!
 				chooser = new ButtonOptionDialog(this,null,"To which clearing/edge?","");
 				list.add("N");
 				list.add("NE");
@@ -652,10 +771,10 @@ public class TileEditFrame extends JFrame {
 					else {
 						String edge = (String)o2;
 						c2Name = edge;
-						Hashtable edgePositionHash = activeTile.getEdgePositionHash();
-						c2 = new ClearingDetail(activeTile,edge,(Point)edgePositionHash.get(edge),activeTile.getFacingIndex());
+						Hashtable<String, Point> edgePositionHash = TileComponent.getEdgePositionHash();
+						c2 = new ClearingDetail(activeTile,edge,edgePositionHash.get(edge),activeTile.getFacingIndex());
 					}
-					ArrayList paths = new ArrayList(activeTile.getPathDetail());
+					ArrayList<PathDetail> paths = new ArrayList<>(activeTile.getPathDetail());
 					PathDetail path = new PathDetail(activeTile,paths.size()+1,c1.getName(),c2Name,c1,c2,null,"normal",activeTile.getFacingName());
 					paths.add(path);
 					activeTile.setPathDetail(paths);
@@ -668,7 +787,7 @@ public class TileEditFrame extends JFrame {
 		if (activeTile!=null) {
 			int index = pathList.getSelectedIndex();
 			if (index>=0) {
-				ArrayList list = new ArrayList(activeTile.getPathDetail());
+				ArrayList<PathDetail> list = new ArrayList<>(activeTile.getPathDetail());
 				list.remove(index);
 				activeTile.setPathDetail(list);
 				updatePathList(index);
@@ -680,10 +799,10 @@ public class TileEditFrame extends JFrame {
 			int index = pathList.getSelectedIndex();
 			
 			if (index>0) {
-				ArrayList list = new ArrayList(activeTile.getPathDetail());
+				ArrayList<PathDetail> list = new ArrayList<>(activeTile.getPathDetail());
 				
-				PathDetail selected = (PathDetail)list.get(index);
-				PathDetail toSwap = (PathDetail)list.get(index-1);
+				PathDetail selected = list.get(index);
+				PathDetail toSwap = list.get(index-1);
 				
 				list.set(index-1,selected);
 				list.set(index,toSwap);
@@ -699,10 +818,10 @@ public class TileEditFrame extends JFrame {
 			int index = pathList.getSelectedIndex();
 			
 			if ((index+1)<pathList.getModel().getSize()) {
-				ArrayList list = new ArrayList(activeTile.getPathDetail());
+				ArrayList<PathDetail> list = new ArrayList<>(activeTile.getPathDetail());
 				
-				PathDetail selected = (PathDetail)list.get(index);
-				PathDetail toSwap = (PathDetail)list.get(index+1);
+				PathDetail selected = list.get(index);
+				PathDetail toSwap = list.get(index+1);
 				
 				list.set(index+1,selected);
 				list.set(index,toSwap);
@@ -715,7 +834,7 @@ public class TileEditFrame extends JFrame {
 	}
 	public void addPathArcPoint(Point p) {
 		if (activeTile!=null) {
-			PathDetail selected = (PathDetail)pathList.getSelectedValue();
+			PathDetail selected = pathList.getSelectedValue();
 			if (selected!=null) {
 				activeTile.didChange();
 				updateControls();
@@ -724,11 +843,10 @@ public class TileEditFrame extends JFrame {
 			}
 		}
 	}
-	public Vector getTiles() {
-		Vector tiles = new Vector();
-		for (Iterator i=data.getGameObjects().iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
-			if (go.hasKey("tile")) {
+	public Vector<GameObject> getTiles() {
+		Vector<GameObject> tiles = new Vector<>();
+		for (GameObject go : data.getGameObjects()) {
+			if (go.hasKey("tile") || go.hasKey("a_tile")) {
 				tiles.addElement(go);
 			}
 		}
@@ -745,7 +863,121 @@ public class TileEditFrame extends JFrame {
 	public void saveFile() {
 		data.saveToFile(new File(dataFilename));
 	}
-	public static String dataFilename = null;
+	private JMenuBar buildMenuBar() {
+		JMenuBar menuBar = new JMenuBar();
+		JMenu fileMenu = new JMenu("File");
+		JMenuItem openGameData = new JMenuItem("Open Game Data");
+		openGameData.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				boolean gameLoaded = setGameDataFile();
+				if (!gameLoaded) return;
+				GameData data = new GameData();
+				dataFilename = RealmLoader.DATA_PATH;
+				data.loadFromPath(dataFilename);
+				updateGameData(data);
+				tileList.setListData(getTiles());
+			}
+		});
+		fileMenu.add(openGameData);
+		menuBar.add(fileMenu);
+		JMenu optionMenu = new JMenu("Options");
+		final JCheckBoxMenuItem toggleLookAndFeel = new JCheckBoxMenuItem("Cross Platform Look and Feel",prefs.getBoolean(MetalLookAndFeel));
+		toggleLookAndFeel.setSelected(true);
+		toggleLookAndFeel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				prefs.set(MetalLookAndFeel,toggleLookAndFeel.isSelected());
+				updateLookAndFeel();
+			}
+		});
+		optionMenu.add(toggleLookAndFeel);		
+		optionMenu.add(getTilesOptionsPanel());
+		menuBar.add(optionMenu);
+		return menuBar;
+	}
+	private void updateLookAndFeel() {
+		if (prefs.getBoolean(MetalLookAndFeel)) {
+			ComponentTools.setMetalLookAndFeel();
+		}
+		else {
+			ComponentTools.setSystemLookAndFeel();
+		}
+		SwingUtilities.updateComponentTreeUI(this);
+	}
+	private JPanel getTilesOptionsPanel() {
+		int selected = prefs.getInt(TilesDisplayStyle);
+		JPanel panel = new JPanel(new GridLayout(3,1));
+		panel.setBorder(BorderFactory.createTitledBorder("Tiles Style"));
+		ButtonGroup group = new ButtonGroup();
+		JRadioButton classicTilesOption = new JRadioButton("Classic");
+		classicTilesOption.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				prefs.set(TilesDisplayStyle,TileComponent.DISPLAY_TILES_STYLE_CLASSIC);
+				updateTilesStyle();
+			}
+		});
+		if (selected == TileComponent.DISPLAY_TILES_STYLE_CLASSIC) {
+			classicTilesOption.setSelected(true);
+		}
+		group.add(classicTilesOption);
+		panel.add(classicTilesOption);
+		JRadioButton legendaryTilesOption = new JRadioButton("Legendary Realm");
+		legendaryTilesOption.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				prefs.set(TilesDisplayStyle,TileComponent.DISPLAY_TILES_STYLE_LEGENDARY);
+				updateTilesStyle();
+			}
+		});
+		if (selected == TileComponent.DISPLAY_TILES_STYLE_LEGENDARY) {
+			legendaryTilesOption.setSelected(true);
+		}
+		group.add(legendaryTilesOption);
+		panel.add(legendaryTilesOption);
+		JRadioButton legendaryWithIconsTilesOption = new JRadioButton("Legendary Realm (with Icons)");
+		legendaryWithIconsTilesOption.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				prefs.set(TilesDisplayStyle,TileComponent.DISPLAY_TILES_STYLE_LEGENDARY_WITH_ICONS);
+				updateTilesStyle();
+			}
+		});
+		if (selected == TileComponent.DISPLAY_TILES_STYLE_LEGENDARY_WITH_ICONS) {
+			legendaryWithIconsTilesOption.setSelected(true);
+		}
+		group.add(legendaryWithIconsTilesOption);
+		panel.add(legendaryWithIconsTilesOption);
+		return panel;
+	}
+	private void setTilesStyle() {
+		switch(prefs.getInt(TilesDisplayStyle)) {
+		case TileComponent.DISPLAY_TILES_STYLE_LEGENDARY:
+			TileComponent.displayTilesStyle = TileComponent.DISPLAY_TILES_STYLE_LEGENDARY;
+			break;
+		case TileComponent.DISPLAY_TILES_STYLE_LEGENDARY_WITH_ICONS:
+			TileComponent.displayTilesStyle = TileComponent.DISPLAY_TILES_STYLE_LEGENDARY_WITH_ICONS;
+			break;
+		default:
+			TileComponent.displayTilesStyle = TileComponent.DISPLAY_TILES_STYLE_CLASSIC;
+			break;
+		}
+	}
+	private void updateTilesStyle() {
+		setTilesStyle();
+		updateTileView();
+	}
+	private boolean setGameDataFile() {
+		JFileChooser chooser = new JFileChooser(new File("./"));
+		chooser.setAcceptAllFileFilterUsed(false);
+		chooser.setFileFilter(GameFileFilters.createGameDataFileFilter());
+		if (chooser.showOpenDialog(this)==JFileChooser.APPROVE_OPTION) {
+			RealmLoader.DATA_PATH = chooser.getSelectedFile().toPath().toString();
+			return true;
+		}
+		return false;
+	}
+	private void updateGameData(GameData data) {
+		data.ignoreRandomSeed = true;
+		this.data = data;
+	}
+	
 	public static void main(String[]args) {
 		RealmUtility.setupTextType();
 		ArgumentParser ap = new ArgumentParser(args);
@@ -757,12 +989,9 @@ public class TileEditFrame extends JFrame {
 			data.loadFromStream(ResourceFinder.getInputStream(dataFilename));
 		}
 		else {
-			data.loadFromFile(new File(dataFilename));
+			data.loadFromPath(dataFilename);
 		}
-		
-//		StringBuffer result = new StringBuffer();
-//		data.doSetup(result,"standard_game"); // don't do a setup!  this is very bad!
-//		System.out.println(result.toString());		
+		data.ignoreRandomSeed = true;
 	
 		new TileEditFrame(data).setVisible(true);
 	}

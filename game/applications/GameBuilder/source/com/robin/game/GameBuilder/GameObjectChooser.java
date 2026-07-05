@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.GameBuilder;
 
 import java.awt.BorderLayout;
@@ -36,14 +19,14 @@ import com.robin.general.swing.ListManagerPane;
 public class GameObjectChooser extends JDialog {
 
 	private String oldFilterString;
-	private ArrayList oldExcludeList;
+	private ArrayList<GameObject> oldExcludeList;
 
 	protected GameObject object;
 	protected GameData data;
 	protected ListManagerPane objectsPane;
 	protected JTextField objectsFilterField;
 	
-	protected ArrayList chosenObjects = null;
+	protected ArrayList<GameObject> chosenObjects = null;
 	
 	public GameObjectChooser(Component component,GameObject object) {
 		this(component,object,object.getGameData());
@@ -127,16 +110,16 @@ public class GameObjectChooser extends JDialog {
 			box.add(cancel);
 		getContentPane().add(box,"South");
 	}
-	private ArrayList getSelectedObjects() {
-		ArrayList objects = data.getFilteredGameObjects();
-		ArrayList selObjects = new ArrayList();
+	private ArrayList<GameObject> getSelectedObjects() {
+		ArrayList<GameObject> objects = data.getFilteredGameObjects();
+		ArrayList<GameObject> selObjects = new ArrayList<>();
 		int[] row = objectsPane.getSelectedRows();
 		for (int i=0;i<row.length;i++) {
 			selObjects.add(objects.get(row[i]));
 		}
 		return selObjects;
 	}
-	public ArrayList getChosenObjects() {
+	public ArrayList<GameObject> getChosenObjects() {
 		return chosenObjects;
 	}
 	public void close() {

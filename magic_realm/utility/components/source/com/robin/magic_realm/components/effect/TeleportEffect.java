@@ -1,12 +1,11 @@
 package com.robin.magic_realm.components.effect;
 
 import com.robin.magic_realm.components.utility.SpellUtility;
-import com.robin.magic_realm.components.utility.SpellUtility.TeleportType;
 
 public class TeleportEffect implements ISpellEffect {
-	String _teleportType;
+	SpellUtility.TeleportType _teleportType;
 	
-	public TeleportEffect(String type){
+	public TeleportEffect(SpellUtility.TeleportType type){
 		_teleportType = type;
 	}
 	
@@ -15,13 +14,12 @@ public class TeleportEffect implements ISpellEffect {
 		SpellUtility.doTeleport(context.Parent,
 				context.Spell.getGameObject().getName(),
 				context.getCharacterTarget(),
-				TeleportType.valueOf(_teleportType));
+				_teleportType,
+				context.Spell.getAttackSpeed().getNum());
 	}
 
 	@Override
 	public void unapply(SpellEffectContext context) {
-		// TODO Auto-generated method stub
-
 	}
 
 }

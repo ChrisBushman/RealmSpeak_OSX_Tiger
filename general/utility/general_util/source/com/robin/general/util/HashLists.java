@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.util;
 
 import java.util.*;
@@ -33,12 +16,12 @@ public class HashLists<K,T> implements Map {
 	}
 	public HashLists(boolean forceUnique) {
 		this.forceUnique = forceUnique;
-	    hash = new Hashtable<K,ArrayList<T>>();
+	    hash = new Hashtable<>();
 	}
 	public Object put(Object key,Object val) {
 	    ArrayList<T> list = getList(key);
 	    if (list==null) {
-	        list = new ArrayList<T>();
+	        list = new ArrayList<>();
 	        hash.put((K)key,list);
 	    }
 	    if (!forceUnique || !list.contains(val)) {
@@ -58,7 +41,7 @@ public class HashLists<K,T> implements Map {
 	public ArrayList<T> getListAsNew(Object key) {
 		ArrayList<T> list = getList(key);
 		if (list!=null) {
-			return new ArrayList<T>(list);
+			return new ArrayList<>(list);
 		}
 		return null;
 	}
@@ -72,8 +55,7 @@ public class HashLists<K,T> implements Map {
 	    return hash.containsKey(key);
 	}
 	public boolean containsValue(Object val) {
-	    for (Iterator i=hash.values().iterator();i.hasNext();) {
-	        ArrayList list = (ArrayList)i.next();
+	    for (ArrayList<T> list : hash.values()) {
 	        if (list.contains(val)) {
 	            return true;
 	        }
@@ -87,8 +69,7 @@ public class HashLists<K,T> implements Map {
 	    return hash.keySet();
 	}
 	public void putAll(Map map) {
-	    for (Iterator i=map.keySet().iterator();i.hasNext();) {
-	        Object key = i.next();
+	    for (Object key : map.keySet()) {
 	        ArrayList list = getList(key);
 	        Object val = map.get(key);
 	        if (val instanceof Collection) {
@@ -117,14 +98,13 @@ public class HashLists<K,T> implements Map {
 		}
 	}
 	public void removeValue(Object val) {
-	    for (Iterator i=hash.values().iterator();i.hasNext();) {
-	        ArrayList list = (ArrayList)i.next();
+	    for (ArrayList<T> list : hash.values()) {
 	        if (list.contains(val)) {
 	            list.remove(val);
 	        }
 	    }
 	}
-	public Collection values() {
+	public Collection<ArrayList<T>> values() {
 	    return hash.values();
 	}
 }

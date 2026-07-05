@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.swing;
 
 import java.awt.*;
@@ -62,7 +45,7 @@ public class TableCopy {
 		}
 		table.getActionMap().put(COPY,soleInstance.new TableCopyAction(COPY, table, copyEntireRow, copyEntireCol, copyHeaders) {
 			public void actionPerformed(java.awt.event.ActionEvent e) {
-				soleInstance.copy(actionTable,actionCopyEntireRow,actionCopyEntireCol,actionCopyHeaders);
+				TableCopy.copy(actionTable,actionCopyEntireRow,actionCopyEntireCol,actionCopyHeaders);
 			}
 		});
 	}
@@ -99,7 +82,7 @@ public class TableCopy {
 			throw new IllegalArgumentException("Copy Action has not been added to the JTable specified. Invoke TableCopy.addCopyActionToTable on table.");
 		}
 
-		((TableCopyAction)action).actionPerformed(new ActionEvent(table,ActionEvent.ACTION_PERFORMED,COPY));
+		action.actionPerformed(new ActionEvent(table,ActionEvent.ACTION_PERFORMED,COPY));
 	}
 
 	/**
@@ -110,7 +93,7 @@ public class TableCopy {
 	 * @param copyEntireCol		if true, the contents of entire cols containing selected cells are copied
 	* @param copyHeaders   if true, the column headers will be copied as well as the data selected in the table
 	 */
-	private void copy(JTable table, boolean copyEntireRow, boolean copyEntireCol, boolean copyHeaders) {
+	private static void copy(JTable table, boolean copyEntireRow, boolean copyEntireCol, boolean copyHeaders) {
 		if (table == null || table.getModel() == null) { return; }
 		TableModel model = table.getModel();
 		if (table.isEditing()) {
@@ -182,7 +165,7 @@ public class TableCopy {
 	 *
 	 * @exception NullPointerException	If viewColumns is null.
 	 */
-	private int[] convertColumnIndicesToModel(JTable table, int[] viewColumns) {
+	private static int[] convertColumnIndicesToModel(JTable table, int[] viewColumns) {
 		int[] modelColumns = new int[viewColumns.length];
 
 		for (int i = 0; i < viewColumns.length; i++) {
@@ -210,7 +193,7 @@ public class TableCopy {
 	 * @exception NullPointerException
 	 *		If either <code>rows</code> or <code>cols</code> is null.
 	 */
-	private Object[][] getValuesAt(TableModel tableModel, int[] rows, int[] cols) {
+	private static Object[][] getValuesAt(TableModel tableModel, int[] rows, int[] cols) {
 		Object[][] values = new Object[rows.length][cols.length];
 		for (int i = 0; i < rows.length; i++) {
 			for (int j = 0; j < cols.length; j++) {

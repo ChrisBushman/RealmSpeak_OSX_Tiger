@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.server;
 
 import java.io.IOException;
@@ -23,6 +6,8 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Logger;
+
+import com.robin.game.objects.GameObjectChange;
 
 public class GameServer extends GameNet {
 	private static final String THREAD_NAME = "GameServer.ThreadName";
@@ -52,10 +37,10 @@ public class GameServer extends GameNet {
 	protected String clientName;
 	protected String clientIP;
 	
-	protected ArrayList objectChanges;
+	protected ArrayList<GameObjectChange> objectChanges;
 	
-	protected ArrayList infoDirects;
-	protected ArrayList broadcasts;
+	protected ArrayList<InfoObject> infoDirects;
+	protected ArrayList<String[]> broadcasts;
 	protected boolean shuttingDown = false;
 	
 	protected boolean directSentAndReceived = false;
@@ -64,8 +49,8 @@ public class GameServer extends GameNet {
 		this.host = host;
 		this.connection = connection;
 		objectChanges = null;
-		infoDirects = new ArrayList(10);
-		broadcasts = new ArrayList(50);
+		infoDirects = new ArrayList<>(10);
+		broadcasts = new ArrayList<>(50);
 		setName(THREAD_NAME);
 	}
 	public void broadcast(String key,String message) {
@@ -82,7 +67,7 @@ public class GameServer extends GameNet {
 	}
 	private String[] getNextBroadcast() {
 		if (isBroadcast()) {
-			return (String[])broadcasts.remove(0);
+			return broadcasts.remove(0);
 		}
 		return null;
 	}
@@ -105,7 +90,7 @@ public class GameServer extends GameNet {
 	}
 	private InfoObject getNextInfoDirect() {
 		if (!infoDirects.isEmpty()) {
-			return (InfoObject)infoDirects.remove(0);
+			return infoDirects.remove(0);
 		}
 		return null;
 	}
@@ -123,10 +108,10 @@ public class GameServer extends GameNet {
 		}
 		return false;
 	}
-	public void addObjectChanges(Collection inChanges) {
+	public void addObjectChanges(Collection<GameObjectChange> inChanges) {
 		if (objectChanges==null) {
 			// If objectChanges is null, then we haven't grabbed the master-to-game changes.  Do that now!
-			objectChanges = new ArrayList(host.getMasterToGameChanges());
+			objectChanges = new ArrayList<>(host.getMasterToGameChanges());
 		}
 		objectChanges.addAll(inChanges);
 	}
@@ -171,10 +156,10 @@ public class GameServer extends GameNet {
 					getOutputStream().writeInt(RESPOND_NEED_UPDATE);
 					if (objectChanges==null) {
 						// If objectChanges is null, then we haven't grabbed the master-to-game changes.  Do that now!
-						objectChanges = new ArrayList(host.getMasterToGameChanges());
+						objectChanges = new ArrayList<>(host.getMasterToGameChanges());
 					}
 					logger.fine("Server for "+clientName+" sending update with "+objectChanges.size()+" changes.");
-					ArrayList toSend = new ArrayList();
+					ArrayList<GameObjectChange> toSend = new ArrayList<>();
 					while(!objectChanges.isEmpty()) {
 						toSend.add(objectChanges.remove(0));
 					}
@@ -257,9 +242,9 @@ public class GameServer extends GameNet {
 			ex.printStackTrace();
 			logger.info("Server for "+clientName+" lost the client with an exception!  Shutting down.");
 		}
-		if (in!=null) try{ in.close(); }catch(IOException ex){ };
-		if (out!=null) try{ out.close(); }catch(IOException ex){ };
-		if (connection!=null) try{ connection.close(); }catch(IOException ex){ };
+		if (in!=null) try{ in.close(); }catch(IOException ex){ }
+		if (out!=null) try{ out.close(); }catch(IOException ex){ }
+		if (connection!=null) try{ connection.close(); }catch(IOException ex){ }
 		host.removeServer(this);
 	}
 	public void setClientHostName(String clientHostName) {

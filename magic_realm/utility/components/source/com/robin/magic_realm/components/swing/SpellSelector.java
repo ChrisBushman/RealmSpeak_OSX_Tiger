@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.swing;
 
 import java.awt.*;
@@ -59,12 +42,17 @@ public class SpellSelector extends AggressiveDialog {
 	
 	private boolean allowAddSpell;
 	
+	private HostPrefWrapper hostPrefs;
+	
 	private MouseListener selectSpellListener = new MouseAdapter() {
 		public void mousePressed(MouseEvent ev) {
 			RealmObjectPanel source = (RealmObjectPanel)ev.getSource();
 			if (!MouseUtility.isRightOrControlClick(ev)) {
 				if (allowAddSpell) {
 					addSelection(source,ev.getPoint());
+					if (hostPrefs.hasPref(Constants.FE_NO_DUPLICATE_SPELL_RECORDING)) {
+						refreshFromPanel();
+					}
 					updateControls();
 				}
 				source.clearSelected();
@@ -82,22 +70,23 @@ public class SpellSelector extends AggressiveDialog {
 		this.totalPicks = totalPicks;
 		this.data = data;
 		currentPicks = 0;
+		hostPrefs = HostPrefWrapper.findHostPrefs(data);
 		initComponents();
 	}
 	private void refreshFromPanel() {
+		int selectedTab = fromTabPanel.getSelectedIndex();
 		fromTabPanel.removeAll();
 		
-		HashLists hashList = new HashLists();
+		HashLists<String,GameObject> hashList = new HashLists<>();
 		for (GameObject go:spellChoices) {
 			hashList.put(go.getThisAttribute("spell"),go);
 		}
 		
-		ArrayList types = new ArrayList(hashList.keySet());
+		ArrayList<String> types = new ArrayList<>(hashList.keySet());
 		Collections.sort(types); // not QUITE right, I think...
 		fromPanel = new RealmObjectPanel[types.size()];
 		int n=0;
-		for (Iterator i=types.iterator();i.hasNext();){
-			String type = (String)i.next();
+		for (String type : types){
 			fromPanel[n] = new RealmObjectPanel(false,false);
 			fromPanel[n].addMouseListener(selectSpellListener);
 			ArrayList<GameObject> spells = hashList.getList(type);
@@ -107,8 +96,27 @@ public class SpellSelector extends AggressiveDialog {
 				}
 			});
 			for (GameObject spell:spells) {
-				RealmComponent rc = RealmComponent.getRealmComponent(spell);
-				fromPanel[n].add(rc);
+				if (hostPrefs.hasPref(Constants.FE_NO_DUPLICATE_SPELL_RECORDING)) {
+					boolean duplicateSpell = false;
+					if (toPanel!=null && toPanel.getComponents().length!=0) {
+						for (Object selectedSpellObject : toPanel.getComponents()) {
+							if (selectedSpellObject instanceof SpellCardComponent) {
+								GameObject selectedSpell = ((SpellCardComponent) selectedSpellObject).getGameObject();
+								if (spell.getName().toLowerCase().matches(selectedSpell.getName().toLowerCase())) {
+									duplicateSpell = true;
+									break;
+								}
+							}
+						}
+					}
+					if (!duplicateSpell) {
+						RealmComponent rc = RealmComponent.getRealmComponent(spell);
+						fromPanel[n].add(rc);
+					}
+				} else {
+					RealmComponent rc = RealmComponent.getRealmComponent(spell);
+					fromPanel[n].add(rc);
+				}
 			}
 			fromPanel[n].adjustSize();
 			fromPanel[n].revalidate();
@@ -116,9 +124,12 @@ public class SpellSelector extends AggressiveDialog {
 			fromTabPanel.addTab(type,new JScrollPane(fromPanel[n]));
 			n++;
 		}
+		if (selectedTab>-1) {
+			fromTabPanel.setSelectedIndex(selectedTab);
+		}
 		updateControls();
 	}
-	private JLabel getTitle(String title) {
+	private static JLabel getTitle(String title) {
 		JLabel label = new JLabel(title);
 		label.setFont(new Font("Dialog",Font.BOLD,18));
 		label.setOpaque(true);
@@ -127,13 +138,13 @@ public class SpellSelector extends AggressiveDialog {
 		return label;
 	}
 	private void initComponents() {
-		setSize(840,600);
+		setSize(850,600);
 		setLocationRelativeTo(null);
 		getContentPane().setLayout(new BorderLayout());
 		
 		enchantPanel = new JPanel(new BorderLayout());
-			JLabel enchantLabel = new JLabel("Enchant",JLabel.CENTER);
-			enchantLabel.setVerticalAlignment(JLabel.CENTER);
+			JLabel enchantLabel = new JLabel("Enchant",SwingConstants.CENTER);
+			enchantLabel.setVerticalAlignment(SwingConstants.CENTER);
 			enchantLabel.setFont(INSTRUCTION_FONT);
 			ComponentTools.lockComponentSize(enchantLabel,LABEL_HEADER_WIDTH,100);
 		enchantPanel.add(enchantLabel,"West");
@@ -149,7 +160,7 @@ public class SpellSelector extends AggressiveDialog {
 				}
 				String seventhDayMagic = calendar.getColorMagicName(month,seventhDay);
 				if (seventhDayMagic!=null && seventhDayMagic.trim().length()>0) {
-					JLabel label = new JLabel("Next MAGIC day is "+seventhDayMagic,JLabel.CENTER);
+					JLabel label = new JLabel("Next MAGIC day is "+seventhDayMagic,SwingConstants.CENTER);
 					label.setFont(new Font("Dialog",Font.BOLD|Font.ITALIC,12));
 					label.setForeground(Color.blue);
 					enchantPanel.add(label,"North");
@@ -158,14 +169,14 @@ public class SpellSelector extends AggressiveDialog {
 		getContentPane().add(enchantPanel,"North");
 		
 		pickPanel = new JPanel(new BorderLayout());
-			JLabel pickLabel = new JLabel("Pick",JLabel.CENTER);
-			pickLabel.setVerticalAlignment(JLabel.CENTER);
+			JLabel pickLabel = new JLabel("Pick",SwingConstants.CENTER);
+			pickLabel.setVerticalAlignment(SwingConstants.CENTER);
 			pickLabel.setFont(INSTRUCTION_FONT);
 			ComponentTools.lockComponentSize(pickLabel,LABEL_HEADER_WIDTH,100);
 		pickPanel.add(pickLabel,"West");
 			spellPickGridPanel = new JPanel(new GridLayout(1,2));
 				availSpellPanel = new JPanel(new BorderLayout());
-					fromTabPanel = new JTabbedPane(JTabbedPane.LEFT);
+					fromTabPanel = new JTabbedPane(SwingConstants.LEFT);
 					fromTabPanel.setFont(Constants.FORTRESS_FONT);
 				availSpellPanel.add(fromTabPanel,"Center");
 				availSpellPanel.add(getTitle("Available Spells"),"North");
@@ -177,6 +188,9 @@ public class SpellSelector extends AggressiveDialog {
 							if (!MouseUtility.isRightOrControlClick(ev)) {
 								updateControls();
 								removeSelection(ev.getPoint());
+								if (hostPrefs.hasPref(Constants.FE_NO_DUPLICATE_SPELL_RECORDING)) {
+									refreshFromPanel();
+								}
 							}
 							else {
 								showSpell(getSpellFromPanel(toPanel,ev.getPoint()));
@@ -201,6 +215,7 @@ public class SpellSelector extends AggressiveDialog {
 					toPanel.revalidate();
 					toPanel.repaint();
 					maintainSlots(new ArrayList());
+					refreshFromPanel();
 					updateControls();
 				}
 			});
@@ -211,10 +226,12 @@ public class SpellSelector extends AggressiveDialog {
 				public void actionPerformed(ActionEvent ev) {
 					if (!isReady()) return;
 					spellSelection = new ArrayList<GameObject>();
-					Collection all = new ArrayList(Arrays.asList(toPanel.getComponents()));
-					for (Iterator i=all.iterator();i.hasNext();) {
-						SpellCardComponent sc = (SpellCardComponent)i.next();
-						spellSelection.add(sc.getGameObject());
+					if (!spellChoices.isEmpty()) {
+						Collection all = new ArrayList(Arrays.asList(toPanel.getComponents()));
+						for (Iterator i=all.iterator();i.hasNext();) {
+							SpellCardComponent sc = (SpellCardComponent)i.next();
+							spellSelection.add(sc.getGameObject());
+						}
 					}
 					setVisible(false);
 					dispose();
@@ -258,7 +275,7 @@ public class SpellSelector extends AggressiveDialog {
 	public ArrayList<GameObject> getSpellSelection() {
 		return spellSelection;
 	}
-	private SpellCardComponent getSpellFromPanel(RealmObjectPanel panel,Point p) {
+	private static SpellCardComponent getSpellFromPanel(RealmObjectPanel panel,Point p) {
 		Component c = panel.getComponentAt(p);
 		if (c!=null && c instanceof SpellCardComponent) {
 			return (SpellCardComponent)c;
@@ -275,7 +292,7 @@ public class SpellSelector extends AggressiveDialog {
 		int change = totalPicks-all.size();
 		if (change<0) {
 			// Remove empties
-			ArrayList newList = new ArrayList();
+			ArrayList<Component> newList = new ArrayList<>();
 			for (Iterator i=all.iterator();i.hasNext();) {
 				RealmComponent rc = (RealmComponent)i.next();
 				if (change<0 && rc instanceof EmptyCardComponent) {
@@ -300,7 +317,6 @@ public class SpellSelector extends AggressiveDialog {
 			CardComponent nsc = (CardComponent)i.next();
 			toPanel.addRealmComponent(nsc);
 		}
-		
 		toPanel.revalidate();
 		toPanel.repaint();
 		updateControls();
@@ -310,7 +326,7 @@ public class SpellSelector extends AggressiveDialog {
 		if (sc!=null) {
 			SpellCardComponent nsc = new SpellCardComponent(sc.getGameObject());
 			
-			ArrayList all = new ArrayList(Arrays.asList(toPanel.getComponents()));
+			ArrayList<Component> all = new ArrayList<>(Arrays.asList(toPanel.getComponents()));
 			for (int i=0;i<all.size();i++) {
 				CardComponent card = (CardComponent)all.get(i);
 				if (card instanceof EmptyCardComponent) {
@@ -326,7 +342,7 @@ public class SpellSelector extends AggressiveDialog {
 	private void removeSelection(Point p) {
 		SpellCardComponent sc = getSpellFromPanel(toPanel,p);
 		if (sc!=null) {
-			ArrayList all = new ArrayList(Arrays.asList(toPanel.getComponents()));
+			ArrayList<Component> all = new ArrayList<>(Arrays.asList(toPanel.getComponents()));
 			int n = all.indexOf(sc);
 			all.remove(n);
 			all.add(n,new EmptyCardComponent());
@@ -340,7 +356,7 @@ public class SpellSelector extends AggressiveDialog {
 		}
 	}
 	public void setChits(CharacterWrapper character) {
-		ArrayList<CharacterActionChitComponent> chits = character.getAllMagicChits();
+		ArrayList<StateChitComponent> chits = character.getAllMagicStateChits();
 		ChitBinLayout layout = new ChitBinLayout(chits);
 		chitBinPanel = new ChitBinPanel(layout,12,1) {
 			public boolean canClickChit(ChitComponent aChit) {
@@ -368,7 +384,7 @@ public class SpellSelector extends AggressiveDialog {
 			}
 		});
 		for (int i=0;i<chits.size();i++) {
-			ChitComponent chit = (ChitComponent)chits.get(i);
+			StateChitComponent chit = chits.get(i);
 			chitBinPanel.addChit(chit, i);
 		}
 		enchantPanel.add(chitBinPanel,"Center");
@@ -377,13 +393,11 @@ public class SpellSelector extends AggressiveDialog {
 	}
 	private void updateControls() {
 		allowAddSpell = currentPicks<totalPicks;
-		
 		for (int i=0;i<fromPanel.length;i++) {
 			fromPanel[i].setEnabled(allowAddSpell);
 		}
-		
 		resetButton.setEnabled(currentPicks>0);
-		doneButton.setEnabled(currentPicks==totalPicks);
+		doneButton.setEnabled(currentPicks==totalPicks || spellChoices.isEmpty());
 	}
 	
 	public static void main(String[] args) {
@@ -392,7 +406,7 @@ public class SpellSelector extends AggressiveDialog {
 		RealmLoader loader = new RealmLoader();
 		GameData data = loader.getData();
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> choices = new ArrayList<GameObject>();//pool.find("spell");
+		ArrayList<GameObject> choices = new ArrayList<>();//pool.find("spell");
 		choices.addAll(pool.find("spell=V"));
 		choices.addAll(pool.find("spell=VI"));
 		choices.addAll(pool.find("spell=VII"));

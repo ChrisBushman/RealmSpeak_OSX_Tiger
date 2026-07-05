@@ -1,28 +1,13 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle;
 
 import java.util.*;
 
 import com.robin.general.swing.DieRoller;
 import com.robin.magic_realm.components.*;
+import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.utility.DieRollBuilder;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
+import com.robin.magic_realm.components.wrapper.CombatWrapper;
 
 public class BattleGroup implements Comparable {
 
@@ -43,7 +28,7 @@ public class BattleGroup implements Comparable {
 	 */
 	public BattleGroup(RealmComponent owningCharacter) {
 		this.owningCharacter = owningCharacter;
-		this.battleParticipants = new ArrayList<RealmComponent>();
+		this.battleParticipants = new ArrayList<>();
 	}
 	public String toString() {
 		return "BattleGroup:"+owningCharacter+":"+battleParticipants.size();
@@ -55,7 +40,7 @@ public class BattleGroup implements Comparable {
 		return owningCharacter==null;
 	}
 	public void addBattleParticipant(BattleChit bp) {
-		if (bp.isDenizen()==isDenizen()) {
+		if (bp.isDenizen()==isDenizen() || bp instanceof EventSpellCardComponent) {
 			battleParticipants.add((RealmComponent)bp);
 		}
 		else {
@@ -63,7 +48,7 @@ public class BattleGroup implements Comparable {
 		}
 	}
 	public ArrayList<RealmComponent> getHirelings() {
-		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
+		ArrayList<RealmComponent> ret = new ArrayList<>();
 		ret.addAll(battleParticipants);
 		if (owningCharacter!=null) {
 			ret.remove(owningCharacter);
@@ -146,13 +131,13 @@ public class BattleGroup implements Comparable {
 			}
 		}
 		
-		if (attacker.isPacifiedBy(character)) {
+		if (attacker.isPacifiedBy(character) || (new CombatWrapper(attacker.getGameObject())).isPacified()) {
 			return false;
 		}
 		
 		for (RealmComponent bp:battleParticipants) {
 			if (!bp.isHidden()
-					&& !bp.isMistLike()
+					&& (!bp.isMistLike() || attacker.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE) || (attacker.isCharacter() && new CharacterWrapper(attacker.getGameObject()).affectedByKey(Constants.IGNORE_MIST_LIKE)))
 					&& !bp.isImmuneTo(attacker)
 					&& !hasPinningAttacker(bp)) {
 				
@@ -178,11 +163,12 @@ public class BattleGroup implements Comparable {
 	 */
 	public boolean canBeAttackedBy(RealmComponent attacker) {
 		CharacterChitComponent cc = getCharacterInBattle();
-		if (cc!=null && !cc.isHidden() && !cc.isMistLike() && !cc.isImmuneTo(attacker)) {
+		boolean attackerIgnoresMistLike = attacker.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE) || (attacker.isCharacter() && (new CharacterWrapper(attacker.getGameObject())).affectedByKey(Constants.IGNORE_MIST_LIKE));
+		if (cc!=null && !cc.isHidden() && (!cc.isMistLike() || attackerIgnoresMistLike) && !cc.isImmuneTo(attacker)) {
 			return true;
 		}
 		for (RealmComponent bp:getBattleParticipants()) {
-			if (!bp.isCharacter() && !bp.isHidden() && !bp.isMistLike()) {
+			if (!bp.isCharacter() && !bp.isHidden() && (!bp.isMistLike() || attackerIgnoresMistLike)) {
 				return true;
 			}
 		}
@@ -191,7 +177,8 @@ public class BattleGroup implements Comparable {
 	public RealmComponent getAvailableParticipant(RealmComponent attacker) {
 		// First, search for the character, and return if not hidden.
 		RealmComponent character = getCharacterInBattle();
-		if (character!=null && !character.isHidden() && !character.isMistLike()) {
+		if (character!=null && !character.isHidden()
+				&& (!character.isMistLike() || attacker.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE) || (attacker.isCharacter() && new CharacterWrapper(attacker.getGameObject()).affectedByKey(Constants.IGNORE_MIST_LIKE)))) {
 			// Make sure there is not a demon immunity thing
 			if (!character.isImmuneTo(attacker)) {
 				return character;
@@ -199,9 +186,8 @@ public class BattleGroup implements Comparable {
 		}
 		
 		// Character not found/unhidden?  Find all unhidden hirelings, and query character
-		ArrayList unhiddenHirelings = new ArrayList();
-		for (Iterator i=getBattleParticipants().iterator();i.hasNext();) {
-			RealmComponent bp = (RealmComponent)i.next();
+		ArrayList<RealmComponent> unhiddenHirelings = new ArrayList<>();
+		for (RealmComponent bp : getBattleParticipants()) {
 			if (!bp.isCharacter() && !bp.isHidden()) {
 				// Make sure the hireling isn't already fighting a RED-side-up monster
 				if (!hasPinningAttacker(bp)) {
@@ -214,7 +200,7 @@ public class BattleGroup implements Comparable {
 			return attacker;
 		}
 		else if (unhiddenHirelings.size()==1) { // its obvious if only one hireling
-			return (RealmComponent)unhiddenHirelings.get(0);
+			return unhiddenHirelings.get(0);
 		}
 		
 		return null;  // This indicates that the character must pick an unhidden hireling

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest.requirement;
 
 import java.util.ArrayList;
@@ -25,6 +8,7 @@ import javax.swing.JFrame;
 
 import com.robin.game.objects.GameObject;
 import com.robin.game.objects.GamePool;
+import com.robin.magic_realm.components.quest.QuestConstants;
 import com.robin.magic_realm.components.quest.TreasureType;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
@@ -33,6 +17,9 @@ public class QuestRequirementLoot extends QuestRequirement {
 	
 	public static final String TREASURE_TYPE = "_tt";
 	public static final String REGEX_FILTER = "_regex";
+	public static final String REQ_MARK = "_req_mark";
+	public static final String ADD_MARK = "_add_mark";
+	public static final String REQ_ABILITY = "_req_ability";
 	
 	public QuestRequirementLoot(GameObject go) {
 		super(go);
@@ -41,16 +28,19 @@ public class QuestRequirementLoot extends QuestRequirement {
 	protected boolean testFulfillsRequirement(JFrame frame,CharacterWrapper character,QuestRequirementParams reqParams) {
 		if (reqParams!=null && "Loot".equals(reqParams.actionName)) {
 			ArrayList<GameObject> matches = filterObjectsForRequirement(character,reqParams.objectList,logger);
+			if (markItems() && !matches.isEmpty() ) {
+				for (GameObject item : matches) {
+					item.setThisAttribute(QuestConstants.QUEST_MARK,getParentQuest().getGameObject().getStringId());
+				}
+			}
 			return !matches.isEmpty();
 		}
-		else {
-			logger.fine(character.getName()+" did not Loot.");
-		}
+		logger.fine(character.getName()+" did not Loot.");
 		return false;
 	}
 	
 	protected ArrayList<GameObject> filterObjectsForRequirement(CharacterWrapper character,ArrayList<GameObject> objects,Logger myLogger) {
-		ArrayList<GameObject> matches = new ArrayList<GameObject>();
+		ArrayList<GameObject> matches = new ArrayList<>();
 		if (objects.isEmpty()) {
 			myLogger.fine("No items to test.");
 			return matches;
@@ -67,6 +57,7 @@ public class QuestRequirementLoot extends QuestRequirement {
 			case Boots:
 			case Gloves:
 			case Great:
+			case Scroll:
 				query = tt.toString().toLowerCase();
 				break;
 			case Large:
@@ -80,6 +71,9 @@ public class QuestRequirementLoot extends QuestRequirement {
 				break;
 			case Small:
 				query="treasure=small";
+				break;
+			case Treasure:
+				query="treasure";
 				break;
 			case TWT:
 				query="treasure_within_treasure";
@@ -95,14 +89,23 @@ public class QuestRequirementLoot extends QuestRequirement {
 		if (!typeMatches.isEmpty()) {
 			String regex = getRegExFilter();
 			Pattern pattern = regex==null || regex.trim().length()==0?null:Pattern.compile(regex);
-			
+			String questId = getParentQuest().getGameObject().getStringId();
 			for(GameObject go:typeMatches) {
 				if (pattern==null || pattern.matcher(go.getName()).find()) {
+					if (requiresMark()) {
+						String mark = go.getThisAttribute(QuestConstants.QUEST_MARK);
+						if (mark==null || !mark.equals(questId)) continue;
+					}
+					if (getRequiredAbility()!=null && !getRequiredAbility().isEmpty()) {
+						if (!go.hasAllKeyVals(getRequiredAbility())) {
+							continue;
+						}
+					}
 					matches.add(go);
 				}
 			}
 			if (matches.isEmpty()) {
-				myLogger.fine("None of the treasures tested matched the regex: "+regex);
+				myLogger.fine("None of the treasures tested had the required ability/mark and matched the regex: "+regex);
 			}
 		}
 		else {
@@ -130,6 +133,9 @@ public class QuestRequirementLoot extends QuestRequirement {
 			sb.append(regex);
 			sb.append("/");
 		}
+		if (getRequiredAbility()!=null && !getRequiredAbility().isEmpty()) {
+			sb.append(" with the ability "+getRequiredAbility());
+		}
 		sb.append(".");
 		return sb.toString();
 	}
@@ -139,5 +145,14 @@ public class QuestRequirementLoot extends QuestRequirement {
 	}
 	public String getRegExFilter() {
 		return getString(REGEX_FILTER);
+	}
+	public boolean requiresMark() {
+		return getBoolean(REQ_MARK);
+	}
+	public String getRequiredAbility() {
+		return getString(REQ_ABILITY);
+	}
+	public boolean markItems() {
+		return getBoolean(ADD_MARK);
 	}
 }

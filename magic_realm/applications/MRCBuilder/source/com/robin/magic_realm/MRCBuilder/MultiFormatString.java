@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.MRCBuilder;
 
 import java.awt.Font;
@@ -82,7 +65,7 @@ public class MultiFormatString {
 	}
 
 	private void init(String s) {
-		formattedStrings = new Vector();
+		formattedStrings = new Vector<>();
 		addFormattedText(s);
 		initFonts();
 	}
@@ -114,7 +97,7 @@ public class MultiFormatString {
 		int i1 = 0;
 		int j1 = 0;
 		for (int k1 = 0; k1 < formattedStrings.size(); k1++) {
-			FormattedString formattedstring = (FormattedString) formattedStrings.elementAt(k1);
+			FormattedString formattedstring = formattedStrings.elementAt(k1);
 			g.setFont(getFont(formattedstring));
 			j1 = g.getFontMetrics().getAscent();
 			String s1;
@@ -153,10 +136,8 @@ public class MultiFormatString {
 			g.drawString(s, i, j);
 			return "";
 		}
-		else {
-			g.drawString(s.substring(0, l), i, j);
-			return s.substring(l);
-		}
+		g.drawString(s.substring(0, l), i, j);
+		return s.substring(l);
 	}
 
 	public Font getFont(FormattedString formattedstring) {
@@ -229,7 +210,7 @@ public class MultiFormatString {
 	private void add(String s, int i) {
 		FormattedString formattedstring = null;
 		if (formattedStrings.size() > 0)
-			formattedstring = (FormattedString) formattedStrings.lastElement();
+			formattedstring = formattedStrings.lastElement();
 		if (formattedstring != null && formattedstring.sameType(i))
 			formattedstring.append(s);
 		else
@@ -237,7 +218,7 @@ public class MultiFormatString {
 	}
 
 	public static String[] breakupString(String s) {
-		Vector vector = new Vector();
+		Vector<String> vector = new Vector<>();
 		String s1 = new String(s);
 		for (int i = s1.indexOf(" "); i >= 0; i = s1.indexOf(" ")) {
 			vector.addElement(s1.substring(0, i + 1));
@@ -259,7 +240,7 @@ public class MultiFormatString {
 	public String toString() {
 		StringBuffer stringbuffer = new StringBuffer("MultiFormatString:");
 		for (int i = 0; i < formattedStrings.size(); i++) {
-			FormattedString formattedstring = (FormattedString) formattedStrings.elementAt(i);
+			FormattedString formattedstring = formattedStrings.elementAt(i);
 			stringbuffer.append("  " + formattedstring.toString() + "\n");
 		}
 
@@ -271,5 +252,5 @@ public class MultiFormatString {
 	private Font italicFont;
 	private String fontName;
 	private int fontSize;
-	private Vector formattedStrings;
+	private Vector<FormattedString> formattedStrings;
 }

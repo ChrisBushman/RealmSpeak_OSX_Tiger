@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.utility;
 
 import java.awt.BorderLayout;
@@ -93,7 +76,7 @@ public class ChangesToHTML extends JFrame {
 		box.add(finishButton);
 		getContentPane().add(box,"South");
 	}
-	private String convertText(String in) {
+	private static String convertText(String in) {
 		StringBuffer sb = new StringBuffer();
 		StringTokenizer lines = new StringTokenizer(in,"\n");
 		int currentLevel = 0;
@@ -129,7 +112,7 @@ public class ChangesToHTML extends JFrame {
 		closeListTags(sb,0,currentLevel);
 		return sb.toString().substring(1); // get rid of first linefeed
 	}
-	private String addLinks(String in) {
+	private static String addLinks(String in) {
 		int front = in.indexOf(BUG_TAG_FRONT);
 		if (front>=0) {
 			int tail = in.indexOf(BUG_TAG_TAIL,front);
@@ -160,7 +143,7 @@ public class ChangesToHTML extends JFrame {
 		}
 		return in;
 	}
-	private void closeListTags(StringBuffer sb,int level,int currentLevel) {
+	private static void closeListTags(StringBuffer sb,int level,int currentLevel) {
 		int levelDiff = level-currentLevel;
 		if (levelDiff>0) {
 			sb.append("\n");
@@ -175,7 +158,7 @@ public class ChangesToHTML extends JFrame {
 			sb.append("\n");
 		}
 	}
-	private int getBulletLevel(String front) {
+	private static int getBulletLevel(String front) {
 		for (int i=0;i<BULLET.length;i++) {
 			if (BULLET[i].equals(front)) {
 				return i+1;

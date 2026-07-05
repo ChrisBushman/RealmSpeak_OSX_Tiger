@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.GameBuilder;
 
 import java.awt.*;
@@ -81,7 +64,7 @@ public class GameObjectFrame extends JInternalFrame implements Modifyable,Saveab
 		getContentPane().setLayout(new BorderLayout(5,5));
 			JPanel top = new JPanel(new GridLayout(2,1));
 			box = Box.createHorizontalBox();
-			currentIdLabel = new JLabel("",JLabel.CENTER);
+			currentIdLabel = new JLabel("",SwingConstants.CENTER);
 			currentIdLabel.setFont(ID_FONT);
 			currentIdLabel.setBackground(Color.white);
 			currentIdLabel.setOpaque(true);
@@ -153,7 +136,7 @@ public class GameObjectFrame extends JInternalFrame implements Modifyable,Saveab
 						public void edit() {
 							String newBlockName = (String)JOptionPane.showInputDialog(this,"Block Name?","Input",JOptionPane.QUESTION_MESSAGE,null,null,currentBlockName);
 							if (newBlockName!=null && newBlockName.length()>0 && !currentBlockName.equals(newBlockName)) {
-								OrderedHashtable block = (OrderedHashtable)object.getAttributeBlocks().get(currentBlockName);
+								OrderedHashtable block = object.getAttributeBlocks().get(currentBlockName);
 								int index = object.getAttributeBlocks().indexOf(block);
 								object.getAttributeBlocks().remove(currentBlockName);
 								object.getAttributeBlocks().replace(index,newBlockName,block);
@@ -168,7 +151,7 @@ public class GameObjectFrame extends JInternalFrame implements Modifyable,Saveab
 				panel.add(blocksPane,"West");
 					attributesPane = new ListManagerPane("Attributes",new DefaultTableModel(),true,false,true,true,false,false) {
 						public void add() {
-							OrderedHashtable block = (OrderedHashtable)object.getAttributeBlocks().get(currentBlockName);
+							OrderedHashtable block = object.getAttributeBlocks().get(currentBlockName);
 							String key = JOptionPane.showInputDialog(this,"Key");
 							if (key!=null) {
 								if (AttributeEditor.editBlock(parent.parent,this,"Value",block,key)) {
@@ -177,7 +160,7 @@ public class GameObjectFrame extends JInternalFrame implements Modifyable,Saveab
 							}
 						}
 						public void delete() {
-							OrderedHashtable block = (OrderedHashtable)object.getAttributeBlocks().get(currentBlockName);
+							OrderedHashtable block = object.getAttributeBlocks().get(currentBlockName);
 							
 							int[] rows = attributesPane.getSelectedRows();
 							ArrayList blocksToDelete = new ArrayList();
@@ -190,7 +173,7 @@ public class GameObjectFrame extends JInternalFrame implements Modifyable,Saveab
 							setModified(true);
 						}
 						public void edit() {
-							OrderedHashtable block = (OrderedHashtable)object.getAttributeBlocks().get(currentBlockName);
+							OrderedHashtable block = object.getAttributeBlocks().get(currentBlockName);
 							int row = attributesPane.getSelectedRow();
 							String key = (String)block.getKey(row);
 							if (AttributeEditor.editBlock(parent.parent,this,"New Value",block,key)) {
@@ -219,26 +202,26 @@ public class GameObjectFrame extends JInternalFrame implements Modifyable,Saveab
 					public void add() {
 						GameObjectChooser chooser = new GameObjectChooser(this,object);
 						chooser.setVisible(true);
-						ArrayList chosenObjects = chooser.getChosenObjects();
+						ArrayList<GameObject> chosenObjects = chooser.getChosenObjects();
 						if (chosenObjects!=null) {
-							for (Iterator i=chosenObjects.iterator();i.hasNext();) {
-								GameObject chosenObject = (GameObject)i.next();
+							for (GameObject chosenObject : chosenObjects) {
 								object.add(chosenObject);
 							}
 							setModified(true);
 						}
 					}
 					public void delete() {
-						ArrayList hold = (ArrayList)object.getHold();
+						ArrayList<GameObject> hold = object.getHold();
 						
 						int[] rows = containsPane.getSelectedRows();
-						ArrayList holdToDelete = new ArrayList();
+						ArrayList<GameObject> holdToDelete = new ArrayList<>();
 						for (int i=0;i<rows.length;i++) {
 							holdToDelete.add(hold.get(rows[i]));
 						}
-						for (Iterator i=holdToDelete.iterator();i.hasNext();) {
-							object.remove((GameObject)i.next());
+						for (GameObject i : holdToDelete) {
+							object.remove(i);
 						}
+
 						setModified(true);
 					}
 				};

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.swing;
 
 import java.awt.BorderLayout;
@@ -23,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -166,17 +148,15 @@ public class RealmObjectChooser extends JDialog {
 		setModal(true);
 		setSize(640,500);
 	}
-	public void addObjectsToChoose(Collection objects) {
-		ArrayList list = new ArrayList(objects);
-		for (Iterator i=list.iterator();i.hasNext();) {
-			GameObject object = (GameObject)i.next();
+	public void addObjectsToChoose(Collection<GameObject> objects) {
+		ArrayList<GameObject> list = new ArrayList<>(objects);
+		for (GameObject object : list) {
 			panel.addObject(object);
 		}
 		panel.revalidate();
 	}
-	public void addComponentsToChoose(Collection components) {
-		for (Iterator i=components.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
+	public void addComponentsToChoose(Collection<RealmComponent> components) {
+		for (RealmComponent rc : components) {
 			panel.add(rc);
 		}
 		panel.revalidate();
@@ -190,7 +170,7 @@ public class RealmObjectChooser extends JDialog {
 		
 		if (object.length>0) {
 			okay = true;
-			chosenObjects = new ArrayList<GameObject>();
+			chosenObjects = new ArrayList<>();
 			for (int i=0;i<object.length;i++) {
 				// quickly verify that the chosenObject is still in gameData!
 				if (validateChosenObjects && !gameData.validate(object[i])) {

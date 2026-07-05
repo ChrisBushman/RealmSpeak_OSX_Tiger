@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle;
 
 import java.awt.*;
@@ -32,6 +15,7 @@ import com.robin.general.swing.DieRoller;
 import com.robin.general.util.StringUtilities;
 import com.robin.magic_realm.components.*;
 import com.robin.magic_realm.components.attribute.Harm;
+import com.robin.magic_realm.components.attribute.Speed;
 import com.robin.magic_realm.components.utility.*;
 import com.robin.magic_realm.components.wrapper.*;
 
@@ -49,6 +33,8 @@ public class BattleSummaryRow implements Comparable<BattleSummaryRow> {
 	private static final int RESOLUTION_HIT = 1;
 	private static final int RESOLUTION_KILL = 2;
 	private static final int RESOLUTION_NOATTACK = 3;
+	private static final int RESOLUTION_NOPARRY = 4;
+	private static final int RESOLUTION_PARRY = 5;
 	
 	private int hitOrder;
 	private GameObject attacker;
@@ -72,8 +58,12 @@ public class BattleSummaryRow implements Comparable<BattleSummaryRow> {
 		String targetId = target.getStringId();
 		CombatWrapper tCombat = new CombatWrapper(target);
 		GameObject killedBy = tCombat.getKilledBy();
+		BattleHorse horse = null;
+		if (RealmComponent.getRealmComponent(target).isNative()) {
+			horse = RealmComponent.getRealmComponent(target).getHorseIncludeDead();
+		}
 		
-		if (attacker.hasThisAttribute("spell")) {
+		if (attacker.hasThisAttribute("spell") && !attacker.hasThisAttribute(Constants.EVENT)) {
 			SpellWrapper spell = new SpellWrapper(attacker);
 			combat = new CombatWrapper(spell.getCaster().getGameObject());
 		}
@@ -105,9 +95,33 @@ public class BattleSummaryRow implements Comparable<BattleSummaryRow> {
 				resolution = RESOLUTION_HIT;
 				hitType = " undercut";
 				break;
+			case BattleModel.PARRY_CANCELLED:
+				resolution = RESOLUTION_NOPARRY;
+				hitType = "'s parry was cancelled";
+				break;
+			case BattleModel.INTERCEPT_PARRY:
+				resolution = RESOLUTION_PARRY;
+				hitType = " parried (intercepted)";
+				break;
+			case BattleModel.UNDERCUT_PARRY:
+				resolution = RESOLUTION_PARRY;
+				hitType = " parried (undercut)";
+				break;
+			case BattleModel.CANNOT_PARRY:
+				resolution = RESOLUTION_NOPARRY;
+				hitType = " could not parry";
+				break;
 		}
 		
-		//ArrayList<GameObject> kills = combat.getAllKills(); // TODO This isn't the right solution.  See #1606 and #1609
+		if (horse != null) {
+			CombatWrapper hCombat = new CombatWrapper(horse.getGameObject());
+			GameObject horseKilledBy = hCombat.getKilledBy();
+			if ((horseKilledBy!=null && horseKilledBy.equals(attacker))) {
+				hitType += ", killed "+target.getName()+"'s horse";
+			}
+		}
+		
+		//ArrayList<GameObject> kills = combat.getAllKills(); // This isn't the right solution.  See #1606 and #1609
 		if ((killedBy!=null && killedBy.equals(attacker))) {
 				//|| (kills!=null && kills.size()>0 && kills.contains(target))) {
 			resolution = RESOLUTION_KILL;
@@ -122,22 +136,22 @@ public class BattleSummaryRow implements Comparable<BattleSummaryRow> {
 		rollType = null;
 		
 		// Check fumble rolls
-		ArrayList fumbleRolls = combat.getFumbleRolls();
+		ArrayList<String> fumbleRolls = combat.getFumbleRolls();
 		if (fumbleRolls!=null && fumbleRolls.size()>0) {
-			Iterator r = fumbleRolls.iterator();
-			Iterator s = combat.getFumbleRollSubtitles().iterator();
-			Iterator t = combat.getFumbleRollTargetIds().iterator();
+			Iterator<String> r = fumbleRolls.iterator();
+			Iterator<String> s = combat.getFumbleRollSubtitles().iterator();
+			Iterator<String> t = combat.getFumbleRollTargetIds().iterator();
 			rollType = "fumble";
 			readLists(targetId,r,s,t);
 		}
 		
 		if (rollType==null) {
 			// Check missile rolls
-			ArrayList missileRolls = combat.getMissileRolls();
+			ArrayList<String> missileRolls = combat.getMissileRolls();
 			if (missileRolls!=null && missileRolls.size()>0) {
-				Iterator r = missileRolls.iterator();
-				Iterator s = combat.getMissileRollSubtitles().iterator();
-				Iterator t = combat.getMissileRollTargetIds().iterator();
+				Iterator<String> r = missileRolls.iterator();
+				Iterator<String> s = combat.getMissileRollSubtitles().iterator();
+				Iterator<String> t = combat.getMissileRollTargetIds().iterator();
 				rollType = "missile";
 				readLists(targetId,r,s,t);
 			}
@@ -151,7 +165,7 @@ public class BattleSummaryRow implements Comparable<BattleSummaryRow> {
 		}
 		title.append(attacker.getName());
 		title.append(getResolutionString());
-		if (resolution!=RESOLUTION_NOATTACK) {
+		if (resolution!=RESOLUTION_NOATTACK && resolution!=RESOLUTION_NOPARRY) {
 			title.append(" ");
 			if (target.hasThisAttribute(RealmComponent.CHARACTER)) {
 				title.append("the ");
@@ -175,11 +189,11 @@ public class BattleSummaryRow implements Comparable<BattleSummaryRow> {
 	public String getSubtitle() {
 		return subtitle;
 	}
-	private void readLists(String id,Iterator r,Iterator s,Iterator t) {
+	private void readLists(String id,Iterator<String> r,Iterator<String> s,Iterator<String> t) {
 		while(t.hasNext()) {
-			String rollString = (String)r.next();
-			String subtitleString = (String)s.next();
-			String targetId = (String)t.next();
+			String rollString = r.next();
+			String subtitleString = s.next();
+			String targetId = t.next();
 			if (id.equals(targetId)) {
 				roller = new DieRoller(rollString,25,6);
 				subtitle = subtitleString;
@@ -187,13 +201,12 @@ public class BattleSummaryRow implements Comparable<BattleSummaryRow> {
 		}
 	}
 	public int compareTo(BattleSummaryRow row) {
-		// TODO Sort by attacker?  then hitOrder?
-		return 0;
+		return row.hitOrder;
 	}
 	
 	private int draw(Graphics2D g,RealmComponent rc,int x,int y,boolean attacker) {
 		ChitComponent chit = null;
-		if ((resolution==RESOLUTION_HIT || resolution==RESOLUTION_MISS) && rc.isChit()) {
+		if ((resolution==RESOLUTION_HIT || resolution==RESOLUTION_PARRY || resolution==RESOLUTION_MISS) && rc.isChit()) {
 			chit = (ChitComponent)rc;
 			chit.setIgnoreDamage(true);
 		}
@@ -226,16 +239,28 @@ public class BattleSummaryRow implements Comparable<BattleSummaryRow> {
 			else {
 				CharacterChitComponent charChit = (CharacterChitComponent)rc;
 				if (attacker) {
-					RealmComponent attackChit = charChit.getAttackChit();
-					
 					RealmComponent weapon = null;
-					GameObject wgo = charChit.getActiveWeaponObject();
-					if (wgo!=null) {
-						weapon = RealmComponent.getRealmComponent(wgo);
-						ImageIcon wicon = weapon.getIcon();
-						yoff = ChitComponent.T_CHIT_SIZE - wicon.getIconHeight();
-						g.drawImage(wicon.getImage(),x,y+yoff,null);
+					ArrayList<GameObject> wgos = charChit.getActiveWeaponsObjects();
+					if (wgos!=null) {
+						for (GameObject wgo : wgos) {
+							weapon = RealmComponent.getRealmComponent(wgo);
+							ImageIcon wicon = weapon.getIcon();
+							yoff = ChitComponent.T_CHIT_SIZE - wicon.getIconHeight();
+							g.drawImage(wicon.getImage(),x,y+yoff,null);
+						}
 					}
+					
+					RealmComponent attackChit = charChit.getAttackChit();
+					if (attackChit == null) {
+						GameObject transmorph = character.getTransmorph();
+						if (transmorph == null) {
+							ArrayList<RealmComponent> attackChits = BattleUtility.findFightComponentsWithCombatBox(character.getFightSpeedOptions(new Speed(), true));
+							if (attackChits != null && attackChits.size() == 1) {
+								attackChit = attackChits.get(0);
+							}
+						}
+					}
+					
 					if (attackChit!=null) {
 						if (attackChit.isCard()) {
 							g.drawImage(attackChit.getMediumImage(),x,y,null);
@@ -334,11 +359,19 @@ public class BattleSummaryRow implements Comparable<BattleSummaryRow> {
 				g.setStroke(Constants.THICK_STROKE);
 				g.draw(poly);
 				break;
+			case RESOLUTION_PARRY:
+				g.setColor(Color.orange);
+				g.setStroke(Constants.THICK_STROKE);
+				g.draw(poly);
+				g.setFont(HARM_FONT);
+				g.drawString("PARRY",x+10,y+58);
+				break;
 			case RESOLUTION_KILL:
 				g.setColor(Color.red);
 				g.fill(poly);
 				break;
 			case RESOLUTION_NOATTACK:
+			case RESOLUTION_NOPARRY:
 				break;
 		}
 		

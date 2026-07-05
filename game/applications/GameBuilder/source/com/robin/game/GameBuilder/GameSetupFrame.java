@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.GameBuilder;
 
 import java.awt.BorderLayout;
@@ -103,7 +86,7 @@ public class GameSetupFrame extends JInternalFrame implements Modifyable,Saveabl
 				}
 				public void duplicate() {
 					int row = getSelectedRow();
-					GameCommand command = (GameCommand)setup.getGameCommands().get(row);
+					GameCommand command = setup.getGameCommands().get(row);
 					GameCommand dupCommand = setup.createNewCommand();
 					dupCommand.copyFrom(command);
 					setModified(true);
@@ -112,22 +95,21 @@ public class GameSetupFrame extends JInternalFrame implements Modifyable,Saveabl
 					int[] row = getSelectedRows();
 					
 					// First get all selected commands
-					ArrayList delCommands = new ArrayList();
+					ArrayList<GameCommand> delCommands = new ArrayList<>();
 					for (int i=0;i<row.length;i++) {
-						GameCommand command = (GameCommand)setup.getGameCommands().get(row[i]);
+						GameCommand command = setup.getGameCommands().get(row[i]);
 						delCommands.add(command);
 					}
 					
 					// Now delete them
-					for (Iterator i=delCommands.iterator();i.hasNext();) {
-						GameCommand command = (GameCommand)i.next();
+					for (GameCommand command : delCommands) {
 						setup.removeCommand(command);
 					}
 					setModified(true);
 				}
 				public void edit() {
 					int row = commandsPane.getSelectedRow();
-					GameCommand command = (GameCommand)setup.getGameCommands().get(row);
+					GameCommand command = setup.getGameCommands().get(row);
 					GameCommandDialog chooser = new GameCommandDialog(setup.getGameCommands(),command);
 					chooser.setLocationRelativeTo(this);
 					chooser.setVisible(true);
@@ -138,9 +120,9 @@ public class GameSetupFrame extends JInternalFrame implements Modifyable,Saveabl
 					// First get all selected objects
 					int min = Integer.MAX_VALUE;
 					int max = Integer.MIN_VALUE;
-					ArrayList shiftObjects = new ArrayList();
+					ArrayList<GameCommand> shiftObjects = new ArrayList<>();
 					for (int i=0;i<row.length;i++) {
-						GameCommand command = (GameCommand)setup.getGameCommands().get(row[i]);
+						GameCommand command = setup.getGameCommands().get(row[i]);
 						shiftObjects.add(command);
 						min = Math.min(row[i],min);
 						max = Math.max(row[i],max);
@@ -149,7 +131,7 @@ public class GameSetupFrame extends JInternalFrame implements Modifyable,Saveabl
 					if (direction==1) {
 						// Down
 						if ((max+1)<setup.getGameCommands().size()) {
-							GameCommand command = (GameCommand)setup.getGameCommands().get(max+1);
+							GameCommand command = setup.getGameCommands().get(max+1);
 							setup.moveObjectsAfter(shiftObjects,command);
 							updateSelection(shiftObjects);
 						}
@@ -157,17 +139,17 @@ public class GameSetupFrame extends JInternalFrame implements Modifyable,Saveabl
 					else {
 						// Up
 						if ((min-1)>=0) {
-							GameCommand command = (GameCommand)setup.getGameCommands().get(min-1);
+							GameCommand command = setup.getGameCommands().get(min-1);
 							setup.moveObjectsBefore(shiftObjects,command);
 							updateSelection(shiftObjects);
 						}
 					}
 					setModified(true);
 				}
-				public void updateSelection(ArrayList objects) {
+				public void updateSelection(ArrayList<GameCommand> objects) {
 					int[] row = new int[objects.size()];
 					int n=0;
-					for (Iterator i=objects.iterator();i.hasNext();) {
+					for (Iterator<GameCommand> i=objects.iterator();i.hasNext();) {
 						row[n++] = setup.getGameCommands().indexOf(i.next());
 					}
 					setSelectedRows(row);

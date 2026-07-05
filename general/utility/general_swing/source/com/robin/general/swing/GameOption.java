@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.swing;
 
 import java.awt.*;
@@ -33,9 +16,9 @@ public class GameOption {
 	private JCheckBox activeCB;
 	private JPanel panel;
 	
-	private ArrayList overrideKeys;
-	private ArrayList includeKeys;
-	private ArrayList cantHaveKeys;
+	private ArrayList<String> overrideKeys;
+	private ArrayList<String> includeKeys;
+	private ArrayList<String> cantHaveKeys;
 	
 	private GameOptionPane gameOptionPane;
 	
@@ -50,15 +33,15 @@ public class GameOption {
 	public GameOption(String inKey,String description,boolean active,String[] overrides,String[] includes,String[] cantHaves) {
 		this.key = inKey;
 		this.description = description;
-		overrideKeys = new ArrayList();
+		overrideKeys = new ArrayList<>();
 		if (overrides!=null) {
 			overrideKeys.addAll(Arrays.asList(overrides));
 		}
-		includeKeys = new ArrayList();
+		includeKeys = new ArrayList<>();
 		if (includes!=null) {
 			includeKeys.addAll(Arrays.asList(includes));
 		}
-		cantHaveKeys = new ArrayList();
+		cantHaveKeys = new ArrayList<>();
 		if (cantHaves!=null) {
 			cantHaveKeys.addAll(Arrays.asList(cantHaves));
 		}
@@ -93,11 +76,7 @@ public class GameOption {
 			box.add(Box.createVerticalGlue());
 		panel.add(box,"West");
 		panel.add(Box.createVerticalStrut(30),"East");
-//		panel.setMinimumSize(new Dimension(1,1));
-//		panel.setPreferredSize(new Dimension(1,1));
-//		panel.setMaximumSize(new Dimension(1,1));
-		panel.setMaximumSize(new Dimension(2000,75));
-//		panel.setPreferredSize(new Dimension(2000,50));
+		panel.setMaximumSize(new Dimension(2000,50));
 		updateColor();
 	}
 	public void setActionListener(ActionListener listener) {
@@ -109,16 +88,14 @@ public class GameOption {
 	private void updateOthers() {
 		if (activeCB.isSelected()) {
 			// turn off overrides
-			for (Iterator i=getOverrideKeys().iterator();i.hasNext();) {
-				String overrideKey = (String)i.next();
+			for (String overrideKey : getOverrideKeys()) {
 				if (!overrideKey.equals(key)) {
 					gameOptionPane.setOption(overrideKey,false);
 				}
 			}
 			
 			// turn on includes
-			for (Iterator i=getIncludeKeys().iterator();i.hasNext();) {
-				String includeKey = (String)i.next();
+			for (String includeKey : getIncludeKeys()) {
 				if (!includeKey.equals(key)) {
 					gameOptionPane.setOption(includeKey,true);
 				}
@@ -126,21 +103,20 @@ public class GameOption {
 		}
 		else {
 			// turn off cant haves
-			for (Iterator i=getCantHaveKeys().iterator();i.hasNext();) {
-				String cantHaveKey = (String)i.next();
+			for (String cantHaveKey : getCantHaveKeys()) {
 				if (!cantHaveKey.equals(key)) {
 					gameOptionPane.setOption(cantHaveKey,false);
 				}
 			}
 		}
 	}
-	public Collection getOverrideKeys() {
+	public Collection<String> getOverrideKeys() {
 		return overrideKeys;
 	}
-	public Collection getIncludeKeys() {
+	public Collection<String> getIncludeKeys() {
 		return includeKeys;
 	}
-	public Collection getCantHaveKeys() {
+	public Collection<String> getCantHaveKeys() {
 		return cantHaveKeys;
 	}
 	private void updateColor() {

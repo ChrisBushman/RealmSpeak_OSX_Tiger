@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.objects;
 
 import java.util.ArrayList;
@@ -71,7 +54,7 @@ public abstract class GameObjectWrapper {
 	 * Utility method for extracting the int value
 	 */
 	public double getDouble(String key) {
-		String val = (String)gameObject.getAttribute(getBlockName(),key);
+		String val = gameObject.getAttribute(getBlockName(),key);
 		if (val!=null) {
 			try {
 				return Double.valueOf(val).doubleValue();
@@ -90,11 +73,11 @@ public abstract class GameObjectWrapper {
 	public boolean getBoolean(String key) {
 		return gameObject.hasAttribute(getBlockName(),key);
 	}
-	public ArrayList getList(String key) {
+	public ArrayList<String> getList(String key) {
 		return gameObject.getAttributeList(getBlockName(),key);
 	}
 	public int getListCount(String key) {
-		ArrayList list = getList(key);
+		ArrayList<String> list = getList(key);
 		return list==null?0:list.size();
 	}
 	public void setInt(String key,int val) {
@@ -119,7 +102,7 @@ public abstract class GameObjectWrapper {
 			gameObject.removeAttribute(getBlockName(),key);
 		}
 	}
-	public void setList(String key,ArrayList in) {
+	public void setList(String key,ArrayList<String> in) {
 		gameObject.setAttributeList(getBlockName(),key,in);
 	}
 	public void addListItem(String key,String val) {
@@ -127,9 +110,9 @@ public abstract class GameObjectWrapper {
 	}
 	public boolean removeListItem(String key,String val) {
 		boolean ret = false;
-		ArrayList list = getList(key);
+		ArrayList<String> list = getList(key);
 		if (list!=null && list.contains(val)) {
-			list = new ArrayList(list);
+			list = new ArrayList<>(list);
 			ret = list.remove(val);
 			setList(key,list);
 		}

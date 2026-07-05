@@ -2,17 +2,24 @@ package com.robin.magic_realm.components.effect;
 
 import com.robin.magic_realm.components.TreasureCardComponent;
 import com.robin.magic_realm.components.utility.Constants;
+import com.robin.magic_realm.components.utility.RealmLogging;
 import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class EnchantEffect implements ISpellEffect {
 
 	@Override
 	public void apply(SpellEffectContext context) {
+		if (context.Target.getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON)) {
+			context.Spell.cancelSpell();
+			RealmLogging.logMessage(context.Spell.getName(),"Spell canceled, item already affected by Enchant Weapon spell.");
+		}
 		// Add the secondary target spell and chit type to the artifact
 		SpellWrapper spellToAdd = new SpellWrapper(context.Spell.getSecondaryTarget());
 		if (!spellToAdd.getGameObject().hasThisAttribute(Constants.ARTIFACT_ENHANCED_MAGIC)) {
 			// First time this casting has energized, so make a copy of the requisite spell
 			spellToAdd = spellToAdd.makeCopy();
+			spellToAdd.clearSpellAttributes();
+			
 			context.Spell.setSecondaryTarget(spellToAdd.getGameObject());
 			spellToAdd.getGameObject().setThisAttribute(Constants.ARTIFACT_ENHANCED_MAGIC);
 			spellToAdd.getGameObject().setThisAttribute(Constants.SPELL_AWAKENED);

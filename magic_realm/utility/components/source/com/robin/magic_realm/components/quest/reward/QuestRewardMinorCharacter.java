@@ -1,28 +1,14 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest.reward;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 import javax.swing.JFrame;
 
 import com.robin.game.objects.GameObject;
 import com.robin.game.objects.GamePool;
+import com.robin.general.util.RandomNumber;
+import com.robin.magic_realm.components.RealmComponent;
 import com.robin.magic_realm.components.quest.*;
 import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
@@ -56,11 +42,35 @@ public class QuestRewardMinorCharacter extends QuestReward {
 		if (getGainType()==GainType.Gain) {
 			minorCharacter.getGameObject().setThisAttribute(Constants.ACTIVATED);
 			minorCharacter.setupAbilities();
+			minorCharacter.setupBonusChit();
 			character.getGameObject().add(minorCharacter.getGameObject());
 		}
 		else {
+			ArrayList<String> controls = new ArrayList<>();
+			if (minorCharacter.getGameObject().hasThisAttribute(Constants.MONSTER_CONTROL_VALIDATE_CONTROL)) {
+				if (minorCharacter.getGameObject().hasThisAttribute(Constants.MONSTER_CONTROL)) {
+					controls.addAll(minorCharacter.getGameObject().getThisAttributeList(Constants.MONSTER_CONTROL));
+				}
+			}
+			
 			character.getGameObject().remove(minorCharacter.getGameObject());
+			
+			if (minorCharacter.getGameObject().hasThisAttribute(Constants.MONSTER_CONTROL_VALIDATE_CONTROL)) {
+				RealmComponent characterRC = RealmComponent.getRealmComponent(character.getGameObject());
+				Set<String> canControl = characterRC.getControllableMonsters().keySet();
+				for (RealmComponent monster : character.getAllHirelings()) {
+					if (!monster.isMonster()) continue;
+					for (String monsterType : controls) {
+						if (canControl.contains(monsterType)) continue;
+						if (monster.getGameObject().getName().matches(monsterType.toString())) {
+							character.removeHireling(monster.getGameObject());
+						}
+					}
+				}
+				character.distributeMonsterControlInCurrentClearing(false);
+			}
 		}
+		character.setNeedsActionPanelUpdate(true);
 	}
 
 	public String getDescription() {
@@ -82,24 +92,27 @@ public class QuestRewardMinorCharacter extends QuestReward {
 		CharacterWrapper character = getParentQuest().getOwner();
 		if (character==null) return null; // what to do here?  shouldn't ever happen - the reward shouldn't be given while this quest is still a template!
 		
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList<String> query = new ArrayList<>();
 		query.add(Quest.QUEST_MINOR_CHARS);
 		query.add("name="+id);
 		
-		
+		ArrayList<GameObject> mcs = new ArrayList<>();
 		// Try the quest FIRST
 		GamePool pool = new GamePool(getParentQuest().getGameObject().getHold());
-		GameObject mc = pool.findFirst(query);
-		if (mc==null) {
+		mcs.addAll(pool.find(query));
+		if (mcs.isEmpty()) {
 			// Try the character inventory
 			pool = new GamePool(character.getInventory());
-			mc = pool.findFirst(query);
+			mcs.addAll(pool.find(query));
 		}
-		// TODO Test the entire game library or not?  Maybe only matches that aren't assigned?
-		
-		if (mc!=null) {
+		if (mcs.isEmpty()) {
+			// Try the entire game library
+			pool = new GamePool(getParentQuest().getGameData().getGameObjects());
+			mcs.addAll(pool.find(query));
+		}
+		if (!mcs.isEmpty()) {
 			//setString(MINOR_CHARACTER,mc.getStringId()); // save for future reference?
-			return new QuestMinorCharacter(mc);
+			return new QuestMinorCharacter(mcs.get(RandomNumber.getRandom(mcs.size())));
 		}
 		return null;
 	}	

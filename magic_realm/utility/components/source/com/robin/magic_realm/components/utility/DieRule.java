@@ -1,23 +1,7 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.utility;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 import com.robin.magic_realm.components.attribute.TileLocation;
@@ -34,6 +18,7 @@ public class DieRule {
 	private ArrayList<String> keyList;
 	private boolean allLocations = false;
 	private ArrayList<String> locationList;
+	private ArrayList<String> twt = new ArrayList<String>(Arrays.asList("crypt of the knight","enchanted meadow","toadstool circle","circle of stones","ethereal abbey","fairy grove","haunted grave","mage library"));
 	
 	public DieRule(TileLocation tl,String rule) {
 		this.tl = tl;
@@ -68,8 +53,6 @@ public class DieRule {
 		else {
 			locationList = makeList(locationListString);
 		}
-//System.out.println("keyList = "+keyList);
-//System.out.println("locationList = "+locationList);
 	}
 	public boolean conditionsMet(String key,ArrayList<String> chitDescList) {
 		if (key.indexOf(',')>0) {
@@ -81,7 +64,7 @@ public class DieRule {
 			}
 			return false;
 		}
-		boolean validKey = allKeys || keyList.contains(key);
+		boolean validKey = allKeys || keyList.contains(key) || (keyList.contains("twt") && twt.contains(key));
 		boolean validLocation = allLocations || locationMatches(chitDescList);
 		return validKey && validLocation;
 	}
@@ -117,14 +100,20 @@ public class DieRule {
 					}
 				}
 			}
+			else if (loc.startsWith("'")) {
+				loc = loc.substring(1);
+				if(tl.tile.getGameObject().hasThisAttribute(loc)) {
+					return true;
+				}
+			}
 			else if (chitDescList.contains(loc)) {
 				return true;
 			}
 		}
 		return false;
 	}
-	private ArrayList<String> makeList(String input) {
-		ArrayList<String> list = new ArrayList<String>();
+	private static ArrayList<String> makeList(String input) {
+		ArrayList<String> list = new ArrayList<>();
 		StringTokenizer tokens = new StringTokenizer(input,",");
 		while(tokens.hasMoreTokens()) {
 			list.add(tokens.nextToken());

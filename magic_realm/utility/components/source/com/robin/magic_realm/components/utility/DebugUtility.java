@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.utility;
 
 import java.io.*;
@@ -39,49 +22,51 @@ public class DebugUtility {
 	private static File errorFile = null;
 	
 	public static void setupArgs(String[] args) {
-		for (int i=0;i<args.length;i++) {
-			if ("DEBUG".equals(args[i].toUpperCase())) {
-				DEBUG_ON = true;
-				System.out.println("DEBUG is ON");
-			}
-			else if ("CHEAT".equals(args[i].toUpperCase())) {
-				CHEAT_ON = true;
-				System.out.println("CHEAT is ON");
-			}
-			else if ("MONSTER_LOCK".equals(args[i].toUpperCase())) {
-				MONSTER_REPO_LOCK = true;
-				System.out.println("MONSTER_LOCK is ON");
-			}
-			else if ("MONSTER_FLIP".equals(args[i].toUpperCase())) {
-				MONSTER_FLIP = true;
-				System.out.println("MONSTER_FLIP is ON");
-			}
-			else if ("NO_SUMMON".equals(args[i].toUpperCase())) {
-				NO_SUMMON = true;
-				System.out.println("NO_SUMMON is ON");
-			}
-			else if ("SMALL_FRAME".equals(args[i].toUpperCase())) {
-				SMALL_FRAME = true;
-				System.out.println("SMALL_FRAME is ON");
-			}
-			else if ("DISABLE_ERROR_LOGGING".equals(args[i].toUpperCase())) {
-				DISABLE_ERROR_LOGGING = true;
-				System.out.println("DISABLE_ERROR_LOGGING is ON");
-			}
-			else if ("DISABLE_FAMILIAR".equals(args[i].toUpperCase())) {
-				DISABLE_FAMILIAR = true;
-				System.out.println("DISABLE_FAMILIAR is ON");
-			}
-			else if ("IGNORE_CHARS".equals(args[i].toUpperCase())) {
-				IGNORE_CHARS = true;
-				System.out.println("IGNORE_CHARS is ON");
-			}
-			else if ("SUMMON_MULTIPLE".equals(args[i].toUpperCase())) {
-				SUMMON_MULTIPLE = true;
-				System.out.println("SUMMON_MULTIPLE is ON");
-			}
-			else if (args[i].toUpperCase().endsWith(".RSGAME")) {
-				System.setProperty(LAUNCH_GAME,args[i]);
+		if (args != null) {
+			for (int i=0;i<args.length;i++) {
+				if ("DEBUG".equals(args[i].toUpperCase())) {
+					DEBUG_ON = true;
+					System.out.println("DEBUG is ON");
+				}
+				else if ("CHEAT".equals(args[i].toUpperCase())) {
+					CHEAT_ON = true;
+					System.out.println("CHEAT is ON");
+				}
+				else if ("MONSTER_LOCK".equals(args[i].toUpperCase())) {
+					MONSTER_REPO_LOCK = true;
+					System.out.println("MONSTER_LOCK is ON");
+				}
+				else if ("MONSTER_FLIP".equals(args[i].toUpperCase())) {
+					MONSTER_FLIP = true;
+					System.out.println("MONSTER_FLIP is ON");
+				}
+				else if ("NO_SUMMON".equals(args[i].toUpperCase())) {
+					NO_SUMMON = true;
+					System.out.println("NO_SUMMON is ON");
+				}
+				else if ("SMALL_FRAME".equals(args[i].toUpperCase())) {
+					SMALL_FRAME = true;
+					System.out.println("SMALL_FRAME is ON");
+				}
+				else if ("DISABLE_ERROR_LOGGING".equals(args[i].toUpperCase())) {
+					DISABLE_ERROR_LOGGING = true;
+					System.out.println("DISABLE_ERROR_LOGGING is ON");
+				}
+				else if ("DISABLE_FAMILIAR".equals(args[i].toUpperCase())) {
+					DISABLE_FAMILIAR = true;
+					System.out.println("DISABLE_FAMILIAR is ON");
+				}
+				else if ("IGNORE_CHARS".equals(args[i].toUpperCase())) {
+					IGNORE_CHARS = true;
+					System.out.println("IGNORE_CHARS is ON");
+				}
+				else if ("SUMMON_MULTIPLE".equals(args[i].toUpperCase())) {
+					SUMMON_MULTIPLE = true;
+					System.out.println("SUMMON_MULTIPLE is ON");
+				}
+				else if (args[i].toUpperCase().endsWith(".RSGAME")) {
+					System.setProperty(LAUNCH_GAME,args[i]);
+				}
 			}
 		}
 		if (!DISABLE_ERROR_LOGGING) {

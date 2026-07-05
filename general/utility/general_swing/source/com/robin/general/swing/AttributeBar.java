@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.swing;
 
 import java.awt.*;
@@ -66,10 +49,10 @@ public class AttributeBar extends JComponent {
 	}
 	public void readKey(String key) {
 		StringTokenizer tokenz = new StringTokenizer(key,"_");
-		maxVal = Integer.valueOf(tokenz.nextToken()).intValue();
-		realVal = Integer.valueOf(tokenz.nextToken()).intValue();
-		projVal = Integer.valueOf(tokenz.nextToken()).intValue();
-		goalVal = Integer.valueOf(tokenz.nextToken()).intValue();
+		maxVal = Integer.parseInt(tokenz.nextToken());
+		realVal = Integer.parseInt(tokenz.nextToken());
+		projVal = Integer.parseInt(tokenz.nextToken());
+		goalVal = Integer.parseInt(tokenz.nextToken());
 		normalize();
 		repaint();
 	}
@@ -225,13 +208,11 @@ public class AttributeBar extends JComponent {
 		if (valueState==ABSOLUTE) {
 			return ""+val;
 		}
-		else {
-			int rel = val - goalVal;
-			if (rel==0) {
-				return "0";
-			}
-			return rel<0?("-"+(-rel)):("+"+rel);
+		int rel = val - goalVal;
+		if (rel==0) {
+			return "0";
 		}
+		return rel<0?("-"+(-rel)):("+"+rel);
 	}
 	/**
 	 * For testing only

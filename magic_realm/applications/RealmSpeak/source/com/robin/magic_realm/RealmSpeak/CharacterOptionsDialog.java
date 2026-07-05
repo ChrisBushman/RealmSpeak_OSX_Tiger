@@ -1,32 +1,20 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import javax.swing.*;
 
 import com.robin.game.objects.GameObject;
+import com.robin.game.objects.GamePool;
 import com.robin.general.swing.AggressiveDialog;
 import com.robin.general.swing.ComponentTools;
 import com.robin.magic_realm.components.MagicRealmColor;
+import com.robin.magic_realm.components.utility.Constants;
+import com.robin.magic_realm.components.utility.CustomUiUtility;
 import com.robin.magic_realm.components.utility.RealmLoader;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
@@ -58,23 +46,35 @@ public class CharacterOptionsDialog extends AggressiveDialog {
 	}
 
 	private void initComponents(boolean forceInnStart, boolean allowDevelopment, boolean developmentPastFour) {
-		setSize(400, 375);
+		setSize(520, 520);
 		getContentPane().setLayout(new BorderLayout());
 
 		JPanel sideBarPanel = new JPanel(new GridLayout(2,1));
+		sideBarPanel.setPreferredSize(new Dimension(150,200));
 		
 		Box locationPanel = Box.createVerticalBox();
 		locationPanel.setBorder(BorderFactory.createTitledBorder("Starting Location"));
 		buttonGroup1 = new ButtonGroup();
 		String[] locs = character.getStartingLocations(forceInnStart);
 		startChoose = new JRadioButton[locs.length];
+		GamePool pool = new GamePool(character.getGameData().getGameObjects());
+		Collection<GameObject> startDwellings = pool.find("dwelling,!general_dwelling");
+		ArrayList<String> startDwellingNames = new ArrayList<>();
+		startDwellingNames.add("Ghost");
+		startDwellingNames.add("Ghosts");
+		for (GameObject go:startDwellings) {
+			startDwellingNames.add(go.getName());
+		}
+		int j=0;
 		for (int i = 0; i < locs.length; i++) {
-			startChoose[i] = new JRadioButton(locs[i]);
-			buttonGroup1.add(startChoose[i]);
-			locationPanel.add(startChoose[i]);
+			if (startDwellingNames.contains(locs[i])) {
+				startChoose[j] = new JRadioButton(locs[i]);
+				buttonGroup1.add(startChoose[j]);
+				locationPanel.add(startChoose[j]);
+				j++;
+			}
 		}
 		startChoose[0].setSelected(true);
-		locationPanel.setPreferredSize(new Dimension(100,200));
 		locationPanel.add(Box.createVerticalGlue());
 		sideBarPanel.add(locationPanel);
 		
@@ -117,11 +117,12 @@ public class CharacterOptionsDialog extends AggressiveDialog {
 		
 		add(centerPanel, BorderLayout.CENTER);
 		add(sideBarPanel,BorderLayout.EAST);
-
 		
 		Box line = Box.createHorizontalBox();
 		randomInventorySources = new JCheckBox("Fetch inventory from random location(s)", false);
-		line.add(randomInventorySources);
+		if (!this.character.getGameObject().hasThisAttribute(Constants.CUSTOM_CHARACTER)) {
+			line.add(randomInventorySources);
+		}
 		line.add(Box.createHorizontalGlue());
 
 		cancelButton = new JButton("Cancel");
@@ -145,8 +146,9 @@ public class CharacterOptionsDialog extends AggressiveDialog {
 		line.add(okayButton);
 		getContentPane().add(line, "South");
 
-		setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		setResizable(false);
+		if (CustomUiUtility.isResponsive()) pack();
 	}
 
 	public int getChosenBonusChits() {

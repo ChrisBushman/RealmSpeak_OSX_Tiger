@@ -11,28 +11,24 @@ public class DisengageEffect implements ISpellEffect {
 	@Override
 	public void apply(SpellEffectContext context) {
 		CombatWrapper combat = context.getCombatTarget();
-
+		
 		// Remove all attackers and targets
 		ArrayList<GameObject> attackers = combat.getAttackers();
-
-		for (GameObject a : attackers) {
-			RealmComponent.getRealmComponent(a).clearTarget();
-		}
-
-		for (GameObject a : attackers) {
-			CombatWrapper cw = new CombatWrapper(a);
-			if (cw.getAttackerCount() > 0) {
-				cw.setSheetOwner(true);
-			}
-		}
-
+		
+		attackers.stream()
+			.map(a -> RealmComponent.getRealmComponent(a))
+			.forEach(rc -> rc.clearTargets());
+	
+		attackers.stream()
+			.map(a -> new CombatWrapper(a))
+			.filter(a -> a.getAttackerCount() > 0)
+			.forEach(a -> a.setSheetOwner(true));
+		
 		combat.removeAllAttackers();
 	}
 
 	@Override
 	public void unapply(SpellEffectContext context) {
-		// TODO Auto-generated method stub
-
 	}
 
 }

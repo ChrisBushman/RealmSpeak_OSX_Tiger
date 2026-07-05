@@ -1,23 +1,11 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.attribute;
 
 import java.util.StringTokenizer;
+
+import com.robin.game.objects.GameObject;
+import com.robin.magic_realm.components.RealmComponent;
+import com.robin.magic_realm.components.utility.Constants;
+import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class Spoils {
 	private boolean useMultiplier;
@@ -39,8 +27,8 @@ public class Spoils {
 			notoriety = Double.valueOf(tokens.nextToken());
 			goldBounty = Double.valueOf(tokens.nextToken());
 			goldRecord = Double.valueOf(tokens.nextToken());
-			divisor = Integer.valueOf(tokens.nextToken());
-			multiplier = Integer.valueOf(tokens.nextToken());
+			divisor = Integer.parseInt(tokens.nextToken());
+			multiplier = Integer.parseInt(tokens.nextToken());
 		}
 		else throw new IllegalArgumentException("Invalid argument: "+key);
 	}
@@ -165,5 +153,50 @@ public class Spoils {
 	 */
 	public void addNotoriety(int inNotoriety) {
 		this.notoriety += inNotoriety;
+	}
+	
+	public static Spoils getSpoils(GameObject attackerGo,GameObject victimGo) {
+		Spoils spoils = new Spoils();
+		RealmComponent attacker = RealmComponent.getRealmComponent(attackerGo);
+		RealmComponent victim = RealmComponent.getRealmComponent(victimGo);
+		RealmComponent attackerOwner = attacker.getOwner();
+		
+		if (attacker.isCharacter() || attackerOwner!=null) { // Attacker is Character or Hireling
+			// Use multiplier only if attacker is a character, and the victim is not
+			spoils.setUseMultiplier(attacker.isCharacter() && !victim.isCharacter());
+			
+			// Fame and Notoriety Bounty
+			boolean seriousWound = victimGo.hasThisAttribute(Constants.SERIOUS_WOUND);
+			int fame = victim.getGameObject().getThisInt("fame");
+			int notoriety = victim.getGameObject().getThisInt("notoriety");
+			if (seriousWound) {
+				// divide by 2
+				fame = (fame+2-1)/2;
+				notoriety = (notoriety+2-1)/2;
+			}
+			spoils.addFame(fame);
+			spoils.addNotoriety(notoriety);
+			if (victim.isCharacter()) {
+				CharacterWrapper victimRecord = new CharacterWrapper(victim.getGameObject());
+				spoils.addNotoriety(victimRecord.getRoundedNotoriety()); // stored a bit differently
+				if (victimRecord.isTransmorphed()) {
+					GameObject go = victimRecord.getTransmorph();
+					spoils.addFame(go.getThisInt("fame"));
+					spoils.addNotoriety(go.getThisInt("notoriety"));
+				}
+			}
+			
+			if (attacker.isPlayerControlledLeader()) { // Attacker is a Character or hired leader or controlled monster
+				// Gold Bounty
+				if (!victim.isMonster()) {
+					spoils.setGoldBounty(victim.getGameObject().getThisInt("base_price"));
+				}
+				
+				// Recorded Gold
+				CharacterWrapper victimRecord = new CharacterWrapper(victim.getGameObject());
+				spoils.setGoldRecord(victimRecord.getRoundedGold());
+			}
+		}
+		return spoils;
 	}
 }

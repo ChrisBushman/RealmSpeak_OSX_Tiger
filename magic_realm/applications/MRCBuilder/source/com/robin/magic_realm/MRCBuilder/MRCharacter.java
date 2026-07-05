@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.MRCBuilder;
 
 import java.io.*;
@@ -32,8 +15,8 @@ public class MRCharacter {
 		symbolPath = "";
 		symbolMeaning = "";
 		vulnerability = "";
-		specialAdvantages = new Vector();
-		optionalAdvantages = new Vector();
+		specialAdvantages = new Vector<OutlineEntry>();
+		optionalAdvantages = new Vector<OutlineEntry>();
 		devName = new String[4];
 		devAdd = new String[4];
 		for (int i = 0; i < 4; i++) {
@@ -115,14 +98,14 @@ public class MRCharacter {
 			printstream.println(vulnerability);
 			printstream.println(specialAdvantages.size());
 			for (int i = 0; i < specialAdvantages.size(); i++) {
-				OutlineEntry outlineentry = (OutlineEntry) specialAdvantages.elementAt(i);
+				OutlineEntry outlineentry = specialAdvantages.elementAt(i);
 				printstream.println(outlineentry.getHeader());
 				printstream.println(outlineentry.getContent());
 			}
 
 			printstream.println(optionalAdvantages.size());
 			for (int j = 0; j < optionalAdvantages.size(); j++) {
-				OutlineEntry outlineentry1 = (OutlineEntry) optionalAdvantages.elementAt(j);
+				OutlineEntry outlineentry1 = optionalAdvantages.elementAt(j);
 				printstream.println(outlineentry1.getHeader());
 				printstream.println(outlineentry1.getContent());
 			}
@@ -148,7 +131,7 @@ public class MRCharacter {
 
 	public int readInteger(String s) {
 		try {
-			Integer integer = Integer.valueOf(s);
+			Integer integer = Integer.parseInt(s);
 			return integer.intValue();
 		}
 		catch (NumberFormatException _ex) {
@@ -229,15 +212,13 @@ public class MRCharacter {
 	public int specialAdvantagesCount() {
 		if (specialAdvantages != null)
 			return specialAdvantages.size();
-		else
-			return 0;
+		return 0;
 	}
 
 	public OutlineEntry getSpecialAdvantage(int i) {
 		if (specialAdvantages != null && i < specialAdvantages.size())
-			return (OutlineEntry) specialAdvantages.elementAt(i);
-		else
-			return null;
+			return specialAdvantages.elementAt(i);
+		return null;
 	}
 
 	public Vector getSpecialAdvantages() {
@@ -247,15 +228,13 @@ public class MRCharacter {
 	public int optionalAdvantagesCount() {
 		if (optionalAdvantages != null)
 			return optionalAdvantages.size();
-		else
-			return 0;
+		return 0;
 	}
 
 	public OutlineEntry getOptionalAdvantage(int i) {
 		if (optionalAdvantages != null && i < optionalAdvantages.size())
-			return (OutlineEntry) optionalAdvantages.elementAt(i);
-		else
-			return null;
+			return optionalAdvantages.elementAt(i);
+		return null;
 	}
 
 	public Vector getOptionalAdvantages() {
@@ -265,15 +244,13 @@ public class MRCharacter {
 	public String getDevName(int i) {
 		if (devName[i] != null && devName[i].length() > 0)
 			return devName[i];
-		else
-			return "";
+		return "";
 	}
 
 	public String getDevAdd(int i) {
 		if (devAdd[i] != null && devAdd[i].length() > 0)
 			return devAdd[i];
-		else
-			return null;
+		return null;
 	}
 
 	public Chit getChit(int i) {
@@ -320,11 +297,11 @@ public class MRCharacter {
 		vulnerability = s;
 	}
 
-	public void setSpecialAdvantages(Vector vector) {
+	public void setSpecialAdvantages(Vector<OutlineEntry> vector) {
 		specialAdvantages = vector;
 	}
 
-	public void setOptionalAdvantages(Vector vector) {
+	public void setOptionalAdvantages(Vector<OutlineEntry> vector) {
 		optionalAdvantages = vector;
 	}
 
@@ -366,8 +343,8 @@ public class MRCharacter {
 	private String symbolPath;
 	private String symbolMeaning;
 	private String vulnerability;
-	private Vector specialAdvantages;
-	private Vector optionalAdvantages;
+	private Vector<OutlineEntry> specialAdvantages;
+	private Vector<OutlineEntry> optionalAdvantages;
 	private String devName[];
 	private String devAdd[];
 	private Chit chit[];

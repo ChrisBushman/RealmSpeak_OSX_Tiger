@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.swing;
 
 import java.awt.*;
@@ -27,6 +10,7 @@ import com.robin.general.swing.AggressiveDialog;
 import com.robin.general.util.StringBufferedList;
 import com.robin.magic_realm.components.CharacterActionChitComponent;
 import com.robin.magic_realm.components.ChitComponent;
+import com.robin.magic_realm.components.StateChitComponent;
 import com.robin.magic_realm.components.utility.RealmLogging;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
@@ -86,7 +70,7 @@ public abstract class ChitManager extends AggressiveDialog {
 		setSize(670,500);
 		setLocationRelativeTo(parent);
 		initComponents(includeCancelButton);
-		setDefaultCloseOperation(AggressiveDialog.DO_NOTHING_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		modifiedChits = new ArrayList<ChitComponent>();
 	}
 	protected void initialize() {
@@ -159,7 +143,7 @@ public abstract class ChitManager extends AggressiveDialog {
 		getContentPane().setLayout(new BorderLayout());
 		masterPanel = new JPanel(new GridLayout(1,3));
 			JPanel activePanel = new JPanel(new BorderLayout());
-				activeChits = new ChitBinPanel(new ChitBinLayout(new ArrayList(character.getCompleteChitList()))) {
+				activeChits = new ChitBinPanel(new ChitBinLayout(new ArrayList<StateChitComponent>(character.getCompleteChitList()))) {
 					public boolean canClickChit(ChitComponent chit) {
 						if (chit.isActionChit()) {
 							return canClickActive((CharacterActionChitComponent)chit);
@@ -178,13 +162,13 @@ public abstract class ChitManager extends AggressiveDialog {
 					}
 				};
 				activeChits.addMouseListener(mouse);
-				label = new JLabel("Active",JLabel.CENTER);
+				label = new JLabel("Active",SwingConstants.CENTER);
 				label.setFont(LABEL_FONT);
 			activePanel.add(label,"North");
 			activePanel.add(activeChits,"Center");
 		masterPanel.add(activePanel);
 			JPanel fatiguedPanel = new JPanel(new BorderLayout());
-				fatiguedChits = new ChitBinPanel(new ChitBinLayout(new ArrayList(character.getCompleteChitList()))) {
+				fatiguedChits = new ChitBinPanel(new ChitBinLayout(new ArrayList<StateChitComponent>(character.getCompleteChitList()))) {
 					public boolean canClickChit(ChitComponent chit) {
 						if (chit.isActionChit()) {
 							return canClickFatigue((CharacterActionChitComponent)chit);
@@ -203,13 +187,13 @@ public abstract class ChitManager extends AggressiveDialog {
 					}
 				};
 				fatiguedChits.addMouseListener(mouse);
-				label = new JLabel("Fatigued",JLabel.CENTER);
+				label = new JLabel("Fatigued",SwingConstants.CENTER);
 				label.setFont(LABEL_FONT);
 			fatiguedPanel.add(label,"North");
 			fatiguedPanel.add(fatiguedChits,"Center");
 		masterPanel.add(fatiguedPanel);
 			JPanel woundedPanel = new JPanel(new BorderLayout());
-				woundedChits = new ChitBinPanel(new ChitBinLayout(new ArrayList(character.getCompleteChitList()))) {
+				woundedChits = new ChitBinPanel(new ChitBinLayout(new ArrayList<StateChitComponent>(character.getCompleteChitList()))) {
 					public boolean canClickChit(ChitComponent chit) {
 						if (chit.isActionChit()) {
 							return canClickWound((CharacterActionChitComponent)chit);
@@ -228,7 +212,7 @@ public abstract class ChitManager extends AggressiveDialog {
 					}
 				};
 				woundedChits.addMouseListener(mouse);
-				label = new JLabel("Wounded",JLabel.CENTER);
+				label = new JLabel("Wounded",SwingConstants.CENTER);
 				label.setFont(LABEL_FONT);
 			woundedPanel.add(label,"North");
 			woundedPanel.add(woundedChits,"Center");
@@ -244,7 +228,7 @@ public abstract class ChitManager extends AggressiveDialog {
 					}
 				});
 			southDisplay.add(resetButton,"West");
-				statusLabel = new JLabel("",JLabel.CENTER);
+				statusLabel = new JLabel("",SwingConstants.CENTER);
 				statusLabel.setFont(LABEL_FONT);
 			southDisplay.add(statusLabel,"Center");
 				Box controls = Box.createHorizontalBox();
@@ -287,9 +271,9 @@ public abstract class ChitManager extends AggressiveDialog {
 		activeChits.reset();
 		fatiguedChits.reset();
 		woundedChits.reset();
-		ArrayList list = new ArrayList(character.getCompleteChitList());
+		ArrayList<StateChitComponent> list = new ArrayList<>(character.getCompleteChitList());
 		for (int i=0;i<list.size();i++) {
-			ChitComponent chit = (ChitComponent)list.get(i);
+			StateChitComponent chit = list.get(i);
 			if (chit.isActionChit()) {
 				CharacterActionChitComponent aChit = (CharacterActionChitComponent)chit;
 				if (aChit.isActive() || aChit.isColor()) {
@@ -330,7 +314,7 @@ public abstract class ChitManager extends AggressiveDialog {
 	 * @return		True if no chits are active or fatigued
 	 */
 	public boolean isDead() {
-		return activeChits.getAllChits().size()==0 && fatiguedChits.getAllChits().size()==0;
+		return activeChits.getAllChits().size()-activeChits.getColorChits().size()==0 && fatiguedChits.getAllChits().size()==0;
 	}
 	public JPanel getMasterPanel() {
 		return masterPanel;

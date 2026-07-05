@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest;
 
 import java.util.*;
@@ -25,6 +8,7 @@ import javax.swing.*;
 
 import com.robin.game.objects.*;
 import com.robin.general.swing.IconGroup;
+import com.robin.magic_realm.components.CardComponent;
 import com.robin.magic_realm.components.QuestCardComponent;
 import com.robin.magic_realm.components.RealmComponent;
 import com.robin.magic_realm.components.quest.requirement.*;
@@ -43,6 +27,7 @@ public class Quest extends GameObjectWrapper {
 	public static final String QUEST_STEP = "quest_step";
 	public static final String QUEST_LOCATION = "quest_location";
 	public static final String QUEST_MINOR_CHARS = "quest_minor_chars";
+	public static final String QUEST_COUNTER = "quest_counter";
 	public static final String QUEST_ACTION = "quest_action";
 	public static final String QUEST_REQUIREMENT = "quest_requirement";
 	public static final String QUEST_REWARD = "quest_reward";
@@ -50,6 +35,7 @@ public class Quest extends GameObjectWrapper {
 	public static final String QUEST_BLOCK = "qb";
 	private static final String DESCRIPTION = "_d";
 	public static final String STATE = "_q_state";
+	public static final String QUEST_STICKY = "quest_sticky";
 	private static final String LOST_INVENTORY_RULE = "_li";
 	private static final String LOST_INVENTORY_LOCATION = "_lil";
 	private static final String REQ_RULES = "_rr";
@@ -61,24 +47,24 @@ public class Quest extends GameObjectWrapper {
 	
 	public static Quest currentQuest;
 
-	// QuestAvailability - Which Guild? Which characters?
-
-	private ArrayList<QuestMinorCharacter> minorCharacters;
-	private ArrayList<QuestLocation> locations;
 	private ArrayList<QuestStep> steps;
 	private ArrayList<QuestRule> questRules;
+	private ArrayList<QuestLocation> locations;
+	private ArrayList<QuestMinorCharacter> minorCharacters;
+	private ArrayList<QuestCounter> counters;
 	
 	public String filepath; // This is just here so that the builder can save a quest it just loaded for viewDeck() - not guaranteed!
 	
 	public Quest(GameObject go) {
 		super(go);
-		minorCharacters = new ArrayList<QuestMinorCharacter>();
-		locations = new ArrayList<QuestLocation>();
-		steps = new ArrayList<QuestStep>();
-		questRules = new ArrayList<QuestRule>();
+		steps = new ArrayList<>();
+		questRules = new ArrayList<>();
+		locations = new ArrayList<>();
+		minorCharacters = new ArrayList<>();
+		counters = new ArrayList<>();
+		
 
-		for (Iterator i = go.getHold().iterator(); i.hasNext();) {
-			GameObject held = (GameObject) i.next();
+		for (GameObject held : go.getHold()) {
 			if (held.hasThisAttribute(Quest.QUEST_STEP)) {
 				steps.add(new QuestStep(held));
 			}
@@ -87,6 +73,9 @@ public class Quest extends GameObjectWrapper {
 			}
 			else if (held.hasThisAttribute(Quest.QUEST_MINOR_CHARS)) {
 				minorCharacters.add(new QuestMinorCharacter(held));
+			}
+			else if (held.hasThisAttribute(Quest.QUEST_COUNTER)) {
+				counters.add(new QuestCounter(held, held.getThisInt("count")));
 			}
 		}
 		Collections.sort(steps, new Comparator<QuestStep>() {
@@ -119,9 +108,8 @@ public class Quest extends GameObjectWrapper {
 		// Remove unused objects (but only when quest is in a gamedata by itself)
 		if (!getGameData().getGameName().equals(GAME_DATA_NAME))
 			return;
-		ArrayList<GameObject> toRemove = new ArrayList<GameObject>();
-		for (Iterator i = getGameData().getGameObjects().iterator(); i.hasNext();) {
-			GameObject go = (GameObject) i.next();
+		ArrayList<GameObject> toRemove = new ArrayList<>();
+		for (GameObject go : getGameData().getGameObjects()) {
 			if (go.getId() > 0 && go.getHeldBy() == null) { // Not the quest, and not held by anything... get rid of it!!
 				toRemove.add(go);
 			}
@@ -151,11 +139,10 @@ public class Quest extends GameObjectWrapper {
 		setBoolean(QuestConstants.ACTIVATEABLE,foundActive);
 	}
 
-	private ArrayList<QuestStep> filterMissingSteps(ArrayList ids) {
-		ArrayList<QuestStep> found = new ArrayList<QuestStep>();
+	private ArrayList<QuestStep> filterMissingSteps(ArrayList<String> ids) {
+		ArrayList<QuestStep> found = new ArrayList<>();
 		if (ids != null) {
-			for (Iterator i = ids.iterator(); i.hasNext();) {
-				String id = (String) i.next();
+			for (String id : ids) {
 				for (QuestStep step : steps) {
 					if (step.getGameObject().getStringId().equals(id)) {
 						found.add(step);
@@ -167,7 +154,7 @@ public class Quest extends GameObjectWrapper {
 		return found;
 	}
 
-	private void setOwner(CharacterWrapper owner) {
+	public void setOwner(CharacterWrapper owner) {
 		setString(QUEST_OWNER, owner.getGameObject().getStringId());
 	}
 
@@ -185,6 +172,11 @@ public class Quest extends GameObjectWrapper {
 			character.removeQuest(this);
 		}
 	}
+	
+	public void unassign() {
+		removeFromOwner();
+		clear(QUEST_OWNER);
+	}
 
 	public String toString() {
 		return getName();
@@ -194,8 +186,29 @@ public class Quest extends GameObjectWrapper {
 		return getBoolean(QuestConstants.QTR_ALL_PLAY);
 	}
 	
+	public String getGuild() {
+		if (getGameObject().hasAttribute(getBlockName(),QuestConstants.FOR_FIGHTERS_GUILD)) {
+			return "fighters";
+		}
+		if (getGameObject().hasAttribute(getBlockName(),QuestConstants.FOR_MAGIC_GUILD)) {
+			return "magic";
+		}
+		if (getGameObject().hasAttribute(getBlockName(),QuestConstants.FOR_THIEVES_GUILD)) {
+			return "thieves";
+		}
+		return null;
+	}
+	
 	public void clearAllPlay() {
 		clear(QuestConstants.QTR_ALL_PLAY);
+	}
+	
+	public boolean isEvent() {
+		return getBoolean(QuestConstants.BOQ_EVENT);
+	}
+	
+	public void setEvent(boolean val) {
+		setBoolean(QuestConstants.BOQ_EVENT, val);
 	}
 	
 	public boolean isTesting() {
@@ -208,10 +221,6 @@ public class Quest extends GameObjectWrapper {
 	
 	public boolean isSecretQuest() {
 		return getBoolean(QuestConstants.QTR_SECRET_QUEST);
-	}
-
-	public boolean isDiscardable() {
-		return !isAllPlay() && getState() == QuestState.Assigned;
 	}
 
 	public boolean usesMinorCharacter(QuestMinorCharacter mc) {
@@ -240,19 +249,46 @@ public class Quest extends GameObjectWrapper {
 	}
 
 	public ArrayList<String> getLocationTags() {
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList<String> list = new ArrayList<>();
 		for (QuestLocation loc : getLocations()) {
 			list.add(loc.getTagName());
 		}
 		return list;
 	}
+	
+	public boolean usesCounterTag(String tag) {
+		String desc = getDescription();
+		if (desc != null && desc.contains(tag)) {
+			return true;
+		}
 
-	public ArrayList<QuestMinorCharacter> getMinorCharacters() {
-		return minorCharacters;
+		for (QuestStep step : steps) {
+			if (step.usesCounterTag(tag)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public ArrayList<String> getCounterTags() {
+		ArrayList<String> list = new ArrayList<>();
+		for (QuestCounter counter : getCounters()) {
+			list.add(counter.getTagName());
+		}
+		return list;
 	}
 
 	public ArrayList<QuestLocation> getLocations() {
 		return locations;
+	}
+	
+	public ArrayList<QuestMinorCharacter> getMinorCharacters() {
+		return minorCharacters;
+	}
+
+	public ArrayList<QuestCounter> getCounters() {
+		return counters;
 	}
 
 	public ArrayList<QuestStep> getSteps() {
@@ -301,13 +337,13 @@ public class Quest extends GameObjectWrapper {
 		if (state == QuestState.Active) {
 			activateRequirements(character);
 		}
-		if (state == QuestState.Complete) revertAllPlay(dayKey,character);
+		if (state == QuestState.Complete && !isMultipleUse()) revertAllPlay(dayKey,character);
 	}
 	
 	public void revertAllPlay(String dayKey, CharacterWrapper character) {
 		if (!isAllPlay()) return;
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(getGameData());
-		if (hostPrefs.hasPref(Constants.QST_QUEST_CARDS)) {
+		if (hostPrefs.hasPref(Constants.QST_QUEST_CARDS) || hostPrefs.hasPref(Constants.QST_SR_QUESTS)) {
 			// Get rid of all the clones of this quest by removing from the owning character
 			for (GameObject go : findClones(getGameData().getGameObjects())) {
 				Quest clone = new Quest(go);
@@ -322,7 +358,7 @@ public class Quest extends GameObjectWrapper {
 	}
 
 	public ArrayList<GameObject> findClones(ArrayList<GameObject> objects) {
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
+		ArrayList<GameObject> list = new ArrayList<>();
 		GamePool pool = new GamePool(objects);
 		for (GameObject go : pool.find(Quest.QUEST_UNIQUE_ID + "=" + getInt(Quest.QUEST_UNIQUE_ID))) {
 			if (go.equals(getGameObject()))
@@ -335,6 +371,14 @@ public class Quest extends GameObjectWrapper {
 	public QuestState getState() {
 		String val = getString(STATE);
 		return val == null ? QuestState.New : QuestState.valueOf(val);
+	}
+	
+	public void setSticky(boolean sticky) {
+		setBoolean(QUEST_STICKY,sticky);
+	}
+	
+	public boolean isSticky() {
+		return getBoolean(QUEST_STICKY);
 	}
 
 	/**
@@ -382,10 +426,38 @@ public class Quest extends GameObjectWrapper {
 		clear(REQ_RULES);
 	}
 
-	public ArrayList getRequiredRuleKeys() {
+	public ArrayList<String> getRequiredRuleKeys() {
 		return getList(REQ_RULES);
 	}
 
+	public QuestLocation createQuestLocation() {
+		QuestLocation ql = new QuestLocation(getGameData().createNewObject());
+		ql.init();
+		int num = 1;
+		while (true) {
+			String testName = "Location" + (num++);
+			for (QuestLocation test : locations) {
+				if (test.getName().equals(testName)) {
+					testName = null;
+					break;
+				}
+			}
+			if (testName != null) {
+				ql.setName(testName);
+				break;
+			}
+		}
+		ql.setLocationType(LocationType.Any);
+		getGameObject().add(ql.getGameObject());
+		locations.add(ql);
+		return ql;
+	}
+	
+	public void deleteQuestLocation(QuestLocation location) {
+		locations.remove(location);
+		location.getGameObject().delete();
+	}
+	
 	public QuestMinorCharacter createMinorCharacter() {
 		QuestMinorCharacter mc = new QuestMinorCharacter(getGameData().createNewObject());
 		mc.init();
@@ -415,41 +487,34 @@ public class Quest extends GameObjectWrapper {
 		minorCharacters.remove(mc);
 		mc.getGameObject().delete();
 	}
-
-	public QuestLocation createQuestLocation() {
-		QuestLocation ql = new QuestLocation(getGameData().createNewObject());
-		ql.init();
+	
+	public QuestCounter createQuestCounter() {
+		QuestCounter qc = new QuestCounter(getGameData().createNewObject());
+		qc.init();
 		int num = 1;
 		while (true) {
-			String testName = "Location" + (num++);
-			for (QuestLocation test : locations) {
+			String testName = "Counter" + (num++);
+			for (QuestCounter test : counters) {
 				if (test.getName().equals(testName)) {
 					testName = null;
 					break;
 				}
 			}
 			if (testName != null) {
-				ql.setName(testName);
+				qc.setName(testName);
 				break;
 			}
 		}
-		ql.setLocationType(LocationType.Any);
-		getGameObject().add(ql.getGameObject());
-		locations.add(ql);
-		return ql;
+		getGameObject().add(qc.getGameObject());
+		counters.add(qc);
+		return qc;
 	}
 
-	public void deleteStepAt(int index) {
-		QuestStep step = steps.get(index);
-		deleteQuestStep(step);
-		renumberSteps();
+	public void deleteQuestCounter(QuestCounter counter) {
+		counters.remove(counter);
+		counter.getGameObject().delete();
 	}
-
-	public void deleteQuestLocation(QuestLocation location) {
-		locations.remove(location);
-		location.getGameObject().delete();
-	}
-
+	
 	public QuestStep createQuestStep(boolean autoConnect) {
 		QuestStep step = new QuestStep(getGameData().createNewObject());
 		step.init();
@@ -464,6 +529,12 @@ public class Quest extends GameObjectWrapper {
 		step.setId(steps.size());
 		step.setName("Quest Step " + step.getId());
 		return step;
+	}
+	
+	public void deleteStepAt(int index) {
+		QuestStep step = steps.get(index);
+		deleteQuestStep(step);
+		renumberSteps();
 	}
 
 	public void moveStep(int index, int direction) {
@@ -493,7 +564,7 @@ public class Quest extends GameObjectWrapper {
 	}
 
 	public boolean isValid() {
-		return steps.size() > 0; // TODO Need some other logic to help decide if a quest is valid...
+		return steps.size() > 0;
 	}
 
 	public boolean canChooseQuest(CharacterWrapper character, HostPrefWrapper hostPrefs) {
@@ -542,34 +613,49 @@ public class Quest extends GameObjectWrapper {
 		return true;
 	}
 	
-	private boolean verifyGameVariant(HostPrefWrapper hostPrefs) {
+	public boolean verifyGameVariant(HostPrefWrapper hostPrefs) {
 		boolean forOriginal = getBoolean(QuestConstants.VARIANT_ORIGINAL);
 		boolean forPruitts = getBoolean(QuestConstants.VARIANT_PRUITTS);
 		boolean forExpansion = getBoolean(QuestConstants.VARIANT_EXP1);
-		boolean forAny = (forOriginal && forPruitts && forExpansion) || (!forOriginal && !forPruitts && !forExpansion);
+		boolean forSuperRealm = getBoolean(QuestConstants.VARIANT_SUPER_REALM);
+		boolean forAny = (forOriginal && forPruitts && forExpansion && forSuperRealm) || (!forOriginal && !forPruitts && !forExpansion && !forSuperRealm);
 		if (forAny) return true;
 		
 		String keyVals = hostPrefs.getGameKeyVals();
 		boolean original = GameVariant.ORIGINAL_GAME_VARIANT.getKeyVals().equals(keyVals);
 		boolean pruitts = GameVariant.PRUITTS_GAME_VARIANT.getKeyVals().equals(keyVals);
 		boolean expansion = GameVariant.EXP1_GAME_VARIANT.getKeyVals().equals(keyVals);
-		if ((!forOriginal && original) || (!forPruitts && pruitts) || (!forExpansion && expansion)) return false;
+		boolean superRealm = GameVariant.SUPER_REALM.getKeyVals().equals(keyVals);
+		if ((!forOriginal && original) || (!forPruitts && pruitts) || (!forExpansion && expansion) || (!forSuperRealm && superRealm)) return false;
 		
 		return true;
 	}
 
 	/**
-	 * Initializes the quest for use by a character.
+	 * Initializes the quest for use by a character, with resetting the locations.
 	 */
 	public void initialize(JFrame parentFrame, CharacterWrapper character) {
+		initialize(parentFrame, character, true);
+	}
+	
+	/**
+	 * Initializes the quest for use by a character.
+	 */
+	public void initialize(JFrame parentFrame, CharacterWrapper character, boolean resetLocation) {
 		setOwner(character);
 		String dayKey = character.getCurrentDayKey();
 		for (QuestStep step : steps) {
 			step.setState(QuestStepState.Pending, dayKey);
 		}
+		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(getGameData());
+		if (hostPrefs.hasPref(Constants.QST_SR_QUESTS)) {
+			setState(QuestState.Active,character.getCurrentDayKey(), character);
+		}
 		updateStepStates(dayKey);
-		for (QuestLocation location : getLocations()) {
-			location.resolveQuestStart(parentFrame, character);
+		if (resetLocation) {
+			for (QuestLocation location : getLocations()) {
+				location.resolveQuestStart(parentFrame, character);
+			}
 		}
 	}
 
@@ -583,8 +669,8 @@ public class Quest extends GameObjectWrapper {
 		// How to handle MinorCharacters?  Might they be with the character?  Maybe I can prevent minor characters from moving to character until quest is active (which can't then be discarded?)
 	}
 
-	private void updateStepStates(String dayKey) {
-		Hashtable<String, QuestStep> lookup = new Hashtable<String, QuestStep>();
+	public void updateStepStates(String dayKey) {
+		Hashtable<String, QuestStep> lookup = new Hashtable<>();
 		for (QuestStep step : steps) {
 			lookup.put(step.getGameObject().getStringId(), step);
 		}
@@ -594,7 +680,7 @@ public class Quest extends GameObjectWrapper {
 
 			QuestStepType stepType = step.getLogicType();
 
-			ArrayList requiredSteps = step.getRequiredSteps();
+			ArrayList<String> requiredSteps = step.getRequiredSteps();
 			boolean markAsReady;
 			if (stepType == QuestStepType.And) {
 				// For AND, assume true, and mark false if any unfinished steps are found
@@ -604,10 +690,9 @@ public class Quest extends GameObjectWrapper {
 				// For OR, assume false if any required steps, and mark true if any finished steps are found
 				markAsReady = requiredSteps == null || requiredSteps.isEmpty();
 			}
-			ArrayList failSteps = step.getFailSteps();
+			ArrayList<String> failSteps = step.getFailSteps();
 			if (requiredSteps != null) {
-				for (Iterator i = requiredSteps.iterator(); i.hasNext();) {
-					String reqId = (String) i.next();
+				for (String reqId : requiredSteps) {
 					QuestStep requiredStep = lookup.get(reqId);
 					if (requiredStep.getState() == QuestStepState.Finished) {
 						if (stepType == QuestStepType.Or) {
@@ -640,10 +725,10 @@ public class Quest extends GameObjectWrapper {
 	}
 
 	private void clearJournalEntries() {
-		ArrayList list = getList(JOURNAL_KEYS);
+		ArrayList<String> list = getList(JOURNAL_KEYS);
 		if (list != null) {
-			for (Iterator i = list.iterator(); i.hasNext();) {
-				String blockKey = JOURNAL_KEYS + (String) i.next();
+			for (String i : list) {
+				String blockKey = JOURNAL_KEYS + i;
 				getGameObject().removeAttributeBlock(blockKey);
 			}
 			clear(JOURNAL_KEYS);
@@ -652,10 +737,10 @@ public class Quest extends GameObjectWrapper {
 
 	public ArrayList<QuestJournalEntry> getJournalEntries() {
 		ArrayList<QuestJournalEntry> entries = new ArrayList<QuestJournalEntry>();
-		ArrayList list = getList(JOURNAL_KEYS);
+		ArrayList<String> list = getList(JOURNAL_KEYS);
 		if (list != null) {
-			for (Iterator i = list.iterator(); i.hasNext();) {
-				String blockKey = JOURNAL_KEYS + (String) i.next();
+			for (String i : list) {
+				String blockKey = JOURNAL_KEYS + i;
 				QuestStepState entryType = QuestStepState.valueOf(getGameObject().getAttribute(blockKey, "entryType"));
 				String text = getGameObject().getAttribute(blockKey, "text");
 				entries.add(new QuestJournalEntry(entryType, text));
@@ -670,7 +755,7 @@ public class Quest extends GameObjectWrapper {
 	public boolean testRequirements(JFrame parentFrame, CharacterWrapper character, QuestRequirementParams reqParams) {
 		QuestState state = getState();
 
-		boolean canTest = state == QuestState.Active || ((isAllPlay() || isSecretQuest()) && state == QuestState.Assigned);
+		boolean canTest = state == QuestState.Active || ((isAllPlay() || isEvent() || isSecretQuest()) && state == QuestState.Assigned);
 		if (!canTest) {
 			return false;
 		}
@@ -721,7 +806,7 @@ public class Quest extends GameObjectWrapper {
 	public Quest copyQuestToGameData(GameData gameData) {
 		// Duplicate all the objects in the quest
 		ArrayList<GameObject> allQuestObjects = getGameObject().getAllContainedGameObjects();
-		Hashtable<Long, GameObject> lookup = new Hashtable<Long, GameObject>();
+		Hashtable<Long, GameObject> lookup = new Hashtable<>();
 		for (GameObject questGo : allQuestObjects) {
 			GameObject go = gameData.createNewObject(questGo);
 			lookup.put(questGo.getId(), go);
@@ -753,7 +838,7 @@ public class Quest extends GameObjectWrapper {
 		area.setLineWrap(true);
 		area.setEditable(false);
 		area.setOpaque(false);
-		area.setSize(600, 1);
+		area.setSize(600, CardComponent.CARD_HEIGHT);
 		QuestCardComponent card = (QuestCardComponent)RealmComponent.getRealmComponent(quest.getGameObject());
 		ImageIcon icon = null;
 		if (rc==null) {
@@ -766,5 +851,11 @@ public class Quest extends GameObjectWrapper {
 			icon = group;
 		}
 		JOptionPane.showMessageDialog(frame, area, title, JOptionPane.PLAIN_MESSAGE, icon);
+	}
+	public boolean isMultipleUse() {
+		return getBoolean(QuestConstants.QUEST_MULTIPLE_USE);
+	}
+	public void setMultipleUse(boolean val) {
+		setBoolean(QuestConstants.QUEST_MULTIPLE_USE,val);
 	}
 }

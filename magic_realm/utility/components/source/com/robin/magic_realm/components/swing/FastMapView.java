@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.swing;
 
 import java.awt.*;
@@ -26,7 +9,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Iterator;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -35,7 +17,6 @@ import javax.swing.event.MouseInputAdapter;
 import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
 import com.robin.general.graphics.GraphicsUtil;
-import com.robin.general.swing.MouseUtility;
 import com.robin.magic_realm.components.RealmComponent;
 import com.robin.magic_realm.components.TileComponent;
 import com.robin.magic_realm.components.utility.RealmObjectMaster;
@@ -52,7 +33,7 @@ public class FastMapView extends JComponent {
 	
 	// Data
 	private GameData gameData;
-	private Hashtable mapGrid;
+	private Hashtable<Point, TileComponent> mapGrid;
 	
 	// Map Drawing
 	private double scale = 1.0;
@@ -142,17 +123,16 @@ public class FastMapView extends JComponent {
 		});
 	}
 	public void updateGrid() {
-		mapGrid = new Hashtable();
-		Collection tileObjects = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
-		for (Iterator i=tileObjects.iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		mapGrid = new Hashtable<>();
+		Collection<GameObject> tileObjects = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
+		for (GameObject go : tileObjects) {
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
 			tile.setAlwaysPaint(true);
-			String pos = (String)go.getAttribute("mapGrid","mapPosition");
-			String rot = (String)go.getAttribute("mapGrid","mapRotation");
+			String pos = go.getAttribute("mapGrid","mapPosition");
+			String rot = go.getAttribute("mapGrid","mapRotation");
 			
 			if (pos!=null && rot!=null) {
-				tile.setRotation(Integer.valueOf(rot).intValue());
+				tile.setRotation(Integer.parseInt(rot));
 				Point gp = GraphicsUtil.asPoint(pos);
 				mapGrid.put(gp,tile);
 			}
@@ -167,8 +147,8 @@ public class FastMapView extends JComponent {
 		int minY = Integer.MAX_VALUE;
 		int maxX = Integer.MIN_VALUE;
 		int maxY = Integer.MIN_VALUE;
-		for (Enumeration e=mapGrid.keys();e.hasMoreElements();) {
-			Point pos = (Point)e.nextElement();
+		for (Enumeration<Point> e=mapGrid.keys();e.hasMoreElements();) {
+			Point pos = e.nextElement();
 			int x = pos.x * colWidth;
 			int y = (pos.x * rowAdjust) + (pos.y * rowHeight);
 			if (x<minX) {
@@ -214,11 +194,9 @@ public class FastMapView extends JComponent {
 		AffineTransform at = AffineTransform.getScaleInstance(scale,scale);
 		g.setTransform(at);
 		
-		for (Iterator i=mapGrid.keySet().iterator();i.hasNext();) {
-			Point gp = (Point)i.next();
+		for (Point gp : mapGrid.keySet()) {
 			Point p = convertGridToCoordinate(gp);
-//System.out.println("p="+p);
-			TileComponent tile = (TileComponent)mapGrid.get(gp);
+			TileComponent tile = mapGrid.get(gp);
 			tile.paintTo(g,p.x+offset.x,p.y+offset.y,TILE_SIZE.width,TILE_SIZE.height);
 		}
 	}

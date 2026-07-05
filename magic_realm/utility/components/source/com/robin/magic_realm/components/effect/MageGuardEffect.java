@@ -1,6 +1,6 @@
 package com.robin.magic_realm.components.effect;
 
-import java.util.Iterator;
+import java.util.Optional;
 
 import com.robin.game.objects.GameObject;
 import com.robin.magic_realm.components.ArmorChitComponent;
@@ -12,40 +12,35 @@ public class MageGuardEffect implements ISpellEffect {
 	@Override
 	public void apply(SpellEffectContext context) {
 		int ARMOR_CHOICE = 8;
-
+		
 		RealmComponent cc = RealmComponent.getRealmComponent(context.Caster);
-
+		
 		//move staff to spell
 		context.Spell.getGameObject().add(context.Target.getGameObject());
-
+		
 		//create mage guard
-		ArmorCreator creator = new ArmorCreator("mageguard");
+		ArmorCreator creator = new ArmorCreator("mageguard"); 
 		GameObject guard = creator.createOrReuseArmor(context.Game.getGameData());
 		creator.setupGameObject(guard, "Mage Guard", "staff", "H", "", 1, ARMOR_CHOICE);
-		creator.setupSide(guard, "intact", 0, "gray");
-		creator.setupSide(guard, "damaged", 0, "white");
-
+		ArmorCreator.setupSide(guard, "intact", 0, "gray");
+		ArmorCreator.setupSide(guard, "damaged", 0, "white");
+		
 		ArmorChitComponent armor = new ArmorChitComponent(guard);
 		armor.setOwner(cc);
 		armor.setActivated(true);
-
+		
 		context.Caster.add(guard);
 	}
 
 	@Override
 	public void unapply(SpellEffectContext context) {
-		GameObject guard = null;
-		for (Iterator i = context.Caster.getHoldAsGameObjects().iterator(); i.hasNext();) {
-			GameObject go = (GameObject) i.next();
-			if ("Mage Guard".equals(go.getName())) {
-				guard = go;
-				break;
-			}
-		}
-
+		Optional<GameObject> guard = context.Caster.getHold().stream()
+			.filter(go -> go.getName() == "Mage Guard")
+			.findFirst();
+		
 		//remove guard
-		if (guard != null) context.Caster.remove(guard);
-
+		if(guard.isPresent()) context.Caster.remove(guard.get());
+		
 		//return the staff
 		context.Caster.add(context.Target.getGameObject());
 	}

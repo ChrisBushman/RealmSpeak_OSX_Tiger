@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
@@ -24,6 +7,7 @@ import java.util.*;
 import javax.swing.*;
 
 import com.robin.game.objects.*;
+import com.robin.general.swing.IconFactory;
 import com.robin.magic_realm.MRMap.MapBuilder;
 import com.robin.magic_realm.components.*;
 import com.robin.magic_realm.components.attribute.TileLocation;
@@ -48,6 +32,7 @@ public class RealmViewer extends JFrame {
 	protected RealmObjectPanel nativeViewPanel;
 	protected RealmObjectPanel otherViewPanel;
 	protected RealmObjectPanel questViewPanel;
+	private static CenteredMapView map;
 	protected JTabbedPane tabbedPanels;
 	protected GameData data;
 	protected ArrayList<String> keyVals;
@@ -71,21 +56,22 @@ public class RealmViewer extends JFrame {
 	}
 	private void addData() {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> list = new ArrayList<GameObject>(pool.find(keyVals));
+		ArrayList<GameObject> list = new ArrayList<>(pool.find(keyVals));
 		
 		// Add the summonables
 		JFrame dummy = new JFrame();
-		CharacterWrapper amazon = new CharacterWrapper(data.getGameObjectByName("Amazon"));
-		list.addAll((new RaiseDead(dummy)).getOneOfEach(amazon));
-		list.addAll((new SummonAnimal(dummy)).getOneOfEach(amazon));
-		list.addAll((new SummonElemental(dummy)).getOneOfEach(amazon));
+		CharacterWrapper character = new CharacterWrapper(pool.findFirst("character"));
+		list.addAll((new RaiseDead(dummy)).getOneOfEach(character));
+		list.addAll((new SummonAnimal(dummy)).getOneOfEach(character));
+		list.addAll((new SummonElemental(dummy)).getOneOfEach(character));
+		list.addAll((new SummonDemon(dummy)).getOneOfEach(character));
 		
 		MonsterCreator mc = new MonsterCreator("test");
 		list.add(SetupCardUtility.createBlob(mc,data));
 		list.add(SetupCardUtility.createWasp(mc,data));
 		
-		ArrayList<GameObject> treasureList = new ArrayList<GameObject>();
-		ArrayList<GameObject> spellList = new ArrayList<GameObject>();
+		ArrayList<GameObject> treasureList = new ArrayList<>();
+		ArrayList<GameObject> spellList = new ArrayList<>();
 		for (GameObject obj:list) {
 			RealmComponent rc = RealmComponent.getRealmComponent(obj);
 			if (rc!=null) {
@@ -98,7 +84,7 @@ public class RealmViewer extends JFrame {
 						treasureList.add(obj);
 					}
 				}
-				else if (rc.isSpell()) {
+				else if (rc.isSpell() && !obj.hasThisAttribute(Constants.SPELL_DENIZEN)) {
 					if (notready || !SHOW_ONLY_NOTREADY) {
 						//spellViewPanel.addObject(obj);
 						spellList.add(obj);
@@ -148,6 +134,7 @@ public class RealmViewer extends JFrame {
 	}
 	private void initComponents() {
 		setTitle("Realm Viewer");
+		setIconImage(IconFactory.findIcon("images/interface/calendar.gif").getImage());
 		setSize(1300,800);
 		getContentPane().setLayout(new BorderLayout());
 		setLocation(50,50);
@@ -167,6 +154,7 @@ public class RealmViewer extends JFrame {
 		tabbedPanels.addTab("Other",new JScrollPane(otherViewPanel));
 		questViewPanel = new RealmObjectPanel(true,true);
 		tabbedPanels.addTab("Quests",new JScrollPane(questViewPanel));
+		tabbedPanels.addTab("Map",map);
 		
 		getContentPane().add(new JLabel("SHIFT-Click to flip counters"),"South");
 		
@@ -177,33 +165,44 @@ public class RealmViewer extends JFrame {
 		});
 	}
 	public static void main(String[]args) {
-		RealmComponent.displayStyle = RealmComponent.DISPLAY_STYLE_FRENZEL;// RealmComponent.DISPLAY_STYLE_COLOR;
+		RealmComponent.displayStyle = RealmComponent.DISPLAY_STYLE_ALTERNATIVE;// RealmComponent.DISPLAY_STYLE_COLOR;
+		TileComponent.displayTilesStyle = TileComponent.DISPLAY_TILES_STYLE_LEGENDARY_WITH_ICONS;
 		RealmUtility.setupTextType();
 		RealmLoader loader = new RealmLoader();
 		GameData data = loader.getData();
-		ArrayList<String> query = new ArrayList<String>();
-		query.add("rw_expansion_1");
-		StringBuffer result = new StringBuffer();
-		data.doSetup(result,"rw_expansion_1_setup",query);
-		//query.add("!original_game");
-		
-		boolean showPieces = true;
-		boolean showMap = false;
-		boolean showChooser = false;
-		
-		if (showPieces) {
-			new RealmViewer(data,query).setVisible(true);
+		GamePool pool = new GamePool(data.getGameObjects());
+		ArrayList<GameObject> expansions = pool.find("!original_game,!ts_section,!tile,rw_expansion_1");
+		expansions.addAll(pool.find("spell,new_spells_1"));
+		expansions.addAll(pool.find("spell,new_spells_2"));
+		for (GameObject go:expansions) {
+			go.setThisKeyVals("super_realm");
 		}
 		
-		if (showChooser || showMap) {
-			HostPrefWrapper hostPrefs = new HostPrefWrapper(data.createNewObject());
-			hostPrefs.setHostName("Test");
-			hostPrefs.setGameKeyVals(Constants.ORIGINAL_GAME);
-			ArrayList keyVals = new ArrayList();
-			keyVals.add(Constants.ORIGINAL_GAME);
-			while(!MapBuilder.autoBuildMap(data,keyVals));
-			
-			if (showMap) {
+		ArrayList<String> query = new ArrayList<String>();
+		StringBuffer result = new StringBuffer();
+		query.add("super_realm");
+		HostPrefWrapper hostPrefs = new HostPrefWrapper(data.createNewObject());
+		hostPrefs.setHostName("RealViewer");
+		hostPrefs.setGameKeyVals("super_realm");
+		hostPrefs.setStartingSeason("No Seasons");
+		data.doSetup(result,"super_realm_setup",query);
+		ArrayList<String> keyVals = new ArrayList<>();
+		keyVals.add("super_realm");
+		while(!MapBuilder.autoBuildMap(data,keyVals));
+		
+		map = new CenteredMapView(data,true,false);
+		CenteredMapView.clearTileLayer();
+		CenteredMapView.initSingleton(data);
+		map.setScale(0.2);
+		map.centerMap();
+				
+		new RealmViewer(data,query).setVisible(true);			
+	
+		boolean showExtraMap = false;
+		boolean showChooser = false;
+		if (showChooser || showExtraMap) {
+			String anchorTile = "Falls";
+			if (showExtraMap) {
 				JFrame mapFrame = new JFrame("map");
 				mapFrame.getContentPane().setLayout(new BorderLayout());
 				final CenteredMapView map = new CenteredMapView(data);
@@ -253,7 +252,7 @@ public class RealmViewer extends JFrame {
 				}
 			}
 			if (showChooser) {
-				GameObject go = data.getGameObjectByName("Borderland");
+				GameObject go = data.getGameObjectByName(anchorTile);
 				TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
 				TileLocation tl = new TileLocation(tile.getClearing(1));
 				CenteredMapView.initSingleton(data);

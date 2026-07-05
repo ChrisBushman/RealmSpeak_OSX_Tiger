@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmCharacterBuilder.EditPanel;
 
 import java.awt.BorderLayout;
@@ -40,6 +23,7 @@ public class StartingInventoryEditPanel extends AdvantageEditPanel {
 	private JButton treasureInventoryButton;
 	private JButton renameTreasureButton;
 	private JButton horsesInventoryButton;
+	private JButton weaponInventoryButton;
 	
 	private RealmComponent extraInventory;
 	
@@ -113,6 +97,20 @@ public class StartingInventoryEditPanel extends AdvantageEditPanel {
 			line.add(horsesInventoryButton);
 			line.add(Box.createHorizontalGlue());
 		main.add(line);
+		main.add(Box.createVerticalStrut(25));
+			line = Box.createHorizontalBox();
+			line.add(Box.createHorizontalGlue());
+			weaponInventoryButton = new JButton("Pick Weapon");
+			weaponInventoryButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ev) {
+					pickWeapon();
+					updateIcon();
+				}
+			});
+			ComponentTools.lockComponentSize(weaponInventoryButton,100,40);
+			line.add(weaponInventoryButton);
+			line.add(Box.createHorizontalGlue());
+		main.add(line);
 		main.add(Box.createVerticalGlue());
 		add(main,"Center");
 		
@@ -126,7 +124,7 @@ public class StartingInventoryEditPanel extends AdvantageEditPanel {
 		}
 	}
 	private void pickTreasure() {
-		ArrayList query = new ArrayList();
+		ArrayList<String> query = new ArrayList<>();
 		query.add("treasure");
 		query.add("!treasure_within_treasure");
 		query.add("!book");
@@ -139,34 +137,55 @@ public class StartingInventoryEditPanel extends AdvantageEditPanel {
 		}
 	}
 	private void pickHorse() {
-		ArrayList query = new ArrayList();
-		query.add("original_game"); // original game only for now
+		ArrayList<String> query = new ArrayList<>();
 		query.add("horse");
 		GameObject go = pickGameObject(query,"Choose a Horse:");
 		if (go!=null) {
 			extraInventory = new SteedChitComponent(go);
 		}
 	}
-	private GameObject pickGameObject(ArrayList query,String title) {
+	private void pickWeapon() {
+		ArrayList<String> query = new ArrayList<>();
+		query.add("weapon");
+		query.add("!treasure");
+		GameObject go = pickGameObject(query,"Choose a Weapon:");
+		if (go!=null) {
+			extraInventory = new WeaponChitComponent(go);
+		}
+	}
+	private GameObject pickGameObject(ArrayList<String> query,String title) {
 		GamePool pool = new GamePool(magicRealmData.getGameObjects());
 		ArrayList<GameObject> list = pool.find(query);
-		ArrayList<GameObject> remove = new ArrayList<GameObject>();
+		ArrayList<GameObject> remove = new ArrayList<>();
 		for(GameObject go:list) {
 			if (go.getHoldCount()>0) {
 				remove.add(go);
 			}
 			else {
-				go.setThisAttribute(Constants.FACING_KEY,CardComponent.FACE_UP);
+				if (!go.hasThisAttribute("weapon") || go.hasThisAttribute("treasure")) {
+					go.setThisAttribute(Constants.FACING_KEY,CardComponent.FACE_UP);
+				}
 			}
 		}
 		list.removeAll(remove);
-		Collections.sort(list,new Comparator<GameObject>() {
+		
+		//filter duplicates
+		ArrayList<GameObject> listFiltered = new ArrayList<>();
+		ArrayList<String> names = new ArrayList<>();
+		for (GameObject go:list) {
+			if (!names.contains(go.getName())) {
+				listFiltered.add(go);
+				names.add(go.getName());
+			}
+		}
+		
+		Collections.sort(listFiltered,new Comparator<GameObject>() {
 			public int compare(GameObject g1,GameObject g2) {
 				return g1.getName().compareTo(g2.getName());
 			}
 		});
 		RealmObjectChooser chooser = new RealmObjectChooser(title,magicRealmData,true,true);
-		chooser.addObjectsToChoose(list);
+		chooser.addObjectsToChoose(listFiltered);
 		chooser.setVisible(true);
 		RealmComponent.reset(); // Don't keep a cache!
 		GameObject pick = chooser.getChosenObject();
@@ -179,7 +198,9 @@ public class StartingInventoryEditPanel extends AdvantageEditPanel {
 			go.removeThisAttribute("activated");
 			go.removeThisAttribute("native");
 			go.setThisAttribute(Constants.LEVEL_KEY_TAG,getLevelKey());
-			go.setThisAttribute(Constants.FACING_KEY,CardComponent.FACE_UP);
+			if (!go.hasThisAttribute("weapon") || go.hasThisAttribute("treasure")) {
+				go.setThisAttribute(Constants.FACING_KEY,CardComponent.FACE_UP);
+			}
 			pick = go;
 		}
 		return pick;

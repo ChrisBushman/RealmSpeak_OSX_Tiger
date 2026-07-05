@@ -28,13 +28,13 @@ public class ControlEffect implements ISpellEffect {
 								caster.getName(),
 								spellObj.getName()+" was cancelled because the "
 								+caster.getName()+"'s hirelings are already attacking the "
-								+target.getGameObject().getName());
+								+target.getGameObject().getNameWithNumber());
 						
 						// Remove target manually
-						ArrayList targetids = new ArrayList(context.Spell.getList("target_ids"));
+						ArrayList<String> targetids = new ArrayList<>(context.Spell.getList("target_ids"));
 						targetids.remove(target.getGameObject().getStringId());
 						if (targetids.isEmpty()) {
-							context.Spell.expireSpell();
+							context.Spell.cancelSpell();
 						}
 						else {
 							context.Spell.setList("target_ids",targetids);
@@ -45,7 +45,7 @@ public class ControlEffect implements ISpellEffect {
 			}
 			
 			// For now, clear the target, though this isn't totally right (see rule 45.5)
-			target.clearTarget();
+			target.clearTargets();
 			if (target.isMonster() || target.isNative()) {
 				ChitComponent chit = (ChitComponent)target;
 				if (chit.isDarkSideUp()) { // Always flip to light side on control!
@@ -58,8 +58,7 @@ public class ControlEffect implements ISpellEffect {
 			target.setOwner(RealmComponent.getRealmComponent(context.Spell.getCaster().getGameObject()));
 			combat.setSheetOwner(true);
 			combat.setWatchful(false);
-//			combat.removeAllAttackers();
-		
+//			combat.removeAllAttackers();	
 	}
 
 	@Override

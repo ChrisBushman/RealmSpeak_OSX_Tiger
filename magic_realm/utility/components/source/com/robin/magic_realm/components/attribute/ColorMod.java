@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.attribute;
 
 import java.util.ArrayList;
@@ -36,14 +19,14 @@ public class ColorMod {
 	private void setMod(String mod) {
 		// Like 1.2;1.3 (means white->grey, white->gold)
 		boolean error = false;
-		conversions = new HashLists<Integer,Integer>();
+		conversions = new HashLists<>();
 		StringTokenizer changes = new StringTokenizer(mod,";");
 		try {
 			while(changes.hasMoreTokens()) {
 				String change = changes.nextToken();
 				int dot = change.indexOf('.');
-				int fromColor = Integer.valueOf(change.substring(0,dot));
-				int toColor = Integer.valueOf(change.substring(dot+1));
+				int fromColor = Integer.parseInt(change.substring(0,dot));
+				int toColor = Integer.parseInt(change.substring(dot+1));
 				conversions.put(fromColor,toColor);
 			}
 		}
@@ -77,12 +60,11 @@ public class ColorMod {
 				}
 			}
 		}
-		
 		return modColors;
 	}
 
 	private ArrayList<ColorMagic> stripConvertedColors(ArrayList<ColorMagic> colors) {
-		ArrayList<ColorMagic> filteredColors = new ArrayList<ColorMagic>();
+		ArrayList<ColorMagic> filteredColors = new ArrayList<>();
 		for(ColorMagic magic:colors) {
 			if (!conversions.containsKey(magic.getColorNumber())) {
 				filteredColors.add(magic);
@@ -94,7 +76,7 @@ public class ColorMod {
 	public static ArrayList<ColorMagic> getConvertedColorsForThings(ArrayList<GameObject> things,ArrayList<ColorMagic> colors) {
 		ArrayList<ColorMod> list = createColorMods(things);
 		if (!list.isEmpty()) {
-			ArrayList<ColorMagic> modified = new ArrayList<ColorMagic>();
+			ArrayList<ColorMagic> modified = new ArrayList<>();
 			for (ColorMod mod:list) {
 				for (ColorMagic magic:mod.getModifiedColors(colors)) {
 					if (!magic.isInfinite() || !modified.contains(magic)) {
@@ -110,7 +92,7 @@ public class ColorMod {
 		return colors;
 	}
 	private static ArrayList<ColorMod> createColorMods(ArrayList<GameObject> things) {
-		ArrayList<ColorMod> list = new ArrayList<ColorMod>();
+		ArrayList<ColorMod> list = new ArrayList<>();
 		for (GameObject thing:things) {
 			ColorMod mod = createColorMod(thing);
 			if (mod!=null) {

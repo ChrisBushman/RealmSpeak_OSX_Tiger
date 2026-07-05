@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.GameBuilder;
 
 import java.awt.BorderLayout;
@@ -57,8 +40,8 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 	
 	protected GameBuilderFrame parent;
 	protected GameData data;
-	protected Hashtable gameObjectFrames;
-	protected Hashtable gameSetupFrames;
+	protected Hashtable<String, GameObjectFrame> gameObjectFrames;
+	protected Hashtable<String, GameSetupFrame> gameSetupFrames;
 	
 	public JTextField objectsFilterField;
 	protected ListManagerPane objectsPane;
@@ -71,8 +54,8 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 		this.data = data;
 		lastPath = null;
 		filePath = null;
-		gameObjectFrames = new Hashtable();
-		gameSetupFrames = new Hashtable();
+		gameObjectFrames = new Hashtable<String, GameObjectFrame>();
+		gameSetupFrames = new Hashtable<String, GameSetupFrame>();
 		data.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent ev) {
 				updateControls();
@@ -124,8 +107,7 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 				save(component);
 			}
 		}
-		for (Iterator i=gameObjectFrames.values().iterator();i.hasNext();) {
-			GameObjectFrame frame = (GameObjectFrame)i.next();
+		for (GameObjectFrame frame : gameObjectFrames.values()) {
 			frame.setVisible(false);
 			parent.getDesktop().remove(frame);
 		}
@@ -165,13 +147,9 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 			if (!zipfile) {
 				return data.saveToFile(filePath);
 			}
-			else {
-				return data.zipToFile(filePath);
-			}
+			return data.zipToFile(filePath);
 		}
-		else {
-			return saveAs(component);
-		}
+		return saveAs(component);
 	}
 	public boolean saveAs(Component component) {
 		updateLastPath();
@@ -193,7 +171,7 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 		}
 		return false;
 	}
-	public boolean revert(Component component) {
+	public boolean revert() {
 		updateLastPath();
 		if (filePath!=null) {
 			return data.loadFromFile(filePath);
@@ -240,7 +218,7 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 		Box box;
 		JPanel panel;
 		JButton button;
-		setSize(500,500);
+		setSize(800,800);
 		setContentPane(new JPanel());
 		getContentPane().setLayout(new BorderLayout(5,5));
 			Box top = Box.createVerticalBox();
@@ -301,14 +279,13 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 						public void duplicate() {
 							int[] row = getSelectedRows();
 							
-							ArrayList objectsToDuplicate = new ArrayList();
+							ArrayList<GameObject> objectsToDuplicate = new ArrayList<>();
 							for (int i=0;i<row.length;i++) {
-								GameObject obj = (GameObject)data.getFilteredGameObjects().get(row[i]);
+								GameObject obj = data.getFilteredGameObjects().get(row[i]);
 								objectsToDuplicate.add(obj);
 							}
 							
-							for (Iterator i=objectsToDuplicate.iterator();i.hasNext();) {
-								GameObject selObj = (GameObject)i.next();
+							for (GameObject selObj : objectsToDuplicate) {
 								GameObject obj = data.createNewObject();
 								obj.copyAttributesFrom(selObj);
 							}
@@ -319,15 +296,22 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 							int[] row = getSelectedRows();
 							
 							// First get all selected objects
-							ArrayList delObjects = new ArrayList();
+							ArrayList<GameObject> delObjects = new ArrayList<>();
 							for (int i=0;i<row.length;i++) {
-								GameObject obj = (GameObject)data.getFilteredGameObjects().get(row[i]);
+								GameObject obj = data.getFilteredGameObjects().get(row[i]);
 								delObjects.add(obj);
 							}
 							
+							// Delete references
+							for (GameObject del : delObjects) {
+								GameObject parent = del.getHeldBy();
+								if (parent!=null) {
+									parent.remove(del);
+								}
+							}
+							
 							// Now delete them
-							for (Iterator i=delObjects.iterator();i.hasNext();) {
-								GameObject obj = (GameObject)i.next();
+							for (GameObject obj : delObjects) {
 								data.removeObject(obj);
 								GameObjectFrame of = getObjectFrame(obj);
 								if (parent.getDesktop().getIndexOf(of)!=-1) {
@@ -338,7 +322,7 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 						}
 						public void edit() {
 							int row = getSelectedRow();
-							GameObject obj = (GameObject)data.getFilteredGameObjects().get(row);
+							GameObject obj = data.getFilteredGameObjects().get(row);
 							GameObjectFrame of = getObjectFrame(obj);
 							popUpInternalFrame(of);
 						}
@@ -356,19 +340,19 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 									}
 									
 									if (val!=null) {
-										ArrayList editObjects = new ArrayList(data.getFilteredGameObjects());
+										ArrayList<GameObject> editObjects = new ArrayList<>(data.getFilteredGameObjects());
 										int[] row = getSelectedRows();
 										if (removingChange) {
 											// Remove attribute from all selected objects
 											for (int i=0;i<row.length;i++) {
-												GameObject obj = (GameObject)editObjects.get(row[i]);
+												GameObject obj = editObjects.get(row[i]);
 												obj.removeAttribute(blockName,key);
 											}
 										}
 										else {
 											// Add attribute to all selected objects
 											for (int i=0;i<row.length;i++) {
-												GameObject obj = (GameObject)editObjects.get(row[i]);
+												GameObject obj = editObjects.get(row[i]);
 												obj.setAttribute(blockName,key,val);
 											}
 										}
@@ -383,9 +367,9 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 							// First get all selected objects
 							int min = Integer.MAX_VALUE;
 							int max = Integer.MIN_VALUE;
-							ArrayList shiftObjects = new ArrayList();
+							ArrayList<GameObject> shiftObjects = new ArrayList<>();
 							for (int i=0;i<row.length;i++) {
-								GameObject obj = (GameObject)data.getFilteredGameObjects().get(row[i]);
+								GameObject obj = data.getFilteredGameObjects().get(row[i]);
 								shiftObjects.add(obj);
 								min = Math.min(row[i],min);
 								max = Math.max(row[i],max);
@@ -394,7 +378,7 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 							if (direction==1) {
 								// Down
 								if ((max+1)<data.getFilteredGameObjects().size()) {
-									GameObject obj = (GameObject)data.getFilteredGameObjects().get(max+1);
+									GameObject obj = data.getFilteredGameObjects().get(max+1);
 									data.moveObjectsAfter(shiftObjects,obj);
 									updateSelection(shiftObjects);
 								}
@@ -402,17 +386,17 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 							else {
 								// Up
 								if ((min-1)>=0) {
-									GameObject obj = (GameObject)data.getFilteredGameObjects().get(min-1);
+									GameObject obj = data.getFilteredGameObjects().get(min-1);
 									data.moveObjectsBefore(shiftObjects,obj);
 									updateSelection(shiftObjects);
 								}
 							}
 							
 						}
-						public void updateSelection(ArrayList objects) {
+						public void updateSelection(ArrayList<GameObject> objects) {
 							int[] row = new int[objects.size()];
 							int n=0;
-							for (Iterator i=objects.iterator();i.hasNext();) {
+							for (Iterator<GameObject> i=objects.iterator();i.hasNext();) {
 								row[n++] = data.getFilteredGameObjects().indexOf(i.next());
 							}
 							setSelectedRows(row);
@@ -429,7 +413,7 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 					}
 					public void duplicate() {
 						int row = getSelectedRow();
-						GameSetup selSetup = (GameSetup)data.getGameSetups().get(row);
+						GameSetup selSetup = data.getGameSetups().get(row);
 						GameSetup setup = data.createNewSetup();
 						setup.copyCommandsFrom(selSetup);
 						// no need to pop up a frame
@@ -438,15 +422,14 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 						int[] row = getSelectedRows();
 						
 						// First get all selected objects
-						ArrayList delSetups = new ArrayList();
+						ArrayList<GameSetup> delSetups = new ArrayList<>();
 						for (int i=0;i<row.length;i++) {
-							GameSetup setup = (GameSetup)data.getGameSetups().get(row[i]);
+							GameSetup setup = data.getGameSetups().get(row[i]);
 							delSetups.add(setup);
 						}
 						
 						// Now delete them
-						for (Iterator i=delSetups.iterator();i.hasNext();) {
-							GameSetup setup = (GameSetup)i.next();
+						for (GameSetup setup : delSetups) {
 							data.removeSetup(setup);
 							GameSetupFrame sf = getSetupFrame(setup);
 							if (parent.getDesktop().getIndexOf(sf)!=-1) {
@@ -457,7 +440,7 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 					}
 					public void edit() {
 						int row = getSelectedRow();
-						GameSetup setup = (GameSetup)data.getGameSetups().get(row);
+						GameSetup setup = data.getGameSetups().get(row);
 						GameSetupFrame sf = getSetupFrame(setup);
 						popUpInternalFrame(sf);
 					}
@@ -466,7 +449,7 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 		getContentPane().add(pane,"Center");
 			statusField = new JLabel(" ");
 		getContentPane().add(statusField,"South");
-		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		addInternalFrameListener(new InternalFrameAdapter() {
 			public void internalFrameClosing(InternalFrameEvent ev) {
 				close(parent);
@@ -495,7 +478,7 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 	public GameObjectFrame getObjectFrame(GameObject obj) {
 		GameObjectFrame frame = null;
 		if (obj!=null) {
-			frame = (GameObjectFrame)gameObjectFrames.get(obj.getBarcode());
+			frame = gameObjectFrames.get(obj.getBarcode());
 		}
 		if (frame==null) {
 			frame = createNewObjectFrame(obj);
@@ -515,7 +498,7 @@ public class GameDataFrame extends JInternalFrame implements Modifyable,Saveable
 	public GameSetupFrame getSetupFrame(GameSetup setup) {
 		GameSetupFrame frame = null;
 		if (setup!=null) {
-			frame = (GameSetupFrame)gameSetupFrames.get(setup.getBarcode());
+			frame = gameSetupFrames.get(setup.getBarcode());
 		}
 		if (frame==null) {
 			frame = createNewSetupFrame(setup);

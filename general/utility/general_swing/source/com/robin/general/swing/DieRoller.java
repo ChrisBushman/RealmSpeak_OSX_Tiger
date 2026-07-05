@@ -1,26 +1,9 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.swing;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.text.DecimalFormat;
+import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.*;
 
@@ -48,8 +31,8 @@ public class DieRoller extends JComponent {
 	
 	private static final Font font = new Font(MODIFIER_FONT_NAME,Font.BOLD,12);
 	
-	protected ArrayList<Die> dice = new ArrayList<Die>();
-	protected Collection actionListeners;
+	protected ArrayList<Die> dice = new ArrayList<>();
+	protected Collection<ActionListener> actionListeners;
 	protected boolean hasRolled = false;
 	
 	protected boolean showPane = false;
@@ -82,7 +65,7 @@ public class DieRoller extends JComponent {
 		}
 		int amp = stringResult.indexOf("&");
 		if (amp>=0) {
-			modifier = Integer.valueOf(stringResult.substring(amp+1)).intValue(); // NFE is correct behavior if not a number
+			modifier = Integer.parseInt(stringResult.substring(amp+1)); // NFE is correct behavior if not a number
 			stringResult = stringResult.substring(0,amp);
 		}
 		StringTokenizer tokens = new StringTokenizer(stringResult,":");
@@ -155,7 +138,7 @@ public class DieRoller extends JComponent {
 	}
 	public void addActionListener(ActionListener listener) {
 		if (actionListeners==null) {
-			actionListeners = new ArrayList();
+			actionListeners = new ArrayList<>();
 		}
 		actionListeners.add(listener);
 	}
@@ -170,8 +153,7 @@ public class DieRoller extends JComponent {
 	private void fireActionPerformed() {
 		if (actionListeners!=null) {
 			ActionEvent ev = new ActionEvent(this,0,"Dice Rolled");
-			for (Iterator i=actionListeners.iterator();i.hasNext();) {
-				ActionListener listener = (ActionListener)i.next();
+			for (ActionListener listener : actionListeners) {
 				listener.actionPerformed(ev);
 			}
 		}
@@ -195,6 +177,17 @@ public class DieRoller extends JComponent {
 			fireActionPerformed();
 			repaint();
 		}
+	}
+	public void setDice(int number) {
+		for (Die die:dice) {
+				die.setFace(number);
+		}
+		hasRolled = true;
+		if (rollLogger!=null) {
+				rollLogger.addDieRoll(this,null);
+		}
+		fireActionPerformed();
+		repaint();
 	}
 	public void addWhiteDie() {
 		addDie(Color.white,Color.black,Die.WHITE);
@@ -258,7 +251,13 @@ public class DieRoller extends JComponent {
 	public void setAllRed() {
 		for (Die die:dice) {
 			die.setColor(Color.red,Color.white);
-			die.setName("red");
+			die.setName(Die.RED);
+		}
+	}
+	public void setAllWhite() {
+		for (Die die:dice) {
+			die.setColor(Color.white,Color.black);
+			die.setName(Die.WHITE);
 		}
 	}
 	public int getTotal() {
@@ -286,6 +285,15 @@ public class DieRoller extends JComponent {
 			}
 		}
 		return max+modifier;
+	}
+	public int getLowDieResult() {
+		int min = 12;
+		for (Die die:dice) {
+			if (die.getValue()<min) {
+				min = die.getValue();
+			}
+		}
+		return min+modifier;
 	}
 	public void updateSize() {
 		updateSize(2);
@@ -402,8 +410,8 @@ public class DieRoller extends JComponent {
 		return getDescription(false);
 	}
 	
-	public static ArrayList breakOutRollers(String in,int dieSize,int dotSize) {
-		ArrayList list = new ArrayList();
+	public static ArrayList<Serializable> breakOutRollers(String in,int dieSize,int dotSize) {
+		ArrayList<Serializable> list = new ArrayList<>();
 		int n;
 		boolean addingString = true;
 		if (in.startsWith(LOG_ANNOTATION)) {
@@ -437,16 +445,14 @@ public class DieRoller extends JComponent {
 		StringBuffer sb = new StringBuffer();
 		sb.append("This is a die roller here: ");
 		DieRoller roller = new DieRoller();
-//		roller.addWhiteDie();
-//		roller.addWhiteDie();
 		roller.rollDice();
 		sb.append(roller.getLogAnnotation());
 		sb.append(", but does that work?");
 		
 		System.out.println(sb.toString());
-		ArrayList list = DieRoller.breakOutRollers(sb.toString(),10,2);
-		for (Iterator i=list.iterator();i.hasNext();) {
-			System.out.println(i.next());
+		ArrayList<Serializable> list = DieRoller.breakOutRollers(sb.toString(),10,2);
+		for (Serializable i : list) {
+			System.out.println(i);
 		}
 	}
 	/**
@@ -456,7 +462,6 @@ public class DieRoller extends JComponent {
 		JFrame frame = new JFrame();
 		frame.getContentPane().setLayout(new BorderLayout());
 			final DieRoller roller = new DieRoller();
-//roller.adjustDieSize(25,6);
 			roller.addWhiteDie();
 			roller.addWhiteDie();
 			roller.addWhiteDie();
@@ -479,7 +484,7 @@ public class DieRoller extends JComponent {
 		roller.addWhiteDie();
 		int total = 0;
 		int[] bin = new int[6];
-		NumberFormat format = DecimalFormat.getPercentInstance();
+		NumberFormat format = NumberFormat.getPercentInstance();
 		while(true) {
 			roller.reset();
 			roller.rollDice();

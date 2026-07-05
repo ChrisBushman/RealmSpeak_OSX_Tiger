@@ -1,25 +1,7 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.utility;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 
 import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
@@ -72,10 +54,10 @@ public class RealmDirectInfoHolder {
 	private static final int GAME_OBJECT_ID_LIST_START = 3;
 	
 	private GameData data;
-	private ArrayList list;
+	private ArrayList<String> list;
 	public RealmDirectInfoHolder(GameData data) {
 		this.data = data;
-		list = new ArrayList();
+		list = new ArrayList<>();
 		// Three required placeholders
 		list.add("");
 		list.add("");
@@ -84,12 +66,12 @@ public class RealmDirectInfoHolder {
 	public String toString() {
 		return "RealmDirectInfoHolder: "+list.toString();
 	}
-	public RealmDirectInfoHolder(GameData data,ArrayList in) {
+	public RealmDirectInfoHolder(GameData data,ArrayList<String> in) {
 		this(data);
 		if (in.size()<GAME_OBJECT_ID_LIST_START) {
 			throw new IllegalArgumentException("Invalid list");
 		}
-		list = new ArrayList(in);
+		list = new ArrayList<>(in);
 	}
 	public RealmDirectInfoHolder(GameData data,String playerName) {
 		this(data);
@@ -101,7 +83,7 @@ public class RealmDirectInfoHolder {
 		list.set(CHAR_INCLUDE,include.getGameObject().getStringId());
 	}
 	public String getPlayerName() {
-		return (String)list.get(CHAR_ACTIVE);
+		return list.get(CHAR_ACTIVE);
 	}
 	public void setCommand(String in) {
 		list.set(COMMAND,in);
@@ -111,62 +93,62 @@ public class RealmDirectInfoHolder {
 		list.add(String.valueOf(in));
 	}
 	public int getGold() {
-		String val = (String)list.get(GAME_OBJECT_ID_LIST_START);
-		return Integer.valueOf(val).intValue();
+		String val = list.get(GAME_OBJECT_ID_LIST_START);
+		return Integer.parseInt(val);
 	}
 	public void setString(String in) {
 		clearGameObjectList();
 		list.add(in);
 	}
 	public String getString() {
-		return (String)list.get(GAME_OBJECT_ID_LIST_START);
+		return list.get(GAME_OBJECT_ID_LIST_START);
 	}
-	public void setGameObjects(Collection in) {
+	public void setGameObjects(Collection<GameObject> in) {
 		clearGameObjectList();
-		for (Iterator i=in.iterator();i.hasNext();) {
-			addGameObject((GameObject)i.next());
+		for (GameObject i : in) {
+			addGameObject(i);
 		}
 	}
-	public void setStrings(Collection in) {
+	public void setStrings(Collection<String> in) {
 		clearGameObjectList();
 		list.addAll(in);
 	}
 	public void clearGameObjectList() {
-		list = new ArrayList(list.subList(0,3));
+		list = new ArrayList<>(list.subList(0,3));
 	}
 	public void addGameObject(GameObject go) {
 		list.add(go.getStringId());
 	}
 	public String getCommand() {
-		return (String)list.get(COMMAND);
+		return list.get(COMMAND);
 	}
 	public CharacterWrapper getActiveCharacter() {
-		String id = (String)list.get(CHAR_ACTIVE);
+		String id = list.get(CHAR_ACTIVE);
 		GameObject go = data.getGameObject(Long.valueOf(id));
 		return new CharacterWrapper(go);
 	}
 	public CharacterWrapper getIncludeCharacter() {
-		String id = (String)list.get(CHAR_INCLUDE);
+		String id = list.get(CHAR_INCLUDE);
 		GameObject go = data.getGameObject(Long.valueOf(id));
 		return new CharacterWrapper(go);
 	}
-	public ArrayList getGameObjects() {
-		ArrayList ret = new ArrayList();
+	public ArrayList<GameObject> getGameObjects() {
+		ArrayList<GameObject> ret = new ArrayList<>();
 		for (int i=GAME_OBJECT_ID_LIST_START;i<list.size();i++) {
-			String id = (String)list.get(i);
+			String id = list.get(i);
 			ret.add(data.getGameObject(Long.valueOf(id)));
 		}
 		return ret;
 	}
 	public ArrayList<String> getStrings() {
-		ArrayList<String> ret = new ArrayList<String>();
+		ArrayList<String> ret = new ArrayList<>();
 		for (int i=GAME_OBJECT_ID_LIST_START;i<list.size();i++) {
-			String string = (String)list.get(i);
+			String string = list.get(i);
 			ret.add(string);
 		}
 		return ret;
 	}
-	public ArrayList getInfo() {
+	public ArrayList<String> getInfo() {
 		return list;
 	}
 }

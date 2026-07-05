@@ -1,24 +1,8 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.wrapper;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -28,8 +12,11 @@ import com.robin.game.server.*;
 import com.robin.magic_realm.components.*;
 import com.robin.magic_realm.components.attribute.*;
 import com.robin.magic_realm.components.effect.ISpellEffect;
+import com.robin.magic_realm.components.effect.NullifyEffect;
 import com.robin.magic_realm.components.effect.SpellEffectContext;
 import com.robin.magic_realm.components.effect.SpellEffectFactory;
+import com.robin.magic_realm.components.quest.CharacterActionType;
+import com.robin.magic_realm.components.quest.requirement.QuestRequirementParams;
 import com.robin.magic_realm.components.utility.*;
 
 /*
@@ -41,20 +28,26 @@ import com.robin.magic_realm.components.utility.*;
 public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	public static final JFrame dummyFrame = new JFrame(); // this is so affectSpells can work on Battle emulator
 	
-	private static final String SPELL_ALIVE = "alive";		// Any spell that is alive - could be inert or nullified, but it is alive
+	public static final String SPELL_BLOCK_NAME = "_s_Block";
+	
+	public static final String SPELL_ALIVE = "alive";		// Any spell that is alive - could be inert or nullified, but it is alive
 	private static final String SPELL_INERT = "inert";		// Inert means that the spell is alive, but not functioning due to lack of color
 	private static final String SPELL_AFFECTED = "affected";	// indicates the spell has affected targets
 	private static final String SPELL_NULLIFIED = "nullified";	// A spell is nullified when the target is melted into mist, but will be restored when that condition ends
+	public static final String NULLIFIED_SPELLS = "nullified_spells"; // Other spells which have been nullified by this spell
 	private static final String SPELL_VIRTUAL = "virtual";		// A virtual spell is an instance of a real spell when cast using Enhanced Magic rules (i.e., the spell isn't tied up)
 	public static final String INCANTATION_TIE = "incantation_tie";
-	private static final String CASTER_ID = "caster_id";
+	public static final String NO_INCANTATION_TIE = "no_incantation_tie";
+	public static final String COLOR_CHIT = "color_chit";
+	public static final String CASTER_ID = "caster_id";
 	
 	private static final String TARGET_IDS = "target_ids";
 	private static final String TARGET_EXTRA_IDENTIFIER = "target_ex_id";
-	private static final String SECONDARY_TARGET = "secondary_target";
+	public static final String SECONDARY_TARGET = "secondary_target";
 	private static final String RED_DIE_LOCK = "red_die_lock";
 
 	private static final String ALWAYS_ACTIVE = "always_active";
+	public static final String SPELL_EXPIRES_AT_ROUND_END = "expires_at_round_end";
 	
 	public SpellWrapper(GameObject go) {
 		super(go);
@@ -72,7 +65,10 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		return getGameObject().getName();
 	}
 	public String getBlockName() {
-		return "_s_Block";
+		return SPELL_BLOCK_NAME;
+	}
+	public SpellWrapper getSpell() {
+		return this;
 	}
 	public ColorMagic getRequiredColorMagic() {
 		return ColorMagic.makeColorMagic(getGameObject().getThisAttribute("magic_color"),true);
@@ -83,8 +79,32 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	public int getConflictStrength() {
 		return getGameObject().getThisInt("spell_strength");
 	}
+	public boolean isTransform() {
+		return getName().toLowerCase().matches("transform");
+	}
+	public boolean isStoneGaze() {
+		return getName().toLowerCase().matches("stone gaze");
+	}
+	public boolean isAbsorbEssence() {
+		return getName().toLowerCase().matches("absorb essence");
+	}
+	public boolean isCurse() {
+		return getName().toLowerCase().matches("curse");
+	}
+	public boolean isMesmerize() {
+		return getName().toLowerCase().matches("mesmerize");
+	}
 	public boolean isBenevolent() {
 		return getGameObject().hasThisAttribute(Constants.BENEVOLENT);
+	}
+	public boolean isBenevolentForHirelings() {
+		return getGameObject().hasThisAttribute(Constants.BENEVOLENT_HIRED);
+	}
+	public boolean isDenizenSpell() {
+		return getGameObject().hasThisAttribute(Constants.SPELL_DENIZEN);
+	}
+	public boolean hasAffectedTargets() {
+		return getBoolean(SPELL_AFFECTED);
 	}
 	/**
 	 * Based on the location of its target, this method will return the current locations of the spell.  This will only
@@ -101,11 +121,8 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		return null;
 	}
 	public boolean targetsCharacterOrDenizen() {
-		if(targetsClearing())return false;
-		for (RealmComponent t : getTargets()) {
-			if (t.isCharacter() || t.isMonster() || t.isNative()) return true;
-		}
-		return false;
+		if(targetsClearing()) return false;
+		return getTargets().stream().anyMatch(t -> t.isCharacter() || t.isMonster() || t.isNative());
 	}
 	/**
 	 * This method is here to help differentiate spells that target individuals versus those that
@@ -124,11 +141,14 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	public SpellWrapper castSpellNoEnhancedMagic(GameObject incantationObject) {
 		return castSpell(incantationObject,true);
 	}
+	public void addColorChit(MagicChit chit) {
+		setString(COLOR_CHIT,chit.getGameObject().getStringId());
+	}
 	/**
 	 * Finds the spellcaster for a spell
 	 */
 	private CharacterWrapper findSpellCasterToCastSpell() {
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList<String> list = new ArrayList<>();
 		GameObject caster = getGameObject().getHeldBy();
 		GameObject lastNonNull = caster; 
 		while (caster!=null && !caster.hasThisAttribute("character") && !Constants.STORE_SPELLCAST.equals(caster.getThisAttribute(Constants.STORE))) {
@@ -157,8 +177,10 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		
 		setBoolean(SPELL_AFFECTED,false); // make sure this is cleared out
 		setBoolean(SPELL_ALIVE,true);
-		setString(INCANTATION_TIE,incantationObject.getStringId());
-		incantationObject.addThisAttributeListItem(INCANTATION_TIE,getCastMagicType());
+		if (!getGameObject().hasThisAttribute(NO_INCANTATION_TIE)) {
+			setString(INCANTATION_TIE,incantationObject.getStringId());
+			incantationObject.addThisAttributeListItem(INCANTATION_TIE,getCastMagicType());
+		}
 		
 		RealmComponent rc = RealmComponent.getRealmComponent(incantationObject);
 		if (rc.isActionChit()) {
@@ -178,7 +200,39 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 			}
 			setString(CASTER_ID, String.valueOf(caster.getGameObject().getId()));
 		}
-		
+
+		return this;
+	}
+	public boolean selectTargetForDenizen(HostPrefWrapper hostPrefs, TileLocation battleLocation, BattleChit denizen, RealmComponent target) {
+		if (this.getGameObject().getThisAttribute("target").matches("caster")) {
+			addTarget(hostPrefs, denizen.getGameObject(),true);
+			return true;
+		}
+		if (denizen.getGameObject().hasThisAttribute(Constants.SPELL_TARGETS_SELF)|| ((denizen.isNative() || denizen.isMonster()) && ((ChitComponent)denizen).hasFaceAttribute(Constants.SPELL_TARGETS_SELF))) {
+			addTarget(hostPrefs, denizen.getGameObject());
+			return true;
+		}
+		if (this.getGameObject().getThisAttribute("target").matches("clearing")) {
+			addTarget(hostPrefs, battleLocation.tile.getGameObject(),true);
+			setExtraIdentifier(String.valueOf(battleLocation.clearing.getNum()));
+			return true;
+		}
+		if (target!=null) {
+			addTarget(hostPrefs, target.getGameObject());
+			return true;
+		}
+		return false;
+	}
+	public SpellWrapper castSpellByDenizen(GameObject denizen) {
+		setBoolean(SPELL_AFFECTED,false); // make sure this is cleared out
+		setBoolean(SPELL_ALIVE,true);
+		setString(CASTER_ID, String.valueOf(denizen.getId()));
+		(new CombatWrapper(denizen)).setCastSpell(getGameObject());
+		return this;
+	}
+	public SpellWrapper recognizeCastedSpellByDenizen() {
+		SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(getGameObject().getGameData());
+		sm.addSpell(this);
 		return this;
 	}
 	public CharacterWrapper getCaster() {
@@ -189,6 +243,9 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		}
 		return null;
 	}
+	public void setCaster(CharacterWrapper caster) {
+		setString(CASTER_ID, String.valueOf(caster.getGameObject().getId()));
+	}
 	
 	public GameObject getIncantationObject() {
 		if (isAlive()) {
@@ -197,6 +254,23 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 				GameObject go = getGameObject().getGameData().getGameObject(Long.valueOf(id));
 				return go;
 			}
+		}
+		return null;
+	}
+	public GameObject getColorChitObject() {
+		String id = getString(COLOR_CHIT);
+		if (id!=null) { // Might be null if using other source
+			GameObject go = getGameObject().getGameData().getGameObject(Long.valueOf(id));
+			return go;
+		}
+		return null;
+	}
+	public ColorMagic getColorChitMagicColor() {
+		GameObject chit = getColorChitObject();
+		if (chit==null) return null;
+		RealmComponent chitRc = RealmComponent.getRealmComponent(chit);
+		if (chitRc instanceof CharacterActionChitComponent) {
+			return ((CharacterActionChitComponent)chitRc).getEnchantedColorMagic();
 		}
 		return null;
 	}
@@ -217,7 +291,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	}
 	public boolean canCast(String clearingCode,int clearingCount) {
 		// Only "non-already-cast" spells that are finished (notready indicates the coding isn't in place yet)
-		if (!getGameObject().hasThisAttribute("notready") && !isAlive()) {
+		if (!isAlive()) {
 			String clearingRequirement = getGameObject().getThisAttribute("clearing_req");
 			if (clearingRequirement==null || clearingRequirement.equals(clearingCode)) {
 				int tileRequirement = getGameObject().getThisInt("tile_req"); // whistle for monsters
@@ -262,6 +336,8 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 					combat.addUsedChit(io);
 				}
 			}
+			
+			removeAttribute(COLOR_CHIT);
 		}
 	}
 	/**
@@ -281,7 +357,9 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 			TileLocation loc = getCaster().getCurrentLocation(); // might be null if character is dead!
 			boolean casterIsDead = (new CombatWrapper(getCaster().getGameObject())).getKilledBy()!=null;
 				
-			for (GameObject go : new ArrayList<GameObject>(getGameObject().getHoldAsGameObjects())) {
+			ArrayList<GameObject> hold = new ArrayList<>();
+			hold.addAll(getGameObject().getHold()); 
+			for (GameObject go : hold) {
 				restoreAbsorbedMonster(go, loc, casterIsDead);
 			}
 				
@@ -295,6 +373,54 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 			setBoolean(SPELL_INERT,false);
 			setBoolean(SPELL_ALIVE,false);
 			setBoolean(SPELL_AFFECTED,false); // Probably redundant
+			setBoolean(SPELL_EXPIRES_AT_ROUND_END,false);
+			getGameObject().removeThisAttribute(Constants.FREED_SPELL);
+			
+			// Remove it from the spell master, just in case
+			SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(getGameObject().getGameData());
+			sm.removeSpell(this);
+		}
+		restoreNullifiedSpells();
+	}
+	
+	public void restoreNullifiedSpells() {
+		ArrayList<String> spellsToRestore = getList(NULLIFIED_SPELLS);
+		if (spellsToRestore != null) {
+			GameData data = this.getGameData();
+			for (String spellId : spellsToRestore) {
+				SpellWrapper spell = new SpellWrapper(data.getGameObject(Long.valueOf(spellId)));
+				spell.restoreSpell();
+			}
+		}
+		removeAttribute(NULLIFIED_SPELLS);
+	}
+	
+	public void cancelSpell() {
+		clearRedDieLock();
+		if (isAlive() && canExpire()) {
+			breakIncantation(true);
+			
+			// Restore any absorbed monsters
+			TileLocation loc = getCaster().getCurrentLocation(); // might be null if character is dead!
+			boolean casterIsDead = (new CombatWrapper(getCaster().getGameObject())).getKilledBy()!=null;
+				
+			ArrayList<GameObject> hold = new ArrayList<>();
+			hold.addAll(getGameObject().getHold());
+			for (GameObject go : hold) {
+				restoreAbsorbedMonster(go, loc, casterIsDead);
+			}
+				
+			// Remove all targets
+			setBoolean(TARGET_IDS,false);
+			setBoolean(TARGET_EXTRA_IDENTIFIER,false);
+			setBoolean(SECONDARY_TARGET,false);
+			
+			// Spell dies
+			//setBoolean(CASTER_ID,false); // I don't think there is any harm leaving the caster... It's needed for disengagement 5/29/2007
+			setBoolean(SPELL_INERT,false);
+			setBoolean(SPELL_ALIVE,false);
+			setBoolean(SPELL_AFFECTED,false); // Probably redundant
+			getGameObject().removeThisAttribute(Constants.FREED_SPELL);
 			
 			// Remove it from the spell master, just in case
 			SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(getGameObject().getGameData());
@@ -302,9 +428,26 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		}
 	}
 	
+	public void clearSpellAttributes() {
+		clear(SPELL_INERT);
+		clear(SPELL_ALIVE);
+		clear(SPELL_AFFECTED);
+		clear(SPELL_NULLIFIED);
+		clear(NULLIFIED_SPELLS);
+		clear(SPELL_VIRTUAL);
+		clear(INCANTATION_TIE);
+		clear(COLOR_CHIT);
+		clear(TARGET_IDS);
+		clear(TARGET_EXTRA_IDENTIFIER);
+		clear(SECONDARY_TARGET);
+		clear(CASTER_ID);
+		clear(SPELL_EXPIRES_AT_ROUND_END);
+		clearRedDieLock();
+	}
+	
 	private void restoreAbsorbedMonster(GameObject go, TileLocation loc, boolean casterIsDead){
 		RealmComponent rc = RealmComponent.getRealmComponent(go);
-		if(rc.isMonster() && !go.hasThisAttribute("animal")){
+		if(rc.isMonster() && !go.hasThisAttribute("animal") && !go.hasThisAttribute("statue")){
 			if(affectsCaster() && casterIsDead){
 				RealmUtility.makeDead(rc);
 			} else {
@@ -324,8 +467,11 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	public boolean isAlwaysActive() {
 		return getGameObject().hasThisAttribute(ALWAYS_ACTIVE);
 	}
-	public void nullifySpell() {
-		unaffectTargets();
+	public boolean expiresAtRoundEnd() {
+		return getBoolean(SPELL_EXPIRES_AT_ROUND_END);
+	}
+	public void nullifySpell(boolean includeNullifyEffects) {
+		unaffectTargets(includeNullifyEffects);
 		getGameObject().setThisAttribute(SPELL_NULLIFIED);
 	}
 	public boolean isNullified() {
@@ -333,9 +479,9 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	}
 	public void restoreSpell() {
 		if (isNullified()) {
-			GameWrapper game = GameWrapper.findGame(getGameObject().getGameData());
-			if (!isInert()) { // Only reenergize, if not inert
-				affectTargets(null,game,false);
+			if (!isInert()) {
+				GameWrapper game = GameWrapper.findGame(getGameObject().getGameData());
+				affectTargets(null,game,false,false,null);
 			}
 			getGameObject().removeThisAttribute(SPELL_NULLIFIED);
 		}
@@ -360,18 +506,19 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	}
 	public GameObject getSecondaryTarget() {
 		String id = getString(SECONDARY_TARGET);
+		if (id==null) return null;
 		GameObject go = getGameObject().getGameData().getGameObject(Long.valueOf(id));
 		return go;
 	}
 	public boolean removeTarget(GameObject target) {
 		if (isAlive() && !isInert()) {
 			// If the spell is alive and non-inert, then we'd better disable it's affect on the target (if any)
-			ISpellEffect[] effects = SpellEffectFactory.create(getName().toLowerCase());
+			ISpellEffect[] effects = SpellEffectFactory.create(getName().toLowerCase(),getAlternativeSpellEffect());
 			unaffect(effects, GameWrapper.findGame(getCaster().getGameData()), RealmComponent.getRealmComponent(target));
 		}
 		
 		String removeId = target.getStringId();
-		ArrayList targetids = getList(TARGET_IDS);
+		ArrayList<String> targetids = getList(TARGET_IDS);
 		if (targetids.contains(removeId)) {
 			targetids.remove(removeId);
 			return true;
@@ -396,23 +543,31 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		
 		// Be sure to tag the target
 		CombatWrapper combat = new CombatWrapper(target);
-		GameObject caster = getCaster().getGameObject();
-		if (caster!=null && hostPrefs!=null) { // caster might be null if the spell is cast by a treasure (Flying Carpet)
+		CharacterWrapper casterCharacterWrapper = getCaster();
+		if (casterCharacterWrapper!=null && hostPrefs!=null) { // caster might be null if the spell is cast by a treasure (Flying Carpet)
+			GameObject caster = casterCharacterWrapper.getGameObject();
 			combat.addAttacker(caster);
 			
 			CharacterWrapper character = new CharacterWrapper(caster);
 			RealmComponent rc = RealmComponent.getRealmComponent(target);
 			if (rc.ownedBy(RealmComponent.getRealmComponent(caster))) {
 				if (!hostPrefs.hasPref(Constants.TE_BENEVOLENT_SPELLS) || !isBenevolent()) {
-					BattleUtility.processTreachery(character,rc);
+					if ((!getGameObject().hasThisAttribute(Constants.BENEVOLENT_FOR_LEADERS) || !rc.isNativeLeader())
+					&& (!getGameObject().hasThisAttribute(Constants.BENEVOLENT_FOR_MONSTERS) || !rc.isMonster())) {
+						BattleUtility.processTreachery(character,rc);
+					}
 				}
 			}
 			
 			// if target is an unassigned denizen, move them to their own sheet (sucker punch)
-			if (rc.getOwnerId()==null && rc.getTarget()==null) {
+			if (rc.getOwnerId()==null && rc.getTarget()==null && rc.get2ndTarget()==null) {
 				if (!hostPrefs.hasPref(Constants.TE_WATCHFUL_NATIVES)) {
 					combat.setSheetOwner(true);
 				}
+			}
+			
+			if (combat.isPacified()) {
+				combat.removePacified();
 			}
 			
 			// Make sure we aren't ignoring battling...
@@ -430,10 +585,11 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		}
 	}
 	public RealmComponent getFirstTarget() {
-		ArrayList targetids = getList(TARGET_IDS);
-		if(targetids == null || targetids.isEmpty()) return null;
-		String firstId = (String) targetids.get(0);
-		GameObject target = getGameObject().getGameData().getGameObject(Long.valueOf(firstId));
+		ArrayList<String> targetids = getList(TARGET_IDS);
+		if(targetids == null)return null;
+		
+		Optional<String> first = targetids.stream().findFirst();		
+		GameObject target = getGameObject().getGameData().getGameObject(first.get());
 		return RealmComponent.getRealmComponent(target);
 	}
 	
@@ -445,30 +601,37 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		return "None";
 	}
 	
+	public boolean noTargeting() {
+		String att = getGameObject().getThisAttribute("target");
+		return "none".matches(att);
+	}
+	
 	public ArrayList<RealmComponent> getTargets() {
-		ArrayList targetids = getList(TARGET_IDS);
-		if (targetids == null) return new ArrayList<RealmComponent>();
-		ArrayList<RealmComponent> result = new ArrayList<RealmComponent>();
-		for (Iterator i = targetids.iterator(); i.hasNext();) {
-			String id = (String) i.next();
-			GameObject go = getGameObject().getGameData().getGameObject(Long.valueOf(id));
-			result.add(RealmComponent.getRealmComponent(go));
-		}
-		return result;
+		ArrayList<?> targetids = getList(TARGET_IDS);
+		
+		return targetids != null
+				? targetids.stream()
+						.mapToLong(id -> Long.valueOf((String)id))
+						.mapToObj(id -> getGameObject().getGameData().getGameObject(id))
+						.map(go -> RealmComponent.getRealmComponent(go))
+						.collect(Collectors.toCollection(ArrayList::new))
+				: new ArrayList<>();
 	}
 	/**
 	 * This returns the number of actual targets.  If a single target is listed more than once (i.e., Stones Fly), it still is only
 	 * counted once.
 	 */
 	public int getTargetCount() {
-		ArrayList targetids = getList(TARGET_IDS);
-		if (targetids == null) return 0;
-		return new HashSet(targetids).size();
+		ArrayList<String> targetids = getList(TARGET_IDS);
+		
+		return targetids != null
+				? (int) targetids.stream().distinct().count()
+				: 0;
 	}
 	
 	public boolean targetsGameObject(GameObject go) {
 		boolean ret = false;
-		ArrayList targetids = getList(TARGET_IDS);
+		ArrayList<String> targetids = getList(TARGET_IDS);
 		if (targetids!=null) {
 			ret = targetids.contains(go.getStringId());
 		}
@@ -482,24 +645,23 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	 * @return		true if any one component is targeted
 	 */
 	public boolean targetsRealmComponents(Collection<?> components) {
-		ArrayList targetids = getList(TARGET_IDS);
+		ArrayList<String> targetids = getList(TARGET_IDS);
 		if(targetids == null) return false;
-		for (Object c : components) {
-			RealmComponent rc = (RealmComponent) c;
-			if (targetids.contains(rc.getGameObject().getStringId())) return true;
-		}
-		return false;
+		
+		return components.stream()
+			.map(c -> (RealmComponent)c)
+			.anyMatch(rc -> targetids.contains(rc.getGameObject().getStringId()));
 	}
 	
 	public ArrayList<RealmComponent> getTargetedRealmComponents(Collection<?> components) {
-		ArrayList targetids = getList(TARGET_IDS);
-		ArrayList<RealmComponent> result = new ArrayList<RealmComponent>();
-		if (targetids == null) return result;
-		for (Object c : components) {
-			RealmComponent rc = (RealmComponent) c;
-			if (targetids.contains(rc.getGameObject().getStringId())) result.add(rc);
-		}
-		return result;
+		ArrayList<String> targetids = getList(TARGET_IDS);
+		
+		return targetids != null
+				? components.stream()
+						.map(c -> (RealmComponent)c)
+						.filter(rc -> targetids.contains(rc.getGameObject().getStringId()))
+						.collect(Collectors.toCollection(ArrayList::new))
+				: new ArrayList<>();
 	}
 	
 	/**
@@ -540,8 +702,6 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		String duration = getGameObject().getThisAttribute("duration");
 		return ("instant".equals(duration));
 	}
-	
-
 	/**
 	 * @return		true if this spell is a move spell
 	 */
@@ -557,6 +717,12 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		return ("permanent".equals(duration));
 	}
 	/**
+	 * @return		true if this spell uneffects targets at midnight
+	 */
+	public boolean uneffectAtMidnight() {
+		return getGameObject().hasThisAttribute(Constants.UNEFFECT_AT_MIDNIGHT);
+	}
+	/**
 	 * @return		true if this spell is a permanent spell
 	 */
 	public boolean isPhaseSpell() {
@@ -564,16 +730,14 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		return ("phase".equals(duration));
 	}
 	public boolean hasPhaseChit() {
-		return getGameObject().hasThisAttribute("phaseChitID");
+		return getGameObject().hasThisAttribute(Constants.PHASE_CHIT_ID);
 	}
-	
 	/**
 	 * @return		true if this spell is a fly chit type of spell
 	 */
 	public boolean isFlySpell() {
 		return getGameObject().hasAttributeBlock(RealmComponent.FLY_CHIT);
 	}
-	
 	/**
 	 * @return	true if this is a "no cancel" spell, like the Flying Carpet spell
 	 */
@@ -585,7 +749,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	public RealmComponent getTarget() {
 		throw new RuntimeException("getTarget() is not functional in SpellWrapper!!  Use getTargets()");
 	}
-	public void changeWeaponState(boolean hit) {
+	public void changeWeaponState(HostPrefWrapper hostPrefs) {
 		// nothing
 	}
 	public void flip() {
@@ -606,7 +770,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	public Integer getLength() {
 		if (getGameObject().hasThisAttribute("length")) {
 			int len = getGameObject().getThisInt("length");
-			return new Integer(len);
+			return Integer.valueOf(len);
 		}
 		return null;
 	}
@@ -639,17 +803,28 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		
 		if (sharpness>0 && HostPrefWrapper.findHostPrefs(getGameObject().getGameData()).hasPref(Constants.REV_DAMPEN_FAST_SPELLS)) {
 			GameObject go = getIncantationObject();
-			RealmComponent rc = RealmComponent.getRealmComponent(go);
-			if (rc.isActionChit()) {
-				CharacterActionChitComponent chit = (CharacterActionChitComponent)rc;
-				if (chit.getMagicSpeed().getNum()==0) {
-					sharpness--;
+			if (go!=null) {
+				RealmComponent rc = RealmComponent.getRealmComponent(go);
+				if (rc.isActionChit()) {
+					CharacterActionChitComponent chit = (CharacterActionChitComponent)rc;
+					if (chit.getMagicSpeed().getNum()==0) {
+						sharpness--;
+					}
 				}
 			}
 		}
 		return new Harm(strength,sharpness);
 	}
 	public String getMagicType() {
+		String attackSpell = getAttackSpell();
+		if (attackSpell!=null) return attackSpell;
+		return getGameObject().getThisAttribute("magic_type");
+	}
+	public String getAttackSpell() {
+		if (getGameObject().hasThisAttribute(Constants.POWER_OF_THE_PIT)) return Constants.POWER_OF_THE_PIT;
+		if (getGameObject().hasThisAttribute(Constants.WALL_OF_FORCE)) return Constants.WALL_OF_FORCE;
+		if (getGameObject().hasThisAttribute(Constants.FEAR)) return Constants.FEAR;
+		if (getGameObject().hasThisAttribute(Constants.MESMERIZE)) return Constants.MESMERIZE;
 		return null;
 	}
 	public String getCastMagicType() {
@@ -657,11 +832,16 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	}
 	public int getManeuverCombatBox() {
 		CombatWrapper combat = new CombatWrapper(getIncantationObject());
-		return combat.getCombatBox();
+		return combat.getCombatBoxDefense();
 	}
 	public int getAttackCombatBox() {
 		CombatWrapper combat = new CombatWrapper(getIncantationObject());
-		return combat.getCombatBox();
+		return combat.getCombatBoxAttack();
+	}
+	public void setCombatBox(int val) {
+		CombatWrapper combat = new CombatWrapper(getIncantationObject());
+		combat.setCombatBoxAttack(val);
+		combat.setCombatBoxDefense(val);
 	}
 	public boolean isMissile() {
 		return getGameObject().hasThisAttribute("missile");
@@ -673,6 +853,12 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		return false;
 	}
 	public boolean isMonster() {
+		return false;
+	}
+	public boolean isHorse() {
+		return false;
+	}
+	public boolean isNativeHorse() {
 		return false;
 	}
 	public boolean applyHit(GameWrapper game,HostPrefWrapper hostPrefs, BattleChit attacker, int box, Harm attackerHarm,int attackOrderPos) {
@@ -687,10 +873,13 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		InfoObject io = new InfoObject(destClientName,info.getInfo());
 		return io;
 	}
-	public void affectTargets(JFrame parent,GameWrapper theGame,boolean expireImmediately) {
+	public ArrayList<String> affectTargets(JFrame parent,GameWrapper theGame,boolean expireImmediately, ArrayList<SpellWrapper> simultaneousSpells) {
+		return affectTargets(parent,theGame,expireImmediately,true,simultaneousSpells);
+	}
+	private ArrayList<String> affectTargets(JFrame parent,GameWrapper theGame,boolean expireImmediately, boolean includeNullifyEffects, ArrayList<SpellWrapper> simultaneousSpells) {
 		if (getBoolean(SPELL_AFFECTED)) {
 			// Don't affect twice in a row!!
-			return;
+			return null;
 		}
 		if (parent==null) {
 			parent = dummyFrame;
@@ -707,16 +896,13 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 			}
 			String command = expireImmediately?RealmDirectInfoHolder.SPELL_AFFECT_TARGETS_EXPIRE_IMMEDIATE:RealmDirectInfoHolder.SPELL_AFFECT_TARGETS;
 			GameData data = getGameObject().getGameData();
-			if (GameHost.DATA_NAME.equals(data.getDataName())) {
+			if (GameHost.DATA_NAME.equals(data.getDataName()) && !this.getGameObject().hasThisAttribute(Constants.SPELL_DENIZEN)) {
 				// Should never "affectTargets" from the host.  Do it on the caster's client.
 				if (GameHost.mostRecentHost!=null) {
-					GameHost.mostRecentHost.distributeInfo(
-							buildAnInfoObject(destClientName,data,command));
-					return;
+					GameHost.mostRecentHost.distributeInfo(buildAnInfoObject(destClientName,data,command));
+					return null;
 				}
-				else {
-					throw new IllegalStateException("mostRecentHost is null?");
-				}
+				throw new IllegalStateException("mostRecentHost is null?");
 			}
 			else if (GameClient.DATA_NAME.equals(data.getDataName())) {
 				// With clients, make sure to affectTargets from the caster's client
@@ -728,7 +914,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 							GameClient.GetMostRecentClient().sendInfoDirect(
 									destClientName,
 									buildAnInfoObject(destClientName,data,command).getInfo());
-							return;
+							return null;
 						}
 					}
 				}
@@ -742,49 +928,115 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 			throw new IllegalStateException("Parent should NOT be null here!!");
 		}
 		
-		AffectThread at = new AffectThread(parent,theGame,expireImmediately);
-		if (SwingUtilities.isEventDispatchThread()) {
-//System.out.println("Already EDT");
+		AffectThread at = new AffectThread(parent,theGame,expireImmediately,includeNullifyEffects);
+		if (SwingUtilities.isEventDispatchThread() || getGameObject().hasThisAttribute(Constants.SPELL_DENIZEN)) {
+			//System.out.println("Already EDT");
 			// NON threaded
-			at.doAffect();
+			return at.doAffect(simultaneousSpells);
 		}
-		else {
-//System.out.println("Non EDT - invoke and wait");
+		//System.out.println("Non EDT - invoke and wait");
 			// Run on event dispatch thread!
 			//SwingUtilities.invokeLater(at); // THIS is NOT the solution:  this breaks other things.
-			try {
-				SwingUtilities.invokeAndWait(at); // FIXME This causes a deadlock when WISH/CONTROLBATS are cast at the same time!!!
-			}
-			catch(InvocationTargetException e) {
-				e.printStackTrace();
-			}
-			catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+		try {
+			SwingUtilities.invokeAndWait(at);
 		}
+		catch(InvocationTargetException e) {
+			e.printStackTrace();
+		}
+		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	private class AffectThread implements Runnable {
 		private JFrame parent;
 		private GameWrapper theGame;
 		private boolean expireImmediately;
+		private boolean includeNullifyEffects;
 		
-		public AffectThread(JFrame parent,GameWrapper theGame,boolean expireImmediately) {
+		public AffectThread(JFrame parent,GameWrapper theGame,boolean expireImmediately,boolean includeNullifyEffects) {
 			this.parent = parent;
 			this.theGame = theGame;
 			this.expireImmediately = expireImmediately;
+			this.includeNullifyEffects = includeNullifyEffects;
 		}
 		
 		public void run() {
-			doAffect();
+			doAffect(null);
 		}
 		
-		public void doAffect() {
+		public ArrayList<String> doAffect(ArrayList<SpellWrapper> simultaneousSpells) {
 			// If we get here, then it's okay to proceed
 			energize();
 			
-			ISpellEffect[] effects = SpellEffectFactory.create(getName().toLowerCase());	
-			for (RealmComponent t : getTargets()) {
-				affect(effects, parent, theGame, t);
+			ArrayList<String> logs = new ArrayList<>();
+			ISpellEffect[] effects = SpellEffectFactory.create(getName().toLowerCase(),getAlternativeSpellEffect());
+			int ignoredTargets = 0;
+			
+			if (!includeNullifyEffects && effects!=null) {
+				ArrayList<ISpellEffect> effectsFiltered = new ArrayList<>();
+				for (ISpellEffect effect : effects) {
+					if (!(effect instanceof NullifyEffect)) {
+						effectsFiltered.add(effect);
+					}
+				}
+				effects = new ISpellEffect[effectsFiltered.size()];
+				effects = effectsFiltered.toArray(effects);
+			}
+			for (RealmComponent target : getTargets()) {
+				boolean affectTarget = true;
+				ArrayList<SpellWrapper> bewichtedSpells = SpellUtility.getBewitchingSpells(target.getGameObject());
+				if (bewichtedSpells.contains(getSpell())) {
+					bewichtedSpells.remove(getSpell());
+				}
+				if (simultaneousSpells!=null) {
+					for (SpellWrapper simultaneousSpell : simultaneousSpells) {
+						if (bewichtedSpells.contains(simultaneousSpell)) {
+							bewichtedSpells.remove(simultaneousSpell);
+						}
+					}
+				}
+				
+				if (isCombatSpell() || isDaySpell() || isPermanentSpell() && simultaneousSpells!=null) {
+					for (SpellWrapper spell : bewichtedSpells) {
+						if (spell.isActive() && spell.hasAffectedTargets() && spell.getName().toLowerCase().matches(getName().toLowerCase())) {
+							affectTarget = false;
+							ignoredTargets = ignoredTargets + 1;
+							logs.add(getName() + " effect (cast by "+getCaster().getName()+") on " + target + " canceled, as target already affected by " + getName()+".");
+						}
+					}
+				}
+				if (canConflict() && !isInstantSpell() && !isAttackSpell() && !isMoveSpell() && !isPhaseSpell()) {
+					int spellStrength = getConflictStrength();
+					for (SpellWrapper spell : bewichtedSpells) {
+						if (spell.canConflict() && spell.hasAffectedTargets() && spell.isActive()) {
+							if (spell.getConflictStrength() < spellStrength) {
+								spell.nullifySpell(true);
+								addListItem(NULLIFIED_SPELLS, spell.getGameObject().getStringId());
+								logs.add(spell.getName() + " (cast by "+spell.getCaster().getName()+") was nullified, as stronger spell ("+getName()+", cast by "+getCaster().getName()+") hit the " + target + ".");
+							}
+							if (spell.getConflictStrength() == spellStrength) {
+								affectTarget = false;
+								ignoredTargets = ignoredTargets + 1;
+								logs.add(getName() + " effect (cast by "+getCaster().getName()+") on " + target + " canceled, as target already affected by a spell of same strength: " + spell.getName()+" (cast by "+spell.getCaster().getName()+").");
+							}
+							if (spell.getConflictStrength() > spellStrength) {
+								affectTarget = false;
+								ignoredTargets = ignoredTargets + 1;
+								logs.add(getName() + " effect (cast by "+getCaster().getName()+") on " + target + " canceled, as target already affected by a stronger spell: " + spell.getName()+" (cast by "+spell.getCaster().getName()+").");
+							}
+						}
+					}
+				}
+				if (affectTarget) {
+					affect(effects, parent, theGame, target);
+				}
+			}
+			
+			if (ignoredTargets > 0 && getTargets().size() == ignoredTargets) {
+				cancelSpell();
+				logs.add(getName() + " spell (cast by "+getCaster().getName()+") cancelled, as all targets already affected by " + getName()+" or a stronger spell.");
+				return logs;
 			}
 			
 			if (!(isPhaseSpell() && hasPhaseChit())) { // ignore phase spells that still have a phase chit active!!
@@ -793,6 +1045,16 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 			if (expireImmediately) {
 				expireSpell();
 			}
+			
+			if (getCaster()!=null) { //null for if cast by treasure
+				getCaster().addCastedSpell(getGameObject());
+				QuestRequirementParams reqParams = new QuestRequirementParams();
+				reqParams.actionType = CharacterActionType.CastSpell;
+				reqParams.objectList.add(getGameObject());
+				getCaster().testQuestRequirements(parent, reqParams);
+			}
+			
+			return logs;
 		}
 	}
 	
@@ -801,6 +1063,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 			// If spell is not alive, it has NO effect
 			return;
 		}
+		
 		GameObject caster = getCaster().getGameObject();
 		CombatWrapper combat = new CombatWrapper(target.getGameObject());
 		SpellEffectContext context = new SpellEffectContext(parent, theGame, target, this, caster);
@@ -809,25 +1072,42 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 			for(ISpellEffect effect:effects){
 				effect.apply(context);
 			}
-		} 
+		}
 
 		// Once the spell affects its target, the marker chit should be removed!
 		if (caster!=null) {
 			combat.removeAttacker(caster);
-		}	
+		}
 	}
 	
 	public ClearingDetail getTargetAsClearing(RealmComponent target) {
 		TileComponent tile = (TileComponent)target;
-		return tile.getClearing(Integer.valueOf(getExtraIdentifier()).intValue());
+		return tile.getClearing(Integer.parseInt(getExtraIdentifier()));
 	}
-	
 	public void unaffectTargets() {
-		ISpellEffect[] effects = SpellEffectFactory.create(getName().toLowerCase());
+		unaffectTargets(true);
+	}
+	public void unaffectTargets(boolean includeNullifyEffects) {
+		ISpellEffect[] effects = SpellEffectFactory.create(getName().toLowerCase(),getAlternativeSpellEffect());
 		
 		GameWrapper theGame = GameWrapper.findGame(getCaster().getGameData());
-		for (RealmComponent t : getTargets()) {
-			unaffect(effects, theGame, t);
+		if (!includeNullifyEffects) {
+			ArrayList<ISpellEffect> effectsFiltered = new ArrayList<>();
+			if (effects != null) {
+				for (ISpellEffect effect : effects) {
+					if (!(effect instanceof NullifyEffect)) {
+						effectsFiltered.add(effect);
+					}
+				}
+			}
+			ISpellEffect[] effects2 = new ISpellEffect[effectsFiltered.size()];
+			effects2 = effectsFiltered.toArray(effects2);
+			for (RealmComponent target : getTargets()) {
+				unaffect(effects2, theGame, target);
+			}
+		}
+		else {
+			getTargets().stream().forEach(t -> unaffect(effects, theGame, t));
 		}
 		setBoolean(SPELL_AFFECTED,false);
 	}
@@ -857,11 +1137,11 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		}
 		return getFirstTarget(); // Not real fond of this, but it will work in all cases where it matters
 	}
-	public GameObject getTransformAnimal() {
-		for (GameObject t : getGameObject().getHoldAsGameObjects()) {
-			if (t.hasThisAttribute("animal")) return t;
-		}
-		return null;
+	public GameObject getTransformAnimalOrStatue() {
+		Optional<GameObject> animal = getGameObject().getHold().stream()
+										.filter(t -> t.hasThisAttribute("animal") || t.hasThisAttribute("statue"))
+										.findFirst();						
+		return animal.isPresent() ? animal.get() : null;
 	}
 	
 	public boolean isImmuneTo(RealmComponent rc) {
@@ -870,26 +1150,41 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	}
 	private boolean isUsingEnhancedMagic() {
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(getGameObject().getGameData());
-		return hostPrefs.hasPref(Constants.OPT_ENHANCED_MAGIC) || hostPrefs.hasPref(Constants.HOUSE2_REVISED_ENHANCED_MAGIC);
+		CharacterWrapper caster = findSpellCasterToCastSpell();
+		return hostPrefs.hasPref(Constants.OPT_ENHANCED_MAGIC) || hostPrefs.hasPref(Constants.HOUSE2_REVISED_ENHANCED_MAGIC) || (caster != null && caster.affectedByKey(Constants.ENHANCED_MAGIC));
 	}
-//	public void testVirtual() {
-//		setBoolean(SPELL_VIRTUAL,true);
-//	}
 	public static void copyTransformToObject(GameObject source,String blockName,GameObject dest) {
 		String animalName = source.getAttribute(blockName,"name");
 		dest.setName(animalName);
-		dest.setThisAttribute("animal");
+		if (blockName.matches("statue")) {
+			dest.setThisAttribute("statue");
+		}
+		else {
+			dest.setThisAttribute("animal");
+		}
 					
+		copyMonsterAttributesToObject(source,blockName,dest);
+	}
+	public static void copyMonsterAttributesToObject(GameObject source,String blockName,GameObject dest) {
 		// Ignore these attributes
 		String[] ignorVars = {"light_color","dark_color"};
-		ArrayList<String> ignoreTest = new ArrayList<String>(Arrays.asList(ignorVars));
+		ArrayList<String> ignoreTest = new ArrayList<>(Arrays.asList(ignorVars));
 		
 		// Earmark some attributes for the "this" block
-		String[] thisVars = {"vulnerability",Constants.ICON_FOLDER,Constants.ICON_TYPE,"flying","walk_woods","armored","name","mist_like"};
-		ArrayList<String> thisTest = new ArrayList<String>(Arrays.asList(thisVars));
-		Hashtable hash = source.getAttributeBlock(blockName);
-		for (Iterator i=hash.keySet().iterator();i.hasNext();) {
-			String key = (String)i.next();
+		String[] thisVars = {"vulnerability",Constants.ICON_FOLDER,Constants.ICON_TYPE,Constants.FLYING,Constants.WALK_WOODS,Constants.ARMORED,"name",Constants.MIST_LIKE,Constants.SMALL,"animal",
+				Constants.ICON_FOLDER+Constants.ALTERNATIVE,Constants.ICON_TYPE+Constants.ALTERNATIVE,Constants.ICON_FOLDER+Constants.ICON_CHARACTER,Constants.ICON_TYPE+Constants.ICON_CHARACTER,
+				Constants.ICON_SIZE,Constants.ICON_FOLDER+Constants.ALTERNATIVE,Constants.ICON_Y_OFFSET,Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE,
+				Constants.DRAGON,Constants.DRAKE,Constants.WYRM,Constants.DEMON,Constants.DEVIL,Constants.IMP,Constants.ELEMENTAL,Constants.ANOMALY,Constants.GOLEM,
+				Constants.ORC,Constants.GOBLIN,Constants.OGRE,Constants.TROLL,Constants.GIANT,Constants.FROST_GIANT,Constants.SPIDER,Constants.OCTOPUS,Constants.SCORPION,Constants.BAT,Constants.WOLF,Constants.BEAST,
+				Constants.VAMPIRE,Constants.SUCCUBUS,Constants.GHOST,Constants.GHOUL,Constants.ZOMBIE,Constants.SKELETON,Constants.WRAITH,Constants.COLOSSUS,Constants.TITAN,Constants.MINOTAUR,Constants.GARGOYLE,Constants.VIPER,Constants.SERPENT,
+				Constants.UNDEAD,Constants.UNDEAD_SUMMONED,
+				Constants.TRANSMORPH_IMMUNITY,Constants.TRANSMORPH_IMMUNITY_SELF,Constants.MAGIC_IMMUNITY,
+				Constants.NO_CHANGE_TACTICS,Constants.KILLS_HORSE,Constants.DESTROYS_ARMOR,Constants.CHANGE_TACTICS_AFTER_CASTING,Constants.CHANGE_TACTICS_FOR_NON_SPELL_ATTACK,Constants.ATTACK_AFTER_CASTING,Constants.SPELL_TARGETS_SELF,Constants.FAST_CASTER,Constants.SPELL_PRE_BATTLE,
+				Constants.SUPER_REALM
+			};
+		ArrayList<String> thisTest = new ArrayList<>(Arrays.asList(thisVars));
+		Hashtable<String,Object> hash = source.getAttributeBlock(blockName);
+		for (String key : hash.keySet()) {
 			if (!ignoreTest.contains(key)) {
 				String val = (String)hash.get(key);
 				if (thisTest.contains(key)) {
@@ -903,8 +1198,37 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 			}
 		}
 		// Set the colors separately
-		dest.setAttribute("light","chit_color",source.getAttribute(blockName,"light_color"));
-		dest.setAttribute("dark","chit_color",source.getAttribute(blockName,"dark_color"));
+		if (source.hasAttribute(blockName,"light_color")) {
+			dest.setAttribute("light","chit_color",source.getAttribute(blockName,"light_color"));
+		}
+		else {
+			dest.setAttribute("light","chit_color",source.getAttribute("light","chit_color"));
+		}
+		if (source.hasAttribute(blockName,"light_color")) {
+			dest.setAttribute("dark","chit_color",source.getAttribute(blockName,"dark_color"));
+		}
+		else {
+			dest.setAttribute("dark","chit_color",source.getAttribute("dark","chit_color"));
+		}
 	}
 
+	public boolean isNative() {
+		return false;
+	}
+	
+	private String getAlternativeSpellEffect() {
+		return getGameObject().getThisAttribute(Constants.ALTERNATIVE_SPELL_EFFECT);
+	}
+	
+	public boolean freezingTarget() {
+		return getGameObject().hasThisAttribute(Constants.FREEZING);
+	}
+	
+	public boolean isSpiderWeb() {
+		return getGameObject().hasThisAttribute(Constants.SPIDER_WEB);
+	}
+	
+	public boolean isControlHorseSpell() {
+		return getGameObject().hasThisAttribute(Constants.CONTROL_HORSE);
+	}
 }

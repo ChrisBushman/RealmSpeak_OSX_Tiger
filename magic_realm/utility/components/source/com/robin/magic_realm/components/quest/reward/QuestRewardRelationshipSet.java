@@ -1,24 +1,6 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest.reward;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.swing.JFrame;
 
@@ -44,7 +26,6 @@ public class QuestRewardRelationshipSet extends QuestReward {
 		ArrayList<GameObject> representativeNativesToChange = getRepresentativeNatives(character);
 		if (representativeNativesToChange==null) return;
 		
-		// Do the change
 		String name = getRelationshipName();
 		int targetRel = RelationshipType.getIntFor(name);
 		for(GameObject denizen:representativeNativesToChange) {
@@ -63,24 +44,28 @@ public class QuestRewardRelationshipSet extends QuestReward {
 		
 		// Fetch the group leader - if multiple boards, then match the warning chit board
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());
-		ArrayList<String> query = new ArrayList<String>();
-		query.add("rank=HQ");
-		query.add("native="+getNativeGroup());
+		ArrayList<String> queryNatives = new ArrayList<String>();
+		ArrayList<String> queryVisitors = new ArrayList<String>();
+		queryNatives.add("rank=HQ");
+		queryNatives.add("native="+getNativeGroup());
+		queryVisitors.add("visitor="+getNativeGroup().toLowerCase());
 		
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
 		if (hostPrefs.getMultiBoardEnabled()) {
-			for(Iterator i=tl.tile.getGameObject().getHold().iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
+			for(GameObject go : tl.tile.getGameObject().getHold()) {
 				if (go.hasThisAttribute("warning") && go.hasThisAttribute("chit")) {
 					String board = go.getThisAttribute(Constants.BOARD_NUMBER);
 					if (board!=null) {
-						query.add(Constants.BOARD_NUMBER+"="+board);
+						queryNatives.add(Constants.BOARD_NUMBER+"="+board);
+						queryVisitors.add(Constants.BOARD_NUMBER+"="+board);
 					}
 				}
 			}
 		}
 		
-		return pool.find(query);
+		ArrayList<GameObject> representativeNatives = pool.find(queryNatives);
+		representativeNatives.addAll(pool.find(queryVisitors));
+		return representativeNatives;
 	}
 	
 	public boolean isAllNatives() {
@@ -88,7 +73,7 @@ public class QuestRewardRelationshipSet extends QuestReward {
 		return group.equals("Clearing");
 	}
 	
-	private ArrayList<GameObject> fetchNativesFromClearing(TileLocation tl, CharacterWrapper character) {
+	private static ArrayList<GameObject> fetchNativesFromClearing(TileLocation tl, CharacterWrapper character) {
 		
 		ArrayList<String> groupsToChange = new ArrayList<String>();
 		ArrayList<GameObject> representativeNativesToChange = new ArrayList<GameObject>();

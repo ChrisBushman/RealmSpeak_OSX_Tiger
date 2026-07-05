@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.objects;
 
 import java.io.IOException;
@@ -37,7 +20,7 @@ public class GameSetup extends ModifyableObject implements Serializable {
 	
 	protected GameData parent;
 	
-	protected Hashtable pools;
+	protected Hashtable<String, GamePool> pools;
 	
 	public GameSetup(GameData parentData) {
 		parent = parentData;
@@ -84,14 +67,13 @@ public class GameSetup extends ModifyableObject implements Serializable {
 		reset();
 		Attribute nameAtt = element.getAttribute("name");
 		if (nameAtt!=null) {
-			setName((String)nameAtt.getValue());
+			setName(nameAtt.getValue());
 		}
 		
 		// Read all commands
-		Collection commands = element.getChildren();
+		Collection<Element> commands = element.getChildren();
 		gameCommands.clear();
-		for (Iterator i=commands.iterator();i.hasNext();) {
-			Element command = (Element)i.next();
+		for (Element command : commands) {
 			GameCommand newCommand = GameCommand.createFromXML(this,command);
 //			GameCommand newCommand = new GameCommand(this);
 //			newCommand.setXML(command);
@@ -138,28 +120,28 @@ public class GameSetup extends ModifyableObject implements Serializable {
 		return command;
 	}
 	public void copyCommandsFrom(GameSetup setup) {
-		ArrayList commands = setup.getGameCommands();
-		for (Iterator i=commands.iterator();i.hasNext();) {
-			GameCommand command = (GameCommand)i.next();
+		ArrayList<GameCommand> commands = setup.getGameCommands();
+		for (GameCommand command : commands) {
 			GameCommand newCommand = GameCommand.getCommandForName(this,command.getTypeName());
 			gameCommands.add(newCommand);
 			newCommand.copyFrom(command);
 		}
 		setModified(true);
 	}
-	public ArrayList processSetup(StringBuffer result,ArrayList gameObjects) {
+	public ArrayList<GameObject> processSetup(StringBuffer result,ArrayList<GameObject> gameObjects) {
 		pools = new Hashtable();
 		pools.put(ALL,new GamePool(gameObjects));
 		result.append("Pool ALL was created: "+gameObjects.size()+"\n");
 		for (GameCommand command:gameCommands) {
 			result.append(command.doCommand(gameObjects));
 		}
+		result.append("\n");
 		result.append("---DONE---");
-		ArrayList keys = new ArrayList(pools.keySet());
+		result.append("\n");
+		ArrayList<String> keys = new ArrayList<>(pools.keySet());
 		Collections.sort(keys);
-		for (Iterator i=keys.iterator();i.hasNext();) {
-			String key = (String)i.next();
-			GamePool pool = (GamePool)pools.get(key);
+		for (String key : keys) {
+			GamePool pool = pools.get(key);
 			result.append(key+": "+pool.size()+" left\n");
 		}
 		return gameObjects;
@@ -170,22 +152,21 @@ public class GameSetup extends ModifyableObject implements Serializable {
 		}
 	}
 	public GamePool getPool(String poolName) {
-		return (GamePool)pools.get(poolName);
+		return pools.get(poolName);
 	}
-	public void moveObjectsBefore(ArrayList objects,GameCommand indexObject) {
+	public void moveObjectsBefore(ArrayList<GameCommand> objects,GameCommand indexObject) {
 		moveObjects(objects,indexObject,true);
 	}
-	public void moveObjectsAfter(ArrayList objects,GameCommand indexObject) {
+	public void moveObjectsAfter(ArrayList<GameCommand> objects,GameCommand indexObject) {
 		moveObjects(objects,indexObject,false);
 	}
 	/**
 	 * Moves the objects to the position BEFORE the GameCommand with an id==idPosition
 	 */
-	private void moveObjects(ArrayList objects,GameCommand indexObject,boolean before) {
+	private void moveObjects(ArrayList<GameCommand> objects,GameCommand indexObject,boolean before) {
 		// First, verify ALL objects are in the list, and that the list is uniqued
-		ArrayList validCommands = new ArrayList();
-		for (Iterator i=objects.iterator();i.hasNext();) {
-			GameCommand command = (GameCommand)i.next();
+		ArrayList<GameCommand> validCommands = new ArrayList<>();
+		for (GameCommand command : objects) {
 			if (command.parent==this && gameCommands.contains(command) && !validCommands.contains(command)) {
 				validCommands.add(command);
 			}
@@ -209,10 +190,10 @@ public class GameSetup extends ModifyableObject implements Serializable {
 		gameCommands.addAll(index,validCommands);
 	}
 	// Serializable interface
-	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+	private static void writeObject(java.io.ObjectOutputStream out) throws IOException {
 		out.defaultWriteObject();
 	}
-	private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+	private static void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();
 	}
 	

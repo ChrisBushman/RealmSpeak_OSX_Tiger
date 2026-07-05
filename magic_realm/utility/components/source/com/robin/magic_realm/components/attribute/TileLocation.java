@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.attribute;
 
 import java.util.ArrayList;
@@ -22,11 +5,14 @@ import java.util.ArrayList;
 import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
 import com.robin.game.objects.GamePool;
+import com.robin.general.util.RandomNumber;
 import com.robin.magic_realm.components.ClearingDetail;
 import com.robin.magic_realm.components.RealmComponent;
 import com.robin.magic_realm.components.TileComponent;
+import com.robin.magic_realm.components.utility.ClearingUtility;
 import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.utility.RealmObjectMaster;
+import com.robin.magic_realm.components.utility.RealmUtility;
 
 public class TileLocation {
 	public TileComponent tile;
@@ -126,20 +112,24 @@ public class TileLocation {
 	}
 	
 	public boolean isCave(){
-		return clearing.isCave();
+		return clearing != null && clearing.isCave();
 	}
 	
 	public boolean isAtDwelling(boolean includeRedSpecial) {
 		return isInClearing() && (clearing.holdsDwelling() || (includeRedSpecial && clearing.holdsRedSpecial()));
 	}
+	
+	public boolean isAtGuild() {
+		return isInClearing() && clearing.holdsGuild() && clearing.getGuild().getGameObject().hasThisAttribute("seen");
+	}
 	/**
-	 * @return		true if this location is in a cave or in the mountains.  Between caves or between mountains is considered the same as being in a cave or mountain clearing.
+	 * @return		true if this location is in a cave, water or in the mountains.  Between caves, waters or between mountains is considered the same as being in a cave, water or mountain clearing.
 	 */
 	public boolean isShaded() {
 		if (isBetweenClearings()) {
-			return (clearing.isCave() && other.clearing.isCave()) || (clearing.isMountain() && other.clearing.isMountain());
+			return (clearing.isCave() && other.clearing.isCave()) || (clearing.isMountain() && other.clearing.isMountain()) || (clearing.isWater() && other.clearing.isWater());
 		}
-		return isInClearing() && (clearing.isCave() || clearing.isMountain());
+		return isInClearing() && (clearing.isCave() || clearing.isMountain() || clearing.isWater());
 	}
 	public String toString() {
 		if (isBetweenClearings()) {
@@ -160,13 +150,11 @@ public class TileLocation {
 			}
 			return tile.getTileCode()+clearing.getNumString();
 		}
-		else {
-			String letter = flying?"F":"W";
-			if (isBetweenClearings()) {
-				return letter+"P:"+tile.getTileCode()+"&"+other.tile.getTileCode();
-			}
-			return letter+":"+tile.getTileCode(); // flying or walking woods
+		String letter = flying?"F":"W";
+		if (isBetweenClearings()) {
+			return letter+"P:"+tile.getTileCode()+"&"+other.tile.getTileCode();
 		}
+		return letter+":"+tile.getTileCode(); // flying or walking woods
 		
 		/*
 		 * Examples:  (showing every possibility)
@@ -276,5 +264,46 @@ public class TileLocation {
 		}
 		GameObject tile = tiles.get(0);
 		return (TileComponent)RealmComponent.getRealmComponent(tile);
+	}
+	public void setRandomClearing() {
+			ArrayList<ClearingDetail> clearings = tile.getClearings();
+			int random = RandomNumber.getRandom(clearings.size());
+			clearing = clearings.get(random);
+	}
+	
+	public void energizeItems() {
+		if (clearing==null) return;
+		clearing.energizeItems();
+	}
+	
+	public void addScatteredHorse(GameObject horse) {
+		if (!horse.hasThisAttribute(RealmComponent.HORSE) && !horse.hasThisAttribute(RealmComponent.MONSTER_STEED)) return;
+		horse.removeThisAttribute("clearing");
+		tile.getGameObject().add(horse);
+	}
+	
+	public void placeScatteredHorse() {
+		GameObject horse = null;
+		for (GameObject go : tile.getGameObject().getHold()) {
+			if (go.hasThisAttribute(RealmComponent.HORSE) || go.hasThisAttribute(RealmComponent.MONSTER_STEED)) {
+				horse = go;
+			}
+		}
+		if (horse!=null) {
+			ArrayList<ClearingDetail> possibleClearings = new ArrayList<>();
+			for (ClearingDetail cl : tile.getClearings()) {
+				if (!cl.isCave() || horse.hasThisAttribute(Constants.STEED_SURVIVES_CAVES)) {
+					possibleClearings.add(cl);
+				}
+			}
+			if (possibleClearings.isEmpty()) {
+				ClearingUtility.moveToLocation(horse,null);
+				return;
+			}
+			ClearingDetail chosenCl = possibleClearings.get(RandomNumber.getRandom(possibleClearings.size()));
+			TileLocation chosenTileLocation = new TileLocation(chosenCl);
+			ClearingUtility.moveToLocation(horse,chosenTileLocation);
+			RealmUtility.sortGameObjectsHold(chosenTileLocation.tile.getGameObject(),false);
+		}
 	}
 }

@@ -20,6 +20,7 @@ import com.robin.magic_realm.components.utility.RealmLogging;
 import com.robin.magic_realm.components.utility.TreasureUtility;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 import com.robin.magic_realm.components.wrapper.CombatWrapper;
+import com.robin.magic_realm.components.wrapper.SpellMasterWrapper;
 import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class TransmorphEffect implements ISpellEffect {
@@ -32,18 +33,52 @@ public class TransmorphEffect implements ISpellEffect {
 	@Override
 	public void apply(SpellEffectContext context) {
 		RealmComponent target = context.Target;
+		CharacterWrapper targetCharacterWrapper = new CharacterWrapper(target.getGameObject());
 		SpellWrapper spell = context.Spell;
 		CombatWrapper combat = context.getCombatTarget();
 		
-		if ("target".equals(transmorph)) {
+		if ((spell.getCaster().getGameObject()!=target.getGameObject() && target.getGameObject().hasThisAttribute(Constants.TRANSMORPH_IMMUNITY))
+				|| (spell.getCaster().getGameObject()==target.getGameObject() && target.getGameObject().hasThisAttribute(Constants.TRANSMORPH_IMMUNITY_SELF))) {
+			spell.cancelSpell();
+			RealmLogging.logMessage(RealmLogging.BATTLE, "Target is immune to Transmorph spells.");
+			return;
+		}
+		
+		if ("target".equals(transmorph)) { //absorb essence
+			if (targetCharacterWrapper.isStatue()) {
+				spell.cancelSpell();
+				RealmLogging.logMessage(RealmLogging.BATTLE, "Target is already a statue - spell effect cancelled.");
+				return;
+			}
+			if (targetCharacterWrapper.isTransformed()) {
+				spell.cancelSpell();
+				RealmLogging.logMessage(RealmLogging.BATTLE, "Target is already transformed - spell effect cancelled.");
+				return;
+			}
+			if (targetCharacterWrapper.isMistLike()) {
+				spell.cancelSpell();
+				RealmLogging.logMessage(RealmLogging.BATTLE, "Target is a mist - spell effect cancelled.");
+				return;
+			}
 			doTransmorphTarget(target, spell, combat);
 		}
 		else if ("statue".equals(transmorph)){
+			if (targetCharacterWrapper.isMistLike()) {
+				spell.cancelSpell();
+				RealmLogging.logMessage(RealmLogging.BATTLE, "Target is already a mist - spell effect cancelled.");
+				return;
+			}
 			GameObject transformStatue = prepareTransformation("statue", target, spell, context.Parent);
-			doActualTransformation(target, spell, combat, transformStatue);
+			doActualTransformation(target, spell, transformStatue);
 		}
 		else if ("roll".equals(transmorph) || "mist".equals(transmorph)) {
-			GameObject transformAnimal = spell.getTransformAnimal();
+			if ("roll".equals(transmorph) && targetCharacterWrapper.isMistLike()) {
+				spell.cancelSpell();
+				RealmLogging.logMessage(RealmLogging.BATTLE, "Target is already a mist - spell effect cancelled.");
+				return;
+			}
+			
+			GameObject transformAnimal = spell.getTransformAnimalOrStatue();
 			
 			// In this case, the target is the one that gets transformed
 			if (transformAnimal==null) {
@@ -66,9 +101,9 @@ public class TransmorphEffect implements ISpellEffect {
 				}
 				
 				transformAnimal = prepareTransformation(transformBlock, target, spell, context.Parent);
-			} 
+			}
 			
-			doActualTransformation(target, spell, combat, transformAnimal);
+			doActualTransformation(target, spell, transformAnimal);
 		}
 		
 		if (spell.getCaster().isTransmorphed()) {
@@ -77,6 +112,13 @@ public class TransmorphEffect implements ISpellEffect {
 			GameObject cast = casterCombat.getCastSpell();
 			if (cast!=null && !cast.equals(spell.getGameObject())) {
 				casterCombat.clearCastSpell();
+			}
+		}
+		
+		ArrayList<SpellWrapper> affectingSpells = SpellMasterWrapper.getSpellMaster(context.getGameData()).getAffectingSpells(target.getGameObject());
+		for (SpellWrapper affectingSpell : affectingSpells) {
+			if (affectingSpell.getGameObject().hasThisAttribute(Constants.BREAK_WHEN_TRANSMORPHED)) {
+				affectingSpell.expireSpell();
 			}
 		}
 	}
@@ -93,11 +135,10 @@ public class TransmorphEffect implements ISpellEffect {
 			
 			// Restore active state of items
 			GameData data = spell.getGameObject().getGameData();
-			ArrayList list = spell.getList(Constants.ACTIVATED_ITEMS);
+			ArrayList<String> list = spell.getList(Constants.ACTIVATED_ITEMS);
 			
 			if (list!=null) {
-				for (Iterator i=list.iterator();i.hasNext();) {
-					String id = (String)i.next();
+				for (String id : list) {
 					GameObject go = data.getGameObject(Long.valueOf(id));
 					if (go!=null && inv.contains(go)) { // only do this if the item still exists in inventory
 						TreasureUtility.doActivate(null, spell.getCaster(),go,new ChangeListener() {
@@ -115,7 +156,9 @@ public class TransmorphEffect implements ISpellEffect {
 		else if ("roll".equals(transmorph) || "mist".equals(transmorph) || "statue".equals(transmorph)) {
 			if (target.isCharacter()) {
 				CharacterWrapper character = new CharacterWrapper(target.getGameObject());
-				character.setTransmorph(null);
+				if (!transmorph.equals("mist") || character.isMistLike()) {
+					character.setTransmorph(null);
+				}
 			}
 			else {
 				if (!target.getGameObject().hasAttributeBlock("this_h")) {
@@ -156,19 +199,21 @@ public class TransmorphEffect implements ISpellEffect {
 					character.addGold(gold); // add gold, in case transmorphed character picked up some gold!
 				}
 				
-				ArrayList<GameObject> itemsFromSpell = new ArrayList<GameObject>();
-				for (Iterator si = spell.getGameObject().getHoldAsGameObjects().iterator(); si.hasNext();) {
-					GameObject go = (GameObject) si.next();
-					if (RealmComponent.getRealmComponent(go).isItem()) itemsFromSpell.add(go);
-				}
-				for (GameObject item : itemsFromSpell) {
-					character.getGameObject().add(item);
+				ArrayList<GameObject> hold = new ArrayList<>();
+				hold.addAll(spell.getGameObject().getHold());
+				for (GameObject go : hold) {
+					if (RealmComponent.getRealmComponent(go).isItem()) {
+						character.getGameObject().add(go);
+					}
 				}
 			}
 		}
+		if (spell.getGameObject().hasThisAttribute(Constants.ONLY_MOVE)) {
+			target.getGameObject().removeThisAttribute(Constants.ONLY_MOVE);
+		}
 	}
 	
-	private GameObject prepareTransformation(String transformName, RealmComponent target, SpellWrapper spell, JFrame frame){
+	public static GameObject prepareTransformation(String transformName, RealmComponent target, SpellWrapper spell, JFrame frame){
 		GameData data = spell.getGameObject().getGameData();
 		GameObject trans = data.createNewObject();
 		
@@ -178,14 +223,14 @@ public class TransmorphEffect implements ISpellEffect {
 		IconGroup group = new IconGroup(RealmComponent.getRealmComponent(trans).getIcon(),IconGroup.VERTICAL,1);
 		
 		String pronoun = getPronoun(trans.getName());
-		String message = "The " + target.getGameObject().getName()+" was transformed into " + pronoun + transformName + ".";
+		String message = "The " + target.getGameObject().getNameWithNumber()+" was transformed into " + pronoun + trans.getName() + ".";
 		RealmLogging.logMessage(RealmLogging.BATTLE, message);
 		FrameManager.showDefaultManagedFrame(frame, message, "Transform", group, true);
 		
 		return trans;
 	}
 	
-	private String getPronoun(String transformName){
+	private static String getPronoun(String transformName){
 		// Fix the pronoun
 		String pronoun = "a ";
 		if (transformName.startsWith("E")) {
@@ -198,7 +243,7 @@ public class TransmorphEffect implements ISpellEffect {
 		return pronoun;
 	}
 	
-	private void doActualTransformation(RealmComponent target, SpellWrapper spell, CombatWrapper combat, GameObject transformObj){
+	private static void doActualTransformation(RealmComponent target, SpellWrapper spell, GameObject transformObj){
 		// Do the actual transform
 		if (target.isCharacter()) {
 			CharacterWrapper character = new CharacterWrapper(target.getGameObject());
@@ -241,6 +286,7 @@ public class TransmorphEffect implements ISpellEffect {
 		if (target.isPlayerControlledLeader()) {
 			CharacterWrapper character = new CharacterWrapper(target.getGameObject());
 			
+			if (!spell.getGameObject().hasThisAttribute(Constants.KEEP_INVENTORY)) {
 			// Transmorph gold
 			double gold = character.getGold();
 			if (gold>0) {
@@ -251,22 +297,40 @@ public class TransmorphEffect implements ISpellEffect {
 			// Move all inventory to the spell, so it doesn't appear in window anymore,
 			// but will on double-click of the spell.  This should also disable inventory
 			// without changing its active/inactive location			
-			ArrayList<GameObject> itemsFromInventory = new ArrayList<GameObject>();
-			for (GameObject go : character.getInventory()) {
-				if (RealmComponent.getRealmComponent(go).isItem()) itemsFromInventory.add(go);
+			character.getInventory().stream()
+				.filter(go -> RealmComponent.getRealmComponent(go).isItem())
+				.forEach(i -> spell.getGameObject().add(i));
 			}
-			for (GameObject item : itemsFromInventory) {
-				spell.getGameObject().add(item);
+			else {
+				for (GameObject item : character.getInventory()) {
+					RealmComponent rc = RealmComponent.getRealmComponent(item);
+					if (rc.isItem() && !rc.getGameObject().hasThisAttribute("color_source")) {
+						rc.setActivated(false);
+					}
+				}
 			}
 		}
 		if (target.isMistLike()) {
 			// Mists cannot have a target!
-			target.clearTarget();
-		
+			target.clearTargets();
+			// Mists cannot have a followers!
+			CharacterWrapper character = new CharacterWrapper(target.getGameObject());
+			character.setStopFollowing(true);
+			ArrayList<CharacterWrapper> followers = character.getActionFollowers();
+			if (followers!=null) {
+				for (CharacterWrapper follower : followers) {
+					if (!follower.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE)) {
+						character.removeActionFollower(follower,null,null);
+					}
+				}
+			}
+		}
+		if (spell.getGameObject().hasThisAttribute(Constants.ONLY_MOVE)) {
+			target.getGameObject().setThisAttribute(Constants.ONLY_MOVE);
 		}
 	}
 			
-	private void doTransmorphTarget(RealmComponent target, SpellWrapper spell, CombatWrapper combat){
+	private static void doTransmorphTarget(RealmComponent target, SpellWrapper spell, CombatWrapper combat){
 		if (target.isMonster()) {
 			MonsterChitComponent monster = (MonsterChitComponent)target;
 			if (monster.isDarkSideUp()) { // Always flip to light side on absorb!
@@ -280,18 +344,49 @@ public class TransmorphEffect implements ISpellEffect {
 			CombatWrapper ttc = new CombatWrapper(targetsTarget.getGameObject());
 			ttc.removeAttacker(target.getGameObject());
 			
-			if (targetsTarget.targeting(target)) {
+			if (targetsTarget.getTarget() == target) {
 				// Only clear targetsTarget if actually targeting the target (that's not confusing at all)
 				targetsTarget.clearTarget();
 			}
-			
-			// Clear its target
-			target.clearTarget();
+			if (targetsTarget.get2ndTarget() == target) {
+				// Only clear targetsTarget if actually targeting the target (that's not confusing at all)
+				targetsTarget.clear2ndTarget();
+			}
 		}
+		RealmComponent targetsTarget2 = target.get2ndTarget();
+		if (targetsTarget2!=null) {
+			// Make sure that the target isn't already an attacker somewhere else
+			CombatWrapper ttc2 = new CombatWrapper(targetsTarget2.getGameObject());
+			ttc2.removeAttacker(target.getGameObject());
+			
+			if (targetsTarget2.getTarget() == target) {
+				// Only clear targetsTarget if actually targeting the target (that's not confusing at all)
+				targetsTarget2.clearTarget();
+			}
+			if (targetsTarget2.get2ndTarget() == target) {
+				// Only clear targetsTarget if actually targeting the target (that's not confusing at all)
+				targetsTarget2.clear2ndTarget();
+			}
+		}
+		// Clear its target
+		target.clearTargets();
+		
 		if (!spell.getGameObject().getHold().contains(target.getGameObject())) {
 			spell.getGameObject().add(target.getGameObject());
 			target.getGameObject().removeThisAttribute("clearing");
 			combat.removeAllAttackers();
+			
+			SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(target.getGameObject().getGameData());
+			for (SpellWrapper attackingSpell : sm.getAffectingSpells(target.getGameObject())) {
+				if (attackingSpell.isActive() && !attackingSpell.hasAffectedTargets() &&  attackingSpell.getGameObject() != spell.getGameObject()) {
+					attackingSpell.removeTarget(target.getGameObject());
+					if (attackingSpell.getTargetCount() == 0) {
+						attackingSpell.cancelSpell();
+						RealmLogging.logMessage(attackingSpell.getCaster().getGameObject().getName(),"Spell "+attackingSpell.getName() + " canceled, as "+target+" was absorbed.");
+					}
+				}
+			}
+			
 			RealmLogging.logMessage(spell.getCaster().getGameObject().getName(),"Absorbed the "+target.getGameObject().getName());
 		}
 		else {
@@ -304,7 +399,4 @@ public class TransmorphEffect implements ISpellEffect {
 		}
 		spell.getCaster().setTransmorph(target.getGameObject());
 	}
-
-	
-
 }

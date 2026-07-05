@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.table;
 
 import java.util.ArrayList;
@@ -25,6 +8,8 @@ import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
 import com.robin.general.swing.ButtonOptionDialog;
 import com.robin.magic_realm.components.attribute.TileLocation;
+import com.robin.magic_realm.components.utility.Constants;
+import com.robin.magic_realm.components.utility.MonsterCreator;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 import com.robin.magic_realm.components.wrapper.CombatWrapper;
 
@@ -32,7 +17,7 @@ public class SummonElemental extends MonsterTable {
 
 	public static final String KEY = "SummonElemental";
 	
-	private enum ElementalType {
+	public enum ElementalType {
 		Earth,
 		Fire,
 		Water,
@@ -101,32 +86,53 @@ public class SummonElemental extends MonsterTable {
 	public String applySix(CharacterWrapper character) {
 		return "No Effect";
 	}
-	private void summonElemental(CharacterWrapper character, ElementalType type) {
-		GameData data = character.getGameObject().getGameData();
+	public GameObject createElemental(GameData data, ElementalType type) {
 		GameObject elemental = getMonsterCreator().createOrReuseMonster(data);
 		switch(type) {
 			case Earth:
 				getMonsterCreator().setupGameObject(elemental,"Earth Elemental","earth","T",true);
-				getMonsterCreator().setupSide(elemental,"light","T",0,4,0,6,"tan");
-				getMonsterCreator().setupSide(elemental,"dark","RED",0,4,0,6,"red");
+				MonsterCreator.setupSide(elemental,"light","T",0,4,0,6,"tan");
+				MonsterCreator.setupSide(elemental,"dark","RED",0,4,0,6,"red");
 				elemental.setAttribute("dark","pins");
+				elemental.setThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE,"WarOfTheGods-monsters-elemental-earth");
+				elemental.setThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE,"wesnoth/units/addons");
+				elemental.setThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE,"0.9");
+				elemental.setThisAttribute(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE,"9");
 				break;
 			case Fire:
 				getMonsterCreator().setupGameObject(elemental,"Fire Elemental","fire","H",false);
-				getMonsterCreator().setupSide(elemental,"light","H",2,6,1,4,"lightorange");
-				getMonsterCreator().setupSide(elemental,"dark","H",1,2,1,6,"orange");
+				MonsterCreator.setupSide(elemental,"light","H",2,6,1,4,"lightorange");
+				MonsterCreator.setupSide(elemental,"dark","H",1,2,1,6,"orange");
+				elemental.setThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE,"WarOfTheGods-monsters-elemental-fire1");
+				elemental.setThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE,"wesnoth/units/addons");
+				elemental.setThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE,"0.9");
+				elemental.setThisAttribute(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE,"9");
 				break;
 			case Water:
 				getMonsterCreator().setupGameObject(elemental,"Water Elemental","water","H",false);
-				getMonsterCreator().setupSide(elemental,"light","H",0,4,0,2,"lightblue");
-				getMonsterCreator().setupSide(elemental,"dark","H",0,2,0,4,"blue");
+				MonsterCreator.setupSide(elemental,"light","H",0,4,0,2,"lightblue");
+				MonsterCreator.setupSide(elemental,"dark","H",0,2,0,4,"blue");
+				elemental.setThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE,"Reign_of_the_Lords-elementals-nymph");
+				elemental.setThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE,"wesnoth/units/addons");
+				elemental.setThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE,"0.9");
+				elemental.setThisAttribute(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE,"9");
 				break;
 			case Air:
 				getMonsterCreator().setupGameObject(elemental,"Air Elemental","air","M",false,true);
-				getMonsterCreator().setupSide(elemental,"light","M",0,3,0,4,"white");
-				getMonsterCreator().setupSide(elemental,"dark","H",0,4,0,4,"gray");
+				MonsterCreator.setupSide(elemental,"light","M",0,3,0,4,"white");
+				MonsterCreator.setupSide(elemental,"dark","H",0,4,0,4,"gray");
+				elemental.setThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE,"dust-devil");
+				elemental.setThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE,"wesnoth/units/monsters");
+				elemental.setThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE,"0.9");
+				elemental.setThisAttribute(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE,"9");
 				break;
 		}
+		elemental.setThisAttribute(Constants.ELEMENTAL);
+		return elemental;
+	}
+	private void summonElemental(CharacterWrapper character, ElementalType type) {
+		GameData data = character.getGameObject().getGameData();
+		GameObject elemental = createElemental(data, type);
 		TileLocation tl = character.getCurrentLocation();
 		character.addHireling(elemental);
 		CombatWrapper combat = new CombatWrapper(elemental);

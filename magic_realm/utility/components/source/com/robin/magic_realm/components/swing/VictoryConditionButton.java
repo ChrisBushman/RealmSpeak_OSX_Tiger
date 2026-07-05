@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.swing;
 
 import java.awt.BorderLayout;
@@ -44,7 +27,7 @@ public class VictoryConditionButton extends JPanel {
 	
 	public VictoryConditionButton(String title,String description) {
 		setLayout(new BorderLayout());
-		titleLabel = new JLabel(title,JLabel.CENTER);
+		titleLabel = new JLabel(title,SwingConstants.CENTER);
 		titleLabel.setFont(font);
 		add(titleLabel,BorderLayout.NORTH);
 		descriptionField = new JTextPane();
@@ -70,7 +53,7 @@ public class VictoryConditionButton extends JPanel {
 	}
 	public void addChangeListener(ChangeListener changeListener) {
 		if (changeListeners==null) {
-			changeListeners = new ArrayList<ChangeListener>();
+			changeListeners = new ArrayList<>();
 		}
 		if (!changeListeners.contains(changeListener)) {
 			changeListeners.add(changeListener);
@@ -112,6 +95,6 @@ public class VictoryConditionButton extends JPanel {
 		setBorder(selected?BorderFactory.createLoweredBevelBorder():BorderFactory.createRaisedBevelBorder());
 		setBackground(selected? UIManager.getColor("Tree.selectionBackground"): UIManager.getColor("Panel.background"));
 		titleLabel.setForeground(selected? UIManager.getColor("Tree.selectionForeground"): UIManager.getColor("Label.foreground"));
-		descriptionField.setForeground(selected? UIManager.getColor("Tree.selectionForeground"): UIManager.getColor("Label.foreground"));
+		descriptionField.setForeground(selected? UIManager.getColor("Label.foreground"): UIManager.getColor("Label.foreground"));
 	}
 }

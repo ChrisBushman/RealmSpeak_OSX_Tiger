@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
 import java.awt.AlphaComposite;
@@ -27,6 +10,7 @@ import com.robin.general.graphics.TextType;
 import com.robin.general.graphics.TextType.Alignment;
 import com.robin.magic_realm.components.attribute.Speed;
 import com.robin.magic_realm.components.attribute.Strength;
+import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class FlyChitComponent extends StateChitComponent {
@@ -94,8 +78,8 @@ public class FlyChitComponent extends StateChitComponent {
 		tt = new TextType("FLY",getChitSize(),"BOLD");
 		tt.draw(g,x,y,Alignment.Center);
 		
-		String strength = getGameObject().getThisAttribute("strength");
-		String speed = getGameObject().getThisAttribute("speed");
+		String strength = getStrength().toString();
+		String speed = getSpeed().getSpeedString();
 		tt = new TextType(strength+speed,getChitSize(),"BOLD");
 		y+=tt.getHeight(g);
 		tt.draw(g,x,y,Alignment.Center);
@@ -106,15 +90,34 @@ public class FlyChitComponent extends StateChitComponent {
 		tt.draw(g,0,y,Alignment.Center);
 	}
 	public void expireSourceSpell() {
-		String stringId = getGameObject().getThisAttribute("spellID");
+		String stringId = getGameObject().getThisAttribute(Constants.SPELL_ID);
 		GameObject sourceSpell = getGameObject().getGameData().getGameObject(Long.valueOf(stringId));
 		SpellWrapper spell = new SpellWrapper(sourceSpell);
 		spell.expireSpell();
 	}
 	public Strength getStrength() {
-		return new Strength(getGameObject().getThisAttribute("strength"));
+		if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT)) return new Strength(getGameObject().getThisAttribute(Constants.ALTER_WEIGHT));
+		int mod = 0;
+		if (gameObject.hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) {
+			mod++;
+		}
+		if (gameObject.hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT)) {
+			mod--;
+		}
+		return new Strength(getGameObject().getThisAttribute("strength"),mod);
 	}
 	public Speed getSpeed() {
-		return new Speed(getGameObject().getThisAttribute("speed"));
+		int mod = 0;
+		if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT) && !getThisAttribute("speed").matches(Constants.WEIGHT)) {
+			int difference = (new Strength(gameObject.getThisAttribute(Constants.ALTER_WEIGHT))).getLevels()-(new Strength((gameObject.getThisAttribute("strength")))).getLevels();
+			mod = mod+difference;
+		}
+		if (gameObject.hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) {
+			mod++;
+		}
+		if (gameObject.hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT)) {
+			mod--;
+		}
+		return new Speed(getGameObject().getThisAttribute("speed"),mod);
 	}
 }

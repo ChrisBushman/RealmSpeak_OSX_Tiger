@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.BorderLayout;
@@ -27,6 +10,7 @@ import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 
+import com.robin.game.objects.GameObject;
 import com.robin.general.swing.*;
 import com.robin.magic_realm.components.attribute.PhaseManager;
 import com.robin.magic_realm.components.quest.GamePhaseType;
@@ -37,7 +21,7 @@ import com.robin.magic_realm.components.wrapper.*;
 
 public class CharacterActionPanel extends CharacterFramePanel {
 	
-	private static Hashtable dieIconHash = null;
+	private static Hashtable<Integer, ImageIcon> dieIconHash = null;
 	
 	private HostPrefWrapper hostPrefs;
 	
@@ -64,8 +48,11 @@ public class CharacterActionPanel extends CharacterFramePanel {
 				if (i>2) n=50; // 3,4,6,7
 				if (i==6) {
 					n=20; // monsterdie
+					if (hostPrefs.hasPref(Constants.EXP_MONSTER_DIE_PER_SET) && hostPrefs.getMultiBoardEnabled()) {
+						n = n*hostPrefs.getMultiBoardCount();
+					}
 					if (hostPrefs.hasPref(Constants.EXP_DOUBLE_MONSTER_DIE)) {
-						n=40;
+						n=n*2;
 					}
 				}
 				TableColumn col = actionHistoryTable.getColumnModel().getColumn(i);
@@ -136,10 +123,10 @@ public class CharacterActionPanel extends CharacterFramePanel {
 		}
 	}
 	private void showKills(int row) {
-		Collection allDays = getCharacter().getGameObject().getAttributeList(getCharacter().getBlockName(),CharacterWrapper.ALL_DAYS);
+		Collection<String> allDays = getCharacter().getGameObject().getAttributeList(getCharacter().getBlockName(),CharacterWrapper.ALL_DAYS);
 		if (allDays!=null && row<allDays.size()) {
-			String dayKey = (String)(new ArrayList(allDays)).get(row);
-			ArrayList kills = getCharacter().getKills(dayKey);
+			String dayKey = (new ArrayList<String>(allDays)).get(row);
+			ArrayList<GameObject> kills = getCharacter().getKills(dayKey);
 			RealmObjectPanel panel = new RealmObjectPanel();
 			panel.addObjects(kills);
 			JOptionPane.showMessageDialog(getGameHandler().getMainFrame(),panel,getCharacter().getCharacterName()+" Kills",JOptionPane.INFORMATION_MESSAGE,null);
@@ -160,6 +147,7 @@ public class CharacterActionPanel extends CharacterFramePanel {
 			params.timeOfCall = GamePhaseType.Birdsong;
 			if (getCharacter().testQuestRequirements(getMainFrame(),params)) {
 				getCharacterFrame().updateCharacter(); // might be recursive, but the requirements shouldn't yield rewards more than once...
+				getGameHandler().getInspector().redrawMap();
 			}
 			getCharacter().setNeedsQuestCheck(false);
 		}
@@ -192,7 +180,7 @@ public class CharacterActionPanel extends CharacterFramePanel {
 		public ActionHistoryTableModel() {
 		}
 		public int getRowCount() {
-			Collection allDays = getCharacter().getAllDayKeys();
+			Collection<String> allDays = getCharacter().getAllDayKeys();
 			return allDays==null?0:allDays.size();
 		}
 		public int getColumnCount() {
@@ -205,16 +193,16 @@ public class CharacterActionPanel extends CharacterFramePanel {
 			return columnClass[column];
 		}
 		public Object getValueAt(int row, int column) {
-			ArrayList allDays = getCharacter().getGameObject().getAttributeList(getCharacter().getBlockName(),CharacterWrapper.ALL_DAYS);
+			ArrayList<String> allDays = getCharacter().getGameObject().getAttributeList(getCharacter().getBlockName(),CharacterWrapper.ALL_DAYS);
 			if (allDays!=null && row<allDays.size()) {
-				String dayKey = (String)allDays.get(row);
+				String dayKey = allDays.get(row);
 				switch(column) {
 					case TURN:
-						return new Integer(row+1); // FIXME this isn't exactly right - doesn't reflect the game turn, only the turn of this character
+						return Integer.valueOf(row+1);
 					case MONTH:
-						return new Integer(DayKey.getMonth(dayKey));
+						return Integer.valueOf(DayKey.getMonth(dayKey));
 					case DAY:
-						return new Integer(DayKey.getDay(dayKey));
+						return Integer.valueOf(DayKey.getDay(dayKey));
 					case COLOR:
 						RealmCalendar cal = RealmCalendar.getCalendar(getGameHandler().getClient().getGameData());
 						return cal.getColorMagicName(DayKey.getMonth(dayKey),DayKey.getDay(dayKey));
@@ -230,25 +218,23 @@ public class CharacterActionPanel extends CharacterFramePanel {
 						DieRoller roller = getCharacter().getMonsterRoll(dayKey);
 						if (roller!=null) {
 							if (dieIconHash==null) {
-								dieIconHash = new Hashtable();
+								dieIconHash = new Hashtable<>();
 								for (int i=1;i<=6;i++) {
 									DieRoller dr = new DieRoller(String.valueOf(i),16,4);
 									dr.setAllRed();
-									dieIconHash.put(new Integer(i),dr.getIcon());
+									dieIconHash.put(Integer.valueOf(i),dr.getIcon());
 								}
 							}
 							if (roller.getNumberOfDice()==1) {
 								return dieIconHash.get(roller.getValue(0));
 							}
-							else {
-								roller = new DieRoller(roller.getStringResult(),16,4);
-								roller.setAllRed();
-								return roller.getIcon();
-							}
+							roller = new DieRoller(roller.getStringResult(),16,4);
+							roller.setAllRed();
+							return roller.getIcon();
 						}
 						return null;
 					case KILLS:
-						ArrayList kills = getCharacter().getKills(dayKey);
+						ArrayList<GameObject> kills = getCharacter().getKills(dayKey);
 						return kills.isEmpty()?"-":String.valueOf(kills.size());
 				}
 			}
@@ -256,22 +242,20 @@ public class CharacterActionPanel extends CharacterFramePanel {
 		}
 		public String getActionString(String dayKey) {
 			boolean today = dayKey.equals(getCharacter().getCurrentDayKey());
-			Collection c = getCharacter().getActions(dayKey);
+			Collection<String> c = getCharacter().getActions(dayKey);
 			if (c!=null) {
 				StringBuffer sb = new StringBuffer();
-				Iterator vai = null;
+				Iterator<String> vai = null;
 				if (today) { // only today is drawn using html
 					sb.append("<html>");
-					Collection v = getCharacter().getCurrentActionValids();
+					Collection<String> v = getCharacter().getCurrentActionValids();
 					if (v==null) {
-						v = new ArrayList();
+						v = new ArrayList<>();
 					}
 					vai = v.iterator();
 				}
 				int zero = sb.length();
-				for (Iterator i=c.iterator();i.hasNext();) {
-					String action = (String)i.next();
-					
+				for (String action : c) {			
 					// Truncate anything starting with a tilde (~)
 					int tilde = action.indexOf('~');
 					if (tilde>=0) {
@@ -282,8 +266,7 @@ public class CharacterActionPanel extends CharacterFramePanel {
 						sb.append(",");
 					}
 					if (today) {
-						// FIXME Need to recognize the situation where the character enters
-						// a move to an invalid clearing!  Low priority though.
+						// FIXME Need to recognize the situation where the character enters a move to an invalid clearing!  Low priority though.
 						String test = vai.next().toString();
 						boolean validAction = test.equals("T");
 						if (validAction) {

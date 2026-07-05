@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest.requirement;
 
 import java.util.ArrayList;
@@ -37,6 +20,7 @@ public class QuestRequirementSearchResult extends QuestRequirement {
 	public static final String RESULT2 = "_r2";
 	public static final String RESULT3 = "_r3";
 	public static final String REQUIRES_GAIN = "_rqg";
+	public static final String REQUIRES_NO_GAIN = "_rqng";
 	public static final String TARGET_REGEX = "_rx";
 	public static final String LOCATION = "_lcn";
 	public static final String TARGET_LOC = "_tlcn";
@@ -52,41 +36,44 @@ public class QuestRequirementSearchResult extends QuestRequirement {
 			logger.fine("Search table name "+reqParams.actionName+" does not match "+reqTable);
 			return false;
 		}
+		
 		ArrayList<SearchResultType> acceptibleSearchResults = getAcceptableSearchResults();
 		if (reqParams!=null && reqParams.searchType!=null && acceptibleSearchResults.contains(reqParams.searchType)) {
-			if (!requiresGain() || reqParams.searchHadAnEffect) {
-				// So far so good.  Now make sure the search target is accurate if a regex was specified
-				String regex = getTargetRegEx();
-				Pattern pattern = regex!=null && regex.trim().length()>0?Pattern.compile(regex):null;
-				boolean regexGood = pattern==null || (reqParams.targetOfSearch!=null && pattern.matcher(reqParams.targetOfSearch.getName()).find());
-				QuestLocation ql = getQuestLocation();
-				boolean qlGood = ql==null || ql.locationMatchAddress(frame,character);
-				QuestLocation tl = getTargetLocation();
-				boolean tlGood = tl==null || (reqParams.targetOfSearch!=null && tl.locationMatchAddress(frame,character,reqParams.targetOfSearch));
-				
-				if (!regexGood) {
-					logger.fine("The target of search ("+reqParams.targetOfSearch+") didn't match expected pattern: "+regex);
-				}
-				if (!qlGood) {
-					logger.fine("The character's location doesn't match the QuestLocation: "+ql.getName());
-				}
-				if (!tlGood) {
-					logger.fine("The target of the character's search doesn't match the TargetLocation: "+tl.getName());
-				}
-				
-				return regexGood && qlGood && tlGood;
-			}
-			else {
+			if(requiresGain() && !reqParams.searchHadAnEffect) {
 				logger.fine("Requires some type of search gain, and there wasn't any.");
+				return false;
 			}
+			if(requiresNoGain() && reqParams.searchHadAnEffect) {
+				logger.fine("Requires no search gain, but there was some.");
+				return false;
+			}
+			// So far so good.  Now make sure the search target is accurate if a regex was specified
+			String regex = getTargetRegEx();
+			Pattern pattern = regex!=null && regex.trim().length()>0?Pattern.compile(regex):null;
+			boolean regexGood = pattern==null || (reqParams.targetOfSearch!=null && pattern.matcher(reqParams.targetOfSearch.getName()).find());
+			if (!regexGood) {
+				logger.fine("The target of search ("+reqParams.targetOfSearch+") didn't match expected pattern: "+regex);
+				return false;
+			}
+			QuestLocation tl = getTargetLocation();
+			boolean tlGood = tl==null || (reqParams.targetOfSearch!=null && tl.locationMatchAddress(frame,character,reqParams.targetOfSearch));
+			if (!tlGood) {
+				logger.fine("The target of the character's search doesn't match the TargetLocation: "+tl.getName());
+				return false;
+			}
+			QuestLocation ql = getQuestLocation();
+			boolean qlGood = ql==null || ql.locationMatchAddress(frame,character);
+			if (!qlGood) {
+				logger.fine("The character's location doesn't match the QuestLocation: "+ql.getName());
+				return false;
+			}
+			return true;
+		}
+		if (reqParams==null) {
+			logger.fine("No search was done.");
 		}
 		else {
-			if (reqParams==null) {
-				logger.fine("No search was done.");
-			}
-			else {
-				logger.fine("Search type "+reqParams.searchType+" wasn't among the acceptable search results: "+StringUtilities.collectionToString(acceptibleSearchResults,","));
-			}
+			logger.fine("Search type "+reqParams.searchType+" wasn't among the acceptable search results: "+StringUtilities.collectionToString(acceptibleSearchResults,","));
 		}
 		return false;
 	}
@@ -189,6 +176,9 @@ public class QuestRequirementSearchResult extends QuestRequirement {
 	}
 	public boolean requiresGain() {
 		return getBoolean(REQUIRES_GAIN);
+	}
+	public boolean requiresNoGain() {
+		return getBoolean(REQUIRES_NO_GAIN);
 	}
 	public String getTargetRegEx() {
 		return getString(TARGET_REGEX);

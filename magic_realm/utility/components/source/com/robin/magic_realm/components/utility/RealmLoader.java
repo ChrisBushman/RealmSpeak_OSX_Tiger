@@ -1,30 +1,12 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.utility;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import com.robin.game.objects.*;
 
 public class RealmLoader {
 
-	public static final String DATA_PATH = "data/MagicRealmData.xml";
+	public static String DATA_PATH = "data/MagicRealmData.xml";
 
 	private GameData master; // needed to determine changes
 	private GameData data;
@@ -37,13 +19,17 @@ public class RealmLoader {
 		data.loadFromPath(DATA_PATH);
 	}
 	
+	public RealmLoader(GameData data) {
+		this.master = data.copy();
+		this.data = data.copy();
+	}
+	
 	public void cleanupData(String keyVals) {
 		long maxid = master.getMaxId();
 		GamePool pool = new GamePool(data.getGameObjects());
 		ArrayList<GameObject> found = pool.find(keyVals);
-		ArrayList<GameObject> toDelete = new ArrayList<GameObject>();
-		for (Iterator i=data.getGameObjects().iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		ArrayList<GameObject> toDelete = new ArrayList<>();
+		for (GameObject go : data.getGameObjects()) {
 			if (go.getId()<=maxid) { // only consider objects in the master
 				if (!found.contains(go)) {
 					// Make sure it isn't held by...
@@ -73,7 +59,7 @@ public class RealmLoader {
 	public static void main(String[] args) {
 		RealmLoader loader = new RealmLoader();
 		GamePool pool = new GamePool(loader.getData().getGameObjects());
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList<String> query = new ArrayList<>();
 		query.add("rw_expansion_1");
 		query.add("treasure");
 		String tab = "\t";

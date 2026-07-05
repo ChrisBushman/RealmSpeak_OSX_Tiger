@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmCharacterBuilder.EditPanel;
 
 import java.awt.*;
@@ -53,7 +36,7 @@ public class ItemRestrictionsEditPanel extends AdvantageEditPanel {
 	public ItemRestrictionsEditPanel(CharacterWrapper pChar, String levelKey) {
 		super(pChar, levelKey);
 		
-		hash = new Hashtable<String,JCheckBox>();
+		hash = new Hashtable<>();
 		
 		setLayout(new BorderLayout());
 		
@@ -69,14 +52,13 @@ public class ItemRestrictionsEditPanel extends AdvantageEditPanel {
 		}
 		add(main,"Center");
 		
-		JLabel description = new JLabel("Items that cannot be activated:",JLabel.LEFT);
+		JLabel description = new JLabel("Items that cannot be activated:",SwingConstants.LEFT);
 		description.setFont(new Font("Dialog",Font.BOLD,16));
 		add(description,"North");
 		
-		ArrayList list = getAttributeList(Constants.ITEM_RESTRICTIONS);
+		ArrayList<String> list = getAttributeList(Constants.ITEM_RESTRICTIONS);
 		if (list!=null) {
-			for (Iterator i=list.iterator();i.hasNext();) {
-				String val = (String)i.next();
+			for (String val : list) {
 				JCheckBox option = hash.get(val);
 				if (option!=null) {
 					option.setSelected(true);
@@ -96,7 +78,7 @@ public class ItemRestrictionsEditPanel extends AdvantageEditPanel {
 	}
 
 	protected void applyAdvantage() {
-		ArrayList list = new ArrayList();
+		ArrayList<String> list = new ArrayList<>();
 		for (Iterator i=hash.keySet().iterator();i.hasNext();) {
 			String val = (String)i.next();
 			JCheckBox option = hash.get(val);

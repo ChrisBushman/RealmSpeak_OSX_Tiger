@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle;
 
 import java.awt.BorderLayout;
@@ -22,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Iterator;
 
 import javax.swing.*;
 
@@ -36,19 +18,19 @@ public class EndCombatFrame extends JFrame {
 	private long id;
 	
 	private CombatFrame parent;
-	private ArrayList playersToRespond;
+	private ArrayList<String> playersToRespond;
 	
 	private JTextArea responseArea;
-	private Hashtable responseHash;
+	private Hashtable<String, String> responseHash;
 	
 	private JButton closeButton;
 	private JButton cancelEndButton;
 	
-	public EndCombatFrame(CombatFrame parent,ArrayList playersToRespond) {
+	public EndCombatFrame(CombatFrame parent,ArrayList<String> playersToRespond) {
 		this.id = cum_id++;
 		this.parent = parent;
 		this.playersToRespond = playersToRespond;
-		responseHash = new Hashtable();
+		responseHash = new Hashtable<>();
 		initComponents();
 	}
 	public long getId() {
@@ -121,15 +103,14 @@ public class EndCombatFrame extends JFrame {
 		}
 	}
 	private String getUnanimousResponse() {
-		ArrayList all = new ArrayList();
-		for (Iterator i=responseHash.values().iterator();i.hasNext();) {
-			String response = (String)i.next();
+		ArrayList<String> all = new ArrayList<>();
+		for (String response : responseHash.values()) {
 			if (!all.contains(response)) {
 				all.add(response);
 			}
 		}
 		if (all.size()==1) { // unanimous response
-			return (String)all.get(0);
+			return all.get(0);
 		}
 		return null;
 	}

@@ -1,24 +1,6 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.table;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.swing.JFrame;
 
@@ -35,9 +17,11 @@ public class Curse extends RealmTable {
 	
 	private boolean harm;
 	private boolean cursed;
+	private GameObject caster;
 	
-	public Curse(JFrame frame) {
+	public Curse(JFrame frame, GameObject caster) {
 		super(frame,null);
+		this.caster = caster;
 	}
 	public boolean harmWasApplied() {
 		return harm;
@@ -53,6 +37,10 @@ public class Curse extends RealmTable {
 		// Determine the destination client
 		RealmComponent destOwner = targetRc.getOwner();
 		// destOwner should NOT be null at this point!
+		if (destOwner == null) {
+			RealmComponent chasterRc = RealmComponent.getRealmComponent(this.caster);
+			destOwner = chasterRc.getOwner();
+		}
 		CharacterWrapper destCharacter = new CharacterWrapper(destOwner.getGameObject());
 		return destCharacter.getPlayerName();
 	}
@@ -76,7 +64,7 @@ public class Curse extends RealmTable {
 				"The "+character.getCharacterName()+" is hit with a curse, but it has no effect!");
 		return "Unaffected";
 	}
-	private String getCurseTitle(CharacterWrapper character) {
+	private static String getCurseTitle(CharacterWrapper character) {
 		return character.getGameObject().getName()+"'s Curse!";
 	}
 	public String applyOne(CharacterWrapper character) {
@@ -120,14 +108,13 @@ public class Curse extends RealmTable {
 			// Cannot have ANY active effort asterisks
 			character.applyCurse(Constants.WITHER);
 			
-			ArrayList toFatigue = new ArrayList();
+			ArrayList<CharacterActionChitComponent> toFatigue = new ArrayList<>();
 			toFatigue.addAll(character.getActiveEffortChits());
 			toFatigue.addAll(character.getAlertedChits());
 			toFatigue.addAll(character.getColorChits());
 			
 			// Fatigue all active effort asterisks here
-			for (Iterator i=toFatigue.iterator();i.hasNext();) {
-				CharacterActionChitComponent chit = (CharacterActionChitComponent)i.next();
+			for (CharacterActionChitComponent chit : toFatigue) {
 				chit.makeFatigued();
 				harm = true;
 			}
@@ -186,7 +173,7 @@ public class Curse extends RealmTable {
 		return "Disgust";
 	}
 	public static Curse doNow(JFrame parent,GameObject attacker,GameObject target) {
-		Curse curse = new Curse(parent);
+		Curse curse = new Curse(parent, attacker);
 		CharacterWrapper victim = new CharacterWrapper(target);
 		// Use the "victim" here instead of the caster, because the victim is the one rolling for the curse (coming from an Imp!!)
 		DieRoller roller = DieRollBuilder.getDieRollBuilder(parent,victim).createRoller(curse);

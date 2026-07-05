@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.io;
 
 import javax.mail.*;
@@ -46,7 +29,7 @@ public class SendMail {
 	private String subject;
 	private String message;
 	
-	private ArrayList bodyParts;
+	private ArrayList<MimeBodyPart> bodyParts;
 	
 	private String SMTP_Host;
 	
@@ -62,7 +45,7 @@ public class SendMail {
 		config.put(TO_KEY,inTo);
 		parseProperties(config);
 	}
-	public SendMail(String host,String from,Collection to,Collection cc,Collection bcc) {
+	public SendMail(String host,String from,Collection<String> to,Collection<String> cc,Collection<String> bcc) {
 		Properties config = new Properties();
 		config.put(SMTP_KEY,host);
 		config.put(FROM_KEY,from);
@@ -71,11 +54,10 @@ public class SendMail {
 		config.put(BCC_KEY,makeCommaList(bcc));
 		parseProperties(config);
 	}
-	private String makeCommaList(Collection list) {
+	private static String makeCommaList(Collection<String> list) {
 		StringBuffer sb = new StringBuffer();
 		if (list!=null) {
-			for (Iterator i=list.iterator();i.hasNext();) {
-				String val = i.next().toString();
+			for (String val : list) {
 				if (sb.length()>0) {
 					sb.append(",");
 				}
@@ -165,13 +147,13 @@ public class SendMail {
 			addError("Configuration file "+file.getPath()+" cannot be found");
 		}
 	}
-	private String[] addRecipient(String[] recipients,String newRecipient) {
-		ArrayList list = new ArrayList();
+	private static String[] addRecipient(String[] recipients,String newRecipient) {
+		ArrayList<String> list = new ArrayList<>();
 		if (recipients!=null && recipients.length>0) {
 			list.addAll(Arrays.asList(recipients));
 		}
 		list.add(newRecipient);
-		return (String[])list.toArray(new String[list.size()]);
+		return list.toArray(new String[list.size()]);
 	}
 	public void addTO(String newRecipient) {
 		recipientsTO = addRecipient(recipientsTO,newRecipient);
@@ -191,7 +173,7 @@ public class SendMail {
 			recipientsBCC = parseRecipients(config,BCC_KEY);
 		}
 	}
-	private String[] parseRecipients(Properties config,String key) {
+	private static String[] parseRecipients(Properties config,String key) {
 		String list = (String)config.get(key);
 		if (list!=null && list.length()>0) {
 			StringTokenizer st = new StringTokenizer(list,",");
@@ -221,8 +203,8 @@ public class SendMail {
 			messageBodyPart.setContent(message, htmlEnabled?"text/html":"text/plain");
 			multipart.addBodyPart(messageBodyPart);
 			// add attachments
-			for (Iterator i = bodyParts.iterator(); i.hasNext(); ) {
-				multipart.addBodyPart((MimeBodyPart)i.next());
+			for (MimeBodyPart bodyPart : bodyParts) {
+				multipart.addBodyPart(bodyPart);
 			}
 			msg.setContent(multipart);
 		}
@@ -256,7 +238,7 @@ public class SendMail {
 			attachmentBodyPart.setFileName(attachmentFilePath.substring(lastSeparator + 1));
 		}
 		if (bodyParts == null) {
-			bodyParts = new ArrayList();
+			bodyParts = new ArrayList<>();
 		}
 		bodyParts.add(attachmentBodyPart);
 		return true;
@@ -280,7 +262,7 @@ public class SendMail {
 		attachmentBodyPart.setDisposition("attachment");
 		attachmentBodyPart.setFileName(attachmentFileName);
 		if (bodyParts == null) {
-			bodyParts = new ArrayList();
+			bodyParts = new ArrayList<>();
 		}
 		bodyParts.add(attachmentBodyPart);
 		return true;
@@ -342,7 +324,7 @@ public class SendMail {
 		
 		return msg;
 	}
-	private InternetAddress[] getAddresses(String[] recipients) throws AddressException {
+	private static InternetAddress[] getAddresses(String[] recipients) throws AddressException {
 		if (recipients!=null) {
 			InternetAddress[] addressTo = new InternetAddress[recipients.length]; 
 			for (int i = 0; i < recipients.length; i++) {

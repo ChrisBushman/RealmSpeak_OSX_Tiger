@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
@@ -43,19 +26,17 @@ public class CharacterDiscoveriesPanel extends CharacterFramePanel {
 	private void init() {
 		// Build the discovery lists
 		GamePool pool = getGameHandler().getGamePool();
-		ArrayList treasureLocations = new ArrayList();
+		ArrayList<GameObject> treasureLocations = new ArrayList<>();
 		treasureLocations.addAll(pool.find("treasure_location,discovery"));
 		
 		// If questing is turn on, show lost city and castle?
-		if (getHostPrefs().hasPref(Constants.QST_BOOK_OF_QUESTS) || getHostPrefs().hasPref(Constants.QST_QUEST_CARDS)) {
+		if (getHostPrefs().hasPref(Constants.QST_BOOK_OF_QUESTS) || getHostPrefs().hasPref(Constants.QST_QUEST_CARDS) || getHostPrefs().hasPref(Constants.QST_SR_QUESTS) || getHostPrefs().hasPref(Constants.QST_GUILD_QUESTS)) {
 			treasureLocations.addAll(pool.find("red_special"));
 		}
 		
-		ArrayList hiddenPathList = new ArrayList();
-		ArrayList secretPassageList =  new ArrayList();
-		Collection tiles = pool.find("tile");
-		for (Iterator i=tiles.iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		ArrayList<PathDetail> hiddenPathList = new ArrayList<>();
+		ArrayList<PathDetail> secretPassageList =  new ArrayList<>();
+		for (GameObject go : pool.find("tile")) {
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
 			hiddenPathList.addAll(tile.getHiddenPaths());
 			secretPassageList.addAll(tile.getSecretPassages());
@@ -93,25 +74,23 @@ public class CharacterDiscoveriesPanel extends CharacterFramePanel {
 	}
 	public void updatePanel() {
 		// Check to see if any caches were discovered or emptied
-		ArrayList list = getCharacter().getTreasureLocationDiscoveries();
+		ArrayList<String> list = getCharacter().getTreasureLocationDiscoveries();
 		if (list!=null) {
 			treasureLocationDiscoveryModel.update(list);
 		}
 	}
 	private class TreasureLocationDiscoveryModel extends AbstractTableModel {
-		private ArrayList list;
-		private ArrayList discoveryNamesList;
-		public TreasureLocationDiscoveryModel(ArrayList list) {
+		private ArrayList<GameObject> list;
+		private ArrayList<String> discoveryNamesList;
+		public TreasureLocationDiscoveryModel(ArrayList<GameObject> list) {
 			this.list = list;
-			discoveryNamesList = new ArrayList();
-			for (Iterator i=list.iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
+			discoveryNamesList = new ArrayList<>();
+			for (GameObject go : list) {
 				discoveryNamesList.add(go.getName());
 			}
 		}
-		public void update(ArrayList allDiscoveries) {
-			for (Iterator i=allDiscoveries.iterator();i.hasNext();) {
-				String name = (String)i.next();
+		public void update(ArrayList<String> allDiscoveries) {
+			for (String name : allDiscoveries) {
 				if (!discoveryNamesList.contains(name)) {
 					GameObject go = getGameHandler().getClient().getGameData().getGameObjectByName(name);
 					list.add(go);
@@ -133,7 +112,7 @@ public class CharacterDiscoveriesPanel extends CharacterFramePanel {
 		}
 		public Object getValueAt(int row, int column) {
 			if (row<list.size()) {
-				GameObject tl = (GameObject)list.get(row);
+				GameObject tl = list.get(row);
 				switch(column) {
 					case 0:
 						String name = tl.getName();
@@ -150,8 +129,8 @@ public class CharacterDiscoveriesPanel extends CharacterFramePanel {
 		}
 	}
 	private class TreasureLocationDiscoveryRenderer extends DefaultTableCellRenderer {
-		private ArrayList list;
-		public TreasureLocationDiscoveryRenderer(ArrayList list) {
+		private ArrayList<GameObject> list;
+		public TreasureLocationDiscoveryRenderer(ArrayList<GameObject> list) {
 			this.list = list;
 		}
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSel, boolean hasFocus, int row, int column) {
@@ -159,7 +138,7 @@ public class CharacterDiscoveriesPanel extends CharacterFramePanel {
 			setBackground(Color.white);
 			setText((String)value);
 			if (row<list.size()) {
-				GameObject tl = (GameObject)list.get(row);
+				GameObject tl = list.get(row);
 				if (tl.hasThisAttribute(RealmComponent.RED_SPECIAL) && getCharacter().hasOtherChitDiscovery(tl.getName())) {
 					setBackground(MagicRealmColor.DISCOVERY_HIGHLIGHT_COLOR);
 				}
@@ -167,14 +146,14 @@ public class CharacterDiscoveriesPanel extends CharacterFramePanel {
 					setBackground(MagicRealmColor.DISCOVERY_HIGHLIGHT_COLOR);
 				}
 			}
-			if (column==0) setHorizontalAlignment(JLabel.LEFT);
-			else setHorizontalAlignment(JLabel.CENTER);
+			if (column==0) setHorizontalAlignment(SwingConstants.LEFT);
+			else setHorizontalAlignment(SwingConstants.CENTER);
 			return this;
 		}
 	}
 	private class PathDiscoveryTableModel extends AbstractTableModel {
-		private ArrayList list;
-		public PathDiscoveryTableModel(ArrayList list) {
+		private ArrayList<PathDetail> list;
+		public PathDiscoveryTableModel(ArrayList<PathDetail> list) {
 			this.list = list;
 		}
 		public int getRowCount() {
@@ -191,7 +170,7 @@ public class CharacterDiscoveriesPanel extends CharacterFramePanel {
 		}
 		public Object getValueAt(int row, int column) {
 			if (row<list.size()) {
-				PathDetail path = (PathDetail)list.get(row);
+				PathDetail path = list.get(row);
 				switch(column) {
 					case 0:	
 						return path.getParent().getTileName();
@@ -206,8 +185,8 @@ public class CharacterDiscoveriesPanel extends CharacterFramePanel {
 	}
 	private class PathDiscoveryRenderer extends DefaultTableCellRenderer {
 		private String key;
-		private ArrayList list;
-		public PathDiscoveryRenderer(String key,ArrayList list) {
+		private ArrayList<PathDetail> list;
+		public PathDiscoveryRenderer(String key,ArrayList<PathDetail> list) {
 			this.key = key;
 			this.list = list;
 		}
@@ -216,7 +195,7 @@ public class CharacterDiscoveriesPanel extends CharacterFramePanel {
 			setBackground(Color.white);
 			setText((String)value);
 			if (row<list.size()) {
-				PathDetail path = (PathDetail)list.get(row);
+				PathDetail path = list.get(row);
 				if (hasDiscovery(path.getFullPathKey())) {
 					setBackground(MagicRealmColor.DISCOVERY_HIGHLIGHT_COLOR);
 				}

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
@@ -31,6 +14,7 @@ import com.robin.magic_realm.components.*;
 import com.robin.magic_realm.components.swing.RealmObjectPanel;
 import com.robin.magic_realm.components.swing.SpellInfoDialog;
 import com.robin.magic_realm.components.utility.Constants;
+import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 import com.robin.magic_realm.components.wrapper.SpellMasterWrapper;
 import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
@@ -39,7 +23,7 @@ public class CharacterSpellsPanel extends CharacterFramePanel {
 	private RealmObjectPanel recordedSpellsObjectPanel;
 	
 	private JPanel bottom;
-	private ArrayList bewitchingSpells;
+	private ArrayList<SpellWrapper> bewitchingSpells;
 	private SpellListModel listModel;
 	private JList bewitchingSpellsList;
 	private SpellMasterWrapper spellMaster;
@@ -52,7 +36,7 @@ public class CharacterSpellsPanel extends CharacterFramePanel {
 	private void init() {
 		setLayout(new BorderLayout());
 		
-		JLabel ins = new JLabel("Right-click spell for more info",JLabel.CENTER);
+		JLabel ins = new JLabel("Right-click spell for more info",SwingConstants.CENTER);
 		ins.setOpaque(true);
 		ins.setBackground(MagicRealmColor.PALEYELLOW);
 		ins.setFont(new Font("Dialog",Font.BOLD,14));
@@ -94,7 +78,7 @@ public class CharacterSpellsPanel extends CharacterFramePanel {
 				if (ev.getClickCount()==2 || MouseUtility.isRightOrControlClick(ev)) {
 					int index = bewitchingSpellsList.getSelectedIndex();
 					if (index>=0 && index<listModel.getSize()) {
-						SpellWrapper spell = (SpellWrapper)bewitchingSpells.get(index);
+						SpellWrapper spell = bewitchingSpells.get(index);
 						SpellInfoDialog.showSpellInfo(getGameHandler().getMainFrame(),spell);
 					}
 				}
@@ -103,7 +87,7 @@ public class CharacterSpellsPanel extends CharacterFramePanel {
 				if ( MouseUtility.isRightOrControlClick(ev)) {
 					int index = bewitchingSpellsList.locationToIndex(ev.getPoint());
 					if (index>=0 && index<listModel.getSize()) {
-						SpellWrapper spell = (SpellWrapper)bewitchingSpells.get(index);
+						SpellWrapper spell = bewitchingSpells.get(index);
 						SpellInfoDialog.showSpellInfo(getGameHandler().getMainFrame(),spell);
 					}
 				}
@@ -112,7 +96,7 @@ public class CharacterSpellsPanel extends CharacterFramePanel {
 		JScrollPane sp = new JScrollPane(bewitchingSpellsList);
 		ComponentTools.lockComponentSize(sp,70,70);
 		bottom.add(sp,"Center");
-		JLabel instruction = new JLabel("Double-click bewitching spells for more info",JLabel.CENTER);
+		JLabel instruction = new JLabel("Double-click bewitching spells for more info",SwingConstants.CENTER);
 		instruction.setForeground(Color.red);
 		bottom.add(instruction,"South");
 		add(bottom,"South");
@@ -129,16 +113,16 @@ public class CharacterSpellsPanel extends CharacterFramePanel {
 		}
 		
 		// Add the virtual spell cards (enhanced magic) here
-		recordedSpellsObjectPanel.addObjects(getCharacter().getAllVirtualSpellsFor(spells));
+		recordedSpellsObjectPanel.addObjects(CharacterWrapper.getAllVirtualSpellsFor(spells));
 		
 		bewitchingSpells = spellMaster.getAffectingSpells(getCharacter().getGameObject());
 		listModel.update();
 		bottom.setVisible(!bewitchingSpells.isEmpty());
 	}
-	private class SpellListModel extends AbstractListModel {
-		public Object getElementAt(int index) {
+	private class SpellListModel extends AbstractListModel<String> {
+		public String getElementAt(int index) {
 			if (index<getSize()) {
-				SpellWrapper spell = (SpellWrapper)bewitchingSpells.get(index);
+				SpellWrapper spell = bewitchingSpells.get(index);
 				String caster = spell.getCaster().getGameObject().getName();
 				String spellName = spell.getName();
 				String duration = spell.getGameObject().getThisAttribute("duration");

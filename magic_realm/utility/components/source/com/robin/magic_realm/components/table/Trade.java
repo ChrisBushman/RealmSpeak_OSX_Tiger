@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.table;
 
 import javax.swing.JFrame;
@@ -22,6 +5,7 @@ import javax.swing.JOptionPane;
 
 import com.robin.general.util.StringUtilities;
 import com.robin.magic_realm.components.RealmComponent;
+import com.robin.magic_realm.components.attribute.RelationshipType;
 import com.robin.magic_realm.components.attribute.TileLocation;
 import com.robin.magic_realm.components.attribute.TradeInfo;
 import com.robin.magic_realm.components.utility.*;
@@ -78,26 +62,29 @@ public abstract class Trade extends RealmTable {
 			info.bumpGroupCount();
 		}
 		else {
-			info.setGroupName(tradeInfo.getGameObject().getThisAttribute("visitor"));
+			info.setGroupName(tradeInfo.getGameObject().getThisAttribute(Constants.VISITOR));
 			info.bumpGroupCount();
 		}
 		
 		info.setRelationship(RealmUtility.getRelationshipBetween(character,tradeInfo));
-		
 		info.setNoDrinksReason(handleBuyDrinks(frame,info,currentLocation,character,ignoreBuyDrinksLimit));
+
 		if (info.getNoDrinksReason()!=null) {
 			RealmLogging.logMessage(character.getGameObject().getName(),info.getNoDrinksReason());
 		}
+
 		return info;
 	}
 	private static String handleBuyDrinks(JFrame frame,TradeInfo info,TileLocation currentLocation,CharacterWrapper character,int ignoreBuyDrinksLimit) {
 		if (info.getTrader().isVisitor() || info.getTrader().isTraveler() || info.getTrader().isGuild()) return "Buying drinks only affects native groups.";
+		if (info.getTrader().getGameObject().hasThisAttribute(Constants.UNDEAD) || info.getTrader().getGameObject().hasThisAttribute(Constants.UNDEAD_SUMMONED)) return "You cannot buy drinks for the "+info.getGroupName()+"s.";
 		if (info.getRelationship()>=ignoreBuyDrinksLimit) return "The native group will be no more favorable with drinks.";
 			
 		TileLocation here = character.getCurrentLocation();
 		// Make sure character is actually here (might just be a hireling)
 		if (!here.equals(currentLocation)) return "The "+character.getGameObject().getName()+" is not in the clearing to buy drinks.";
 		if (character.hasCurse(Constants.ASHES)) return "The "+character.getGameObject().getName()+" cannot buy drinks with the ASHES curse.";
+		if (character.affectedByKey(Constants.DAZZLE)) return "The "+character.getGameObject().getName()+" cannot buy drinks when affected by the DAZZLE spell.";
 		
 		int drinkPrice = info.getGroupCount();
 		if (character.hasActiveInventoryThisKey(Constants.LOW_DRINK_COST)) {
@@ -112,7 +99,13 @@ public abstract class Trade extends RealmTable {
 		if (ret!=JOptionPane.YES_OPTION) return "The "+character.getGameObject().getName()+" chose not to buy drinks.";
 		
 		character.addGold(-drinkPrice);
-		info.addRelationship(1);
+		character.getGameObject().setThisAttribute(Constants.DRINKS_BOUGHT);
+		if (character.affectedByKey(Constants.BARDS_LUTE)) {
+			info.setRelationship(RelationshipType.FRIENDLY);
+		}
+		else {
+			info.addRelationship(1);
+		}
 		return null;
 	}
 }

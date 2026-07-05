@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
@@ -68,7 +51,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 	
 	private FlashingButton playNextButton;
 	private JButton playAllButton;
-	private JButton postponeTurnButton; // Swordsman's ability
+	private JButton postponeTurnButton ; // Swordsman's ability
+	private JButton cancelActionButton;
 	private JButton ditchFollowersButton;
 	private JButton landButton; // only when Timeless Jewel is in play, and you are flying
 	
@@ -120,6 +104,11 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		
 		if (getCharacter().canDoDaytimeRecord()) {
 			startDaytimeRecord();
+			ArrayList<String> actionList = getCharacter().getList(getCharacter().getCurrentDayKey()+"P");
+			if (actionList != null) {
+				int numberOfActionsTaken = actionList.size();
+				getCharacter().addLostPhases(numberOfActionsTaken);
+			}
 		}
 		
 		if (getCharacter().isSleep()) {
@@ -129,7 +118,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 					"Sleeping",JOptionPane.INFORMATION_MESSAGE);
 		}
 		
-		if (getMainFrame().getGameHandler().isOption(RealmSpeakOptions.TURN_END_RESULTS)) {
+		if (getGameHandler().isOption(RealmSpeakOptions.TURN_END_RESULTS)) {
 			String clientName = getGameHandler().getClient().getClientName();
 			if (!game.isClientTakenTurn(clientName)) {
 				game.addClientTakenTurn(clientName);
@@ -171,7 +160,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			box.add(line);
 			for (CharacterWrapper follower:actionFollowers) {
 				RealmComponent rc = RealmComponent.getRealmComponent(follower.getGameObject());
-				label = new JLabel("The "+follower.getGameObject().getName(),rc.getSmallIcon(),JLabel.LEADING);
+				label = new JLabel("The "+follower.getGameObject().getName(),rc.getSmallIcon(),SwingConstants.LEADING);
 				label.setFont(followFont);
 				line = Box.createHorizontalBox();
 				line.add(Box.createHorizontalStrut(20));
@@ -228,18 +217,22 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			
 		// Now init
 		ActionRow.askAboutAbandoningFollowers = true;
-		actionRows = new ArrayList<ActionRow>();
-		ArrayList actions = getCharacter().getCurrentActions();
+		actionRows = new ArrayList<>();
+		ArrayList<String> actions = getCharacter().getCurrentActions();
 		if (actions!=null) {
-			ArrayList actionTypeCodes = getCharacter().getCurrentActionTypeCodes();
+			ArrayList<String> actionTypeCodes = getCharacter().getCurrentActionTypeCodes();
+			ArrayList<String> actionTypeValids = (ArrayList<String>) getCharacter().getCurrentActionValids();
 			if (actionTypeCodes==null) {
-				actionTypeCodes = new ArrayList();
+				actionTypeCodes = new ArrayList<>();
 			}
 			isFollowing = false; // followers are exempt from blocking rules because the action is simultaneous with the guide.
 			for (int i=0;i<actions.size();i++) {
-				String action = (String)actions.get(i);
-				String actionTypeCode = (String)actionTypeCodes.get(i);
+				String action = actions.get(i);
+				String actionTypeCode = actionTypeCodes.get(i);
 				ActionRow ar = initActionRow(action,actionTypeCode);
+				if (actionTypeValids.get(i) == "F" && ar!=null) {
+					ar.setInvalidPlannedPhase();
+				}
 				if (ar!=null && !ar.isFollow()) {
 					CharacterWrapper.ActionState state = getCharacter().getStateForAction(action,i);
 					ar.setActionState(state);
@@ -259,17 +252,50 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		}
 		return false;
 	}
-	private boolean isAwaitingBlockDecision() {
-		if (getRealmComponent().isPlayerControlledLeader()) {
+	private boolean isAwaitingFollowersAlerting() {
+		for (CharacterWrapper follower:actionFollowers) {
+			if (follower.getFollowAlerts()>0) {
+				return true;
+			}
+		}
+		return false;
+	}
+	private boolean isAwaitingFollowersWeatherFatigue() {
+		for (CharacterWrapper follower:actionFollowers) {
+			if (follower.getWeatherFatigue()>0) {
+				return true;
+			}
+		}
+		return false;
+	}
+	private boolean isAwaitingFollowersSpellActions() {
+		for (CharacterWrapper follower:actionFollowers) {
+			if (follower.getFollowSpellActions()>0) {
+				return true;
+			}
+		}
+		return false;
+	}
+	public boolean isAwaitingBlockDecision() {
+		return isAwaitingBlockDecision(false,null);
+	}
+	public boolean isAwaitingBlockDecision(boolean interruptMovement, TileLocation loc) {
+		if (getCharacter().getNeedsBlockEvaluation() || getCharacter().getGameObject().hasThisAttribute(Constants.MEDITATE_NO_BLOCKING)) return false;
+		if (getRealmComponent().isPlayerControlledLeader() && !getCharacter().isMinion() && !getCharacter().isSleep() && !getCharacter().getGameObject().hasThisAttribute(Constants.BLINDING_LIGHT)) {
 			blockWarningLabel.setText("");
-			if (!getCharacter().isBlocked() && getCharacter().hasDoneActionsToday()) {
-				TileLocation current = getCharacter().getCurrentLocation();
+			if (!getCharacter().isBlocked() && (interruptMovement || getCharacter().hasDoneActionsToday())) {
+				TileLocation current;
+				if (loc!=null) {
+					current = loc;
+				} else {
+					current = getCharacter().getCurrentLocation();
+				}
 				if (current!=null && current.isInClearing()) {
 					for (RealmComponent rc:current.clearing.getClearingComponents()) {
-						if (!rc.getGameObject().equals(getCharacter().getGameObject())
-								&& (rc.isPlayerControlledLeader())) {
+						if (!rc.getGameObject().equals(getCharacter().getGameObject()) && (rc.isPlayerControlledLeader())) {
 							CharacterWrapper target = new CharacterWrapper(rc.getGameObject());
-							if (target.isBlocking()) {
+							if (target.isBlocking() && !target.getGameObject().hasThisAttribute(Constants.MEDITATE_NO_BLOCKING) && !target.isMistLike() && (!getCharacter().isMistLike() || target.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE)) && !target.isMinion() && !target.isSleep()
+									&& ((target.getTransmorph()==null && !target.getGameObject().hasThisAttribute(Constants.SMALL)) || ((target.getTransmorph()!=null && !target.getTransmorph().hasThisAttribute(Constants.SMALL))) || !hostPrefs.hasPref(Constants.HOUSE3_SMALL_MONSTERS))) {
 								if (!getCharacter().isHidden() || target.foundHiddenEnemy(getCharacter().getGameObject())) {
 									if (!target.hasBlockDecision(getCharacter().getGameObject())) {
 										blockWarningLabel.setText(target.getGameObject().getName()+" is blocking.  Awaiting decision...");
@@ -285,11 +311,51 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		return false;
 	}
 	
+	public boolean isAwaitingInterruptionDecision() {
+		return isAwaitingInterruptionDecision(true);
+	}
+	
+	public boolean isAwaitingInterruptionDecision(boolean evaluateBlockingReactions) {
+		if (getRealmComponent().isPlayerControlledLeader() && getCharacter().isPlayingTurn()) {
+			blockWarningLabel.setText("");
+			TileLocation current = getCharacter().getCurrentLocation();
+			if (current!=null && current.isInClearing()) {
+				for (RealmComponent rc:current.clearing.getClearingComponents()) {
+					if (!rc.getGameObject().equals(getCharacter().getGameObject()) && (rc.isPlayerControlledLeader())) {
+						CharacterWrapper target = new CharacterWrapper(rc.getGameObject());
+						if (target.isBlocking() && !target.isMinion()
+								&& (target.getNeedsPlayColorChitInterruptPhaseBeginningDecision() && !target.hasColorChitInterruptPhaseBeginningDecision(getCharacter().getGameObject())
+								|| target.getNeedsPlayColorChitInterruptPhaseEndDecision() && !target.hasColorChitInterruptPhaseEndDecision(getCharacter().getGameObject()))) {
+							blockWarningLabel.setText(target.getGameObject().getName()+" is reacting.  Awaiting decision...");
+							return true;
+						}
+					}
+				}
+			}
+		}
+		if (evaluateBlockingReactions && getCharacter().getNeedsBlockEvaluation()) {
+			ArrayList<GameObject> livingCharacters = RealmUtility.getLivingCharacters(getCharacter().getGameData());
+			getCharacter().setNeedsBlockEvaluation(false);
+			for (GameObject livingCharacter : livingCharacters) {
+				if (hostPrefs.hasPref(Constants.OPT_BLOCKING_PHASES)) {
+					new CharacterWrapper(livingCharacter).removeAllBlockDecisions();
+				}
+				new CharacterWrapper(livingCharacter).setInterruptPhaseDecision(false);
+				getGameHandler().updateCharacterFramesWithoutMap();
+			}
+		}
+		return false;
+	}
+	
+	public boolean isAwaitingReactions() {
+		return isAwaitingBlockDecision(true,null) || isAwaitingInterruptionDecision(false);
+	}
+	
 	public void updateControls() {
 		TileLocation current = getCharacter().getCurrentLocation();
 		
 		boolean waitingForSingleButton = getCharacterFrame().isWaitingForSingleButton();
-		boolean controlsLocked = isAwaitingBlockDecision() || waitingForSingleButton;
+		boolean controlsLocked = isAwaitingBlockDecision() || waitingForSingleButton || isAwaitingInterruptionDecision();
 		
 		boolean playedAnAction = actionRows.size()>0 && !(actionRows.get(0)).isPending();
 		
@@ -303,7 +369,10 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			}
 		}
 		String me = getCharacter().getPlayerName();
+		boolean haveFollowersThatHaveSpellActions = isAwaitingFollowersSpellActions();
+		boolean haveFollowersThatHaveFollowAlerts = isAwaitingFollowersAlerting();
 		boolean haveFollowersThatHaveFollowRests = isAwaitingFollowersResting();
+		boolean haveFollowersThatHaveWeatherFatigue = isAwaitingFollowersWeatherFatigue();
 		boolean beingFollowedByOtherPlayers = false;
 		for (CharacterWrapper follower:actionFollowers) {
 			if (!follower.getPlayerName().equals(me)) {
@@ -311,10 +380,13 @@ public class RealmTurnPanel extends CharacterFramePanel {
 				break;
 			}
 		}
+		playNextButton.setText(haveFollowersThatHaveSpellActions?"Followers Enchanting...":PLAY_NEXT);
+		playNextButton.setText(haveFollowersThatHaveFollowAlerts?"Followers Alerting...":PLAY_NEXT);
 		playNextButton.setText(haveFollowersThatHaveFollowRests?"Followers Resting...":PLAY_NEXT);
+		playNextButton.setText(haveFollowersThatHaveWeatherFatigue?"Followers Exhausting...":PLAY_NEXT);
 		
 		boolean actionsLeft = isNextAction();
-		playNextButton.setEnabled(actionsLeft && !waitingForSingleButton && activatePlayNextTimer==null && !haveFollowersThatHaveFollowRests);
+		playNextButton.setEnabled(actionsLeft && !waitingForSingleButton && activatePlayNextTimer==null && !haveFollowersThatHaveFollowRests && !haveFollowersThatHaveFollowAlerts && !haveFollowersThatHaveSpellActions && !haveFollowersThatHaveWeatherFatigue);
 		playNextButton.setFlashing(playNextButton.isEnabled());
 		playAllButton.setEnabled(!controlsLocked && actionsLeft && !beingFollowedByOtherPlayers);
 		finishedPlayButton.setEnabled(!controlsLocked && !actionsLeft && (current==null || (!current.isBetweenClearings() && !current.isBetweenTiles())));
@@ -330,23 +402,17 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			activatePlayNextTimer = new Timer(5000,activatePlayNextListener);
 			activatePlayNextTimer.start();
 		}
-		
-		/* canPostpone only if ALL of the following is true:
-		 * 
-		 * 	1)	Have this ability
-		 * 	2)	Haven't played an action yet
-		 * 	3)	Aren't already the last player (irrelevant otherwise!)
-		 */
-		
+			
 		boolean canPostpone = getCharacter().affectedByKey(Constants.CHOOSE_TURN)
 							&& !getCharacter().isLastPlayer()
 							&& !playedAnAction;
 		postponeTurnButton.setEnabled(!controlsLocked && canPostpone);
+		cancelActionButton.setEnabled(getCharacter().affectedByKey(Constants.CANCEL_RECORDED_ACTION) && hasActionsLeft());
 		
 		boolean objectsNeedOpen = !getCharacter().getAllOpenableSites().isEmpty();
 		openButton.setEnabled(objectsNeedOpen);
 		
-		landButton.setEnabled(getCharacter().canDoDaytimeRecord() && current.isFlying() && !current.isBetweenTiles());
+		landButton.setEnabled(getCharacter().canDoDaytimeRecord() && current!=null && current.isFlying() && !current.isBetweenTiles());
 		landButton.setVisible(landButton.isEnabled());
 		if (pickupItemButton!=null) {
 			boolean canPickup = !landButton.isEnabled() && current!=null && current.isInClearing();
@@ -393,7 +459,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		};
 		playNextButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				if (!isAwaitingBlockDecision()) {
+				if (!isAwaitingBlockDecision() && !isAwaitingInterruptionDecision()) {
 					playNext(false);
 					getGameHandler().getInspector().redrawMap();
 					updateControls();
@@ -410,7 +476,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			}
 		});
 		panel.add(playAllButton);
-		postponeTurnButton = new JButton("Postpone Turn");
+		JPanel specialButtons = new JPanel(new GridLayout(1,2));
+		postponeTurnButton = new JButton("Postpone");
 		postponeTurnButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				getGameHandler().broadcast(getCharacter().getGameObject().getName(),"Postpones turn.");
@@ -420,14 +487,28 @@ public class RealmTurnPanel extends CharacterFramePanel {
 				getGameHandler().submitChanges();
 			}
 		});
-		panel.add(postponeTurnButton);
-//		Die monsterDie = new Die(25,5,Color.red,Color.white);
-//		monsterDie.setFace(game.getMonsterDie());
+		specialButtons.add(postponeTurnButton);
+		cancelActionButton = new JButton("Cancel");
+		cancelActionButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ev) {
+				getGameHandler().broadcast(getCharacter().getGameObject().getName(),"Changes next action.");
+				cancelAction();
+			}
+		});
+		specialButtons.add(cancelActionButton);
+		panel.add(specialButtons);
 		DieRoller monsterDieRoller = game.getMonsterDie();
 		monsterDieRoller.setAllRed();
 		JLabel monsterDieLabel = new JLabel("Monster Die:",monsterDieRoller.getIcon(),SwingConstants.CENTER);
 		monsterDieLabel.setHorizontalTextPosition(SwingConstants.LEFT);
 		panel.add(monsterDieLabel);
+		if (hostPrefs.usesSuperRealm()) {
+			DieRoller nativeDieRoller = game.getNativeDie();
+			nativeDieRoller.setAllWhite();
+			JLabel nativeDieLabel = new JLabel("Native Die:",nativeDieRoller.getIcon(),SwingConstants.CENTER);
+			nativeDieLabel.setHorizontalTextPosition(SwingConstants.LEFT);
+			panel.add(nativeDieLabel);
+		}
 		top.add(panel,"Center");
 		
 		Box box = Box.createHorizontalBox();
@@ -442,7 +523,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		add(top,"North");
 		
 		// Table
-		model = (ActionRowTableModel) new ActionRowTableModel();
+		model = new ActionRowTableModel();
 		actionTable = new JTable(model);
 		actionTable.setDefaultRenderer(ImageIcon.class,new ActionIconRenderer());
 		actionTable.setDefaultRenderer(JComponent.class,new ComponentRenderer());
@@ -456,6 +537,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		
 		// Bottom
 		boolean allowDropping = hostPrefs.hasPref(Constants.ADV_DROPPING);
+		boolean allowPickup = allowDropping || hostPrefs.hasPref(Constants.OPT_THROWING_WEAPONS);
 		//panel = new JPanel(new GridLayout(1,allowDropping?6:5));
 		panel = new JPanel(new GridLayout(2,3));
 		openButton = new JButton("Open");
@@ -480,7 +562,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		}
 
 		JPanel swapPanel = new JPanel(new BorderLayout());
-			if (allowDropping) {
+			if (allowPickup) {
 				pickupItemButton = new JButton("Pickup Item");
 				pickupItemButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent ev) {
@@ -538,8 +620,14 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		TileLocation current = getCharacter().getCurrentLocation();
 		String where = getCharacter().isHidden()?"at your feet":"in plain sight";
 		if (current.isInClearing()) {
-			ArrayList<RealmComponent> list = current.clearing.getClearingComponentsInPlainSight(getCharacter());
-			
+			ArrayList<RealmComponent> components = current.clearing.getClearingComponentsInPlainSight(getCharacter());
+			ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
+			for (RealmComponent item : components) {
+				if (!item.getWeight().isMaximum()) {
+					list.add(item);
+				}
+			}
+
 			if (list.size()>0) {
 				// Pickup an item (one at a time)
 				StringBuffer sb = new StringBuffer();
@@ -594,6 +682,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 				if (selInv.getRealmComponent().isGoldSpecial()) {
 					GoldSpecialChitComponent gs = (GoldSpecialChitComponent)selInv.getRealmComponent();
 					gs.expireEffect(getCharacter());
+					getCharacter().addFailedGoldSpecial(gs);
 					
 					QuestRequirementParams qp = new QuestRequirementParams();
 					qp.actionName = thing.getName();
@@ -601,8 +690,9 @@ public class RealmTurnPanel extends CharacterFramePanel {
 					qp.targetOfSearch = gs.getGameObject();
 					if (getCharacter().testQuestRequirements(getMainFrame(),qp)) {
 						getCharacterFrame().updateCharacter();
+						getGameHandler().getInspector().redrawMap();
 					}
-				}				
+				}
 			}
 		}
 	}
@@ -613,6 +703,13 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			ar.setCancelled(true);
 			return true;
 		}
+		
+		// Becomes unhidden at the start of the turn = before doing first action
+		if (!getCharacter().hasDoneActionsToday() && !getCharacter().getGameObject().hasThisAttribute(Constants.NO_UNHIDE)) {
+			getCharacter().setHidden(false);
+			getCharacter().unhideAllCharacterFollowers();
+		}
+		
 		ar.landCharacterIfNeeded();
 		
 		GameObject requiredObject = null; // Get this BEFORE doing the action, in case an item is sold during the action
@@ -621,10 +718,11 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		boolean pony = getCharacter().isPonyActive();
 		if (!ar.isSpawned() && !ar.getIsFollowing()) { // don't do this test for followers!
 			// Need to verify that action can actually occur
-			boolean valid = getCharacter().actionIsValid(ar.getAction(),getCharacter().getCurrentLocation());
 			TileLocation current = getCharacter().getCurrentLocation();
+			boolean valid = getCharacter().actionIsValid(ar.getAction(),current);
 			boolean isInCave = current.isInClearing() && current.clearing.isCave();
-			boolean isOutside = !current.isInside(hostPrefs.hasPref(Constants.HOUSE2_RED_SPECIAL_SHELTER));
+			boolean enlighted = current.isInClearing() && current.clearing.isLighted();
+			boolean isOutside = !current.isInside(hostPrefs.hasPref(Constants.HOUSE2_RED_SPECIAL_SHELTER) || getCharacter().affectedByKey(Constants.ADVANCED_SHELTERS));
 			boolean willBeOutside = false;
 			if (ar.getAction().startsWith("M")) {
 				TileLocation target = ar.getLocation();
@@ -634,7 +732,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			}
 			if (valid) {
 				// It's valid, let's just make sure you aren't trying to use a sunlight phase in a cave, or bonus phases outside after using sheltered phases
-				if ((isInCave || ar.willMoveToCave()) && (phaseManager.hasUsedSunlight() || phaseManager.willRequireSunlight(ar.getAction()))) {
+				if (((isInCave&&!enlighted) || ar.willMoveToDarkCave()) && (phaseManager.hasUsedSunlight() || phaseManager.willRequireSunlight(ar.getAction()))) {
 					if (fromPlayAll) {
 						JOptionPane.showMessageDialog(this,"The next action ("+ar.getAction()+") is currently invalid.  Press \"Play Next\" to continue when you are ready.","Invalid Phase",JOptionPane.WARNING_MESSAGE);
 						// Rather than make a BLANK phase automatically, return and let the player deal with the problem
@@ -697,7 +795,6 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		
 		ar.process();
 		
-		
 		if (fromPlayAll && ar.isCancelled() && ar.getActionId()==ActionId.Move) {
 			// This undoes an invalid move action (sort of)
 			ar.setResult("");
@@ -711,12 +808,27 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		if (ar.isCompleted() && calendar.hasSpecial(month)) {
 			if (calendar.isFatiguePhasesOutside(month)) {
 				if (!locationAfterAction.isInside(hostPrefs.hasPref(Constants.HOUSE2_RED_SPECIAL_SHELTER))) {
-					getCharacter().setWeatherFatigue(ar.getPhaseCount()*ar.getCount());
+					if (locationBeforeAction.isInside(hostPrefs.hasPref(Constants.HOUSE2_RED_SPECIAL_SHELTER))) {
+						getCharacter().setWeatherFatigue(ar.getCount()); //climbing a mountain costs two phases, but only after second phase the fatigue is triggered
+					} else {
+						getCharacter().setWeatherFatigue(ar.getPhaseCount()*ar.getCount());
+					}
 				}
 			}
 			if (calendar.isFatiguePhasesMountain(month)) {
 				if (locationAfterAction.isInClearing() && locationAfterAction.clearing.isMountain()) {
-					getCharacter().setWeatherFatigue(ar.getPhaseCount()*ar.getCount());
+					if (locationBeforeAction.isInClearing() && !locationBeforeAction.clearing.isMountain()) {
+						getCharacter().setWeatherFatigue(ar.getCount()); //climbing a mountain costs two phases, but only after second phase the fatigue is triggered
+					} else {
+						getCharacter().setWeatherFatigue(ar.getPhaseCount()*ar.getCount());
+					}
+				}
+			}
+			if (calendar.isFatiguePhasesWater(month) && (ar.getAction().startsWith("M")||ar.getAction().startsWith("FLY"))) {
+				if (locationAfterAction.isInClearing() && locationAfterAction.clearing.isWater() && !locationAfterAction.clearing.isFrozenWater() && !getCharacter().affectedByKey(Constants.SEAFARING)) {
+					if (!locationAfterAction.isInside(hostPrefs.hasPref(Constants.HOUSE2_RED_SPECIAL_SHELTER))) {
+						getCharacter().setWeatherFatigue(ar.getCount());
+					}
 				}
 			}
 			
@@ -724,13 +836,13 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		}
 		
 		//CJM -- This would be where to check if you ended in a cave or not
-		if(!locationAfterAction.isCave()){
+		if(locationAfterAction != null && (locationAfterAction.clearing == null || !locationAfterAction.isCave())){
 			endConditionalPermanentSpells("ends_in_sunlight");
 		}
 		
 		//CJM -- check to see if the character failed a hide while Blend Into Background X is active
 		if(ar.getActionId() == ActionId.Hide && !getCharacter().isHidden()){
-			endConditionalPermanentSpells("blending");
+			endConditionalPermanentSpells(Constants.BLENDING);
 		}
 		
 		//CJM -- did you search and find something awesome?
@@ -748,6 +860,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 
 		if (getCharacter().testQuestRequirements(getMainFrame(),params)) {
 			getCharacterFrame().updateCharacter();
+			getGameHandler().getInspector().redrawMap();
 		}
 		
 		getGameHandler().submitChanges(); // Will this work okay?
@@ -756,12 +869,13 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		if (!ar.isPending()) {
 			// Summon monsters for any action followers who stopped following!
 			DieRoller monsterDieRoller = game.getMonsterDie();
+			DieRoller nativeDieRoller = game.getNativeDie();
 			for (CharacterWrapper follower:getCharacter().getStoppedActionFollowers()) {
-				getCharacter().removeActionFollower(follower,monsterDieRoller);
+				getCharacter().removeActionFollower(follower,monsterDieRoller,nativeDieRoller);
 			}
 		
 			// Collect any newActions that may have spawned (ie., Curse as the result of a search)
-			ArrayList<ActionRow> newActions = new ArrayList<ActionRow>();
+			ArrayList<ActionRow> newActions = new ArrayList<>();
 			ActionRow newAction = ar.getNewAction();
 			while(newAction!=null) {
 				newAction.setSpawned(true);
@@ -775,22 +889,27 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			}
 			
 			// Energize any permanent spells
-			ArrayList se = getCharacter().getSpellExtras();
+			ArrayList<String> se = getCharacter().getSpellExtras();
 			int seBefore = se==null?0:se.size();
 			spellMaster.energizePermanentSpells(getGameHandler().getMainFrame(),game);
-			ar.updateBlocked(); // check block status AFTER energizing spells - BUG 1624
+			ar.updateBlocked(hostPrefs); // check block status AFTER energizing spells - BUG 1624
 			getCharacterFrame().updateControls();
 			se = getCharacter().getSpellExtras();
 			int seAfter = se==null?0:se.size();
 			if (seAfter>seBefore) {
 				// A spell (or spells) were energized automatically during the turn.  Make sure these
 				// make it into the PhaseManager
-				ArrayList ses = getCharacter().getSpellExtraSources();
+				ArrayList<GameObject> ses = getCharacter().getSpellExtraSources();
 				for (int i=seBefore;i<seAfter;i++) {
-					String seAction = (String)se.get(i);
-					GameObject seGo = (GameObject)ses.get(i);
+					String seAction = se.get(i);
+					GameObject seGo = ses.get(i);
 					phaseManager.addFreeAction(seAction,seGo);
 				}
+			}
+			
+			TileLocation loc = getCharacter().getCurrentLocation();
+			if (loc!=null) {
+				getCharacter().getCurrentLocation().energizeItems();
 			}
 			
 			// Make sure action gets added to the phase manager
@@ -802,7 +921,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 					// Separate phases in case there is a mountain move or rest block
 					String phase = ar.getAction();
 					if (phase!=null) {
-						ArrayList separatePhases = new ArrayList();
+						ArrayList<String> separatePhases = new ArrayList<>();
 						for (int i=0;i<ar.getCount();i++) {
 							if (phase.indexOf(",")>=0) {
 								StringTokenizer phases = new StringTokenizer(phase,",");
@@ -816,8 +935,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 						}
 						
 						int ponyMovesBefore = phaseManager.getPonyMoves();
-						for (Iterator i=separatePhases.iterator();i.hasNext();) {
-							String aPhase = (String)i.next();
+						for (String aPhase : separatePhases) {
 							phaseManager.addPerformedPhase(aPhase,requiredObject,pony,locationAfterAction);
 							
 							// refresh the required object, so that freeActions isn't used more than is available!
@@ -828,17 +946,15 @@ public class RealmTurnPanel extends CharacterFramePanel {
 						
 						if (ponyMovesBefore>ponyMovesAfter) {
 							// Need to "ditch" all pony-less followers
-							for (Iterator i=getCharacter().getActionFollowers().iterator();i.hasNext();) {
-								CharacterWrapper follower = (CharacterWrapper)i.next();
+							for (CharacterWrapper follower : getCharacter().getActionFollowers()) {
 								BattleHorse horse = follower.getActiveSteed();
 								if (horse==null || horse.isDead() || !horse.doublesMove()) {
 									ClearingUtility.moveToLocation(follower.getGameObject(), locationBeforeAction);
-									getCharacter().removeActionFollower(follower, game.getMonsterDie());
+									getCharacter().removeActionFollower(follower, game.getMonsterDie(),game.getNativeDie());
 									getGameHandler().broadcast(follower.getGameObject().getName(),"Unable to follow Guide:  Guide is on a Pony");
 								}
 							}
-							for (Iterator i=getCharacter().getFollowingHirelings().iterator();i.hasNext();) {
-								RealmComponent hireling = (RealmComponent)i.next();
+							for (RealmComponent hireling : getCharacter().getFollowingHirelings()) {
 								BattleHorse horse = hireling.getHorse(false); // don't check location here!  If guide can do it, so can natives
 								if (horse==null || horse.isDead() || !horse.doublesMove()) {
 									// moving to the clearing is sufficient here
@@ -851,7 +967,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 						if (spellMaster.expirePhaseSpells()) {
 							getCharacterFrame().updateCharacter();
 						}
-//						getCharacter().doEndActivePhaseChits();
+						getCharacter().expireTemporaryPotions();
+						getCharacter().endActivePhaseChits();
 					}
 				}
 			}
@@ -861,7 +978,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		return false;
 	}
 	
-	private boolean SearchWasFruitful(String result) {
+	private static boolean SearchWasFruitful(String result) {
 		//CJM -- this is very rough. I will have to test and make sure I catch all the possible results I need.
 		if(result.contains("Nothing")) return false;
 		if(result.contains("none")) return false;
@@ -873,7 +990,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 	}
 	
 	private void playAll() {
-		while(nextAction()!=null && !isAwaitingBlockDecision() && !isAwaitingFollowersResting()) {
+		while(nextAction()!=null && !isAwaitingBlockDecision() && !isAwaitingFollowersResting() && !isAwaitingFollowersAlerting() &!isAwaitingFollowersSpellActions() &!isAwaitingFollowersWeatherFatigue() && !isAwaitingInterruptionDecision()) {
 			if (!playNext(true)) {
 				// player cancelled action, or awaiting input (like transport to caves result in TableLoot)
 				break;
@@ -905,28 +1022,26 @@ public class RealmTurnPanel extends CharacterFramePanel {
 	}
 	
 	private void openSite() {
-		Collection openable = getCharacter().getAllOpenableSites();
+		Collection<GameObject> openable = getCharacter().getAllOpenableSites();
 		if (TreasureUtility.openOneObject(getGameHandler().getMainFrame(),getCharacter(),openable,getGameHandler().getUpdateFrameListener(),false)!=null) {
 			updateControls();
 		}
 	}
 	
-	private Collection getUnavailableManeuverOptions() {
+	private Collection<RealmComponent> getUnavailableManeuverOptions() {
 		// Limit maneuver choices to those that can handle the heaviest piece of inventory
 		Strength heaviestInventory = getCharacter().getNeededSupportWeight();
-		ArrayList list = new ArrayList();
-		for (Iterator i=getCharacter().getActiveMoveChits().iterator();i.hasNext();) {
-			CharacterActionChitComponent chit = (CharacterActionChitComponent)i.next();
+		ArrayList<RealmComponent> list = new ArrayList<>();
+		for (CharacterActionChitComponent chit : getCharacter().getActiveMoveChits()) {
 			if (!chit.getStrength().strongerOrEqualTo(heaviestInventory)) {
 				list.add(chit);
 			}
 		}
 		// Add any boots cards or horses
-		for (Iterator i=getCharacter().getActiveInventory().iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		for (GameObject go : getCharacter().getActiveInventory()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (go.hasThisAttribute("boots")) {
-				Strength bootStrength = new Strength(go.getThisAttribute("strength"));
+				Strength bootStrength = RealmUtility.getBootsStrength(go);
 				if (!bootStrength.strongerOrEqualTo(heaviestInventory)) {
 					list.add(rc);
 				}
@@ -947,7 +1062,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		getCharacter().setCombatPlayOrder(game.getNextDayTurnCount());
 		
 		// Check to see if any chits are going to be hindered in combat due to inventory, and report it here
-		Collection c = getUnavailableManeuverOptions();
+		Collection<RealmComponent> c = getUnavailableManeuverOptions();
 		if (getGameHandler().isOption(RealmSpeakOptions.HEAVY_INV_WARNING) && c.size()>0) {
 			RealmComponentDisplayDialog dialog = new RealmComponentDisplayDialog(
 					getGameHandler().getMainFrame(),
@@ -963,8 +1078,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		if (actionRows.size()>0) {
 			// NOTE:  current action type codes will be off, but I don't think it matters anymore...
 			// Actually, it does, so keep these up to date
-			Collection atc = getCharacter().getCurrentActionTypeCodes();
-			Collection oldCodes = new ArrayList();
+			Collection<String> atc = getCharacter().getCurrentActionTypeCodes();
+			Collection<String> oldCodes = new ArrayList<>();
 			if (atc!=null) {
 				oldCodes.addAll(atc);
 			}
@@ -974,7 +1089,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 
 			// Now, rebuild them from actionRows
 			boolean blocked = false;
-			Iterator fi = oldCodes.iterator();
+			Iterator<String> fi = oldCodes.iterator();
 			for (ActionRow ar:actionRows) {
 				if (!blocked && ar.isCancelled()) {
 					blocked = true;
@@ -986,7 +1101,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 				if (action!=null) { // might be null if there was a re-roll on a table
 					String actionTypeCode = "*"; // actionTypeCode is the type of clearing from which the action was performed
 					try {
-						actionTypeCode = (String)fi.next(); // NoSuchElementException!?!?
+						actionTypeCode = fi.next(); // NoSuchElementException!?!?
 					}
 					catch(NoSuchElementException ex) {
 						// Well this will tell me what's happening if it happens again
@@ -1021,18 +1136,41 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		getCharacter().land(getGameHandler().getMainFrame());
 		TileLocation current = getCharacter().getCurrentLocation();
 		
+		if (current!=null) {
+			getCharacter().getCurrentLocation().energizeItems();
+		}
+		getCharacter().expireTemporaryPotions();
+		
 		//CJM -- Quest check here
 		// Test requirements (in case any are dependent on end of turn)
 		QuestRequirementParams params = new QuestRequirementParams();
 		params.timeOfCall = GamePhaseType.EndOfTurn;
 		if (getCharacter().testQuestRequirements(getMainFrame(),params)) {
 			getCharacterFrame().updateCharacter();
+			getGameHandler().getInspector().redrawMap();
 		}
 		
 		// Flip chits, and summon monsters/natives
 		if (getsTurn && current!=null && !getCharacter().isMinion() && !getCharacter().isSleep()) {
-			// UPDATE - According to RH, it doesn't matter whether or not you completed actions: if you
-			// fall asleep, you simply aren't there until Sunset
+			// UPDATE - According to RH, it doesn't matter whether or not you completed actions: if you fall asleep, you simply aren't there until Sunset
+			if (current!=null && current.clearing!=null) {
+				for (RealmComponent chit : current.clearing.getClearingComponents()) {
+					if (chit.isGoldSpecial()) {
+						((GoldSpecialChitComponent)chit).drawFrontside();
+					}
+				}
+			}
+			if (hostPrefs.hasPref(Constants.SR_REVEAL_TRAVELERS)) {
+				if (current!=null && current.tile!=null) {
+					for (ClearingDetail cl : current.tile.getClearings()) {
+						for (RealmComponent chit : cl.getClearingComponents()) {
+							if (chit.isGoldSpecial()) {
+								((GoldSpecialChitComponent)chit).drawFrontside();
+							}
+						}
+					}
+				}
+			}
 			
 			if (!getCharacter().isHidden() || !hostPrefs.hasPref(Constants.OPT_QUIET_MONSTERS)) {
 				ArrayList<StateChitComponent> flipped = current.tile.setChitsFaceUp();
@@ -1041,12 +1179,13 @@ public class RealmTurnPanel extends CharacterFramePanel {
 				}
 			}
 			DieRoller monsterDieRoller = game.getMonsterDie();
-			ArrayList<GameObject> summoned = new ArrayList<GameObject>();
-			SetupCardUtility.summonMonsters(hostPrefs,summoned,getCharacter(),monsterDieRoller.getValue(0));
-			if (monsterDieRoller.getNumberOfDice()==2 && monsterDieRoller.getValue(0)!=monsterDieRoller.getValue(1)) {
-				SetupCardUtility.summonMonsters(hostPrefs,summoned,getCharacter(),monsterDieRoller.getValue(1));
+			DieRoller nativeDieRoller = game.getNativeDie();
+			ArrayList<GameObject> summoned = new ArrayList<>();
+			if (!hostPrefs.hasPref(Constants.SR_NO_SUMMONING_FOR_FOLLOWERS) || getCharacter().getCharacterImFollowing()==null || getCharacter().isStopFollowing()) {
+				SetupCardUtility.summonMonsters(hostPrefs,summoned,getCharacter(),monsterDieRoller,nativeDieRoller);
 			}
-			if (getMainFrame().getGameHandler().isOption(RealmSpeakOptions.TURN_END_RESULTS)) {
+			
+			if (getGameHandler().isOption(RealmSpeakOptions.TURN_END_RESULTS)) {
 				if (!summoned.isEmpty()) {
 					RealmObjectPanel panel = new RealmObjectPanel();
 					panel.addObjects(summoned);
@@ -1074,7 +1213,11 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		
 		// Test requirements one more time (in case any are dependent on start of evening)
 		params.timeOfCall = GamePhaseType.StartOfEvening; // technically not evening until all players are done with their turn, but this is good enough I think
-		getCharacter().testQuestRequirements(getMainFrame(),params);
+		if(getCharacter().testQuestRequirements(getMainFrame(),params)) {
+			getGameHandler().getInspector().redrawMap();
+		}
+		
+		getCharacter().distributeMonsterControlInCurrentClearing();
 		
 		// cleanup and notify host
 		getCharacterFrame().hideYourTurn();
@@ -1145,7 +1288,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		}
 	}
 	public void verifyAbandonActionFollowers() {
-		ArrayList canLeaveBehind = new ArrayList();
+		ArrayList<CharacterWrapper> canLeaveBehind = new ArrayList<>();
 		for (CharacterWrapper follower:actionFollowers) {
 			if (!follower.foundHiddenEnemy(getCharacter().getGameObject())) {
 				canLeaveBehind.add(follower);
@@ -1177,12 +1320,12 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		}
 	}
 	public void doAbandonActionFollowers() {
-		ArrayList toRemove = new ArrayList();
+		ArrayList<CharacterWrapper> toRemove = new ArrayList<>();
 		if (actionFollowers.size()==1) {
 			toRemove.add(actionFollowers.get(0));
 		}
 		else {
-			ArrayList list = new ArrayList();
+			ArrayList<GameObject> list = new ArrayList<>();
 			for (CharacterWrapper aFollower:actionFollowers) {
 				list.add(aFollower.getGameObject());
 			}
@@ -1190,16 +1333,17 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			chooser.addObjectsToChoose(list);
 			chooser.setVisible(true);
 			if (chooser.pressedOkay()) {
-				for (Iterator i=chooser.getChosenObjects().iterator();i.hasNext();) {
-					GameObject go = (GameObject)i.next();
+				for (GameObject go : chooser.getChosenObjects()) {
 					toRemove.add(new CharacterWrapper(go));
 				}
 			}
 		}
 		DieRoller monsterDieRoller = game.getMonsterDie();
-		for (Iterator i=toRemove.iterator();i.hasNext();) {
-			CharacterWrapper aFollower = (CharacterWrapper)i.next();
-			getCharacter().removeActionFollower(aFollower,monsterDieRoller);
+		DieRoller nativeDieRoller = game.getNativeDie();
+		for (CharacterWrapper aFollower : toRemove) {
+			if (!aFollower.hasActiveInventoryThisKey(Constants.LINKS)) {
+				getCharacter().removeActionFollower(aFollower,monsterDieRoller,nativeDieRoller);
+			}
 		}
 		
 		// Reset the list
@@ -1245,17 +1389,38 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		updateControls();
 		model.fireTableDataChanged();
 	}
+	private void cancelAction() {	
+		if (isFollowing) return;
+				
+		ActionRow ar = actionRows.get(currentActionRow);
+		String removedAction = ar.getAction();
+		actionRows.remove(ar);
+		ArrayList<String> actions = new ArrayList<>(getCharacter().getCurrentActions());
+		actions.remove(currentActionRow);
+		getCharacter().setCurrentActions(actions);
+		if (removedAction.startsWith(DayAction.MOVE_ACTION.getCode()) || removedAction.startsWith(DayAction.FLY_ACTION.getCode())) {
+			getCharacter().rebuildClearingPlot();
+		}
+		ArrayList<String> actionTypeCodes = new ArrayList<>();
+		Collection<String> c = getCharacter().getCurrentActionTypeCodes();
+		if (c!=null && !c.isEmpty()) {
+			actionTypeCodes.addAll(c);
+			actionTypeCodes.remove(currentActionRow);
+		}
+		getCharacter().setCurrentActionTypeCodes(actionTypeCodes);
+		updateControls();
+	}
 	public void startDaytimeRecord() {
 		if (!isFollowing) {
 			// First, remove all pending actions
-			Collection atcc = getCharacter().getCurrentActionTypeCodes();
-			ArrayList atc = new ArrayList();
-			if (atcc!=null) {
-				atc.addAll(atcc);
+			Collection<String> atcOld = getCharacter().getCurrentActionTypeCodes();
+			ArrayList<String> atc = new ArrayList<>();
+			if (atcOld!=null) {
+				atc.addAll(atcOld);
 			}
-			Iterator n=atc.iterator();
+			Iterator<String> n=atc.iterator();
 			getCharacter().clearCurrentActions();
-			ArrayList<ActionRow> toRemove = new ArrayList<ActionRow>();
+			ArrayList<ActionRow> toRemove = new ArrayList<>();
 			for (ActionRow ar:actionRows) {
 				if (ar.getAction()!=null) { // ignore null action rows
 					if (ar.isPending()) {
@@ -1270,7 +1435,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 						// Add it back
 						getCharacter().addCurrentAction(ar.getAction());
 						getCharacter().addCurrentActionValid(true);
-						getCharacter().addCurrentActionTypeCode((String)n.next()); // TODO Check this
+						getCharacter().addCurrentActionTypeCode(n.next());
 					}
 				}
 			}
@@ -1308,10 +1473,14 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		actionTable.repaint();
 	}
 	public void doLosePhases(int phases) {
+		getCharacter().addLostPhases(getCharacter().getLostPhases()+phases);
 		// Find pending phases
 		int pendingCount = 0;
-		ArrayList<ActionRow> pendingPhases = new ArrayList<ActionRow>();
+		ArrayList<ActionRow> pendingPhases = new ArrayList<>();
 		for (ActionRow ar:actionRows) {
+			if (ar.isInvalidPlannedPhase()) {
+				ar.setActionState(ActionState.Invalid);
+			}
 			if (ar.isPending()) {
 				pendingPhases.add(ar);
 				pendingCount += (ar.getPhaseCount()*ar.getCount());
@@ -1324,11 +1493,20 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			for (ActionRow ar:pendingPhases) {
 				ar.setCancelled(true);
 			}
-			JOptionPane.showMessageDialog(
-					getMainFrame(),
-					"Violent Storm caused the loss of all remaining phases.",
-					"Violent Storm!!",
-					JOptionPane.WARNING_MESSAGE);
+			if (getCharacter().canDoDaytimeRecord()) {
+				JOptionPane.showMessageDialog(
+						getMainFrame(),
+						"Violent Storm caused the loss of "+phases+" phases.",
+						"Violent Storm!!",
+						JOptionPane.WARNING_MESSAGE);
+			}
+			else {
+				JOptionPane.showMessageDialog(
+						getMainFrame(),
+						"Violent Storm caused the loss of all remaining phases.",
+						"Violent Storm!!",
+						JOptionPane.WARNING_MESSAGE);
+			}
 		}
 		else {
 			ActionRowChooser chooser = new ActionRowChooser(getMainFrame(),"Violent Storm!!",phases);

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.game.GameSetupEncoder;
 
 import java.io.*;
@@ -26,15 +9,15 @@ import com.robin.general.util.*;
 public class Encoder {
 
 	protected GameData data;
-	protected ArrayList printGroupings;
-	protected ArrayList codings;
-	protected Collection filter = null;
+	protected ArrayList<PrintGrouping> printGroupings;
+	protected ArrayList<Coding> codings;
+	protected Collection<String> filter = null;
 	
 	protected static final String LINE_END = "\r\n";
 	
 	public Encoder() {
-		printGroupings = new ArrayList();
-		codings = new ArrayList();
+		printGroupings = new ArrayList<>();
+		codings = new ArrayList<>();
 	}
 	public GameData getGameData() {
 		return data;
@@ -57,16 +40,16 @@ public class Encoder {
 	public void addCoding(Coding coding) {
 		codings.add(coding);
 	}
-	public void setFilter(Collection keyVals) {
+	public void setFilter(Collection<String> keyVals) {
 		filter = keyVals;
 	}
 	public boolean writeFile(String setupName,String filename) {
 		StringBuffer printString = new StringBuffer();
 
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList<String> query = new ArrayList<>();
 		query.add("original_game");
 	
-		ArrayList list = data.doSetup(setupName,query);
+		ArrayList<GameObject> list = data.doSetup(setupName,query);
 		System.out.println("Finished setup");
 		if (list!=null) {
 			GamePool pool = new GamePool(list);
@@ -83,14 +66,12 @@ public class Encoder {
 			
 			// Encode objects
 			StringBuffer codingResult = new StringBuffer();
-			for (Iterator i=codings.iterator();i.hasNext();) {
-				Coding coding = (Coding)i.next();
+			for (Coding coding : codings) {
 				codingResult.append(coding.encode(pool));
 			}
 			
 			// Lay out groups
-			for (Iterator i=printGroupings.iterator();i.hasNext();) {
-				PrintGrouping grouping = (PrintGrouping)i.next();
+			for (PrintGrouping grouping : printGroupings) {
 				printString.append(grouping.print(pool));
 			}
 			

@@ -1,35 +1,22 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.table;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import com.robin.game.objects.GameObject;
+import com.robin.game.server.GameClient;
 import com.robin.general.util.StringUtilities;
 import com.robin.magic_realm.components.ArmorChitComponent;
+import com.robin.magic_realm.components.CharacterActionChitComponent;
 import com.robin.magic_realm.components.RealmComponent;
 import com.robin.magic_realm.components.attribute.*;
+import com.robin.magic_realm.components.swing.RealmComponentOptionChooser;
 import com.robin.magic_realm.components.swing.RealmPaymentDialog;
 import com.robin.magic_realm.components.utility.Constants;
+import com.robin.magic_realm.components.utility.TreasureUtility;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
@@ -38,11 +25,13 @@ public abstract class Meeting extends Trade {
 	public static final String BLOCK_BATTLE = "Block/Battle";
 	
 	protected GameObject merchandise; // might be null if hiring or rolling for meeting
-	protected Collection hireGroup; // might be null if trading or rolling for meeting
+	protected Collection<RealmComponent> hireGroup; // might be null if trading or rolling for meeting
+	protected Collection<RealmComponent> sucessfullyHiredGroup; // might be null if trading or rolling for meeting
 	
 	protected boolean blockBattle;
+	protected boolean creditFame = false;
 	
-	public Meeting(JFrame frame,TradeInfo trader,GameObject merchandise,Collection hireGroup) {
+	public Meeting(JFrame frame,TradeInfo trader,GameObject merchandise,Collection<RealmComponent> hireGroup) {
 		super(frame,trader);
 		this.merchandise = merchandise;
 		this.hireGroup = hireGroup;
@@ -55,6 +44,9 @@ public abstract class Meeting extends Trade {
 		if (specificAction.length()>0) {
 			if (newTable instanceof Meeting) { // guarantees specific action is translated across
 				((Meeting)newTable).setSpecificAction(specificAction.substring(1)); // trim comma
+			}
+			if (newTable instanceof RunningFromNative) {
+				((RunningFromNative)newTable).setSpecificAction(specificAction.substring(1));
 			}
 		}
 		super.setNewTable(newTable);
@@ -83,6 +75,9 @@ public abstract class Meeting extends Trade {
 	protected boolean useDeclineOpportunityRule() {
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(tradeInfo.getGameData());
 		return hostPrefs.hasPref(Constants.HOUSE2_DECLINE_OPPORTUNITY);
+	}
+	public void setCreditFame() {
+		creditFame = true;
 	}
 	protected String doOpportunity(CharacterWrapper character,Meeting newTable) {
 		if (useDeclineOpportunityRule() && (merchandise!=null || hireGroup!=null)) { // only ask the question, if this is a TRADE or HIRE (not for battling results!!)
@@ -166,6 +161,56 @@ public abstract class Meeting extends Trade {
 		
 		doBlockBattle(character);
 	}
+	protected String applyInsult(CharacterWrapper character) {
+		if (character.affectedByKey(Constants.INSULT_CHALLENGE_AS_BLOCK_BATTLE)) {
+			return "Rage ability applies to Insult - " + applyBlockBattle(character);
+		}
+		String text = "Insult";
+		String result = useCompletedActiveTask(character,text);
+		if (result!=null && !result.isEmpty()) {
+			return result;
+		}
+		doInsult(character);
+		return text;
+	}
+	protected String applyChallenge(CharacterWrapper character) {
+		if (character.affectedByKey(Constants.INSULT_CHALLENGE_AS_BLOCK_BATTLE)) {
+			return "Rage ability applies to Challenge - " + applyBlockBattle(character);
+		}
+		String text = "Challenge";
+		String result = useCompletedActiveTask(character,text);
+		if (result!=null && !result.isEmpty()) {
+			return result;
+		}
+		doChallenge(character);
+		return text;
+	}
+	protected String applyNoDeal(CharacterWrapper character) {
+		String text = "No Deal";
+		String result = useCompletedActiveTask(character,text);
+		if (result!=null && !result.isEmpty()) {
+			return result;
+		}
+		return text;
+	}
+	protected String applyBlockBattle(CharacterWrapper character) {
+		String text = BLOCK_BATTLE;
+		String result = useCompletedActiveTask(character,text);
+		if (result!=null && !result.isEmpty()) {
+			return result;
+		}
+		doBlockBattle(character);
+		return text;
+	}
+	protected String applyPrice(CharacterWrapper character, int mult) {
+		String text = "Price x "+mult;
+		String result = useCompletedActiveTask(character,text);
+		if (result!=null && !result.isEmpty()) {
+			return result;
+		}
+		processPrice(character,mult);
+		return text;
+	}
 	protected void processPrice(CharacterWrapper character,int mult) {
 		if (merchandise!=null) {
 			RealmComponent rc = RealmComponent.getRealmComponent(merchandise);
@@ -184,20 +229,97 @@ public abstract class Meeting extends Trade {
 		// Everything is handled by the RealmPaymentDialog now.
 		RealmPaymentDialog dialog = new RealmPaymentDialog(getParentFrame(),"REPAIR",character,tradeInfo,merchandise,mult,getListener());
 		dialog.setVisible(true);
+		if (dialog.characterNeedsToRunAway()) {
+			RunningFromNative newTable = new RunningFromNative(character,tradeInfo.getTrader());
+			setNewTable(newTable);
+		}
 	}
 	protected void buyingMerchandise(CharacterWrapper character,int mult) {
+		if (mult>0 && this.creditFame == true) {
+			RealmComponent merchandiseRc = RealmComponent.getRealmComponent(merchandise);
+			int price = mult * TreasureUtility.getBasePrice(tradeInfo.getTrader(),merchandiseRc);
+			if (character.getFame()<price) {
+				JOptionPane.showMessageDialog(
+						getParentFrame(),
+						"You only have "+character.getFame()+" fame, and cannot afford to hire the group on credit.",
+						tradeInfo.getName()+" Offer - Price x "+mult,
+						JOptionPane.INFORMATION_MESSAGE,
+						merchandiseRc.getIcon());
+				return;
+			}
+			character.addFame(-price);
+			character.addCreditFame(tradeInfo.getTrader().getGameObject(),price);
+			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameObject().getGameData());
+			RealmPaymentDialog.receiveItemNoBoon(getParentFrame(),hostPrefs,character,tradeInfo,merchandise,false,getListener());
+			return;
+		}
 		// Everything is handled by the RealmPaymentDialog now.
 		RealmPaymentDialog dialog = new RealmPaymentDialog(getParentFrame(),"TRADE",character,tradeInfo,merchandise,mult,getListener());
 		dialog.setVisible(true);
+		if (dialog.characterNeedsToRunAway()) {
+			RunningFromNative newTable = new RunningFromNative(character,tradeInfo.getTrader());
+			setNewTable(newTable);
+		}
 	}
 	public void hiringNatives(CharacterWrapper character,int mult) {
 		int basePrice = 0;
 		RealmComponent last = null;
-		for (Iterator n=hireGroup.iterator();n.hasNext();) {
-			last = (RealmComponent)n.next();
-			basePrice += last.getGameObject().getThisInt("base_price");
+		boolean hireWithChit = false;
+		for (RealmComponent hire : hireGroup) {
+			basePrice += hire.getGameObject().getThisInt("base_price");
+			if (hire.getGameObject().hasThisAttribute(Constants.HIRE_WITH_CHIT)) {
+				hireWithChit = true;
+			}
+			last = hire;
 		}
-		//if (basePrice>0) { // Was this necessary?
+		if (last == null) return;
+		
+		if (hireWithChit && hireGroup.size()>1) {
+			JOptionPane.showMessageDialog(getParentFrame(),"Cannot hire multiple natives, if costs include a character chit.","Cannot hire",JOptionPane.INFORMATION_MESSAGE,last.getIcon());
+			return;
+		}
+		if (hireWithChit) {
+			if (last.getOwner() != null) {
+				JOptionPane.showMessageDialog(getParentFrame(),"You cannot rehire this hireling.","Cannot rehire "+last.getName(),JOptionPane.INFORMATION_MESSAGE,last.getIcon());
+				return;
+			}
+			String amountString = last.getGameObject().getThisAttribute(Constants.HIRE_WITH_CHIT);
+			if (amountString.isEmpty()) amountString = "1";
+			int amount = Integer.parseInt(amountString);
+			ArrayList<CharacterActionChitComponent> chits = character.getActiveChits();
+			if (chits == null || chits.size() == 0 || chits.size()<amount) {
+				JOptionPane.showMessageDialog(getParentFrame(),"You have not enough active character chits for hiring available.","Cannot hire "+last.getName(),JOptionPane.INFORMATION_MESSAGE,last.getIcon());
+				return;
+			}
+			int amountLeft = amount;
+			int amountSelected = 0;
+			ArrayList<RealmComponent> allSelectedChits = new ArrayList<RealmComponent>();
+			
+			while (amountSelected < amountLeft) {
+				RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(getParentFrame(),"You want to hire the "+last.getName()+" for "+amount+" character chit(s)?",true);
+				for (CharacterActionChitComponent chit : chits) {
+					chooser.addRealmComponent(chit);
+				}
+				chooser.setVisible(true);
+							
+				Collection<RealmComponent> selectedChits = chooser.getSelectedComponents();
+				if (selectedChits == null) return;
+				amountSelected = amountSelected+1;
+				chits.removeAll(selectedChits);
+				allSelectedChits.addAll(selectedChits);
+			}
+			
+			for (RealmComponent chit : allSelectedChits) {
+				last.getGameObject().addThisAttributeListItem(Constants.ABSORBED_CHITS, chit.getGameObject().getStringId());
+				last.getGameObject().add(chit.getGameObject());
+			}
+			character.updateChitEffects();
+			character.addHireling(last.getGameObject());
+			sucessfullyHiredGroup=new ArrayList<>();
+			sucessfullyHiredGroup.add(last);
+			return;
+		}
+		
 		int askingPrice = basePrice * mult;
 		
 		String groupName = tradeInfo.getThisAttribute("native");
@@ -247,16 +369,49 @@ public abstract class Meeting extends Trade {
 			
 			if (ret==JOptionPane.YES_OPTION) {
 				if (isBoon) {
-					// special case for BOON
-					ret = JOptionPane.showConfirmDialog(getParentFrame(),"Take the boon?",tradeInfo.getName()+" Offers Boon",
+					HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(tradeInfo.getGameData());
+					boolean credit = false;
+					if (hostPrefs.hasPref(Constants.SR_ADV_CREDIT) && character.getNotoriety()>=basePrice) {
+						ret = JOptionPane.showConfirmDialog(getParentFrame(),"Take the credit ("+basePrice+" notoriety)?",tradeInfo.getName()+" Offers Credit",
 								JOptionPane.YES_NO_OPTION,JOptionPane.INFORMATION_MESSAGE,last.getIcon());
-					if (ret==JOptionPane.YES_OPTION) {
-						character.changeRelationship(tradeInfo.getGameObject(),-1);
-						character.getGameObject().add(RealmPaymentDialog.createBoon(tradeInfo.getGameObject(),basePrice));
+						if (ret==JOptionPane.YES_OPTION) {
+							character.addNotoriety(-basePrice);
+							credit = true;
+						}
+					}
+					if (!credit) {
+						// special case for BOON
+						ret = JOptionPane.showConfirmDialog(getParentFrame(),"Take the boon?",tradeInfo.getName()+" Offers Boon",
+									JOptionPane.YES_NO_OPTION,JOptionPane.INFORMATION_MESSAGE,last.getIcon());
+						if (ret==JOptionPane.YES_OPTION) {
+							character.changeRelationship(tradeInfo.getGameObject(),-1);
+							character.getGameObject().add(RealmPaymentDialog.createBoon(tradeInfo.getGameObject(),basePrice));
+						}
+						else {
+							askingPrice = basePrice;
+						}
+					}
+				}
+				
+				if (this.creditFame==true) {
+					if (character.getFame()<askingPrice) {
+						JOptionPane.showMessageDialog(
+								getParentFrame(),
+								"You only have "+character.getFame()+" fame, and cannot afford to hire the group on credit.",
+								offerTitle,
+								JOptionPane.INFORMATION_MESSAGE,
+								last.getIcon());
 					}
 					else {
-						askingPrice = basePrice;
+						character.addFame(-askingPrice);
+						character.addCreditFame(tradeInfo.getTrader().getGameObject(),askingPrice);
+						sucessfullyHiredGroup=new ArrayList<>();
+						for (RealmComponent rc : hireGroup) {
+							character.addHireling(rc.getGameObject());
+							sucessfullyHiredGroup.add(rc);
+						}
 					}
+					return;
 				}
 				
 				if (charGold>=askingPrice) {
@@ -264,9 +419,10 @@ public abstract class Meeting extends Trade {
 					character.addGold(-askingPrice);
 					
 					// Hire the group!
-					for (Iterator n=hireGroup.iterator();n.hasNext();) {
-						RealmComponent rc = (RealmComponent)n.next();
+					sucessfullyHiredGroup=new ArrayList<>();
+					for (RealmComponent rc : hireGroup) {
 						character.addHireling(rc.getGameObject());
+						sucessfullyHiredGroup.add(rc);
 					}
 				}
 				else {
@@ -284,7 +440,40 @@ public abstract class Meeting extends Trade {
 			JOptionPane.showMessageDialog(getParentFrame(),sb.toString(),offerTitle,JOptionPane.INFORMATION_MESSAGE,last.getIcon());
 		}
 	}
-	public static Meeting createMeetingTable(JFrame frame,CharacterWrapper character,TileLocation currentLocation,RealmComponent trader,RealmComponent merchandise,Collection hireGroup,int ignoreBuyDrinksLimit) {
+	public Collection<RealmComponent> getSucessfullyHiredGroup() {
+		return sucessfullyHiredGroup;
+	}
+	protected String useCompletedActiveTask(CharacterWrapper character, String text) {
+		GameObject task = character.getCompletedActiveTask();
+		if (task!=null) {
+			int ret = JOptionPane.showConfirmDialog(
+					getParentFrame(),
+					"Do you want to use your completed Task chit instead of the current result ('"+text+"')?",
+					"Use reward of completed Task, instead of '"+text+"'?",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
+			if (ret==JOptionPane.YES_OPTION) {
+				TileLocation loc = character.getCurrentLocation();
+				if (loc!=null && loc.isInClearing()) {
+					task.removeThisAttribute(Constants.TASK_COMPLETED);
+					GameClient.broadcastClient("host",task.getName()+" is dropped in "+loc);
+					loc.clearing.add(task,null);
+					Object[] choices = {"Price x 1", "Boon"};
+					Object defaultChoice = choices[0];
+					ret = JOptionPane.showOptionDialog(
+							getParentFrame(),
+							"Treat as 'Price x 1' or 'Boon' result?",
+							"Price x 1 or Boon?",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,null,choices,defaultChoice);
+					if (ret==JOptionPane.YES_OPTION || ret==JOptionPane.CLOSED_OPTION) {
+						processPrice(character,0);
+						return "Price x 1";
+					}
+					processPrice(character,1);
+					return "Boon (x 1)";
+				}
+			}
+		}
+		return null;
+	}
+	public static Meeting createMeetingTable(JFrame frame,CharacterWrapper character,TileLocation currentLocation,RealmComponent trader,RealmComponent merchandise,Collection<RealmComponent> hireGroup,int ignoreBuyDrinksLimit) {
 		TradeInfo tradeInfo = getTradeInfo(frame,character,trader,currentLocation,ignoreBuyDrinksLimit,hireGroup==null?0:hireGroup.size());
 		
 		GameObject merchObj = merchandise==null?null:merchandise.getGameObject();

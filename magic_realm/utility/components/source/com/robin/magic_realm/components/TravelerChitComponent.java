@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
 import java.awt.*;
@@ -40,7 +23,7 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 	private boolean alteredMoveSpeed = false;
 	private static Hashtable<Integer,ImageIcon> dieIconHash;
 	
-	protected TravelerChitComponent(GameObject obj) {
+	public TravelerChitComponent(GameObject obj) {
 		super(obj);
 		darkColor = MagicRealmColor.FORESTGREEN;
 	}
@@ -76,7 +59,7 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 	public void assignTravelerTemplate() {
 		if (getGameObject().hasThisAttribute(Constants.TEMPLATE_ASSIGNED)) return;
 		GamePool pool = new GamePool(getGameObject().getGameData().getGameObjects());
-		ArrayList query = new ArrayList();
+		ArrayList<String> query = new ArrayList<>();
 		query.add(Constants.TRAVELER_TEMPLATE);
 		query.add("!"+Constants.USED);
 		query.add("!notready");
@@ -96,7 +79,7 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 		GameObject template = list.get(r);
 		assignTravelerTemplate(template);
 	}
-	private void assignTravelerTemplate(GameObject template) {
+	public void assignTravelerTemplate(GameObject template) {
 		getGameObject().setName(template.getName());
 		getGameObject().copyAttributeBlockFrom(template,"this");
 		getGameObject().removeThisAttribute(Constants.TRAVELER_TEMPLATE);
@@ -104,16 +87,16 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 		getGameObject().addAll(template.getHold());
 		template.setThisAttribute(Constants.USED);
 	}
-	private ImageIcon getDieIcon(int val){
+	private static ImageIcon getDieIcon(int val){
 		if (dieIconHash==null) {
-			dieIconHash = new Hashtable<Integer,ImageIcon>();
+			dieIconHash = new Hashtable<>();
 			for (int i=1;i<=6;i++) {
 				DieRoller dr = new DieRoller(String.valueOf(i),16,4);
 				dr.setAllRed();
-				dieIconHash.put(new Integer(i),dr.getIcon());
+				dieIconHash.put(Integer.valueOf(i),dr.getIcon());
 			}
 		}
-		return dieIconHash.get(val);
+		return dieIconHash.get(Integer.valueOf(val));
 	}
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -122,15 +105,38 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 		
 		if (getGameObject().hasThisAttribute(Constants.ALWAYS_VISIBLE) || isFaceUp()) {
 			updateSize();
-			String icon_type = gameObject.getThisAttribute(Constants.ICON_TYPE);
-			String iconDir = gameObject.getThisAttribute(Constants.ICON_FOLDER);
-			drawIcon(g, iconDir, icon_type, 0.7);
+			String icon_type = "";
+			String iconDir = "";
+			double size = 0.7;
+			int yOffset = 0;
+			if (isDisplayStyleAlternative() && gameObject.hasThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE) && gameObject.hasThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE)) {
+				icon_type = gameObject.getThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE);
+				iconDir = gameObject.getThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE);
+				if (gameObject.hasThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE)) {
+					size = Double.parseDouble(gameObject.getThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE));
+				}
+				if (gameObject.hasThisAttribute(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE)) {
+					yOffset = gameObject.getThisInt(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE);
+				}
+			}
+			else {
+				icon_type = gameObject.getThisAttribute(Constants.ICON_TYPE);
+				iconDir = gameObject.getThisAttribute(Constants.ICON_FOLDER);
+				if (gameObject.hasThisAttribute(Constants.ICON_SIZE)) {
+					size = Double.parseDouble(gameObject.getThisAttribute(Constants.ICON_SIZE));
+				}
+			}
+			drawIcon(g, iconDir, icon_type, size, 0, yOffset, null);
 			
 			tt = new TextType(getGameObject().getName(),getChitSize(),"WHITE_NOTE");
 			tt.draw(g,0,3,Alignment.Center);
 			
 			ImageIcon die = getDieIcon(getGameObject().getThisInt("monster_die"));
 			g.drawImage(die.getImage(),50,31,null);
+			if (getGameObject().hasThisAttribute("monster_die2")) {
+				ImageIcon die2 = getDieIcon(getGameObject().getThisInt("monster_die2"));
+				g.drawImage(die2.getImage(),50,0,null);
+			}
 			
 			int x = 5;
 			int y = 35; 
@@ -145,8 +151,8 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 				g.setFont(Constants.ATTRIBUTE_FONT);
 				GraphicsUtil.drawCenteredString(g,x,y-2,rad,rad,String.valueOf(price));
 			}
-			else if (getGameObject().hasThisAttribute("capture")) {
-				int capture = getGameObject().getThisInt("capture");
+			else if (getGameObject().hasThisAttribute(Constants.CAPTURE)) {
+				int capture = getGameObject().getThisInt(Constants.CAPTURE);
 				String val = String.valueOf(capture);
 				if (capture>=0) {
 					val = "+"+val;
@@ -156,15 +162,18 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 				g.setColor(Color.white);
 				GraphicsUtil.drawCenteredString(g,x,y-2,rad,rad,val);
 			}
-			else if (getGameObject().hasThisAttribute("store")) {
+			else if (getGameObject().hasThisAttribute(Constants.STORE)) {
 				g.setColor(Color.green);
 				g.fillRect(x,y,rad-2,rad-2);
 				g.setColor(Color.black);
 				g.drawRect(x,y,rad-2,rad-2);
 				GraphicsUtil.drawCenteredString(g,x,y-2,rad,rad,"$$");
 			}
+			else if (getGameObject().hasThisAttribute(Constants.DOPPLEGANGER)) {
+				g.setColor(Color.white);
+				g.fillRect(x, y, rad-4, rad-4);
+			}
 			String vul = getGameObject().getThisAttribute("vulnerability");
-//vul = "T";
 			if (vul!=null) {
 				x = 53;
 				y = 16;
@@ -195,9 +204,6 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 		String strength = getGameObject().getThisAttribute("strength");
 		String attackSpeedString = getGameObject().getThisAttribute("attack_speed");
 		int sharpness = getGameObject().getThisInt("sharpness");
-//strength = "M";
-//attackSpeed = "2";
-//sharpness = 2;
 		if (attackSpeedString!=null) {
 			alteredAttackSpeed = false;
 			alteredMoveSpeed = false;
@@ -215,8 +221,7 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 				x += 10;
 			}
 			
-			String moveString = getGameObject().getThisAttribute("move_speed");//+(alteredMoveSpeed?"!":"");
-//moveString = "5";
+			String moveString = getGameObject().getThisAttribute("move_speed");
 			tt = new TextType(moveString, getChitSize(), alteredMoveSpeed?"YELLOW_BOLD":"WHITE_NOTE");
 			x = getChitSize() - 5 - tt.getWidth(g);
 			y = getChitSize() - 5 - tt.getHeight(g);
@@ -226,26 +231,64 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 	public boolean applyHit(GameWrapper game, HostPrefWrapper hostPrefs, BattleChit attacker, int box, Harm attackerHarm, int attackOrderPos) {
 		CombatWrapper combat = new CombatWrapper(getGameObject());
 		
-		Harm harm = new Harm(attackerHarm);
-		Strength vulnerability = new Strength(getAttribute("this", "vulnerability"));
-		if (!harm.getIgnoresArmor() && getGameObject().hasThisAttribute(Constants.ARMORED)) {
-			harm.dampenSharpness();
-			RealmLogging.logMessage(attacker.getGameObject().getName(),"Hits armor, and reduces sharpness: "+harm.toString());
+		ArrayList<SpellWrapper> holyShields = SpellUtility.getBewitchingSpellsWithKey(getGameObject(),Constants.HOLY_SHIELD);
+		if ((holyShields!=null&&!holyShields.isEmpty()) || affectedByKey(Constants.HOLY_SHIELD) || combat.hasHolyShield(attacker.getAttackSpeed(),attacker.getLength())) {
+			for (SpellWrapper spell : holyShields) {
+				spell.expireSpell();
+			}
+			combat.setHolyShield(attacker.getAttackSpeed(), attacker.getLength());
+			RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits Holy Shield and the attack is blocked.");
+			return false;
 		}
+		
+		Harm harm = new Harm(attackerHarm);
+		Strength vulnerability = new Strength(getThisAttribute( "vulnerability"));
+		boolean armorPiercing = attacker.getGameObject().hasThisAttribute(Constants.ARMOR_PIERCING) || (attacker.isCharacter() && (new CharacterWrapper(attacker.getGameObject())).affectedByKey(Constants.ARMOR_PIERCING));
+		if (!harm.getIgnoresArmor() && !armorPiercing && getGameObject().hasThisAttribute(Constants.ARMORED)) {
+			harm.dampenSharpness();
+			RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits armor, and reduces sharpness: "+harm.toString());
+		}
+		else if (!getGameObject().hasThisAttribute(Constants.ARMORED) && !armorPiercing && getGameObject().hasThisAttribute(Constants.BARKSKIN)) {
+			ColorMagic attackerImmunityColor = ColorMagic.makeColorMagic(attacker.getGameObject().getThisAttribute(Constants.MAGIC_IMMUNITY),true);
+			if (attackerImmunityColor!=null && (attackerImmunityColor.isPrismColor()||attackerImmunityColor.getColorNumber()==ColorMagic.GRAY)) {
+				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Barkskin is ignored.");
+			}
+			else {
+				harm.dampenSharpness();
+				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits barkskin, and reduces sharpness: "+harm.toString());
+			}
+		}
+		
+		if (getGameObject().hasThisAttribute(Constants.POISON_IMMUNITY)) {
+			if (attacker.isCharacter()) {
+				WeaponChitComponent weapon = ((CharacterChitComponent)attacker).getAttackingWeapon();
+				if (weapon!=null && weapon.getGameObject().hasThisAttribute(Constants.POISON)) {
+					harm.dampenSharpness();
+					RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Traveler has poison immunity and additional sharpness is ignored: "+harm.toString());
+				}
+			}
+			if (attacker.getGameObject().hasThisAttribute(Constants.POISON)) {
+				harm.dampenSharpness();
+				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Traveler has poison immunity and additional sharpness is ignored: "+harm.toString());
+			}
+		}
+		
 		Strength applied = harm.getAppliedStrength();
 		if (applied.strongerOrEqualTo(vulnerability)) {
 			// Dead traveler!
 			combat.setKilledBy(attacker.getGameObject());
-			return true;
+			combat.setKilledLength(attacker.getLength());
+			combat.setKilledSpeed(attacker.getAttackSpeed());
+			if (!hostPrefs.hasPref(Constants.SR_ENDING_COMBAT)) return true;
 		}
 		return false;
 	}
-	public void changeWeaponState(boolean hit) {
+	public void changeWeaponState(HostPrefWrapper hostPrefs) {
 		// Do nothing
 	}
 	public int getAttackCombatBox() {
 		CombatWrapper combat = new CombatWrapper(getGameObject());
-		return combat.getCombatBox();
+		return combat.getCombatBoxAttack();
 	}
 	public Speed getAttackSpeed() {
 		String specialType = getGameObject().getThisAttribute(Constants.ATTACK_SPEED_TARGET);
@@ -278,14 +321,17 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 		return false;
 	}
 	public Integer getLength() {
-		return getThisInt("length");
+		return Integer.valueOf(getThisInt("length"));
 	}
 	public String getMagicType() {
 		return null; // For now, there are no magic flinging travelers.
 	}
+	public String getAttackSpell() {
+		return null; // For now, there are no magic flinging travelers.
+	}
 	public int getManeuverCombatBox() {
 		CombatWrapper combat = new CombatWrapper(getGameObject());
-		return combat.getCombatBox();
+		return combat.getCombatBoxDefense();
 	}
 	public String getMissileType() {
 		return gameObject.getThisAttribute("missile");
@@ -310,8 +356,14 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 	}
 	protected int speedModifier() {
 		int mod = 0;
+		if (getGameObject().hasThisAttribute(Constants.SLOWED)) {
+			mod++;
+		}
 		if (getGameObject().hasThisAttribute(Constants.SHRINK)) {
 			mod--;
+		}
+		if (new CombatWrapper(getGameObject()).isFreezed()) {
+			mod++;
 		}
 		return mod;
 	}
@@ -384,7 +436,6 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 		int n=1;
 		for (GameObject go:pool.find("traveler_template")) {
 			System.out.println((n++)+delim+getInfo(delim,go));
-			//System.out.println(go.getName()+" - "+go.getThisAttribute("text"));
 		}
 	}
 }

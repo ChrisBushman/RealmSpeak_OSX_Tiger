@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
 import java.awt.Color;
@@ -34,6 +17,7 @@ public class MagicRealmColor {
 	public static final Color PURPLE		= new Color(180,145,180);
 	public static final Color YELLOW		= new Color(239,235,123);
 	public static final Color PALEYELLOW	= new Color(255,255,200);
+	public static final Color DARKYELLOW	= new Color(255,209, 26);
 	public static final Color PEACH			= new Color(229,186,136);
 	public static final Color TAN			= new Color(198,167, 85);
 	public static final Color GOLD			= new Color(239,204,110);
@@ -42,12 +26,19 @@ public class MagicRealmColor {
 	public static final Color DARKGRAY		= new Color(170,170,170);
 	public static final Color WHITE			= new Color(255,255,255);
 	
+	public static final Color DARKBLUE		= new Color( 24, 66,132);
+	public static final Color DARKGREEN		= new Color(114,112, 22);
+	public static final Color DARKRED		= new Color(125,  6, 39);
+	public static final Color DARKORANGE	= new Color(199,108,  0);
+	public static final Color DARKPURPLE	= new Color( 93,  0,126);
+	
 	public static final Color DISCOVERY_HIGHLIGHT_COLOR = new Color(102,255,153);
 	
 	public static final Color CHIT_COMMITTED = Color.blue;
 	public static final Color CHIT_ALERTED = Color.green;
 	public static final Color CHIT_FATIGUED = Color.orange;
 	public static final Color CHIT_WOUNDED = Color.red;
+	public static final Color CHIT_BERSERK = Color.darkGray;
 //	public static final Color CHIT_COMMITTED = new Color(0,0,255,100); //Color.blue;
 //	public static final Color CHIT_ALERTED = new Color(0,255,0,100); //Color.green;
 //	public static final Color CHIT_FATIGUED = new Color(255,255,0,100); //Color.orange;
@@ -118,6 +109,42 @@ public class MagicRealmColor {
 		else if (string.equals("PALEYELLOW")) {
 			return PALEYELLOW;
 		}
+		else if (string.equals("DARKYELLOW")) {
+			return DARKYELLOW;
+		}
+		else if (string.equals("DARKBLUE")) {
+			return DARKBLUE;
+		}
+		else if (string.equals("DARKGREEN")) {
+			return DARKGREEN;
+		}
+		else if (string.equals("DARKRED")) {
+			return DARKRED;
+		}
+		else if (string.equals("DARKORANGE")) {
+			return DARKORANGE;
+		}
+		else if (string.equals("DARKPURPLE")) {
+			return DARKPURPLE;
+		}
 		throw new IllegalArgumentException("Invalid color: "+string);
+	}
+	
+	public static Color getClanColor(String clan) {
+		switch(clan) {
+		case "1":
+			return BLUE;
+		case "2":
+			return GREEN;
+		case "3":
+			return RED;
+		case "4":
+			return PURPLE;
+		case "5":
+			return ORANGE;
+		case "0":
+		default:
+			return YELLOW;
+		}
 	}
 }

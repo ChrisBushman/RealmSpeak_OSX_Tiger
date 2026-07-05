@@ -1,30 +1,14 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.swing;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.table.*;
+
 import java.util.*;
 
 public class OutlineList extends JPanel implements ActionListener {
-	Vector data;
+	Vector<OutlineEntry> data;
 
 	JTable table;
 	JButton addButton;
@@ -38,15 +22,15 @@ public class OutlineList extends JPanel implements ActionListener {
 		super(new BorderLayout());
 		init();
 	}
-	public Vector getData() {
+	public Vector<OutlineEntry> getData() {
 		return data;
 	}
-	public void setData(Vector d) {
+	public void setData(Vector<OutlineEntry> d) {
 		data = d;
 		((AbstractTableModel)table.getModel()).fireTableDataChanged();
 	}
 	public void reset() {
-		setData(new Vector());
+		setData(new Vector<>());
 	}
 	public void init() {
 		table = new JTable();
@@ -67,9 +51,9 @@ public class OutlineList extends JPanel implements ActionListener {
 			}
 			public Object getValueAt(int row, int column) {
 				if (data!=null && row<data.size() && column<6) {
-					OutlineEntry e = (OutlineEntry)data.elementAt(row);
+					OutlineEntry e = data.elementAt(row);
 					switch(column) {
-						case 0:		return new Integer(row+1);
+						case 0:		return Integer.valueOf(row+1);
 						case 1:
 							String h = e.getHeader();
 							if (h!=null) {
@@ -160,7 +144,7 @@ public class OutlineList extends JPanel implements ActionListener {
 	private void editAction() {
 		int row = table.getSelectedRow();
 		if (row>=0 && row<data.size()) {
-			OutlineEntry e = (OutlineEntry)data.elementAt(row);
+			OutlineEntry e = data.elementAt(row);
 			OutlineEntryPicker picker = new OutlineEntryPicker(e);
 			OutlineEntry newEntry = picker.getEntry();
 			if (newEntry!=null) {
@@ -185,7 +169,7 @@ public class OutlineList extends JPanel implements ActionListener {
 	private void moveUpAction() {
 		int row = table.getSelectedRow();
 		if (row>0 && row<data.size()) {
-			OutlineEntry e = (OutlineEntry)data.elementAt(row);
+			OutlineEntry e = data.elementAt(row);
 			data.removeElementAt(row);
 			data.insertElementAt(e,row-1);
 			((AbstractTableModel)table.getModel()).fireTableDataChanged();
@@ -196,7 +180,7 @@ public class OutlineList extends JPanel implements ActionListener {
 	private void moveDnAction() {
 		int row = table.getSelectedRow();
 		if (row>=0 && row<(data.size()-1)) {
-			OutlineEntry e = (OutlineEntry)data.elementAt(row);
+			OutlineEntry e = data.elementAt(row);
 			data.removeElementAt(row);
 			data.insertElementAt(e,row+1);
 			((AbstractTableModel)table.getModel()).fireTableDataChanged();

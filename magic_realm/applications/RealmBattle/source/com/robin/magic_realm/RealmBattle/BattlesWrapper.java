@@ -1,34 +1,23 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Hashtable;
 
 import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
 import com.robin.game.objects.GameObjectWrapper;
 import com.robin.game.server.GameClient;
+import com.robin.general.swing.DieRoller;
+import com.robin.general.util.RandomNumber;
 import com.robin.magic_realm.components.*;
+import com.robin.magic_realm.components.attribute.Strength;
 import com.robin.magic_realm.components.attribute.TileLocation;
+import com.robin.magic_realm.components.table.SummonDemon;
+import com.robin.magic_realm.components.table.SummonDemon.DemonType;
 import com.robin.magic_realm.components.utility.*;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 import com.robin.magic_realm.components.wrapper.CombatWrapper;
+import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class BattlesWrapper extends GameObjectWrapper {
 	
@@ -56,8 +45,7 @@ public class BattlesWrapper extends GameObjectWrapper {
 		
 		// Bump combat count for each owning character
 		BattleModel model = RealmBattle.buildBattleModel(tl,data);
-		for (Iterator i=model.getAllOwningCharacters().iterator();i.hasNext();) {
-			RealmComponent chars = (RealmComponent)i.next();
+		for (RealmComponent chars : model.getAllOwningCharacters()) {
 			CharacterWrapper character = new CharacterWrapper(chars.getGameObject());
 			character.setCombatCount(character.getCombatCount()+1);
 		}
@@ -75,23 +63,58 @@ public class BattlesWrapper extends GameObjectWrapper {
 		if (current!=null) {
 			clearBattleInfo(current,data);
 		}
-		ArrayList list = new ArrayList(getList(BATTLE_LOCATION));
+		
+		ArrayList<String> list = new ArrayList<>(getList(BATTLE_LOCATION));
 		if (!list.isEmpty()) {
-			String tlKey = (String)list.remove(0);
+			String tlKey = list.remove(0);
 			setList(BATTLE_LOCATION,list); // make sure the list is updated
 			setString(CURRENT_BATTLE_LOCATION,tlKey);
 			TileLocation tl = TileLocation.parseTileLocation(data,tlKey);
 			BattleModel model = RealmBattle.buildBattleModel(tl,data);
+			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
+			applyEventEffects(data,tl);
+			ArrayList<RealmComponent> combatants = tl.clearing.getClearingComponents();
+			for (RealmComponent monster : combatants) {
+				if (!monster.isMonster()) continue;
+				ArrayList<RealmComponent> characterCanControl = new ArrayList<>();
+				for (RealmComponent characterRc : combatants) {
+					if (!characterRc.isCharacter()) continue;
+						Hashtable<String,Integer[]> controllableMonsters = characterRc.getControllableMonsters();
+						for (String monsterType : controllableMonsters.keySet()) {
+							if (monster.getGameObject().getName().matches(monsterType.toString())) {
+								if (!characterCanControl.contains(characterRc) && (controllableMonsters.get(monsterType)[1]==0 || (new CharacterWrapper(characterRc.getGameObject()).getAllControlledMonstersWithSameName(monsterType).size()<controllableMonsters.get(monsterType)[1]))) {
+									characterCanControl.add(characterRc);
+								}
+							}
+						}
+				}
+				if (characterCanControl.toArray().length == 1) { // only if exactly one character can control this monster
+					CharacterWrapper characterWrapper = new CharacterWrapper(characterCanControl.get(0).getGameObject());
+					int duration = characterCanControl.get(0).getControllableMonsterDuration(false,monster.getGameObject().getName());
+					RealmComponent monsterOwner = monster.getOwner();
+					
+					if(monsterOwner!=null && monsterOwner.isCharacter() && monsterOwner.getGameObject() == characterWrapper.getGameObject()) {
+						if(monster.getTermOfHire()<duration) {
+							monster.setTermOfHire(duration);
+						}
+					}
+					else {
+						if(monsterOwner!=null && monsterOwner.isCharacter()) {
+							CharacterWrapper owner = new CharacterWrapper(monsterOwner.getGameObject());
+							owner.removeHireling(monster.getGameObject());
+						}
+						characterWrapper.addHireling(monster.getGameObject(), duration);
+					}
+				}
+			}
 			
 			if (GameClient.GetMostRecentClient()!=null) {
 				GameClient.GetMostRecentClient().broadcast(RealmLogging.BATTLE,"Battle resolving at "+tl+":");
 				int count = 1;
-				for (Iterator i=model.getAllBattleGroups(true).iterator();i.hasNext();) {
+				for (BattleGroup group : model.getAllBattleGroups(true)) {
 					GameClient.GetMostRecentClient().broadcast(RealmLogging.BATTLE,"GROUP "+(count++));
-					BattleGroup group = (BattleGroup)i.next();
 					RealmComponent owner = group.getOwningCharacter();
-					for (Iterator n=group.getBattleParticipants().iterator();n.hasNext();) {
-						RealmComponent rc = (RealmComponent)n.next();
+					for (RealmComponent rc : group.getBattleParticipants()) {
 						String message = rc.getGameObject().getName();
 						if (owner!=null && owner!=rc) {
 							message = message+" ("+owner.getGameObject().getName()+")";
@@ -102,8 +125,31 @@ public class BattlesWrapper extends GameObjectWrapper {
 						if (rc.isChit() && !rc.isCharacter()) {
 							ChitComponent chit = (ChitComponent)rc;
 							chit.setLightSideUp();
+
+							if ((hostPrefs.hasPref(Constants.OPT_ALERTED_MONSTERS) || hostPrefs.hasPref(Constants.OPT_ALERTED_MONSTERS_VARIANT)) && !rc.isHiredOrControlled() && !rc.isCompanion()) {
+								Strength vulnerability = null;
+								if (rc.isMonster() && !((MonsterChitComponent)rc).cannotChangeTactics()) {
+									vulnerability = ((MonsterChitComponent)rc).getVulnerability();
+								}
+								else if (rc.isNative() && !((NativeChitComponent)rc).cannotChangeTactics()) {
+									vulnerability = ((NativeChitComponent)rc).getVulnerability();
+								}
+								if (vulnerability != null && vulnerability.weakerOrEqualTo(Strength.valueOf("H"))) {
+									if (hostPrefs.hasPref(Constants.OPT_ALERTED_MONSTERS) && hasUnhiddenCharactersOrControlledDenizen(combatants)) {
+										chit.setDarkSideUp();
+									}
+									if(hostPrefs.hasPref(Constants.OPT_ALERTED_MONSTERS_VARIANT)) {
+										int dieRoll1 = RandomNumber.getDieRoll(6);
+										int dieRoll2 = RandomNumber.getDieRoll(6);
+										if (dieRoll1 == 6 || dieRoll2 == 6) {
+											chit.setDarkSideUp();
+										}
+									}
+								}
+							}
 						}
-						rc.clearTarget();
+						
+						rc.clearTargets();
 						
 						// Flip monster weapons light side up
 						if (rc.isMonster()) {
@@ -112,34 +158,75 @@ public class BattlesWrapper extends GameObjectWrapper {
 							if (weapon!=null && weapon.isDarkSideUp()) {
 								weapon.setLightSideUp();
 							}
+							
+							if ((hostPrefs.hasPref(Constants.OPT_ALERTED_MONSTERS) || hostPrefs.hasPref(Constants.OPT_ALERTED_MONSTERS_VARIANT))
+									&& weapon!=null && monster.getVulnerability().weakerOrEqualTo(Strength.valueOf("H")) && !rc.isHiredOrControlled() && !rc.isCompanion()) {
+								if (hostPrefs.hasPref(Constants.OPT_ALERTED_MONSTERS) && hasUnhiddenCharactersOrControlledDenizen(combatants)) {
+									weapon.setDarkSideUp();
+								}
+								if(hostPrefs.hasPref(Constants.OPT_ALERTED_MONSTERS_VARIANT)) {
+									int dieRoll1 = RandomNumber.getDieRoll(6);
+									int dieRoll2 = RandomNumber.getDieRoll(6);
+									if (dieRoll1 == 6 || dieRoll2 == 6) {
+										weapon.setDarkSideUp();
+									}
+								}
+							}
 						}
 					}
 				}
 			}
 			
-			for (Iterator i=model.getAllOwningCharacters().iterator();i.hasNext();) {
+			for (RealmComponent owner : model.getAllOwningCharacters()) {
 				// owner may or may not be present, but they still are involved, and must make battle decisions
-				RealmComponent owner = (RealmComponent)i.next();
 				CharacterWrapper character = new CharacterWrapper(owner.getGameObject());
 				character.setCombatStatus(STARTING_WAIT_STATE);
 			}
 			
 			return true;
 		}
-		else {
-			removeAttribute(CURRENT_BATTLE_LOCATION);
-		}
+		removeAttribute(CURRENT_BATTLE_LOCATION);
 		return false;
 	}
+	private static void applyEventEffects(GameData data, TileLocation tl) {
+		if (tl.tile.getGameObject().hasThisAttribute(Constants.EVENT_NIGHT_OF_THE_DEMON)) {
+			SummonDemon summonTable = new SummonDemon(null);
+			DieRoller dieRoller = new DieRoller();
+			dieRoller.rollDice();
+			int result = dieRoller.getHighDieResult();
+			DemonType type = null;
+			switch (result) {
+				case 1: type = DemonType.Devil;
+				case 2: type = DemonType.WingedDemon;
+				case 3: type = DemonType.Demon;
+				case 4: type = DemonType.Ghoul;
+				case 5: type = DemonType.Zombie;
+				case 6: type = DemonType.Ghost;
+				default: type = DemonType.Ghost;
+			}
+			summonTable.summon(data, type, tl);
+		}
+	}
+	
 	public void clearBattleInfo(TileLocation tl,GameData data) {
 		BattleModel model = RealmBattle.buildBattleModel(tl,data);
-		for (Iterator i=model.getAllOwningCharacters().iterator();i.hasNext();) {
-			RealmComponent owner = (RealmComponent)i.next();
+		for (RealmComponent owner : model.getAllOwningCharacters()) {
 			CharacterWrapper character = new CharacterWrapper(owner.getGameObject());
 			CombatWrapper.clearAllCombatInfo(character.getGameObject());
 			character.clearCombat();
 			character.decrementCombatCount();
 		}
+	}
+	private static boolean hasUnhiddenCharactersOrControlledDenizen(ArrayList<RealmComponent> combatants) {
+		for (RealmComponent combatant : combatants) {
+			if(combatant.isCharacter() && combatant.isHidden() == false) {
+				return true;
+			}
+			if((combatant.isHiredOrControlled() || combatant.isCompanion()) && combatant.isHidden() == false) {
+				return true;
+			}
+		}
+		return false;
 	}
 	/**
 	 * Returns the current battle location

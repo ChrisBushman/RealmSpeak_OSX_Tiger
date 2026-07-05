@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.swing;
 
 import java.awt.Graphics;
@@ -29,16 +12,16 @@ public class ImageSplitter {
 	private ImageIcon icon;
 	private int imagesPerRow;
 	private int columnWidth;
-	private ArrayList rowHeights;
+	private ArrayList<Integer> rowHeights;
 	
 	public ImageSplitter(String path,int columnWidth) {
 		this.icon = IconFactory.findIcon(path);
 		this.columnWidth = columnWidth;
 		imagesPerRow = icon.getIconWidth()/columnWidth;
-		this.rowHeights = new ArrayList();
+		this.rowHeights = new ArrayList<>();
 	}
 	public void addRow(int rowHeight) {
-		rowHeights.add(new Integer(rowHeight));
+		rowHeights.add(Integer.valueOf(rowHeight));
 	}
 	public void addRows(int[] rowHeight) {
 		for (int i=0;i<rowHeight.length;i++) {
@@ -48,12 +31,12 @@ public class ImageSplitter {
 	private int getY(int row) {
 		int y = 0;
 		for (int i=0;i<(row-1);i++) {
-			y += ((Integer)rowHeights.get(i)).intValue();
+			y += rowHeights.get(i).intValue();
 		}
 		return y;
 	}
 	private int getH(int row) {
-		int h = ((Integer)rowHeights.get(row-1)).intValue();
+		int h = rowHeights.get(row-1).intValue();
 		return h;
 	}
 	public ImageIcon[] getImageIcons(int row) {

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.Color;
@@ -78,7 +61,7 @@ public class ActionIcon extends ImageIcon {
 	private static final Color BORDER_COLOR = new Color(0,0,0,40);
 	private static final Font WORD_FONT = UIManager.getFont("Label.font");
 	private static final Font CODE_FONT = WORD_FONT.deriveFont(Font.BOLD,WORD_FONT.getSize2D()+5);
-	private ImageIcon makeIcon(String val,boolean big) {
+	private static ImageIcon makeIcon(String val,boolean big) {
 		int n = big?1:-1;
 		int h = big?28:18;
 		int w = val.length()*(big?15:7);

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmCharacterBuilder;
 
 import java.awt.BorderLayout;
@@ -38,6 +21,7 @@ public class ChitEditDialog extends AggressiveDialog {
 	
 	private Box strengthLine;
 	private Box magicLine;
+	private Box speedLine;
 	private Box specialLine;
 	
 	private ButtonPanel typeSelector;
@@ -46,7 +30,7 @@ public class ChitEditDialog extends AggressiveDialog {
 	private ButtonPanel speedSelector;
 	private ButtonPanel effortSelector;
 	
-	private JComboBox specialSelections;
+	private JComboBox<SpecialSelect> specialSelections;
 	
 	private JButton doneButton;
 	
@@ -74,7 +58,7 @@ public class ChitEditDialog extends AggressiveDialog {
 	}
 	private void init(CharacterActionChitComponent chit) {
 		this.chit = chit;
-		reservedChitNames = new ArrayList<String>();
+		reservedChitNames = new ArrayList<>();
 		reservedChitNames.add("MOVE");
 		reservedChitNames.add("FIGHT");
 		reservedChitNames.add("MAGIC");
@@ -115,8 +99,11 @@ public class ChitEditDialog extends AggressiveDialog {
 					String action = ev.getActionCommand();
 					if (action.equals("SPECIAL")) {
 						String chitName;
-						while (reservedChitNames.contains((chitName = JOptionPane.showInputDialog("Chit Name?")).toUpperCase())) {
+						while ((chitName = JOptionPane.showInputDialog("Chit Name?")) != null && reservedChitNames.contains(chitName.toUpperCase())) {
 							JOptionPane.showMessageDialog(ChitEditDialog.this,"You cannot use any of the reserved chit names:  "+reservedChitNames,"Invalid Name",JOptionPane.ERROR_MESSAGE);
+						}
+						if (chitName == null) {
+							return;
 						}
 						
 						chit.getGameObject().setThisAttribute("action",chitName.toLowerCase());
@@ -173,7 +160,7 @@ public class ChitEditDialog extends AggressiveDialog {
 			magicLine.add(magicSelector);
 		box.add(magicLine);
 		box.add(Box.createVerticalGlue());
-		line = group.createLabelLine("Speed");
+		speedLine = group.createLabelLine("Speed");
 			speedSelector = new ButtonPanel(RealmCharacterConstants.SPEEDS);
 			speedSelector.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
@@ -183,8 +170,8 @@ public class ChitEditDialog extends AggressiveDialog {
 				}
 			});
 			ComponentTools.lockComponentSize(speedSelector,w,25);
-			line.add(speedSelector);
-		box.add(line);
+			speedLine.add(speedSelector);
+		box.add(speedLine);
 		box.add(Box.createVerticalGlue());
 		line = group.createLabelLine("Effort");
 			effortSelector = new ButtonPanel(RealmCharacterConstants.EFFORTS);
@@ -203,7 +190,7 @@ public class ChitEditDialog extends AggressiveDialog {
 			for (int i=0;i<specialSelect.length;i++) {
 				specialSelect[i] = new SpecialSelect(SPECIAL_SELECT[i]);
 			}
-			specialSelections = new JComboBox(specialSelect);
+			specialSelections = new JComboBox<>(specialSelect);
 			specialSelections.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
 					SpecialSelect ss = (SpecialSelect)specialSelections.getSelectedItem();
@@ -227,7 +214,7 @@ public class ChitEditDialog extends AggressiveDialog {
 		StringBuffer sb = new StringBuffer();
 		sb.append(chit.getGameObject().getThisAttribute("action"));
 		sb.append(" ");
-		if (chit.isMagic()) {
+		if (chit.isMagic() || chit.isColorOnlyChit()) {
 			sb.append(chit.getGameObject().getThisAttribute("magic"));
 		}
 		else {
@@ -264,8 +251,10 @@ public class ChitEditDialog extends AggressiveDialog {
 	private void updateControls() {
 		chitView.setIcon(chit.getIcon());
 		boolean magic = chit.isMagic();
-		strengthLine.setVisible(!magic);
-		magicLine.setVisible(magic);
+		boolean colorOnly = chit.isColorOnlyChit();
+		strengthLine.setVisible(!magic&&!colorOnly);
+		speedLine.setVisible(!colorOnly);
+		magicLine.setVisible(magic||colorOnly);
 		specialLine.setVisible("SPECIAL".equals(typeSelector.getSelectedItem()));
 	}
 	private void clearChitSpecials() {

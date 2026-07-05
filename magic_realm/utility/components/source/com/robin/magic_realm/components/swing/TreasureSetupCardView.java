@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.swing;
 
 import java.awt.*;
@@ -42,8 +25,9 @@ public class TreasureSetupCardView extends JComponent {
 	private static final Color HIGHLIGHT_COLOR = Color.white;
 	private static final int HIGHLIGHT_INTENSITY = 60; // percent
 	
-	private static final int SPACING = 5;
-	private static final int TEXT_SPACING = 10;
+	private int SPACING = 5;
+	private int TEXT_SPACING = 10;
+	private int HEADLINE_SPACING = 20;
 	private static final int LEFT_BORDER = 60;
 	private static final int RIGHT_BORDER = 20;
 	
@@ -62,10 +46,12 @@ public class TreasureSetupCardView extends JComponent {
 	
 	private GameData data;
 	private GameWrapper game;
-	private ArrayList sections;
+	private ArrayList<String> sections;
+	ArrayList<Integer> spacingPerSection;
 	private Dimension cardSize;
-	private Hashtable sectionRowHash;
-	private ArrayList nonMdList;
+	private Hashtable<String, HashLists<String, GameObject>> sectionRowHash;
+	private ArrayList<GameObject> nonMdList;
+	private ArrayList<GameObject> bottomList;
 	
 	private Image image;
 	
@@ -81,19 +67,44 @@ public class TreasureSetupCardView extends JComponent {
 	private String title = "Treasure Setup Card";
 	private String boardKey;
 	private String playerName;
+	boolean structuredLayout;
+	boolean nativeSetup = false;
+	private String dieString1;
+	private String dieString2;
 	
-	public TreasureSetupCardView(GameData data,String playerName) {
-		this(data,playerName,null);
+	public TreasureSetupCardView(GameData data,String playerName,boolean setupCardLayout) {
+		this(data,playerName,null,setupCardLayout,false);
 	}
-	public TreasureSetupCardView(GameData data,String playerName,String boardKey) {
+	public TreasureSetupCardView(GameData data,String playerName,boolean setupCardLayout,boolean nativeSetup) {
+		this(data,playerName,null,setupCardLayout,nativeSetup);
+	}
+	public TreasureSetupCardView(GameData data,String playerName,String boardKey,boolean setupCardLayout) {
+		this(data,playerName,boardKey,setupCardLayout,false);
+	}
+	public TreasureSetupCardView(GameData data,String playerName,String boardKey,boolean setupCardLayout, boolean nativeSetup) {
 		this.data = data;
 		this.boardKey = boardKey;
 		this.playerName = playerName;
+		this.structuredLayout = setupCardLayout;
 		game = GameWrapper.findGame(data);
 		hostPrefs = HostPrefWrapper.findHostPrefs(data);
+		if (hostPrefs.usesSuperRealm()) this.structuredLayout=true;
+		if (nativeSetup) {
+			dieString1 = "native_die";
+			dieString2 = "native_die2";
+			title = "The Chart of Clans";
+			SPACING = 10;
+			TEXT_SPACING = 22;
+			HEADLINE_SPACING = 37;
+		} else {
+			dieString1 = "monster_die";
+			dieString2 = "monster_die2";
+		}
 		if (boardKey!=null && !boardKey.endsWith(Constants.BOARD_NUMBER)) {
 			title = title + " - " + boardKey.substring(boardKey.length()-1);
 		}
+		this.nativeSetup = nativeSetup;
+
 		initView();
 	}
 	public ArrayList<Rectangle> getDrawRectList() {
@@ -108,7 +119,7 @@ public class TreasureSetupCardView extends JComponent {
 	private void initView() {
 		// Get all the section objects
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList query = new ArrayList();
+		ArrayList<String> query = new ArrayList<>();
 		query.add("ts_section");
 		query.add(hostPrefs.getGameKeyVals());
 		if (boardKey!=null) {
@@ -124,19 +135,24 @@ public class TreasureSetupCardView extends JComponent {
 				String s2 = go2.getThisAttribute("ts_section");
 				ret = s1.compareTo(s2);
 				if (ret==0) {
-					int md1 = go1.getThisInt("monster_die");
-					int md2 = go2.getThisInt("monster_die");
+					int md1 = go1.getThisInt(dieString1);
+					int md2 = go2.getThisInt(dieString1);
 					ret = md1-md2;
 					if (ret==0) {
-						String sm1 = go1.getThisAttribute("summon");
-						if (sm1==null) sm1 = go1.getName();
-						String sm2 = go2.getThisAttribute("summon");
-						if (sm2==null) sm2 = go2.getName();
-						ret = sm2.compareTo(sm1);
+						int md12 = go1.getThisInt(dieString2);
+						int md22 = go2.getThisInt(dieString2);
+						ret = md12-md22;
 						if (ret==0) {
-							int bn1 = go1.getThisInt("box_num");
-							int bn2 = go2.getThisInt("box_num");
-							ret = bn1-bn2;
+							String sm1 = go1.getThisAttribute("summon");
+							if (sm1==null) sm1 = go1.getName();
+							String sm2 = go2.getThisAttribute("summon");
+							if (sm2==null) sm2 = go2.getName();
+							ret = sm2.compareTo(sm1);
+							if (ret==0) {
+								int bn1 = go1.getThisInt("box_num");
+								int bn2 = go2.getThisInt("box_num");
+								ret = bn1-bn2;
+							}
 						}
 					}
 				}
@@ -145,17 +161,16 @@ public class TreasureSetupCardView extends JComponent {
 		});
 		
 		// Hash by section and monster die
-		HashLists hash = new HashLists();
-		sections = new ArrayList();
-		for (Iterator i=list.iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		HashLists<String, GameObject> hash = new HashLists<>();
+		sections = new ArrayList<>();
+		for (GameObject go : list) {
 			String section = go.getThisAttribute("ts_section");
 			if (!sections.contains(section)) {
 				sections.add(section);
 			}
 			String key;
-			if (go.hasThisAttribute("monster_die") && !go.hasThisAttribute("ts_sidebar")) {
-				key = section+go.getThisAttribute("monster_die");
+			if (go.hasThisAttribute(dieString1) && !go.hasThisAttribute("ts_sidebar")) {
+				key = section+go.getThisAttribute(dieString1);
 			}
 			else {
 				// Non-monster die entries (like TWT and Valley Dwellings)
@@ -165,17 +180,16 @@ public class TreasureSetupCardView extends JComponent {
 			hash.put(key,go);
 		}
 		
+		bottomList = new ArrayList<>();
 		// Take each subsection (section+monster_die) and divide into groups based on summon string
-		sectionRowHash = new Hashtable();
+		sectionRowHash = new Hashtable<>();
 		for (int n=1;n<=6;n++) {
-			for (Iterator i=sections.iterator();i.hasNext();) {
-				String section = (String)i.next();
+			for (String section : sections) {
 				String key = section+n;
-				ArrayList row = hash.getList(key);
+				ArrayList<GameObject> row = hash.getList(key);
 				if (row!=null) {
-					HashLists groups = new HashLists();
-					for (Iterator t=row.iterator();t.hasNext();) {
-						GameObject go = (GameObject)t.next();
+					HashLists<String, GameObject> groups = new HashLists<>();
+					for (GameObject go : row) {
 						String summon = go.getThisAttribute("summon");
 						if (summon==null) {
 							summon = go.getThisAttribute("dwelling");
@@ -183,64 +197,106 @@ public class TreasureSetupCardView extends JComponent {
 								summon = go.getName();
 							}
 						}
-//System.out.println("summon = "+summon+" ... "+go.getName());
-						groups.put(summon,go);
+						if (go.hasThisAttribute("ts_draw_below")) {
+							bottomList.add(go);
+						} else {
+							groups.put(summon,go);
+						}
 					}
-//					System.out.println(groups.keySet());
 					sectionRowHash.put(key,groups);
 				}
 			}
 		}
 		
-		nonMdList = new ArrayList();
-		for (Iterator i=sections.iterator();i.hasNext();) {
-			String section = (String)i.next();
+		nonMdList = new ArrayList<>();
+		for (String section : sections) {
 			String key = section;
-			ArrayList l = hash.getList(key);
+			ArrayList<GameObject> l = hash.getList(key);
 			if (l!=null) {
-				Collections.sort(l,new Comparator() {
-					public int compare(Object o1,Object o2) {
-						GameObject go1 = (GameObject)o1;
-						GameObject go2 = (GameObject)o2;
-						return go1.getName().compareTo(go2.getName());
+				Collections.sort(l,new Comparator<GameObject>() {
+					public int compare(GameObject go1,GameObject go2) {
+						int ret = 0;
+						int md1 = go1.getThisInt("monster_die");
+						int md2 = go2.getThisInt("monster_die");
+						ret = md1-md2;
+						if (ret==0) {
+							int md12 = go1.getThisInt("native_die");
+							int md22 = go2.getThisInt("native_die");
+							ret = md12-md22;
+							if (ret==0) {
+								return go1.getName().compareTo(go2.getName());
+							}
+						}
+						return ret;
 					}
 				});
-				for(Iterator n=l.iterator();n.hasNext();) {
-					GameObject go = (GameObject)n.next();
+				for(GameObject go : l) {
 					if (!go.hasThisAttribute(CacheChitComponent.DEPLETED_CACHE) && go.hasThisAttribute("ts_color")) {
-						nonMdList.add(go);
+						if (nativeSetup) {
+							if ((go.hasThisAttribute("native") || go.hasThisAttribute("native_die") || go.hasThisAttribute("gold_special_target")) && !go.hasThisAttribute("treasure")) {
+								nonMdList.add(go);
+							}
+						} else {
+							nonMdList.add(go);
+						}
 					}
 				}
 			}
 		}
 		
 		// Now we have the sectionRowHash keyed on subsection, and hashing HashLists objects which divide summon groups
-		int height = SPACING+((ChitComponent.T_CHIT_SIZE+SPACING+TEXT_SPACING+SPACING)*6);
+		int height = SPACING+((ChitComponent.T_CHIT_SIZE+SPACING+TEXT_SPACING+SPACING)*6)+20;
+		if(structuredLayout && !nativeSetup && !bottomList.isEmpty()) {
+			height = height + SPACING + ChitComponent.T_CHIT_SIZE+SPACING+TEXT_SPACING+SPACING;
+		}
 		
 		int maxwidth = 0;
-		for (int n=1;n<=6;n++) {
-//System.out.print("Row "+n+": ");
-			int width = 0;
-			for (Iterator i=sections.iterator();i.hasNext();) {
-				String section = (String)i.next();
-				String key = section+n;
-				HashLists groups = (HashLists)sectionRowHash.get(key);
-				if (groups!=null) {
-					for (Iterator t=groups.values().iterator();t.hasNext();) {
-						ArrayList group = (ArrayList)t.next();
-						width += (SPACING<<1);
-//System.out.print(" ["+section+"]-");
-						for (Iterator g=group.iterator();g.hasNext();) {
-							GameObject go = (GameObject)g.next();
-							String size = getChitSizeAttribute(go);
-							width += ChitComponent.getDimensionForSize(size).width;
-//System.out.print(size);
+		if(structuredLayout) {
+			spacingPerSection = new ArrayList<>();
+			for (String section : sections) {
+				int xMax = 0;
+				for (int n=1;n<=6;n++) {
+					String key = section+n;
+					HashLists<String, GameObject> group = sectionRowHash.get(key);
+					if (group!=null) {
+						int sectionWidth = 0;
+						for (String summons : group.keySet()) {
+							sectionWidth += (SPACING<<1);
+							ArrayList<GameObject> goArray = (ArrayList<GameObject>)group.get(summons);
+							for (GameObject go : goArray) {
+								String size = getChitSizeAttribute(go);
+								sectionWidth += ChitComponent.getDimensionForSize(size).width;
+								if (go.hasThisAttribute("ts_offset")) {
+									sectionWidth += ChitComponent.T_CHIT_SIZE;
+								}
+							}
+						}
+						sectionWidth += 2*SPACING;
+						xMax = Math.max(xMax,sectionWidth);
+					}
+				}
+				spacingPerSection.add(xMax);
+				maxwidth += xMax;
+			}
+		}
+		else {
+			for (int n=1;n<=6;n++) {
+				int width = 0;
+				for (String section : sections) {
+					String key = section+n;
+					HashLists<String, GameObject> groups = sectionRowHash.get(key);
+					if (groups!=null) {
+						for (ArrayList<GameObject> group : groups.values()) {
+							width += (SPACING<<1);
+							for (GameObject go : group) {
+								String size = getChitSizeAttribute(go);
+								width += ChitComponent.getDimensionForSize(size).width;
+							}
 						}
 					}
 				}
+				maxwidth = Math.max(width,maxwidth);
 			}
-			maxwidth = Math.max(width,maxwidth);
-//System.out.println();
 		}
 		
 		int nonMdListColumns = ((nonMdList.size()-1)/NON_MD_LIST_COLUMN_LENGTH)+1;
@@ -257,9 +313,9 @@ public class TreasureSetupCardView extends JComponent {
 		initView();
 		image = getImage();
 	}
-	private String getChitSizeAttribute(GameObject go) {
+	private static String getChitSizeAttribute(GameObject go) {
 		String size = go.getThisAttribute("ts_size");
-		if (!"S+".equals(size) && !"HCARD".equals(size) && RealmComponent.isDisplayStyleFrenzel()) {
+		if (!"S+".equals(size) && !"HCARD".equals(size) && RealmComponent.isDisplayStyleFrenzel() || RealmComponent.isDisplayStyleAlternative()) {
 			return "H";
 		}
 		return size;
@@ -321,9 +377,8 @@ public class TreasureSetupCardView extends JComponent {
 		int x = vr.x + border + subBorder;
 		int y = vr.y + border + subBorder + title;
 		int maxH = 0;
-		ArrayList<RealmComponent> contents = new ArrayList<RealmComponent>();
-		for (Iterator i=clickViewObject.getHold().iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		ArrayList<RealmComponent> contents = new ArrayList<>();
+		for (GameObject go : clickViewObject.getHold()) {
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			contents.add(rc);
 			if (rc.isNative()) {
@@ -333,10 +388,14 @@ public class TreasureSetupCardView extends JComponent {
 				}
 			}
 			else if (rc.isMonster()) {
-				MonsterChitComponent monster = (MonsterChitComponent)rc;
-				RealmComponent part = monster.getWeapon();
-				if (part!=null) {
-					contents.add(part);
+	 			MonsterChitComponent monster = (MonsterChitComponent)rc;
+	 			RealmComponent part = monster.getWeapon();
+	 			if (part!=null) {
+	 				contents.add(part);
+	 			}
+				RealmComponent horse = (RealmComponent)rc.getHorse();
+				if (horse!=null) {
+					contents.add(horse);
 				}
 			}
 		}
@@ -384,7 +443,7 @@ public class TreasureSetupCardView extends JComponent {
 			else {
 				if (rc.isChit() && rightClick) {
 					ChitComponent chit = (ChitComponent)rc;
-					if (chit instanceof GoldSpecialChitComponent) {
+					if (chit instanceof GoldSpecialChitComponent && chit.getGameObject().hasThisAttribute("pairid")) {
 						GameObject chitGo = chit.getGameObject();
 						GameObject other = data.getGameObject(Long.valueOf(chitGo.getThisAttribute("pairid")));
 						ChitComponent otherRc = (ChitComponent)RealmComponent.getRealmComponent(other);
@@ -437,30 +496,40 @@ public class TreasureSetupCardView extends JComponent {
 		Graphics2D g = (Graphics2D)g1;
 		Composite defaultComposite = g.getComposite();
 		
-		ArrayList<Integer> monsterDice = new ArrayList<Integer>();
-		DieRoller roller = game.getMonsterDie();
-		if (roller!=null) {
-			int n = roller.getNumberOfDice();
-			for (int i=0;i<n;i++) {
-				monsterDice.add(roller.getValue(i));
+		ArrayList<Integer> dice = new ArrayList<>();
+		if (nativeSetup) {
+			DieRoller roller = game.getNativeDie();
+			if (roller!=null) {
+				int n = roller.getNumberOfDice();
+				for (int i=0;i<n;i++) {
+					dice.add(Integer.valueOf(roller.getValue(i)));
+				}
+			}
+		} else {
+			DieRoller roller = game.getMonsterDie();
+			if (roller!=null) {
+				int n = roller.getNumberOfDice();
+				for (int i=0;i<n;i++) {
+					dice.add(Integer.valueOf(roller.getValue(i)));
+				}
 			}
 		}
 		
-		drawRectList = new ArrayList<Rectangle>();
-		drawContainerList = new ArrayList<GameObject>();
+		drawRectList = new ArrayList<>();
+		drawContainerList = new ArrayList<>();
 	
 		Die die = new Die(40,9,Color.red,Color.white);
 		
 		g.setColor(MagicRealmColor.GRAY);
 		g.fillRect(0,0,cardSize.width,cardSize.height);
 		int h = (ChitComponent.T_CHIT_SIZE+SPACING+TEXT_SPACING+SPACING);
-		ArrayList allDrawables = new ArrayList();
-		ArrayList allDrawableRects = new ArrayList();
+		ArrayList<RealmComponent> allDrawables = new ArrayList<>();
+		ArrayList<Rectangle> allDrawableRects = new ArrayList<>();
 		for (int n=1;n<=6;n++) {
 			int x = LEFT_BORDER;
-			int y = ((n-1)*h)+SPACING+TEXT_SPACING+5;
+			int y = ((n-1)*h)+SPACING+TEXT_SPACING+25;
 			
-			boolean prowling = monsterDice.contains(n);
+			boolean prowling = dice.contains(Integer.valueOf(n));
 			
 			if (prowling) {
 				Dimension s = getSize();
@@ -473,31 +542,47 @@ public class TreasureSetupCardView extends JComponent {
 			}
 			die.setFace(n);
 			die.paintIcon(this,g,10,y-TEXT_SPACING-SPACING+((h-die.getIconHeight())>>1));
-			
-			for (Iterator i=sections.iterator();i.hasNext();) {
-				String section = (String)i.next();
+			int sectionNumber = 0;
+			for (String section : sections) {
+				if (structuredLayout) {
+					int xSectionMax = LEFT_BORDER;
+					for (int i=0;i<=sectionNumber-1;i++) {
+						int xSection = spacingPerSection.get(i);
+						xSectionMax+=xSection;
+					}
+					x = Math.max(x, xSectionMax);
+					sectionNumber++;
+				}
+
 				String key = section+n;
-				HashLists groups = (HashLists)sectionRowHash.get(key);
+				HashLists<String, GameObject> groups = sectionRowHash.get(key);
+				if (n==1) {
+					if (groups!=null || sectionRowHash.get(section+2)!=null
+							|| sectionRowHash.get(section+3)!=null || sectionRowHash.get(section+4)!=null
+							|| sectionRowHash.get(section+5)!=null || sectionRowHash.get(section+6)!=null) {
+						g.setFont(LABEL_FONT);
+						g.drawString(section.toUpperCase(),x,y-HEADLINE_SPACING);
+					}
+				}
 				if (groups!=null) {
 					x += SPACING;
-					ArrayList summons = new ArrayList();
-					for (Iterator t=groups.keySet().iterator();t.hasNext();) {
-						String summon = (String)t.next();
-						ArrayList group = (ArrayList)groups.get(summon);
+					ArrayList<SummonGroup> summons = new ArrayList<>();
+					for (String summon : groups.keySet()) {
+						ArrayList<GameObject> group = (ArrayList<GameObject>)groups.get(summon);
 						summons.add(new SummonGroup(summon,group));
 					}
 					
 					Collections.sort(summons);
-					for (Iterator t=summons.iterator();t.hasNext();) {
-						SummonGroup sg = (SummonGroup)t.next();
+					for (SummonGroup sg : summons) {
 						String summon = sg.summon;
-						ArrayList group = sg.group;
-						ArrayList rects = new ArrayList();
-						ArrayList gos = new ArrayList();
+						ArrayList<GameObject> group = sg.group;
+						ArrayList<Rectangle> rects = new ArrayList<>();
+						ArrayList<GameObject> gos = new ArrayList<>();
 						int startX = x-SPACING;
 						int yoffset = 0;
-						for (Iterator gr=group.iterator();gr.hasNext();) {
-							GameObject go = (GameObject)gr.next();
+						int yoffsetDoubleBox = 6;
+						boolean doubleBox = false;
+						for (GameObject go : group) {
 							String size = getChitSizeAttribute(go);
 							Dimension d = ChitComponent.getDimensionForSize(size);
 							String col = go.getThisAttribute("ts_color");
@@ -506,15 +591,31 @@ public class TreasureSetupCardView extends JComponent {
 								c = GraphicsUtil.convertColor(c,HIGHLIGHT_COLOR,HIGHLIGHT_INTENSITY);
 							}
 							g.setColor(c);
-							boolean bottom = true;//go.hasThisAttribute("ts_draw_below");
-							yoffset = bottom?(ChitComponent.T_CHIT_SIZE-d.height):0;
+							if (!doubleBox && go.hasThisAttribute(dieString2)
+									&& go.getThisInt(dieString2)==n+1 && go.getThisInt(dieString1)==n) {
+								doubleBox = true;
+							}
+							yoffset = (ChitComponent.T_CHIT_SIZE-d.height);
 							if (yoffset>4) yoffset-=4;
-							rects.add(new Rectangle(x,y+yoffset,d.width-1,d.height));
+							if (go.hasThisAttribute("ts_offset")) {
+								int offset = go.getThisInt("ts_offset");
+								startX  += offset*ChitComponent.T_CHIT_SIZE;
+								x += offset*ChitComponent.T_CHIT_SIZE;
+							}
+							if (doubleBox) {
+								rects.add(new Rectangle(x,y+yoffset+2*yoffsetDoubleBox,d.width-1,d.height-yoffsetDoubleBox));
+							} else {
+								rects.add(new Rectangle(x,y+yoffset,d.width-1,d.height));
+							}
 							gos.add(go);
 							x += d.width;
 						}
 						x += SPACING;
-						g.fillRect(startX,y-SPACING-TEXT_SPACING,x-startX,h);
+						if (doubleBox) {
+							g.fillRect(startX,y-SPACING-TEXT_SPACING,x-startX,h*2);
+						} else {
+							g.fillRect(startX,y-SPACING-TEXT_SPACING,x-startX,h);
+						}
 						g.setColor(Color.black);
 						g.setFont(SUMMON_FONT);
 						String drawSummon = summon.toUpperCase().replace('_',' ');
@@ -522,7 +623,11 @@ public class TreasureSetupCardView extends JComponent {
 							TextType tt = new TextType(drawSummon,x-startX-20,"NORMAL");
 							tt.setDelims(",");
 							tt.setSpace(", ");
-							tt.draw(g,startX+1,y-SPACING+yoffset-tt.getHeight(g),Alignment.Left);
+							if (doubleBox) {
+								tt.draw(g,startX+1,y-SPACING+yoffset-tt.getHeight(g)+2*yoffsetDoubleBox,Alignment.Left);
+							} else {
+								tt.draw(g,startX+1,y-SPACING+yoffset-tt.getHeight(g),Alignment.Left);
+							}
 						}
 						else {
 							g.drawString(drawSummon,startX+1,y-SPACING+yoffset);
@@ -530,39 +635,64 @@ public class TreasureSetupCardView extends JComponent {
 						g.setColor(Color.black);
 						
 						g.setFont(COUNT_FONT);
-						Iterator gg = gos.iterator();
-						for (Iterator r=rects.iterator();r.hasNext();) {
-							
+						Iterator<GameObject> gg = gos.iterator();
+						for (Rectangle rect : rects) {
 							// Start by drawing the box
-							Rectangle rect = (Rectangle)r.next();
-							GameObject go = (GameObject)gg.next();
+							GameObject go = gg.next();
 							
 							// Save these attributes for later mouse point interpretations
 							drawRectList.add(rect);
 							drawContainerList.add(go);
-//System.out.println(rect+" contains "+go.getName());
 
 							g.setComposite(TRANSPARENT);
+							doubleBox = false;
+							if (go.hasThisAttribute(dieString2)
+									&& go.getThisInt(dieString2)==n+1 && go.getThisInt(dieString1)==n) {
+								rect.height = rect.height*2+SPACING*2+TEXT_SPACING*2;
+								doubleBox = true;
+							}
+							
 							g.draw(rect);
-							String iconType = go.getThisAttribute(Constants.ICON_TYPE);
+							String iconType = null;
+							String folder = null;
+							if (RealmComponent.isDisplayStyleAlternative() && go.hasThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE) && go.hasThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE)) {
+								iconType = go.getThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE);
+								folder = go.getThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE);
+							}
+							else {
+								iconType = go.getThisAttribute(Constants.ICON_TYPE);
+								folder = go.getThisAttribute(Constants.ICON_FOLDER);
+							}
 							
 							// Draw the icon (if any)
-							if (iconType != null) {
-								String folder = go.getThisAttribute("icon_folder");
+							if (iconType != null && folder != null) {
 								String filename = folder+"/"+iconType;
 								ImageIcon icon = null;
 								String size = getChitSizeAttribute(go);
+								int sizePercentage = 0;
 								if (size.equals("T") || size.equals("HCARD")) {
-									icon = ImageCache.getIcon(filename,90);
+									sizePercentage=90;
 								}
 								else {
-									icon = ImageCache.getIcon(filename,70);
+									sizePercentage=70;
 								}
+								
+								if (RealmComponent.isDisplayStyleAlternative() && go.hasThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE)) {
+									sizePercentage = (int) (100*Double.parseDouble(go.getThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE)));
+								}
+								else if (go.hasThisAttribute(Constants.ICON_SIZE)) {
+									sizePercentage = (int) (100*Double.parseDouble(go.getThisAttribute(Constants.ICON_SIZE)));
+								}
+								
+								icon = ImageCache.getIcon(filename,sizePercentage);
 								int dx = ((rect.width-icon.getIconWidth())>>1);
 								int dy = ((rect.height-icon.getIconHeight())>>1);
 								g.drawImage(icon.getImage(),rect.x+dx,rect.y+dy,null);
 							}
 							
+							if (doubleBox) {
+								rect.y = rect.y+rect.height/4;
+							}
 							// Draw the count (if any)
 							String count = go.getThisAttribute("ts_count");
 							if (count!=null) {
@@ -571,11 +701,10 @@ public class TreasureSetupCardView extends JComponent {
 							g.setComposite(defaultComposite);
 							
 							// Draw contents
-							ArrayList hold = go.getHold();
-							ArrayList drawable = new ArrayList();
-							ArrayList horses = new ArrayList();
-							for (Iterator q=hold.iterator();q.hasNext();) {
-								GameObject held = (GameObject)q.next();
+							ArrayList<GameObject> hold = go.getHold();
+							ArrayList<RealmComponent> drawable = new ArrayList<>();
+							ArrayList<RealmComponent> horses = new ArrayList<>();
+							for (GameObject held : hold) {
 								RealmComponent rc = RealmComponent.getRealmComponent(held);
 								if (rc.isMonster() || rc.isNative() || rc.isGoldSpecial()) {
 									drawable.add(0,rc);
@@ -591,14 +720,12 @@ public class TreasureSetupCardView extends JComponent {
 								int offset = 0;
 								
 								// what is the difference in size of the box and the topmost chit?
-								RealmComponent topChit = (RealmComponent)drawable.get(drawable.size()-1);
+								RealmComponent topChit = drawable.get(drawable.size()-1);
 								int diff = rect.height - topChit.getHeight();
-								
 								int yoff = ((drawable.size()-1)*3)-(diff>>1);
 								
 								if (drawable.size()>5) yoff -= 4;
-								for (Iterator q=drawable.iterator();q.hasNext();) {
-									RealmComponent rc = (RealmComponent)q.next();
+								for (RealmComponent rc : drawable) {
 									int dx = rect.x+((rect.width-rc.getWidth())>>1)-offset;
 									int dy = rect.y+((rect.height-rc.getHeight())>>1)-offset+yoff;
 									allDrawables.add(rc);
@@ -606,6 +733,103 @@ public class TreasureSetupCardView extends JComponent {
 									offset+=3;
 								}
 							}
+							if (doubleBox) {
+								rect.y = rect.y-rect.height/4;
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		// Draw boxes below chart
+		if (!nativeSetup) {
+			int startX = LEFT_BORDER-SPACING;
+			int yoffset = 0;
+			int y = (6*h)+SPACING+TEXT_SPACING+25;
+			int x = 0+startX;
+			g.setComposite(defaultComposite);
+			Collections.sort(bottomList,new Comparator<GameObject>() {
+				public int compare(GameObject go1,GameObject go2) {
+					int ret = 0;
+					String s1 = go1.getThisAttribute(dieString1);
+					String s2 = go2.getThisAttribute(dieString1);
+					ret = s1.compareTo(s2);
+					if (ret==0) {
+						int md1 = go1.getThisInt("ts_sort");
+						int md2 = go2.getThisInt("ts_sort");
+						ret = md1-md2;
+					}
+					return ret;
+				}
+			});
+			for (GameObject go : bottomList) {
+				ArrayList<Rectangle> rects = new ArrayList<>();
+				String size = getChitSizeAttribute(go);
+				Dimension d = ChitComponent.getDimensionForSize(size);
+				String col = go.getThisAttribute("ts_color");
+				Color c = MagicRealmColor.getColor(col);
+				yoffset = (ChitComponent.T_CHIT_SIZE-d.height);
+				if (yoffset>4) yoffset-=4;
+				g.setColor(MagicRealmColor.DARKGRAY);
+				g.fillRect(x-SPACING,y-TEXT_SPACING,d.width+2*SPACING,h-SPACING);
+				g.setColor(c);
+				rects.add(new Rectangle(x,y+yoffset,d.width-1,d.height));
+				g.fillRect(x,y+2*SPACING,d.width,d.height);
+				g.setColor(Color.black);
+				g.setFont(SUMMON_FONT);
+				String summon = go.getThisAttribute("summon_t");
+				if (summon==null) {
+					summon = go.getThisAttribute("summon_n");
+				}
+				String drawSummon = summon.replace('_',' ');
+				if (yoffset>0) {
+					TextType tt = new TextType(drawSummon,x-startX-20,"NORMAL");
+					tt.setDelims(",");
+					tt.setSpace(", ");
+					tt.draw(g,x+1,y-SPACING+yoffset-tt.getHeight(g),Alignment.Left);
+				}
+				else {
+					g.drawString(drawSummon,x+1,y-SPACING+yoffset);
+				}
+				x += d.width;
+				x += SPACING;
+				for (Rectangle rect : rects) {
+					// Save these attributes for later mouse point interpretations
+					drawRectList.add(rect);
+					drawContainerList.add(go);
+					g.setComposite(TRANSPARENT);				
+					g.draw(rect);
+					g.setComposite(defaultComposite);
+					// Draw contents
+					ArrayList<GameObject> hold = go.getHold();
+					ArrayList<RealmComponent> drawable = new ArrayList<>();
+					ArrayList<RealmComponent> horses = new ArrayList<>();
+					for (GameObject held : hold) {
+						RealmComponent rc = RealmComponent.getRealmComponent(held);
+						if (rc.isMonster() || rc.isNative() || rc.isGoldSpecial()) {
+							drawable.add(0,rc);
+							RealmComponent horse = (RealmComponent)rc.getHorse(false);
+							if (horse!=null) {
+								horses.add(0,horse);
+							}
+						}
+					}
+					drawable.addAll(0,horses);
+					
+					if (!drawable.isEmpty()) {
+						int offset = 0;
+						RealmComponent topChit = drawable.get(drawable.size()-1);
+						int diff = rect.height - topChit.getHeight();
+						int yoff = ((drawable.size()-1)*3)-(diff>>1);
+						
+						if (drawable.size()>5) yoff -= 4;
+						for (RealmComponent rc : drawable) {
+							int dx = rect.x+((rect.width-rc.getWidth())>>1)-offset;
+							int dy = rect.y+((rect.height-rc.getHeight())>>1)-offset+yoff;
+							allDrawables.add(rc);
+							allDrawableRects.add(new Rectangle(dx,dy,rect.width+10,rect.height+10));
+							offset+=3;
 						}
 					}
 				}
@@ -619,8 +843,7 @@ public class TreasureSetupCardView extends JComponent {
 		int y = SPACING+TEXT_SPACING+5;
 		g.setFont(LABEL_FONT);
 		int count = 0;
-		for (Iterator i=nonMdList.iterator();i.hasNext();) {
-			GameObject go = (GameObject)i.next();
+		for (GameObject go : nonMdList) {
 			Rectangle r = new Rectangle(x,y,NON_MD_LIST_WIDTH,NON_MD_LIST_HEIGHT);
 			
 			// Draw boxes
@@ -644,24 +867,22 @@ public class TreasureSetupCardView extends JComponent {
 			}
 		}
 		
-		Iterator r=allDrawableRects.iterator();
-		for (Iterator i=allDrawables.iterator();i.hasNext();) {
-			RealmComponent rc = (RealmComponent)i.next();
-			Rectangle rect = (Rectangle)r.next();
+		Iterator<Rectangle> r=allDrawableRects.iterator();
+		for (RealmComponent rc : allDrawables) {
+			Rectangle rect = r.next();
 			rc.paint(g.create(rect.x,rect.y,rect.width,rect.height));
 		}
 		g.setColor(Color.black);
 		g.drawRect(0,0,cardSize.width-1,cardSize.height-1);
 	}
-	private class SummonGroup implements Comparable {
+	private class SummonGroup implements Comparable<Object> {
 		public String summon;
-		public ArrayList group;
+		public ArrayList<GameObject> group;
 		private int sortOrder = 0;
-		public SummonGroup(String summon,ArrayList group) {
+		public SummonGroup(String summon,ArrayList<GameObject> group) {
 			this.summon = summon;
 			this.group = group;
-			for (Iterator i=group.iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
+			for (GameObject go : group) {
 				sortOrder = go.getInt("this","ts_sort");
 			}
 		}
@@ -707,7 +928,7 @@ public class TreasureSetupCardView extends JComponent {
 				view.repaint();
 			}
 		};
-		public DisplayFrame(JFrame parent,TreasureSetupCardView in) {
+		private DisplayFrame(TreasureSetupCardView in) {
 			super(in.title);
 			view = in;
 			view.reset();
@@ -717,6 +938,7 @@ public class TreasureSetupCardView extends JComponent {
 			return TS_VIEW;
 		}
 		private void initComponents() {
+			this.setIconImage(IconFactory.findIcon("images/interface/setup.gif").getImage());
 			// I'd like it to be this big
 			Dimension best = new Dimension(view.cardSize.width+25,view.cardSize.height+75);
 			
@@ -752,7 +974,7 @@ public class TreasureSetupCardView extends JComponent {
 		}
 	}
 	public static void displayView(JFrame parent,TreasureSetupCardView view) {
-		DisplayFrame frame = new DisplayFrame(parent,view);
+		DisplayFrame frame = new DisplayFrame(view);
 		frame.setLocationRelativeTo(parent);
 		FrameManager.getFrameManager().addFrame(frame);
 	}
@@ -773,10 +995,10 @@ public class TreasureSetupCardView extends JComponent {
 		roller.addRedDie();
 		roller.rollDice();
 		game.setMonsterDie(roller);
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList<String> query = new ArrayList<>();
 		query.add("original_game");
 		loader.getData().doSetup("standard_game",query);
-		TreasureSetupCardView view = new TreasureSetupCardView(loader.getData(),"Bob");
+		TreasureSetupCardView view = new TreasureSetupCardView(loader.getData(),"Bob",true);
 		displayView(new JFrame(),view);
 //		System.exit(0);
 	}

@@ -1,27 +1,12 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle.targeting;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+
+import javax.swing.JOptionPane;
 
 import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
+import com.robin.magic_realm.RealmBattle.BattleGroup;
 import com.robin.magic_realm.RealmBattle.CombatFrame;
 import com.robin.magic_realm.components.RealmComponent;
 import com.robin.magic_realm.components.swing.RealmComponentOptionChooser;
@@ -50,21 +35,21 @@ public abstract class SpellTargetingMultiple extends SpellTargeting {
 		}
 		chooser.setVisible(true);
 		if (chooser.pressedOkay()) {
-			ArrayList chosen = new ArrayList(chooser.getChosenObjects());
+			ArrayList<GameObject> chosen = new ArrayList<>(chooser.getChosenObjects());
 			
 			// This is lazy, but there is really only ONE spell that has such a rule, so I'm not going generalize
 			if (requiredTargets==4 && chosen.size()<requiredTargets) {
 				if (chosen.size()==1) {
 					// All 4 go to same target
-					GameObject target = (GameObject)chosen.get(0);
+					GameObject target = chosen.get(0);
 					for (int i=0;i<3;i++) {
 						chosen.add(target);
 					}
 				}
 				else if (chosen.size()==2) {
 					// 2 go to each
-					GameObject t1 = (GameObject)chosen.get(0);
-					GameObject t2 = (GameObject)chosen.get(1);
+					GameObject t1 = chosen.get(0);
+					GameObject t2 = chosen.get(1);
 					chosen.add(t1);
 					chosen.add(t2);
 				}
@@ -83,8 +68,29 @@ public abstract class SpellTargetingMultiple extends SpellTargeting {
 				}
 			}
 			
-			for (Iterator i=chosen.iterator();i.hasNext();) {
-				GameObject theTarget = (GameObject)i.next();
+			if (hostPrefs.hasPref(Constants.SR_ADV_PROTECTED_LEADERS_TARGETING)) {
+				for (GameObject target : chosen) {
+					RealmComponent theTarget = RealmComponent.getRealmComponent(target);
+					if (theTarget.isNativeLeader() && !theTarget.isHiredOrControlled() && !theTarget.getGameObject().hasThisAttribute(Constants.DEAD)) {
+						CombatWrapper combatWrapperTarget = new CombatWrapper(theTarget.getGameObject());
+						if (combatWrapperTarget.getKilledBy()==null) {
+							String groupName = theTarget.getGameObject().getThisAttribute(RealmComponent.NATIVE).toLowerCase();
+							BattleGroup group = combatFrame.getBattleModel().getDenizenBattleGroup();
+							for (RealmComponent member : group.getBattleParticipants()) {
+								if (!member.isNativeLeader() && member.isNative() && member.getGameObject().getThisAttribute(RealmComponent.NATIVE).toLowerCase().matches(groupName) && !member.isHiredOrControlled()) {
+									CombatWrapper combatWrapper = new CombatWrapper(member.getGameObject());
+									if (combatWrapper.getAttackerCount()==0 && !chosen.contains(member.getGameObject())) {
+										JOptionPane.showMessageDialog(combatFrame,"Cannot attack Native Leader unless all other unhired natives of the same group are also targeted.","Protected Leader",JOptionPane.INFORMATION_MESSAGE);
+										return false;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			for (GameObject theTarget : chosen) {
 				spell.addTarget(hostPrefs,theTarget);
 				combatFrame.makeWatchfulNatives(RealmComponent.getRealmComponent(theTarget),true);
 				String append = "";
@@ -96,7 +102,7 @@ public abstract class SpellTargetingMultiple extends SpellTargeting {
 						append = " (aiming for rider)";
 					}
 				}
-				CombatFrame.broadcastMessage(activeCharacter.getGameObject().getName(),"Targets the "+theTarget.getName()+" with "+spell.getGameObject().getName()+append);
+				CombatFrame.broadcastMessage(activeCharacter.getGameObject().getName(),"Targets the "+theTarget.getNameWithNumber()+" with "+spell.getGameObject().getName()+append);
 			}
 			return true;
 		}

@@ -1,27 +1,9 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.swing;
 
 import java.awt.Color;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.swing.*;
 
@@ -57,13 +39,13 @@ public class ChitRestManager extends ChitManager {
 	protected int totalPossibleCount() {
 		int val = 0;
 		if (!character.hasCurse(Constants.WITHER)) { // only include fatigued chits if WITHER isn't in effect
-			for (Iterator i=fatiguedChits.getAllChits().iterator();i.hasNext();) {
-				CharacterActionChitComponent chit = (CharacterActionChitComponent)i.next();
+			for (ChitComponent chitComponent : fatiguedChits.getAllChits()) {
+				CharacterActionChitComponent chit = (CharacterActionChitComponent)chitComponent;
 				val += chit.getEffortAsterisks();
 			}
 		}
-		for (Iterator i=woundedChits.getAllChits().iterator();i.hasNext();) {
-			CharacterActionChitComponent chit = (CharacterActionChitComponent)i.next();
+		for (ChitComponent chitComponent : woundedChits.getAllChits()) {
+			CharacterActionChitComponent chit = (CharacterActionChitComponent)chitComponent;
 			int effort = chit.getEffortAsterisks();
 			if (effort==0) {
 				// effortless chits rest once to active
@@ -173,8 +155,7 @@ public class ChitRestManager extends ChitManager {
 		
 	}
 	private boolean areActiveEffortChitsForChange() {
-		for (Iterator i=activeChits.getAllChits().iterator();i.hasNext();) {
-			ChitComponent chit = (ChitComponent)i.next();
+		for (ChitComponent chit : activeChits.getAllChits()) {
 			if (chit.isActionChit()) {
 				CharacterActionChitComponent aChit = (CharacterActionChitComponent)chit;
 				if (!aChit.isColor() && aChit.getEffortAsterisks()==1) {
@@ -194,13 +175,13 @@ public class ChitRestManager extends ChitManager {
 		wrapper.setCharacterLevel(4);
 		wrapper.updateLevelAttributes(hostPrefs);
 		wrapper.initChits();
-		ArrayList list = new ArrayList(wrapper.getAllChits());
+		ArrayList<CharacterActionChitComponent> list = new ArrayList<>(wrapper.getAllChits());
 		for (int i=2;i<5;i+=2) {
-			CharacterActionChitComponent aChit = (CharacterActionChitComponent)list.get(i);
+			CharacterActionChitComponent aChit = list.get(i);
 			aChit.makeFatigued();
 		}
 		for (int i=8;i<10;i++) {
-			CharacterActionChitComponent aChit = (CharacterActionChitComponent)list.get(i);
+			CharacterActionChitComponent aChit = list.get(i);
 			aChit.makeWounded();
 		}
 //		(new Curse(new JFrame())).applyThree(wrapper);

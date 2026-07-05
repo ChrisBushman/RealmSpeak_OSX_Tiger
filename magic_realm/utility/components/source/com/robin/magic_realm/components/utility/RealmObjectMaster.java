@@ -1,31 +1,12 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.utility;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
 import com.robin.game.objects.GamePool;
 import com.robin.general.util.StringUtilities;
-import com.robin.magic_realm.components.RealmComponent;
 import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 /**
@@ -35,7 +16,7 @@ import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
  */
 public class RealmObjectMaster {
 	
-	private static HashMap map = null;
+	private static HashMap<Long, RealmObjectMaster> map = null;
 	
 	private GameData data = null;
 	private HostPrefWrapper hostPrefs = null;
@@ -48,6 +29,9 @@ public class RealmObjectMaster {
 	private RealmObjectMaster(GameData data) {
 		this.data = data;
 		this.hostPrefs = HostPrefWrapper.findHostPrefs(data);
+		if (this.hostPrefs == null) {
+			this.hostPrefs = HostPrefWrapper.createDefaultHostPrefs(data);
+		}
 	}
 	
 	public static void resetAll() {
@@ -57,7 +41,7 @@ public class RealmObjectMaster {
 		}
 	}
 	
-	public ArrayList<GameObject> findObjects(String baseQuery,ArrayList keyVals,boolean asComponents) {
+	public ArrayList<GameObject> findObjects(String baseQuery,ArrayList<String> keyVals) {
 		String query = StringUtilities.collectionToString(keyVals,",");
 		if (baseQuery!=null && baseQuery.length()>0) {
 			if (query.length()>0) {
@@ -65,23 +49,13 @@ public class RealmObjectMaster {
 			}
 			query += baseQuery;
 		}
-		return findObjects(query,asComponents);
+		return findObjects(query);
 	}
 	
-	public ArrayList<GameObject> findObjects(String keyVals,boolean asComponents) {
+	public ArrayList<GameObject> findObjects(String keyVals) {
 		keyVals = hostPrefs.getGameKeyVals()+","+keyVals;
-//System.out.println("findObjects for "+keyVals);
 		GamePool pool = new GamePool(data.getGameObjects());
 		ArrayList<GameObject> objects = pool.find(keyVals);
-		if (asComponents) {
-			ArrayList list = new ArrayList();
-			for (Iterator i=objects.iterator();i.hasNext();) {
-				GameObject go = (GameObject)i.next();
-				list.add(RealmComponent.getRealmComponent(go));
-			}
-			return list;
-		}
-//System.out.println("found: "+objects);
 		return objects;
 	}
 	
@@ -96,10 +70,10 @@ public class RealmObjectMaster {
 			playerCharacterObjects = null;
 		}
 		if (playerCharacterObjects==null) {
-			playerCharacterObjects = new ArrayList<GameObject>();
-			playerCharacterObjects.addAll(findObjects("character",false));
-			playerCharacterObjects.addAll(findObjects("native,rank",false)); // not just leaders anymore, due to Hypnotize spell!
-			playerCharacterObjects.addAll(findObjects("monster,!part",false));
+			playerCharacterObjects = new ArrayList<>();
+			playerCharacterObjects.addAll(findObjects("character"));
+			playerCharacterObjects.addAll(findObjects("native,rank")); // not just leaders anymore, due to Hypnotize spell!
+			playerCharacterObjects.addAll(findObjects("monster,!part"));
 //			playerCharacterObjects.addAll(getCachedObjects("familiar",false));
 		}
 		return playerCharacterObjects;
@@ -110,9 +84,9 @@ public class RealmObjectMaster {
 	 */
 	public ArrayList<GameObject> getDenizenObjects() {
 		if (denizenObjects==null) {
-			denizenObjects = new ArrayList<GameObject>();
-			denizenObjects.addAll(findObjects("native,rank",false));
-			denizenObjects.addAll(findObjects("monster,!part",false));
+			denizenObjects = new ArrayList<>();
+			denizenObjects.addAll(findObjects("native,rank"));
+			denizenObjects.addAll(findObjects("monster,!part"));
 		}
 		return denizenObjects;
 	}
@@ -122,8 +96,8 @@ public class RealmObjectMaster {
 	 */
 	public ArrayList<GameObject> getTileObjects() {
 		if (tileObjects==null) {
-			tileObjects = new ArrayList<GameObject>();
-			tileObjects.addAll(findObjects("tile",false));
+			tileObjects = new ArrayList<>();
+			tileObjects.addAll(findObjects("tile"));
 		}
 		return tileObjects;
 	}
@@ -136,9 +110,9 @@ public class RealmObjectMaster {
 	 */
 	public ArrayList<GameObject> getDwellingObjects() {
 		if (dwellingObjects==null) {
-			dwellingObjects = new ArrayList<GameObject>();
-			dwellingObjects.addAll(findObjects("dwelling",false));
-			dwellingObjects.addAll(findObjects("guild",false));
+			dwellingObjects = new ArrayList<>();
+			dwellingObjects.addAll(findObjects("dwelling"));
+			dwellingObjects.addAll(findObjects("guild"));
 		}
 		return dwellingObjects;
 	}
@@ -148,10 +122,10 @@ public class RealmObjectMaster {
 	 */
 	public static RealmObjectMaster getRealmObjectMaster(GameData data) {
 		if (map==null) {
-			map = new HashMap();
+			map = new HashMap<>();
 		}
-		Long id = new Long(data.getDataId());
-		RealmObjectMaster rom = (RealmObjectMaster)map.get(id);
+		Long id = Long.valueOf(data.getDataId());
+		RealmObjectMaster rom = map.get(id);
 		if (rom==null) {
 			rom = new RealmObjectMaster(data);
 			map.put(id,rom);

@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.wrapper;
 
 import java.util.*;
@@ -24,6 +7,7 @@ import com.robin.general.swing.DieRoller;
 import com.robin.general.util.RandomNumber;
 import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.utility.RealmCalendar;
+import com.robin.magic_realm.components.quest.GamePhaseType;
 
 public class GameWrapper extends GameObjectWrapper {
 
@@ -33,6 +17,7 @@ public class GameWrapper extends GameObjectWrapper {
 	public static final String GAME_VERSION_IGNORE_CHANGE = "_vic_";
 	public static final String GAME_DAY = "_d__";
 	public static final String GAME_MONSTER_DIE = "_md__";
+	public static final String GAME_NATIVE_DIE = "_nd__";
 	public static final String GAME_MONTH = "_m__";
 	public static final String GAME_STATE = "_gs__";
 	public static final String GAME_TURN_COUNT = "_turn__";
@@ -48,6 +33,8 @@ public class GameWrapper extends GameObjectWrapper {
 	public static final String GAME_REVEALED = "_revv_";
 	public static final String GAME_Q_ID = "_gqid_";
 	public static final String GAME_Q_PREFIX = "_gqp__";
+	public static final String GAME_I_ID = "_giid_";
+	public static final String GAME_I_PREFIX = "_gip__";
 	public static final String GAME_LAST_REGEN = "_lrg__"; // keeps track of denizens that regenerate on the 7th day
 	public static final String GAME_CLIENTS_TAKEN_TURN = "_ctt__";
 	
@@ -92,8 +79,8 @@ public class GameWrapper extends GameObjectWrapper {
 	public boolean isGameOver() {
 		return getState()==GAME_STATE_GAMEOVER;
 	}
-	public static Collection getKeyVals() {
-		ArrayList keyVals = new ArrayList();
+	public static Collection<String> getKeyVals() {
+		ArrayList<String> keyVals = new ArrayList<>();
 		keyVals.add(GAME_STATE);
 		return keyVals;
 	}
@@ -117,8 +104,24 @@ public class GameWrapper extends GameObjectWrapper {
 	public int getState() {
 		return getInt(GAME_STATE);
 	}
+	public GamePhaseType getGamePhase() {
+		  switch (getState()) {
+			case GAME_STATE_RECORDING: return GamePhaseType.Birdsong;
+			case GAME_STATE_PLAYING: return GamePhaseType.EndOfPhase;
+			case GAME_STATE_RESOLVING: return GamePhaseType.StartOfEvening;
+			case GAME_STATE_DAYEND: return GamePhaseType.Midnight;
+			default: return GamePhaseType.Unspecified;
+		 }
+	}
 	public DieRoller getMonsterDie() {
 		String string = getString(GAME_MONSTER_DIE);
+		if (string!=null) {
+			return new DieRoller(string,25,5);
+		}
+		return null;
+	}
+	public DieRoller getNativeDie() {
+		String string = getString(GAME_NATIVE_DIE);
 		if (string!=null) {
 			return new DieRoller(string,25,5);
 		}
@@ -182,6 +185,9 @@ public class GameWrapper extends GameObjectWrapper {
 	}
 	public void setMonsterDie(DieRoller roller) {
 		setString(GAME_MONSTER_DIE,roller.getStringResult());
+	}
+	public void setNativeDie(DieRoller roller) {
+		setString(GAME_NATIVE_DIE,roller.getStringResult());
 	}
 	private void setTurnCount(int val) { // private so that this isn't set manually!
 		setInt(GAME_TURN_COUNT,val);
@@ -266,12 +272,26 @@ public class GameWrapper extends GameObjectWrapper {
 		return qid;
 	}
 	
+	public int getNextInformationId() {
+		int iid = getInt(GAME_I_ID);
+		iid++;
+		setInt(GAME_I_ID,iid);
+		return iid;
+	}
+	
 	public void addQuestion(String askingPlayerName,String answeringPlayerName,String question) {
 		int qid = getNextQuestionId();
 		String qAttribute = GAME_Q_PREFIX+qid;
 		addListItem(qAttribute,answeringPlayerName);
 		addListItem(qAttribute,askingPlayerName);
 		addListItem(qAttribute,question);
+	}
+	
+	public void addInformation(String player,String gameObjectId) {
+		int iid = getNextInformationId();
+		String iAttribute = GAME_I_PREFIX+iid;
+		addListItem(iAttribute,player);
+		addListItem(iAttribute,gameObjectId);
 	}
 	
 	public void clearRegeneratedDenizens() {
@@ -281,12 +301,11 @@ public class GameWrapper extends GameObjectWrapper {
 		addListItem(GAME_LAST_REGEN,go.getStringId());
 	}
 	public ArrayList<GameObject> getRegeneratedDenizens() {
-		ArrayList ids = getList(GAME_LAST_REGEN);
+		ArrayList<String> ids = getList(GAME_LAST_REGEN);
 		if (ids!=null) {
 			if (!ids.isEmpty()) {
-				ArrayList<GameObject> list = new ArrayList<GameObject>();
-				for (Iterator i=ids.iterator();i.hasNext();) {
-					String id = (String)i.next();
+				ArrayList<GameObject> list = new ArrayList<>();
+				for (String id : ids) {
 					list.add(getGameObject().getGameData().getGameObject(Long.valueOf(id)));
 				}
 				return list;
@@ -310,11 +329,11 @@ public class GameWrapper extends GameObjectWrapper {
 		return hasListItem(GAME_TRAVELERS,traveler.getStringId());
 	}
 	public ArrayList<GameObject> getTravelerKnowledge() {
-		ArrayList<GameObject> travelers = new ArrayList<GameObject>();
-		ArrayList list = getList(GAME_TRAVELERS);
+		ArrayList<GameObject> travelers = new ArrayList<>();
+		ArrayList<String> list = getList(GAME_TRAVELERS);
 		if (list!=null) {
-			for(Iterator i=list.iterator();i.hasNext();) {
-				travelers.add(getGameObject().getGameObjectFromId((String)i.next()));
+			for(String i : list) {
+				travelers.add(getGameObject().getGameObjectFromId(i));
 			}
 		}
 		return travelers;
@@ -330,13 +349,32 @@ public class GameWrapper extends GameObjectWrapper {
 		for (int i=0;i<=qid;i++) {
 			String qAttribute = GAME_Q_PREFIX+i;
 			if (getGameObject().hasAttribute(GAME_BLOCK,qAttribute)) {
-				ArrayList list = getList(qAttribute);
-				String test = (String)list.get(0);
+				ArrayList<String> list = getList(qAttribute);
+				String test = list.get(0);
 				if (test.equals(answeringPlayerName)) {
 					String[] ret = new String[2];
-					ret[0] = (String)list.get(1); // askingPlayerName
-					ret[1] = (String)list.get(2); // question
+					ret[0] = list.get(1); // askingPlayerName
+					ret[1] = list.get(2); // question
 					getGameObject().removeAttribute(GAME_BLOCK,qAttribute); // remove so it doesn't get asked twice!
+					return ret;
+				}
+			}
+		}
+		return null;
+	}
+	
+	public String[] getNextInformation(String player) {
+		int qid = getInt(GAME_I_ID);
+		// I don't like the loop, but considering that there isn't likely to be a lot of questions, this should be sufficient
+		for (int i=0;i<=qid;i++) {
+			String iAttribute = GAME_I_PREFIX+i;
+			if (getGameObject().hasAttribute(GAME_BLOCK,iAttribute)) {
+				ArrayList<String> list = getList(iAttribute);
+				String test = list.get(0);
+				if (test.equals(player)) {
+					String[] ret = new String[1];
+					ret[0] = list.get(1); // GameObjectId
+					getGameObject().removeAttribute(GAME_BLOCK,iAttribute); // remove so it doesn't get shown twice!
 					return ret;
 				}
 			}
@@ -349,10 +387,10 @@ public class GameWrapper extends GameObjectWrapper {
 	public static GameWrapper findGame(GameData data) {
 		if (GAME_ID==null) {
 			GamePool pool = new GamePool(data.getGameObjects());
-			ArrayList list = pool.find(getKeyVals());
+			ArrayList<GameObject> list = pool.find(getKeyVals());
 			if (list.size()==1) {
-				GameObject gw = (GameObject)list.get(0);
-				GAME_ID = new Long(gw.getId());
+				GameObject gw = list.get(0);
+				GAME_ID = Long.valueOf(gw.getId());
 				return new GameWrapper(gw);
 			}
 		}
@@ -372,7 +410,7 @@ public class GameWrapper extends GameObjectWrapper {
 		
 		GameWrapper game = new GameWrapper(go);
 		game.setInitialValues();
-		GAME_ID = new Long(go.getId());
+		GAME_ID = Long.valueOf(go.getId());
 		
 		return game;
 	}

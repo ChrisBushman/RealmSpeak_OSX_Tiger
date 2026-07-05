@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmCharacterBuilder;
 
 import com.robin.magic_realm.components.utility.Constants;
@@ -69,6 +52,21 @@ public class RealmCharacterConstants {
 		{Constants.GAME_RELATIONSHIP,"VWarlock"},
 		{Constants.GAME_RELATIONSHIP,"NDragonmen"},
 		{Constants.GAME_RELATIONSHIP,"NMurker"},
+		{Constants.GAME_RELATIONSHIP,"NAborigines"},
+		{Constants.GAME_RELATIONSHIP,"NBandits"},
+		{Constants.GAME_RELATIONSHIP,"NConjurors"},
+		{Constants.GAME_RELATIONSHIP,"NCoven"},
+		{Constants.GAME_RELATIONSHIP,"NCultists"},
+		{Constants.GAME_RELATIONSHIP,"NDwarves"},
+		{Constants.GAME_RELATIONSHIP,"NElves"},
+		{Constants.GAME_RELATIONSHIP,"NEnchanters"},
+		{Constants.GAME_RELATIONSHIP,"NHunters"},
+		{Constants.GAME_RELATIONSHIP,"NMages"},
+		{Constants.GAME_RELATIONSHIP,"NMercenaries"},
+		{Constants.GAME_RELATIONSHIP,"NPagans"},
+		{Constants.GAME_RELATIONSHIP,"NPeasants"},
+		{Constants.GAME_RELATIONSHIP,"NSummoners"},
+		{Constants.GAME_RELATIONSHIP,"NZealots"},
 	};
 	
 	public static String[] SPELL_COUNT = {
@@ -79,15 +77,6 @@ public class RealmCharacterConstants {
 		"4",
 		"5",
 		"6",
-	};
-	public static String[] SPELL_COUNT_STRING = {
-		"zero",
-		"one",
-		"two",
-		"three",
-		"four",
-		"five",
-		"six",
 	};
 	
 	public static String[] SPEEDS = {
@@ -149,5 +138,48 @@ public class RealmCharacterConstants {
 		"1",
 		"2",
 		"3",
+	};
+	public static final String[] STARTING_LOCATION_OPTION = {
+			"None",
+			"Shaman",
+			"Woodfolk Dwelling",
+			"Cultist Dwelling",
+			"Hunter Dwelling",
+			
+			"Inn",
+			"Warlock",
+			"Dragonmen Dwelling",	
+			"Dwarf Dwelling",
+			"Mercenary Dwelling",
+			
+			"House",
+			"Company Dwelling",
+			"Hut",
+			"Elf Dwelling",
+			"Zealot Dwelling",
+			
+			"Chapel",
+			"Patrol Dwelling",
+			"Cottage",
+			"Aborigine Dwelling",
+			"Blacksmith",
+			
+			"Guard",
+			"Lancer Dwelling",
+			"Hamlet",
+			"Conjuror Dwelling",
+			"Cleric",
+			
+			"Crone",
+			"Murker Dwelling",
+			"Settlement",
+			"Coven Dwelling",
+			"Merchnat",
+			
+			"Scholar",
+			"Bashkar Dwelling",
+			"Bandit Dwelling",
+			"Enchanter Dwelling",
+			"Priest",
 	};
 }

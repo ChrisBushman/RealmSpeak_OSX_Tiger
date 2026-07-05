@@ -1,26 +1,10 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.general.swing;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.*;
 import java.util.Collection;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.*;
@@ -33,6 +17,7 @@ public class ListChooser extends AggressiveDialog implements ActionListener {
 	private JButton okay;
 	private JButton cancel;
 	private Vector selected;
+	private boolean cancelButtonEnabled = true;
 
 	private MouseAdapter doubleClick = new MouseAdapter() {
 		public void mouseClicked(MouseEvent ev) {
@@ -47,6 +32,13 @@ public class ListChooser extends AggressiveDialog implements ActionListener {
 		list = new JList(items);
 		initComponents();
 	}
+	
+	public ListChooser(JFrame parent, String title, Object[] items, boolean cancelEnabled) {
+		super(parent, title, true);
+		cancelButtonEnabled = cancelEnabled;
+		list = new JList(items);
+		initComponents();
+	}
 
 	public ListChooser(JFrame parent, String title, Vector items) {
 		super(parent, title, true);
@@ -54,8 +46,22 @@ public class ListChooser extends AggressiveDialog implements ActionListener {
 		initComponents();
 	}
 
+	public ListChooser(JFrame parent, String title, Vector items, boolean cancelEnabled) {
+		super(parent, title, true);
+		cancelButtonEnabled = cancelEnabled;
+		list = new JList(items);
+		initComponents();
+	}
+
 	public ListChooser(JFrame parent, String title, Collection items) {
 		super(parent, title, true);
+		list = new JList(new Vector(items));
+		initComponents();
+	}
+	
+	public ListChooser(JFrame parent, String title, Collection items, boolean cancelEnabled) {
+		super(parent, title, true);
+		cancelButtonEnabled = cancelEnabled;
 		list = new JList(new Vector(items));
 		initComponents();
 	}
@@ -89,8 +95,10 @@ public class ListChooser extends AggressiveDialog implements ActionListener {
 		setSize(new Dimension(300, 400));
 
 		Box box = Box.createHorizontalBox();
-		box.add(Box.createHorizontalGlue());
-		box.add(cancel);
+		if (cancelButtonEnabled) {
+			box.add(Box.createHorizontalGlue());
+			box.add(cancel);
+		}
 		box.add(Box.createHorizontalGlue());
 		box.add(okay);
 		box.add(Box.createHorizontalGlue());
@@ -110,12 +118,12 @@ public class ListChooser extends AggressiveDialog implements ActionListener {
 
 	public Vector getSelectedItems() {
 		if (!list.isSelectionEmpty()) {
-			Object[] items = list.getSelectedValues();
+			List items = list.getSelectedValuesList();
 			Vector itemsVector = null;
 			if (items != null) {
-				itemsVector = new Vector(items.length);
-				for (int i = 0; i < items.length; i++) {
-					itemsVector.addElement(items[i]);
+				itemsVector = new Vector(items.size());
+				for (int i = 0; i < items.size(); i++) {
+					itemsVector.addElement(items.get(i));
 				}
 			}
 			return itemsVector;

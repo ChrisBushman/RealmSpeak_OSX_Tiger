@@ -1,25 +1,7 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.swing;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -30,6 +12,7 @@ import com.robin.general.graphics.GraphicsUtil;
 import com.robin.general.swing.ComponentTools;
 import com.robin.magic_realm.components.CharacterActionChitComponent;
 import com.robin.magic_realm.components.ChitComponent;
+import com.robin.magic_realm.components.StateChitComponent;
 import com.robin.magic_realm.components.utility.RealmLoader;
 import com.robin.magic_realm.components.utility.RealmUtility;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
@@ -42,7 +25,7 @@ public abstract class ChitBinPanel extends JComponent {
 	private static final int INNER_GROUP_SPACE = 3;
 	private static final int COLOR_MAGIC_SPACE = 10;
 	private static final int PANEL_BORDER = 10;
-	private static final int LABEL_WIDTH = 40;
+	private static final int LABEL_WIDTH = 44;
 	private ChitBinLayout layout;
 	private Border border;
 	private Border groupBorder;
@@ -82,18 +65,18 @@ public abstract class ChitBinPanel extends JComponent {
 		return layout.getChitAt(p);
 	}
 
-	public void addChits(ArrayList list) {
+	public void addChits(ArrayList<StateChitComponent> list) {
 		for (int i=0;i<list.size();i++) {
-			ChitComponent chit = (ChitComponent)list.get(i);
+			StateChitComponent chit = list.get(i);
 			addChit(chit, i);
 		}
 	}
-	public void addChit(ChitComponent newChit, int position) {
+	public void addChit(StateChitComponent newChit, int position) {
 		layout.setChit(position, newChit);
 		repaint();
 	}
 
-	public int getPosition(ChitComponent aChit) {
+	public int getPosition(StateChitComponent aChit) {
 		return layout.getChitIndex(aChit);
 	}
 
@@ -104,20 +87,23 @@ public abstract class ChitBinPanel extends JComponent {
 
 	public void paint(Graphics g1) {
 		Graphics2D g = (Graphics2D)g1;
-		ArrayList groups = layout.getGroups();
+		ArrayList<String> groups = layout.getGroups();
 		int left = PANEL_BORDER + LABEL_WIDTH;
 		int top = PANEL_BORDER;
 		int r=0;
 		int c=0;
-		for (Iterator i=groups.iterator();i.hasNext();) {
-			String group = (String)i.next();
+		for (String group : groups) {
 			boolean isMagic = "MAGIC".equals(group);
+			boolean isOther = "OTHER".equals(group);
 			g.setColor(Color.black);
-			GraphicsUtil.drawCenteredString(g,PANEL_BORDER,r*cellSize,LABEL_WIDTH,cellSize,group);
-			ArrayList bins = layout.getBins(group);
+			int yText = r*cellSize;
+			if (!isOther) {
+				yText+=COLOR_MAGIC_SPACE;
+			}
+			GraphicsUtil.drawCenteredString(g,PANEL_BORDER,yText,LABEL_WIDTH,cellSize,group);
+			ArrayList<ChitBin> bins = layout.getBins(group);
 			int rtop = (r*cellSize)+top;
-			for (Iterator b=bins.iterator();b.hasNext();) {
-				ChitBin bin = (ChitBin)b.next();
+			for (ChitBin bin : bins) {
 				Rectangle a = new Rectangle(c * cellSize, r * cellSize, cellSize, cellSize);
 				bin.setRectangle(a);
 				a.x += left;
@@ -150,7 +136,7 @@ public abstract class ChitBinPanel extends JComponent {
 				if (c==maxCols) {
 					r++;
 					c=0;
-					if (isMagic) {
+					if (isMagic || isOther) {
 						top += COLOR_MAGIC_SPACE;
 					}
 				}
@@ -158,7 +144,7 @@ public abstract class ChitBinPanel extends JComponent {
 			if (c>0) {
 				r++;
 				c=0;
-				if (isMagic) {
+				if (isMagic || isOther) {
 					top += (COLOR_MAGIC_SPACE<<1);
 				}
 			}
@@ -169,8 +155,7 @@ public abstract class ChitBinPanel extends JComponent {
 	}
 
 	public void makeAllChitsFatigued() {
-		for (Iterator i=layout.getAllChits().iterator();i.hasNext();) {
-			ChitComponent chit = (ChitComponent)i.next();
+		for (ChitComponent chit : layout.getAllChits()) {
 			if (chit.isActionChit()) {
 				CharacterActionChitComponent achit = (CharacterActionChitComponent)chit;
 				achit.makeFatigued();
@@ -179,8 +164,7 @@ public abstract class ChitBinPanel extends JComponent {
 	}
 
 	public void makeAllChitsActive() {
-		for (Iterator i=layout.getAllChits().iterator();i.hasNext();) {
-			ChitComponent chit = (ChitComponent)i.next();
+		for (ChitComponent chit : layout.getAllChits()) {
 			if (chit.isActionChit()) {
 				CharacterActionChitComponent achit = (CharacterActionChitComponent)chit;
 				if (!achit.isAlerted() && !achit.isColor()) { // ignore alerted and color chits
@@ -191,8 +175,7 @@ public abstract class ChitBinPanel extends JComponent {
 	}
 
 	public void makeAllChitsWounded() {
-		for (Iterator i=layout.getAllChits().iterator();i.hasNext();) {
-			ChitComponent chit = (ChitComponent)i.next();
+		for (ChitComponent chit : layout.getAllChits()) {
 			if (chit.isActionChit()) {
 				CharacterActionChitComponent achit = (CharacterActionChitComponent)chit;
 				achit.makeWounded();
@@ -202,6 +185,9 @@ public abstract class ChitBinPanel extends JComponent {
 	
 	public ArrayList<ChitComponent> getAllChits() {
 		return layout.getAllChits();
+	}
+	public ArrayList<ChitComponent> getColorChits() {
+		return layout.getColorChits();
 	}
 	public static void main(String[] args) {
 		RealmUtility.setupTextType();
@@ -234,7 +220,7 @@ public abstract class ChitBinPanel extends JComponent {
 		CharacterWrapper character = new CharacterWrapper(go);
 		GameObject f1 = data.getGameObjectByName("Test Fly Chit 1");
 		go.add(f1);
-		ArrayList chits = new ArrayList(character.getCompleteChitList());
+		ArrayList<StateChitComponent> chits = new ArrayList<>(character.getCompleteChitList());
 		ChitBinLayout layout = new ChitBinLayout(chits);
 		ChitBinPanel panel = new ChitBinPanel(layout) {
 			public boolean canClickChit(ChitComponent aChit) {
@@ -244,7 +230,7 @@ public abstract class ChitBinPanel extends JComponent {
 			}
 		};
 		for (int i=0;i<chits.size();i++) {
-			ChitComponent chit = (ChitComponent)chits.get(i);
+			StateChitComponent chit = chits.get(i);
 			panel.addChit(chit, i);
 		}
 		JOptionPane.showMessageDialog(null, panel,name,JOptionPane.PLAIN_MESSAGE);

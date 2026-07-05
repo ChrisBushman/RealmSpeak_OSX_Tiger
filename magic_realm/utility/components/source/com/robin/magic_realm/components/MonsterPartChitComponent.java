@@ -1,23 +1,9 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components;
 
+import java.awt.Graphics;
+
 import com.robin.game.objects.GameObject;
+import com.robin.general.graphics.TextType;
 import com.robin.magic_realm.components.attribute.Speed;
 import com.robin.magic_realm.components.attribute.Strength;
 import com.robin.magic_realm.components.utility.Constants;
@@ -31,26 +17,76 @@ public class MonsterPartChitComponent extends MonsterChitComponent {
 	public String getName() {
 	    return MONSTER_PART;
 	}
-	private MonsterChitComponent getWielder() {
+	public MonsterChitComponent getWielder() {
 		return (MonsterChitComponent)RealmComponent.getRealmComponent(getGameObject().getHeldBy());
 	}
 	protected int sizeModifier() {
 		return getWielder().sizeModifier();
 	}
 	protected int speedModifier() {
-		return getWielder().speedModifier();
+		int mod = 0;
+		if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT) && !getFaceAttributeString("speed").matches(Constants.WEIGHT)) {
+			int difference = (new Strength(gameObject.getThisAttribute(Constants.ALTER_WEIGHT))).getLevels()-(new Strength((getWeightWithoutSizeAltering()))).getLevels();
+			mod = mod+difference;
+		}
+		if (gameObject.hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT)) {
+			mod--;
+		}
+		if (gameObject.hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) {
+			mod++;
+		}
+		return getWielder().speedModifier()+mod;
 	}
 	public Strength getStrength() {
-		Strength strength = super.getStrength();
-		if (strength.getChar()!="T" && getGameObject().getHeldBy().hasThisAttribute(Constants.STRONG_MF)) {
-			strength.modify(1);
+		if (getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON_STRENGTH)) {
+			RealmComponent wielder = RealmComponent.getRealmComponent(getWielder().getGameObject());
+			if (!wielder.getTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS) && !wielder.get2ndTarget().getGameObject().hasThisAttribute(Constants.IGNORE_ENCHANTED_WEAPONS)) {
+				return new Strength(getGameObject().getThisAttribute(Constants.ENCHANTED_WEAPON_STRENGTH));
+			}
 		}
+		Strength strength = super.getStrength();
+		int mod = 0;
+		if (!gameObject.hasThisAttribute(Constants.ENCHANTED_WEAPON)) {
+			if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT)) strength = new Strength(getGameObject().getThisAttribute(Constants.ALTER_WEIGHT));
+			if (gameObject.hasThisAttribute(Constants.ALTER_SIZE_DECREASED_WEIGHT)) {
+				mod--;
+			}
+			if (gameObject.hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) {
+				mod++;
+			}
+		}
+		if (strength.getChar()!="T" && getGameObject().getHeldBy().hasThisAttribute(Constants.STRONG_MF)) {
+			mod++;
+		}
+		strength.modify(mod);
 		return strength;
 	}
-
+	public Strength getWeight() {
+		if (gameObject.hasThisAttribute(Constants.MONSTER_WEAPON)) {
+			return super.getWeightWithFallback("M");
+		}
+		return super.getWeightWithFallback("L");
+	}
+	public Strength getWeightWithoutSizeAltering() {
+		if (gameObject.hasThisAttribute(Constants.MONSTER_WEAPON)) {
+			return super.getWeightWithoutModifiers("M");
+		}
+		return super.getWeightWithoutModifiers("L");
+	}
 	public Strength getVulnerability() {
 		Strength vul = new Strength("M"); // This is the default "size" for a monster weapon
-		vul.modify(sizeModifier());
+		int mod = 0;
+		if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT)) vul = new Strength(getGameObject().getThisAttribute(Constants.ALTER_WEIGHT));
+		if (gameObject.hasThisAttribute(Constants.ALTER_SIZE_DECREASED_VULNERABILITY)) {
+			mod--;
+		}
+		if (gameObject.hasThisAttribute(Constants.ALTER_SIZE_INCREASED_VULNERABILITY)) {
+			mod++;
+		}
+		if (getWielder().isShrunk()) {
+			mod--;
+		}
+		vul.modify(mod);
 		return vul;
 	}
 	public Speed getMoveSpeed() {
@@ -81,5 +117,39 @@ public class MonsterPartChitComponent extends MonsterChitComponent {
 			}
 		}
 		return super.isMissile();
+	}
+	
+	public boolean isDamaged() {
+		return getGameObject().hasThisAttribute(Constants.DAMAGED);
+	}
+	
+	public void setDamaged(boolean value) {
+		if (value) {
+			getGameObject().setThisAttribute(Constants.DAMAGED);
+		}
+		else {
+			getGameObject().removeThisAttribute(Constants.DAMAGED);
+		}
+	}
+	
+	public boolean isDestroyed() {
+		return getGameObject().hasThisAttribute(Constants.DESTROYED);
+	}
+	
+	public void setDestroyed(boolean value) {
+		if (value) {
+			getGameObject().setThisAttribute(Constants.DESTROYED);
+		}
+		else {
+			getGameObject().removeThisAttribute(Constants.DESTROYED);
+		}
+	}
+	
+	public void paintComponent(Graphics g1) {
+		super.paintComponent(g1);
+		if (isDamaged() && !isDestroyed()) {
+			TextType tt = new TextType("DAMAGED",getChitSize(),"TITLE_GRAY");
+			tt.draw(g1,0,getChitSize()>>2);
+		}
 	}
 }

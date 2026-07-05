@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle;
 
 import java.util.*;
@@ -100,8 +83,7 @@ public class CombatSuggestionAi {
 		boolean denizens = combatFrame.getBattleModel().areDenizens();
 		if (denizens) {
 			boolean enemyNatives = false;
-			for (Iterator i=combatFrame.getBattleModel().getDenizenBattleGroup().getBattleParticipants().iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
+			for (RealmComponent rc : combatFrame.getBattleModel().getDenizenBattleGroup().getBattleParticipants()) {
 				if (rc.isNative()) {
 					enemyNatives = true;
 					break;
@@ -113,14 +95,19 @@ public class CombatSuggestionAi {
 				if (activeCharacter.isHidden()) {
 					suggestion.append("No need to do anything, unless you want to\nprotect another character by luring an enemy.");
 					if (combatFrame.getHostPrefs().hasPref(Constants.ADV_AMBUSHES)) {
-						GameObject go = cc.getActiveWeaponObject();
-						if (go!=null && go.hasThisAttribute("missile")) {
-							RealmComponent rc = RealmComponent.getRealmComponent(go);
-							iconGroup = new IconGroup(rc.getIcon(),IconGroup.VERTICAL,4);
-							suggestion.append("\n\nIn fact, if you choose to stay hidden, you might\n");
-							suggestion.append("be successful making an ambush attack with your ");
-							suggestion.append(go.getName());
-							suggestion.append(".");
+						ArrayList<GameObject> gos = cc.getActiveWeaponsObjects();
+						if (gos!=null) {
+							for (GameObject go : gos) {
+								 if (go.hasThisAttribute("missile")) {
+									RealmComponent rc = RealmComponent.getRealmComponent(go);
+									iconGroup = new IconGroup(rc.getIcon(),IconGroup.VERTICAL,4);
+									suggestion.append("\n\nIn fact, if you choose to stay hidden, you might\n");
+									suggestion.append("be successful making an ambush attack with your ");
+									suggestion.append(go.getName());
+									suggestion.append(".");
+									break;
+								 }
+							}
 						}
 					}
 					else if (enemyNatives && combatFrame.getHostPrefs().hasPref(Constants.TE_WATCHFUL_NATIVES)) {
@@ -148,7 +135,7 @@ public class CombatSuggestionAi {
 			if (!hirelings.isEmpty()) {
 				for (Iterator i=hirelings.iterator();i.hasNext();) {
 					RealmComponent hireling = (RealmComponent)i.next();
-					if (hireling.getTarget()==null) {
+					if (hireling.getTarget()==null && hireling.get2ndTarget()==null) {
 						CombatWrapper combat = new CombatWrapper(hireling.getGameObject());
 						if (combat.getAttackerCount()==0) {
 							iconGroup = new IconGroup(hireling.getIcon(),IconGroup.VERTICAL,4);
@@ -199,43 +186,45 @@ public class CombatSuggestionAi {
 			
 			boolean threat = combatFrame.getBattleModel().areDenizens();
 			if (threat) {
-				WeaponChitComponent weapon = activeCharacter.getActiveWeapon();
-				if (weapon!=null && !weapon.isAlerted() && weapon.hasAlertAdvantage()) {
-					// Should check to see if you have a chit to do this
-					MoveActivator activator = new MoveActivator(combatFrame);
-					Speed fastest = activator.getFastestAttackerMoveSpeed();
-					
-					// Find all playable options
-					Collection fightSpeedOptions = activeCharacter.getFightSpeedOptions(fastest,true);
-					Collection availableFightOptions = combatFrame.getAvailableFightOptions(0);
-					fightSpeedOptions.retainAll(availableFightOptions); // Intersection between the two
-					if (!fightSpeedOptions.isEmpty()) {
-						// Find the least effort (first) and then the lightest/slowest
-						int minEffort = Integer.MAX_VALUE;
-						Strength lightest = new Strength("T");
-						RealmComponent option = null;
-						for (Iterator i=fightSpeedOptions.iterator();i.hasNext();) {
-							RealmComponent rc = (RealmComponent)i.next();
-							int effort = rc.getGameObject().getThisInt("effort");
-							if (effort<minEffort) {
-								minEffort = effort;
-								option = rc;
-							}
-							if (minEffort==effort) {
-								Strength st = new Strength(rc.getGameObject().getThisAttribute("strength"));
-								if (lightest.strongerThan(st)) {
-									lightest = st;
-									option = rc;
+				ArrayList<WeaponChitComponent> weapons = activeCharacter.getActiveWeapons();
+				if (weapons!=null) {
+					for (WeaponChitComponent weapon : weapons) {
+						if (!weapon.isAlerted() && weapon.hasAlertAdvantage()) {
+							// Should check to see if you have a chit to do this
+							MoveActivator activator = new MoveActivator(combatFrame);
+							Speed fastest = activator.getFastestAttackerMoveSpeed();
+							
+							// Find all playable options
+							Collection<RealmComponent> fightSpeedOptions = activeCharacter.getFightSpeedOptions(fastest,true);
+							Collection<RealmComponent> availableFightOptions = combatFrame.getAvailableFightOptions(0);
+							fightSpeedOptions.retainAll(availableFightOptions); // Intersection between the two
+							if (!fightSpeedOptions.isEmpty()) {
+								// Find the least effort (first) and then the lightest/slowest
+								int minEffort = Integer.MAX_VALUE;
+								Strength lightest = new Strength("T");
+								RealmComponent option = null;
+								for (RealmComponent rc : fightSpeedOptions) {
+									int effort = rc.getGameObject().getThisInt("effort");
+									if (effort<minEffort) {
+										minEffort = effort;
+										option = rc;
+									}
+									if (minEffort==effort) {
+										Strength st = new Strength(rc.getGameObject().getThisAttribute("strength"));
+										if (lightest.strongerThan(st)) {
+											lightest = st;
+											option = rc;
+										}
+									}
+								}
+								if (option!=null) {
+									iconGroup = new IconGroup(option.getIcon(),IconGroup.VERTICAL,4);
+									iconGroup.addIcon(weapon.getIcon());
+									suggestion.append("You should alert your weapon, to gain an advantage in combat.\n"
+											+"Use the least amount of effort, so you don't limit what you can do in battle.");
+									return;
 								}
 							}
-						}
-						
-						if (option!=null) {
-							iconGroup = new IconGroup(option.getIcon(),IconGroup.VERTICAL,4);
-							iconGroup.addIcon(weapon.getIcon());
-							suggestion.append("You should alert your weapon, to gain an advantage in combat.\n"
-									+"Use the least amount of effort, so you don't limit what you can do in battle.");
-							return;
 						}
 					}
 				}
@@ -289,9 +278,8 @@ public class CombatSuggestionAi {
 		if (battleModel.areDenizens()) {
 			boolean denizensOnSheets = false;
 			boolean unassignedDenizens = false;
-			for (Iterator i=battleModel.getDenizenBattleGroup().getBattleParticipants().iterator();i.hasNext();) {
-				RealmComponent rc = (RealmComponent)i.next();
-				if (rc.getTarget()!=null) {
+			for (RealmComponent rc : battleModel.getDenizenBattleGroup().getBattleParticipants()) {
+				if (rc.getTarget()!=null || rc.get2ndTarget()!=null) {
 					denizensOnSheets = true;
 				}
 				else {
@@ -300,11 +288,10 @@ public class CombatSuggestionAi {
 			}
 			
 			BattleGroup battleGroup = battleModel.getParticipantsBattleGroup(combatFrame.getActiveParticipant());
-			for (Iterator i=battleGroup.getBattleParticipants().iterator();i.hasNext();) {
-				RealmComponent participant = (RealmComponent)i.next();
+			for (RealmComponent participant : battleGroup.getBattleParticipants()) {
 				CombatWrapper combat = new CombatWrapper(participant.getGameObject());
-				if (combat.isSheetOwner() && participant.getTarget()==null) {
-					ArrayList attackers = combat.getAttackersAsComponents();
+				if (combat.isSheetOwner() && participant.getTarget()==null && participant.get2ndTarget()==null) {
+					ArrayList<RealmComponent> attackers = combat.getAttackersAsComponents();
 					if (!attackers.isEmpty()) {
 						iconGroup = new IconGroup(participant.getIcon(),IconGroup.VERTICAL,4);
 						suggestion.append("You should assign a target for the "+participant.getGameObject().getName());
@@ -375,7 +362,7 @@ public class CombatSuggestionAi {
 					return;
 				}
 			}
-			else if (cc.getAttackCombatBox()==0 && cc.getTarget()!=null) {
+			else if (cc.getAttackCombatBox()==0 && cc.getTarget()!=null && cc.get2ndTarget()!=null) {
 				if (cc.getManeuverChit()==null) {
 					suggestion.append("No need to play a maneuver, because there are no attackers on your sheet.");
 				}
@@ -386,12 +373,17 @@ public class CombatSuggestionAi {
 				}
 				boolean ignoreSpeed = false;
 				RealmComponent wrc = null;
-				GameObject go = cc.getActiveWeaponObject();
-				if (go!=null) {
-					wrc = RealmComponent.getRealmComponent(go);
-					if (wrc.isWeapon()) {
-						WeaponChitComponent weapon = (WeaponChitComponent)wrc;
-						ignoreSpeed = weapon.getSpeed()!=null;
+				ArrayList<GameObject> gos = cc.getActiveWeaponsObjects();
+				if (gos!=null) {
+					for (GameObject go : gos) {
+						wrc = RealmComponent.getRealmComponent(go);
+						if (wrc.isWeapon()) {
+							WeaponChitComponent weapon = (WeaponChitComponent)wrc;
+							ignoreSpeed = weapon.getSpeed()!=null;
+							if (ignoreSpeed) {
+								break;
+							}
+						}
 					}
 				}
 				Speed bestSpeed = null;

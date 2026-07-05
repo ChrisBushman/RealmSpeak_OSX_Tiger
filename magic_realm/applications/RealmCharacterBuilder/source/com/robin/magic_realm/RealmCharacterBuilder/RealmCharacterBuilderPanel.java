@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmCharacterBuilder;
 
 import java.awt.*;
@@ -33,6 +16,7 @@ import com.robin.general.swing.*;
 import com.robin.general.util.StringBufferedList;
 import com.robin.general.util.StringUtilities;
 import com.robin.magic_realm.components.*;
+import com.robin.magic_realm.components.CharacterInfoCard;
 import com.robin.magic_realm.components.attribute.Strength;
 import com.robin.magic_realm.components.swing.RelationshipTable;
 import com.robin.magic_realm.components.utility.BattleUtility;
@@ -45,6 +29,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 	private JFrame parent;
 	private JLabel mainIcon;
 	private JLabel fairnessLabel;
+	private JLabel chitLabel;
 	private JLabel moveFairnessReasonLabel;
 	private JLabel fightFairnessReasonLabel;
 	
@@ -75,6 +60,10 @@ public class RealmCharacterBuilderPanel extends JPanel {
 	private JCheckBox startGuardChoice;
 	private JCheckBox startChapelChoice;
 	private JCheckBox startHouseChoice;
+	private JCheckBox startHutChoice;
+	private JCheckBox startSettlementChoice;
+	private JCheckBox startCottageChoice;
+	private JCheckBox startHamletChoice;
 	private JCheckBox startGhostsChoice;
 	
 	// Vulnerability
@@ -175,6 +164,13 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			ImageIcon icon = weapon.getIcon();
 			g.drawImage(icon.getImage(),x,y,null);
 			g.drawImage(weapon.getFlipSideImage(),x,y+icon.getIconHeight()+b,null);
+			x += icon.getIconWidth()+b;
+		}
+		for (GameObject go:model.getAllUniqueArmor()) {
+			ArmorChitComponent armor = (ArmorChitComponent)RealmComponent.getRealmComponent(go);
+			ImageIcon icon = armor.getIcon();
+			g.drawImage(icon.getImage(),x,y,null);
+			g.drawImage(armor.getFlipSideImage(),x,y+icon.getIconHeight()+b,null);
 			x += icon.getIconWidth()+b;
 		}
 		for (GameObject go:model.getAllUniqueArmor(magicRealmData)) {
@@ -284,11 +280,10 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			int boxHeight = 200;
 			box = Box.createHorizontalBox();
 				String[] startingLoc = model.getCharacter().getStartingLocations(false);
-				ArrayList<String> list = new ArrayList(Arrays.asList(startingLoc));
-				JPanel locationControls = new JPanel(new GridLayout(5,1));
-				startInnChoice = new JCheckBox("Inn (ALWAYS)",true); // ALWAYS true
+				ArrayList<String> list = new ArrayList<>(Arrays.asList(startingLoc));
+				JPanel locationControls = new JPanel(new GridLayout(5,2));
+				startInnChoice = new JCheckBox("Inn",true); // ALWAYS true
 				startInnChoice.setEnabled(false); // ALWAYS disabled (MUST have INN as a choice)
-				locationControls.add(startInnChoice);
 				
 				startGuardChoice = new JCheckBox("Guard",list.contains("Guard"));
 				startGuardChoice.addActionListener(new ActionListener() {
@@ -296,30 +291,60 @@ public class RealmCharacterBuilderPanel extends JPanel {
 						updateStartingLocation("Guard",startGuardChoice.isSelected());
 					}
 				});
-				locationControls.add(startGuardChoice);
 				startChapelChoice = new JCheckBox("Chapel",list.contains("Chapel"));
 				startChapelChoice.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent ev) {
 						updateStartingLocation("Chapel",startChapelChoice.isSelected());
 					}
 				});
-				locationControls.add(startChapelChoice);
 				startHouseChoice = new JCheckBox("House",list.contains("House"));
 				startHouseChoice.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent ev) {
 						updateStartingLocation("House",startHouseChoice.isSelected());
 					}
 				});
-				locationControls.add(startHouseChoice);
 				startGhostsChoice = new JCheckBox("Ghosts",list.contains("Ghost"));
 				startGhostsChoice.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent ev) {
 						updateStartingLocation("Ghost",startGhostsChoice.isSelected());
 					}
 				});
+				startHutChoice = new JCheckBox("Hut",list.contains("Hut"));
+				startHutChoice.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent ev) {
+						updateStartingLocation("Hut",startHutChoice.isSelected());
+					}
+				});
+				startSettlementChoice = new JCheckBox("Settlement",list.contains("Settlement"));
+				startSettlementChoice.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent ev) {
+						updateStartingLocation("Settlement",startSettlementChoice.isSelected());
+					}
+				});
+				startCottageChoice = new JCheckBox("Cottage",list.contains("Cottage"));
+				startCottageChoice.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent ev) {
+						updateStartingLocation("Cottage",startCottageChoice.isSelected());
+					}
+				});
+				startHamletChoice = new JCheckBox("Hamlet",list.contains("Hamlet"));
+				startHamletChoice.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent ev) {
+						updateStartingLocation("Hamlet",startHamletChoice.isSelected());
+					}
+				});
+				
+				locationControls.add(startInnChoice);
+				locationControls.add(startHutChoice);
+				locationControls.add(startGuardChoice);
+				locationControls.add(startSettlementChoice);
+				locationControls.add(startChapelChoice);
+				locationControls.add(startCottageChoice);
+				locationControls.add(startHouseChoice);
+				locationControls.add(startHamletChoice);
 				locationControls.add(startGhostsChoice);
 				locationControls.setBorder(BorderFactory.createTitledBorder("Starting Locations"));
-				ComponentTools.lockComponentSize(locationControls,120,boxHeight);
+				ComponentTools.lockComponentSize(locationControls,180,boxHeight);
 			box.add(locationControls);
 				Box vulAndType = Box.createVerticalBox();
 					ButtonGroup vulGroup = new ButtonGroup();
@@ -363,7 +388,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 					vulnerabilityControls.add(vulnerabilityTremendous);
 		
 					vulnerabilityControls.setBorder(BorderFactory.createTitledBorder("Vulnerability"));
-					ComponentTools.lockComponentSize(vulnerabilityControls,120,boxHeight-80);
+					ComponentTools.lockComponentSize(vulnerabilityControls,100,boxHeight-80);
 				vulAndType.add(vulnerabilityControls);
 					ButtonGroup classGroup = new ButtonGroup();
 					JPanel classControls = new JPanel(new GridLayout(2,1));
@@ -387,7 +412,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 					classControls.add(mageClassOption);
 					
 					classControls.setBorder(BorderFactory.createTitledBorder("Class"));
-					ComponentTools.lockComponentSize(classControls,120,80);
+					ComponentTools.lockComponentSize(classControls,100,80);
 				vulAndType.add(classControls);
 			box.add(vulAndType);
 				Box extraInfo = Box.createVerticalBox();
@@ -482,23 +507,26 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			box.add(Box.createHorizontalGlue());
 			topPanel.add(box,"Center");
 			JPanel fairnessPanel = new JPanel(new BorderLayout());
-				fairnessLabel = new JLabel("",JLabel.CENTER);
+				fairnessLabel = new JLabel("",SwingConstants.CENTER);
 				fairnessLabel.setFont(new Font("Dialog",Font.BOLD|Font.ITALIC,16));
 				fairnessLabel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-			fairnessPanel.add(fairnessLabel,BorderLayout.CENTER);
-				JPanel mfReasonPanel = new JPanel(new GridLayout());
-				moveFairnessReasonLabel = new JLabel("",JLabel.CENTER);
+			fairnessPanel.add(fairnessLabel,BorderLayout.NORTH);
+				chitLabel = new JLabel("",SwingConstants.CENTER);
+				chitLabel.setFont(new Font("Dialog",Font.BOLD,14));
+			fairnessPanel.add(chitLabel,BorderLayout.CENTER);
+			JPanel mfReasonPanel = new JPanel(new GridLayout());
+				moveFairnessReasonLabel = new JLabel("",SwingConstants.CENTER);
 				moveFairnessReasonLabel.setFont(new Font("Dialog",Font.BOLD,14));
 				moveFairnessReasonLabel.setForeground(Color.blue);
 				mfReasonPanel.add(moveFairnessReasonLabel);
-				fightFairnessReasonLabel = new JLabel("",JLabel.CENTER);
+				fightFairnessReasonLabel = new JLabel("",SwingConstants.CENTER);
 				fightFairnessReasonLabel.setFont(new Font("Dialog",Font.BOLD,14));
 				fightFairnessReasonLabel.setForeground(Color.blue);
 				mfReasonPanel.add(fightFairnessReasonLabel);
 			fairnessPanel.add(mfReasonPanel,BorderLayout.SOUTH);
 			topPanel.add(fairnessPanel,"South");
 		leftPanel.add(topPanel,"North");
-			ArrayList<String[]> relationships = new ArrayList<String[]>();
+			ArrayList<String[]> relationships = new ArrayList<>();
 			for (int i=0;i<RealmCharacterConstants.DEFAULT_RELATIONSHIPS.length;i++) {
 				relationships.add(RealmCharacterConstants.DEFAULT_RELATIONSHIPS[i]);
 			}
@@ -530,7 +558,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 		}
 	}
 	private void evaluateNow() {
-		TreeSet<String> notes = new TreeSet<String>();
+		TreeSet<String> notes = new TreeSet<>();
 		
 		boolean mediumArmor = false;
 		boolean mediumMoves = false;
@@ -657,7 +685,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 		JOptionPane.showMessageDialog(RealmCharacterBuilderPanel.this,sp,"Character Notes:",JOptionPane.PLAIN_MESSAGE);
 		model.getCharacter().getGameObject().setThisAttribute("extra_notes",editField.getText());
 	}
-	private ImageIcon resizeImage(ImageIcon image,int width,int height) {
+	private static ImageIcon resizeImage(ImageIcon image,int width,int height) {
 		if (image.getIconWidth()==width && image.getIconHeight()==height) {
 			// no resizing necessary
 			return image;
@@ -666,7 +694,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 	}
 	private void updateStartingLocation(String location,boolean selected) {
 		String[] startingLoc = model.getCharacter().getStartingLocations(false);
-		ArrayList<String> list = new ArrayList(Arrays.asList(startingLoc));
+		ArrayList<String> list = new ArrayList<>(Arrays.asList(startingLoc));
 		if (selected) {
 			// add it
 			list.add(location);
@@ -711,6 +739,17 @@ public class RealmCharacterBuilderPanel extends JPanel {
 		sb.append(totalScore>0?"Advantage of ":"Disadvantage of ");
 		sb.append(Math.abs(totalScore));
 		fairnessLabel.setText(totalScore==0?"":sb.toString());
+		if (moveCount <=5 && fightCount <=7) {
+			chitLabel.setText("");
+		}
+		else {
+			if (moveCount>5) {
+				chitLabel.setText("Warning: More than 5 MOVE chits ("+moveCount+").");
+			}
+			if (fightCount>7) {
+				chitLabel.setText("Warning: More than 7 FIGHT chits ("+fightCount+").");
+			}
+		}
 	}
 	private void updateAllWeaponIcons() {
 		for (int i=0;i<levelPanel.length;i++) {
@@ -745,12 +784,15 @@ public class RealmCharacterBuilderPanel extends JPanel {
 		private JLabel weaponNameLabel;
 		private JLabel weaponIcon;
 		private JButton editWeaponButton;
+		private JButton customArmorButton;
 		
 		// Starting Spells
-		private JComboBox startingSpellCount;
+		private JComboBox<String> startingSpellCount;
 		
 		// Special Advantages
-		private AdvantagePanel advantagePanel;
+		private AdvantagePanel advantagePanel0;
+		private AdvantagePanel advantagePanel1;
+		private AdvantagePanel advantagePanel2;
 		
 		public CharacterLevelPanel(int level) {
 			this.level = level;
@@ -769,11 +811,13 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			mainIcon.grabFocus();
 		}
 		private void initComponents() {
-			setLayout(new GridLayout(1,3));
+			setLayout(new GridLayout(1,5));
 			
 			add(getLeftPanel());
 			add(getMiddlePanel());
-			add(getRightPanel());
+			add(getAdvantage0());
+			add(getAdvantage1());
+			add(getAdvantage2());
 			setBorder(BorderFactory.createTitledBorder("Level "+level));
 			updateControls();
 		}
@@ -809,13 +853,16 @@ public class RealmCharacterBuilderPanel extends JPanel {
 						updateAllLevels();
 					}
 				});
-				chitFairness[n] = new JLabel("0",JLabel.CENTER);
+				chitFairness[n] = new JLabel("0",SwingConstants.CENTER);
 				chitFairness[n].setFont(new Font("Dialog", Font.BOLD, 12));
 				chitFairness[n].setBorder(BorderFactory.createLoweredBevelBorder());
 				JPanel panel = new JPanel(new BorderLayout());
 				panel.add(Box.createVerticalStrut(5),"North");
-				panel.add(chit[n],"Center");
-				panel.add(chitFairness[n],"South");
+				JPanel chitPanel = new JPanel(new BorderLayout());
+				chitPanel.add(chit[n],"North");
+				chitPanel.add(chitFairness[n],"Center");
+				chitPanel.add(Box.createVerticalStrut(50),"South");
+				panel.add(chitPanel);
 				box.add(panel);
 				n++;
 			}
@@ -828,7 +875,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 				JPanel middleLeft = new JPanel(new BorderLayout());
 				middleLeft.add(getWeaponPanel(),"Center");
 					Box line = group.createLabelLine("# Spells");
-					startingSpellCount = new JComboBox(RealmCharacterConstants.SPELL_COUNT);
+					startingSpellCount = new JComboBox<>(RealmCharacterConstants.SPELL_COUNT);
 					startingSpellCount.setSelectedItem(String.valueOf(model.getCharacter().getGameObject().getInt(levelKey,"spellcount")));
 					startingSpellCount.addActionListener(new ActionListener() {
 						public void actionPerformed(ActionEvent ev) {
@@ -846,8 +893,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 		private JPanel getArmorPanel() {
 			String armorList = model.getCharacter().getGameObject().getAttribute(levelKey,"armor");
 			if (armorList==null) armorList = "";
-			JPanel armorPanel = new JPanel(new GridLayout(7,1));
-			//Box armorPanel = Box.createVerticalBox();
+			JPanel armorPanel = new JPanel(new GridLayout(8,1));
 			cap = new JCheckBox("Cap",armorList.contains("Cap"));
 			cap.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
@@ -921,6 +967,33 @@ public class RealmCharacterBuilderPanel extends JPanel {
 				}
 			});
 			armorPanel.add(armor);
+			customArmorButton = new JButton("Custom");
+			customArmorButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ev) {
+					String armorName = model.getCharacter().getGameObject().getAttribute(levelKey,"custom_armor");
+					ArmorEditDialog aed = new ArmorEditDialog(parent,model,graphicsManager,armorName);
+					aed.setVisible(true);
+					armorName = aed.getArmorName();
+					if (armorName==null) {
+						model.getCharacter().getGameObject().removeAttribute(levelKey,"custom_armor");
+						customArmorButton.setText("NEW ");
+					}
+					else {
+						model.getCharacter().getGameObject().setAttribute(levelKey,"custom_armor",aed.getArmorName());
+						customArmorButton.setText("EDIT");
+					}
+					model.updateArmorUsage();
+				}
+			});
+			
+			String armorName = model.getCharacter().getGameObject().getAttribute(levelKey,"custom_armor");
+			if (armorName==null) {
+				customArmorButton.setText("NEW ");
+			} else {
+				customArmorButton.setText("EDIT");
+			}
+			
+			armorPanel.add(customArmorButton);
 			armorPanel.setBorder(BorderFactory.createTitledBorder("Armor"));
 			return armorPanel;
 		}
@@ -945,19 +1018,31 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			});
 			weaponPanel.add(editWeaponButton,"South");
 			weaponNameLabel = new JLabel();
-			weaponNameLabel.setHorizontalAlignment(JLabel.CENTER);
+			weaponNameLabel.setHorizontalAlignment(SwingConstants.CENTER);
 			weaponIcon = new JLabel();
-			weaponIcon.setHorizontalAlignment(JLabel.CENTER);
+			weaponIcon.setHorizontalAlignment(SwingConstants.CENTER);
 			weaponPanel.add(weaponNameLabel,"North");
 			weaponPanel.add(weaponIcon,"Center");
 			weaponPanel.setBorder(BorderFactory.createTitledBorder("Weapon"));
 			return weaponPanel;
 		}
-		private AdvantagePanel getRightPanel() {
-			advantagePanel = new AdvantagePanel(levelKey);
-			advantagePanel.setBorder(BorderFactory.createTitledBorder("Advantages"));
-			advantagePanel.updateAdvantage();
-			return advantagePanel;
+		private AdvantagePanel getAdvantage0() {
+			advantagePanel0 = new AdvantagePanel(levelKey);
+			advantagePanel0.setBorder(BorderFactory.createTitledBorder("Advantage"));
+			advantagePanel0.updateAdvantage();
+			return advantagePanel0;
+		}
+		private AdvantagePanel getAdvantage1() {
+			advantagePanel1 = new AdvantagePanel(levelKey+"_1");
+			advantagePanel1.setBorder(BorderFactory.createTitledBorder("Advantage"));
+			advantagePanel1.updateAdvantage();
+			return advantagePanel1;
+		}
+		private AdvantagePanel getAdvantage2() {
+			advantagePanel2 = new AdvantagePanel(levelKey+"_2");
+			advantagePanel2.setBorder(BorderFactory.createTitledBorder("Advantage"));
+			advantagePanel2.updateAdvantage();
+			return advantagePanel2;
 		}
 		public void updateWeaponIcon() {
 			String weaponName = model.getCharacter().getGameObject().getAttribute(levelKey,"weapon");
@@ -978,7 +1063,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			repaint();
 		}
 		private ArrayList<String> getMagicTypes() {
-			ArrayList<String> magicTypes = new ArrayList<String>();
+			ArrayList<String> magicTypes = new ArrayList<>();
 			ArrayList<CharacterActionChitComponent> list = model.getCharacter().getAllActionChitsSorted(level);
 			for (CharacterActionChitComponent cc:list) {
 				if (cc.isMagic()) {
@@ -1078,10 +1163,10 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			updateStartingSpells();
 		}
 		public int startingSpellCount() {
-			return Integer.valueOf(startingSpellCount.getSelectedItem().toString());
+			return Integer.parseInt(startingSpellCount.getSelectedItem().toString());
 		}
 		private void updateStartingSpells() {
-			int count = Integer.valueOf(startingSpellCount.getSelectedItem().toString());
+			int count = Integer.parseInt(startingSpellCount.getSelectedItem().toString());
 			if (count==0) {
 				model.getCharacter().getGameObject().removeAttribute(levelKey,"spellcount");
 				model.getCharacter().getGameObject().removeAttribute(levelKey,"spelltypes");

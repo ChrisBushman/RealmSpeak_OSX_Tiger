@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmSpeak;
 
 import java.awt.*;
@@ -36,6 +19,7 @@ import com.robin.magic_realm.components.quest.requirement.QuestRequirementParams
 import com.robin.magic_realm.components.swing.*;
 import com.robin.magic_realm.components.utility.*;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
+import com.robin.magic_realm.components.wrapper.SpellMasterWrapper;
 import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class CharacterInventoryPanel extends CharacterFramePanel {
@@ -181,7 +165,7 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 	private static final Font queryFont = new Font("Dialog",Font.BOLD,14);
 	private void showAwakenedSpells(GameObject go) {
 		if (go!=null && go.hasThisAttribute("treasure") && (go.hasThisAttribute("magic") || go.hasThisAttribute("book"))) {
-			Collection c = SpellUtility.getSpells(go,Boolean.TRUE,false,true);
+			Collection<GameObject> c = SpellUtility.getSpells(go,Boolean.TRUE,false,true);
 			if (c.size()>0) {
 				JPanel panel = new JPanel(new BorderLayout());
 				queryPanel = new RealmObjectPanel();
@@ -199,7 +183,7 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 				});
 				panel.add(queryPanel,"Center");
 				
-				JLabel label = new JLabel("Click spell for more info",JLabel.CENTER);
+				JLabel label = new JLabel("Click spell for more info",SwingConstants.CENTER);
 				label.setOpaque(true);
 				label.setBackground(MagicRealmColor.PALEYELLOW);
 				label.setFont(queryFont);
@@ -209,11 +193,8 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 		}
 	}
 	private boolean actionLocked(GameObject thing) {
-		// FIXME This isn't exactly right.  Just because an item is in the PhaseManager, doesn't mean it was
-		// necessarily used...
-//		RealmTurnPanel turnPanel = getCharacterFrame().getTurnPanel();
-//		return (turnPanel!=null && turnPanel.getPhaseManager().getAllGameObjects().contains(thing));
-		return false; // for now
+		RealmTurnPanel turnPanel = getCharacterFrame().getTurnPanel();
+		return (turnPanel!=null && turnPanel.getPhaseManager().getAllObjects().contains(thing) && !turnPanel.getPhaseManager().getUsedObjects().contains(thing));
 	}
 	private void doDistribute() {
 		// Find all characters in the clearing
@@ -236,7 +217,8 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 				}
 			}
 			
-			if (allCharacters.size()>1 && (allGold>0.0 || !allInventory.isEmpty())) {
+			if ((allCharacters.size()>1 && (allGold>0.0 || !allInventory.isEmpty()))
+					|| getHostPrefs().hasPref(Constants.EXP_DEVELOPMENT_SR)) {
 				// First, make sure there aren't any local changes (so we can roll back)
 				getGameHandler().submitChanges();
 				
@@ -250,7 +232,7 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 						// boots are a special case, because they can determine whether or not you score points for heavy items
 						if (item.hasThisAttribute("boots")) {
 							// Make sure character is not prohibited from wearing boots (only affects custom characters)
-							ArrayList list = character.getGameObject().getThisAttributeList(Constants.ITEM_RESTRICTIONS);
+							ArrayList<String> list = character.getGameObject().getThisAttributeList(Constants.ITEM_RESTRICTIONS);
 							if (list==null || !list.contains("Boots")) {
 								// Note:  shouldn't have to worry about boots that are too small for a character, because it wont affect them in any case!
 								item.setThisAttribute(Constants.ACTIVATED);
@@ -336,6 +318,7 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 			if (selInv.getRealmComponent().isGoldSpecial()) {
 				GoldSpecialChitComponent gs = (GoldSpecialChitComponent)selInv.getRealmComponent();
 				gs.expireEffect(getCharacter());
+				getCharacter().addFailedGoldSpecial(gs);
 				
 				QuestRequirementParams qp = new QuestRequirementParams();
 				qp.actionName = thing.getName();
@@ -343,6 +326,7 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 				qp.targetOfSearch = gs.getGameObject();
 				if (getCharacter().testQuestRequirements(getMainFrame(),qp)) {
 					getCharacterFrame().updateCharacter();
+					getGameHandler().getInspector().redrawMap();
 				}
 			}
 							
@@ -359,6 +343,11 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 		}
 	}
 	private void doActivate() {
+		GameObject credit = activeInventoryObjectPanel.getSelectedGameObject();
+		if (credit!=null && credit.hasThisAttribute(RealmComponent.CREDIT)) {
+			payCredit(credit);
+			return;
+		}
 		boolean daytimeRecord = getCharacter().canDoDaytimeRecord();
 		GameObject thing = inactiveInventoryObjectPanel.getSelectedGameObject();
 		if (getCharacterFrame().getTurnPanel()==null || getCharacterFrame().getTurnPanel().getPhaseManager().canActivateThing(thing)) {
@@ -408,7 +397,7 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 	private void doDeactivate() {
 		boolean daytimeRecord = getCharacter().canDoDaytimeRecord();
 		GameObject thing = activeInventoryObjectPanel.getSelectedGameObject();
-		if (actionLocked(thing)) { // NOT USED
+		if (actionLocked(thing)) {
 			JOptionPane.showMessageDialog(
 					getGameHandler().getMainFrame(),
 					"You cannot deactivate the "+thing.getName()+
@@ -417,6 +406,22 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 					"Inactivate Inventory",JOptionPane.WARNING_MESSAGE);
 			return;
 		}
+		if (thing.hasThisAttribute(Constants.CONTROLLED_HORSE)) {
+			JOptionPane.showMessageDialog(
+					getGameHandler().getMainFrame(),
+					"You cannot deactivate the Steed "+thing.getName()+".",
+					"Inactivate Inventory",JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+		
+		if (thing.hasThisAttribute("color_source")) {
+			JOptionPane.showMessageDialog(
+					getGameHandler().getMainFrame(),
+					"You cannot deactivate the enchanted treasure "+thing.getName()+".",
+					"Inactivate Inventory",JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+		
 		getGameHandler().broadcast(getCharacter().getGameObject().getName(),"Deactivates "+thing.getName());
 		if (TreasureUtility.doDeactivate(getGameHandler().getMainFrame(),getCharacter(),thing)) {
 			// deactivating an item means you are ignoring "new" items (which can't possibly be active)
@@ -454,19 +459,45 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 		viewer.setVisible(true);
 	}
 
+	private void payCredit(GameObject credit) {
+		TileLocation loc = getCharacter().getCurrentLocation();
+		if (loc==null || !loc.hasClearing()) return;
+		String groupName = credit.getThisAttribute(RealmComponent.CREDIT);
+		for (RealmComponent rc : loc.clearing.getClearingComponents()) {
+			if (rc.isNativeLeader() && rc.getGameObject().getThisAttribute(RealmComponent.NATIVE).toLowerCase().matches(groupName.toLowerCase())) {
+				int price = credit.getThisInt("base_price");
+				if (getCharacter().getGold()<price) {
+					JOptionPane.showMessageDialog(getMainFrame(),"You do not have enough gold to pay the credit back.","Paying Credit",JOptionPane.INFORMATION_MESSAGE);
+					return;
+				}
+				getCharacter().addGold(-price);
+				getCharacter().addFame(price);
+				getCharacter().getGameObject().remove(credit);
+				JOptionPane.showMessageDialog(getMainFrame(),"You paid your credit back and got your fame back.","Paying Credit",JOptionPane.INFORMATION_MESSAGE);
+				getCharacterFrame().updateCharacter();
+				break;
+			}
+		}
+	}
+	
 	public void updatePanel() {
 		boolean hiredLeader = getCharacter().isHiredLeader();
-		ArrayList activeInv = new ArrayList();
-		ArrayList inactiveInv = new ArrayList();
-		for (Iterator i=getCharacter().getInventory().iterator();i.hasNext();) {
-			GameObject item = (GameObject)i.next();
+		ArrayList<GameObject> activeInv = new ArrayList<>();
+		ArrayList<GameObject> inactiveInv = new ArrayList<>();
+		for (GameObject item : getCharacter().getInventory()) {
 			if (!item.hasThisAttribute(Constants.DEAD)) { // Native horses!
 				RealmComponent rc = RealmComponent.getRealmComponent(item);
 				if (hiredLeader) {
-					if (rc.isNativeHorse()) {
+					if (rc.isNativeHorse() && !rc.getGameObject().hasThisAttribute(Constants.STEED_IN_CAVES_AND_WATER)) {
 						TileLocation loc = getCharacter().getCurrentLocation();
-						if (loc!=null && loc.isInClearing() && loc.clearing.isCave()) {
+						if (loc!=null && loc.isInClearing() && (loc.clearing.isCave() || loc.clearing.isWater())) {
 							inactiveInv.add(item);
+							if (item.hasThisAttribute(Constants.BREAK_CONTROL_WHEN_INACTIVE)) {
+								SpellMasterWrapper spellmaster = SpellMasterWrapper.getSpellMaster(getCharacter().getGameData());
+								for (SpellWrapper spell : spellmaster.getAffectingSpells(item)) {
+									if (spell.isControlHorseSpell()) spell.expireSpell();
+								}
+							}
 							item = null;
 						}
 					}
@@ -479,7 +510,7 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 				}
 				
 				if (item!=null) {
-					if (item.hasThisAttribute(Constants.ACTIVATED) || item.hasThisAttribute("gold_special") || item.hasThisAttribute("boon")) {
+					if (item.hasThisAttribute(Constants.ACTIVATED) || item.hasThisAttribute("gold_special") || item.hasThisAttribute(RealmComponent.BOON) || item.hasThisAttribute(RealmComponent.CREDIT)) {
 						activeInv.add(item);
 					}
 					else {
@@ -508,7 +539,7 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 		}
 		return null;
 	}
-	public void updateControls(boolean recordingActions) {
+	public void updateControls(boolean recordingActions,boolean isAwaitingReactions) {
 		TileLocation current = getCharacter().getCurrentLocation();
 		boolean blocked = getCharacter().isBlocked();
 		boolean partway = current!=null && (current.isBetweenClearings() || current.isBetweenTiles());
@@ -522,13 +553,19 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 		boolean achar = getCharacter().isCharacter() && getCharacter().isActive();
 		
 		if (dropInventoryButton!=null) {
-			dropInventoryButton.setEnabled(!blocked && selInv!=null && selInv.canDrop() && (playingTurn || birdsongHouseRule || selInv.isNew()) && !partway && !selInv.getRealmComponent().isNativeHorse());
+			dropInventoryButton.setEnabled(!isAwaitingReactions && !blocked && selInv!=null && selInv.canDrop() && (playingTurn || birdsongHouseRule || selInv.isNew()) && !partway && !selInv.getRealmComponent().isNativeHorse());
 		}
-		abandonInventoryButton.setEnabled(!blocked && selInv!=null && selInv.canDrop() && (playingTurn || birdsongHouseRule || selInv.isNew()) && !partway && !selInv.getRealmComponent().isNativeHorse());
-		activateInventoryButton.setEnabled(!blocked && achar && selInv!=null && selInv.canActivate() && rearrangementAllowed && !transmorphed && !partway);
-		deactivateInventoryButton.setEnabled(!blocked && achar && selInv!=null && selInv.canDeactivate() && rearrangementAllowed && !partway);
+		abandonInventoryButton.setEnabled(!isAwaitingReactions && !blocked && selInv!=null && selInv.canDrop() && (playingTurn || birdsongHouseRule || selInv.isNew()) && !partway && !selInv.getRealmComponent().isNativeHorse());
+		activateInventoryButton.setEnabled(!isAwaitingReactions && !blocked && achar && selInv!=null && selInv.canActivate() && rearrangementAllowed && !transmorphed && !partway);
+		deactivateInventoryButton.setEnabled(!isAwaitingReactions && !blocked && achar && selInv!=null && selInv.canDeactivate() && rearrangementAllowed && !partway);
 		if (distributeInventoryButton!=null) {
-			distributeInventoryButton.setEnabled(!blocked && rearrangementAllowed && !partway);
+			distributeInventoryButton.setEnabled(!isAwaitingReactions && !blocked && rearrangementAllowed && !partway);
+		}
+		if (selInv!=null && selInv.getGameObject().hasThisAttribute(RealmComponent.CREDIT)) {
+			activateInventoryButton.setText("Pay Credit");
+		}
+		else {
+			activateInventoryButton.setText("Activate");
 		}
 	}
 }

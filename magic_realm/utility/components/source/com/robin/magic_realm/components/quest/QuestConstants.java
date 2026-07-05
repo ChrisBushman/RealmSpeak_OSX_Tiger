@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.components.quest;
 
 public class QuestConstants {
@@ -31,6 +14,9 @@ public class QuestConstants {
 	public static final String CHOICE = "Player Choice";
 	public static final String RANDOM = "Randomly Selected";
 	
+	public static final String CURRENT = "Current";
+	public static final String REMOVE = "Remove";
+	
 	//-------------------------------
 	
 	public static final String FLAG_TESTING = "testing";
@@ -40,6 +26,8 @@ public class QuestConstants {
 	
 	public static final String WORKS_WITH_BOQ = "_rboq";
 	public static final String WORKS_WITH_QTR = "_rqtr";
+	public static final String WORKS_WITH_SR = "_rsr";
+	public static final String BOQ_EVENT = "_boqev";
 	public static final String QTR_ALL_PLAY = "_qallp";
 	public static final String QTR_SECRET_QUEST = "_secq";
 	public static final String CARD_COUNT = "_ccnt";
@@ -51,6 +39,7 @@ public class QuestConstants {
 	public static final String VARIANT_ORIGINAL = "_vorg";
 	public static final String VARIANT_PRUITTS = "_vprt";
 	public static final String VARIANT_EXP1 = "_vexp1";
+	public static final String VARIANT_SUPER_REALM = "_vsr";
 	
 	public static final String SINGLE_BOARD = "_b1x";
 	public static final String DOUBLE_BOARD = "_b2x";
@@ -61,4 +50,18 @@ public class QuestConstants {
 	public static final String CHARACTER_MALE = "_cmal";
 	public static final String CHARACTER_FEMALE = "_cfem";
 	public static final String CHARACTER_SPEC_REGEX = "_crgx";
+	
+	public static final String QUEST_MULTIPLE_USE = "quest_multiple_use";
+	
+	public static final String DISCARD_ALWAYS = "discard_always";
+	public static final String DISCARD_NORMAL = "discard_normal";
+	public static final String DISCARD_NEVER = "discard_never";
+	
+	public static final String MAKRED_VIEW = "marked_view";
+	public static final String MAKRED_VIEW_NO_SECRETS = "marked_view_no_secrets";
+	public static final String MAKRED_VIEW_TITLE = "marked_view_title";
+	//-------------------------------
+	
+	public static String [] wolfs = new String [] {"Wolf 1","Wolf 2"};
+	public static String [] transforms = new String [] {"Tremendous Dragon","Lion","Eagle","Bird","Squirrel","Frog"};
 }

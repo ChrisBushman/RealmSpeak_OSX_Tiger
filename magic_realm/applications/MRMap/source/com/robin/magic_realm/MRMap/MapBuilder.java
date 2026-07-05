@@ -1,20 +1,3 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.MRMap;
 
 import java.awt.Point;
@@ -22,99 +5,91 @@ import java.util.*;
 
 import com.robin.game.objects.*;
 import com.robin.general.util.RandomNumber;
+import com.robin.magic_realm.components.utility.Constants;
 import com.robin.magic_realm.components.utility.RealmLoader;
 import com.robin.magic_realm.components.utility.RealmObjectMaster;
+import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 import com.robin.magic_realm.map.Tile;
 
 public class MapBuilder {
 	
-	public static ArrayList startTileList(GameData data,Collection keyVals) {
-		ArrayList tiles = new ArrayList();
-		Collection c = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
-		for (Iterator i=c.iterator();i.hasNext();) {
-			GameObject obj = (GameObject)i.next();
+	public static ArrayList<Tile> startTileList(GameData data,Collection keyVals) {
+		ArrayList<Tile> tiles = new ArrayList<>();
+		Collection<GameObject> c = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
+		for (GameObject obj : c) {
 			tiles.add(new Tile(obj));
 		}
 		return tiles;
 	}
-	public static Tile findBorderland(Collection tiles) {
+	public static Tile findAnchorTile(Collection<Tile> tiles) {
 		// Find the Borderland tile, and start it at position 0,0 with a random rotation
-		for (Iterator i=tiles.iterator();i.hasNext();) {
-			Tile tile = (Tile)i.next();
-			if (tile.getGameObject().getName().equals("Borderland")) {
+		for (Tile tile : tiles) {
+			if (tile.getGameObject().hasThisAttribute(Constants.ANCHOR_TILE)) {
 				return tile;
 			}
 		}
-		throw new IllegalStateException("Borderland is missing from tiles!!");
+		throw new IllegalStateException("Borderland or other staring tile is missing from tiles!!");
 	}
 
 	public static boolean autoBuildMap(GameData data,Collection keyVals) {
 		return autoBuildMap(data,keyVals,null);
 	}
 	public static boolean autoBuildMap(GameData data,Collection keyVals,MapProgressReportable reporter) {
-		ArrayList tiles = startTileList(data,keyVals);
+		boolean autoBuildRiver = true;
+		ArrayList<Tile> tiles = startTileList(data,keyVals);
 		
 		// Find the Borderland tile, and start it at position 0,0 with a random rotation
-		Hashtable mapGrid = new Hashtable();
-		Tile borderland = findBorderland(tiles);
-		mapGrid.put(new Point(0,0),borderland);
-		borderland.setMapPosition(new Point(0,0));
-		borderland.setRotation(RandomNumber.getRandom(6));
+		Hashtable<Point, Tile> mapGrid = new Hashtable<>();
+		Tile anchor = findAnchorTile(tiles);
+		mapGrid.put(new Point(0,0),anchor);
+		anchor.setMapPosition(new Point(0,0));
+		anchor.setRotation(RandomNumber.getRandom(6));
 		
 		if (reporter!=null) {
 			reporter.setProgress(1,tiles.size());
 		}
 		
+		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
+		
 		// Cycle until the mapGrid has all the tiles
-System.out.println();
 		while(mapGrid.size()<tiles.size()) {
 			if (reporter!=null) {
 				reporter.setProgress(mapGrid.size(),tiles.size());
 			}
-System.out.print(mapGrid.size()+":");
 			// First, identify all connectable map placement locations
 			//		- Have paths leading to them
 			//		- Adjacent to at least two tiles (unless only one tile on map)
-			ArrayList availableMapPositions = Tile.findAvailableMapPositions(mapGrid);
+			ArrayList<Point> availableMapPositions = Tile.findAvailableMapPositions(mapGrid,anchor.getGameObject().getName(),autoBuildRiver,hostPrefs.hasPref(Constants.MAP_BUILDING_HILL_TILES));
 			
 			// Cycle through every available (unplaced) tile
-			ArrayList allTileResults = new ArrayList();
-			for (Iterator t=tiles.iterator();t.hasNext();) {
-				Tile tile = (Tile)t.next();
-				
-				// Only use unmapped tiles
-				if (!mapGrid.contains(tile)) {
-					ArrayList tileResults = new ArrayList();
-					
-					// Try the tile in every available position
-					for (Iterator a=availableMapPositions.iterator();a.hasNext();) {
-						Point pos = (Point)a.next();
-						
-						// Try every rotation
-						for (int rot=0;rot<6;rot++) {
-							// Test the tile at pos, with rotation rot
-							if (Tile.isMappingPossibility(mapGrid,tile,pos,rot)) {
-								tileResults.add(new TileMappingPossibility(tile,pos,rot));
-							}
-						}
-					}
-					if (tileResults.size()>0) {
-						// Adding the tile results in by tile prevents unfair weighting per tile
-						allTileResults.add(tileResults);
-					}
+			ArrayList<ArrayList<TileMappingPossibility>> allTileResults = new ArrayList<>();
+			ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio1 = new ArrayList<>();
+			ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio2 = new ArrayList<>();
+			for (Tile tile : tiles) {
+				addPossibleTilePlacements(mapGrid,tile,anchor,hostPrefs,availableMapPositions,allTileResults,tileResultsPrio1,tileResultsPrio2);
+			}
+			if ((hostPrefs.hasPref(Constants.MAP_BUILDING_RANGE_SETUP) || hostPrefs.hasPref(Constants.MAP_BUILDING_RANGE_SETUP_VARIANT)) && allTileResults.size()==0 && tileResultsPrio1.size()==0 && tileResultsPrio2.size()==0) {
+				for (Tile tile : tiles) {
+					addPossibleTilePlacements(mapGrid,tile,anchor,hostPrefs,availableMapPositions,allTileResults,tileResultsPrio1,tileResultsPrio2,false,false);
 				}
 			}
-			
-			if (allTileResults.size()>0) {
+			if (allTileResults.size()>0 || tileResultsPrio1.size()>0 || tileResultsPrio2.size()>0) {
 				// First, pick a random tile result set
-				ArrayList tileResults = (ArrayList)allTileResults.get(RandomNumber.getRandom(allTileResults.size()));
+				ArrayList<TileMappingPossibility> tileResults = null;
+				if (tileResultsPrio1.size()>0) {
+					tileResults = tileResultsPrio1.get(RandomNumber.getRandom(tileResultsPrio1.size()));
+				} else if (tileResultsPrio2.size()>0) {
+					tileResults = tileResultsPrio2.get(RandomNumber.getRandom(tileResultsPrio2.size()));
+				} else {
+					tileResults = allTileResults.get(RandomNumber.getRandom(allTileResults.size()));
+				}
 				
 				// Then pick a random MappingResult from the set for this tile
-				TileMappingPossibility tmp = (TileMappingPossibility)tileResults.get(RandomNumber.getRandom(tileResults.size()));
+				TileMappingPossibility tmp = tileResults.get(RandomNumber.getRandom(tileResults.size()));
 				
 				// Add it to the grid
 				Tile tile = tmp.getTile();
-				if (tile.getClearingCount()==6) {
+				if (tile.getClearingCount()==6 && !tile.hasRiverPaths(0)) {
 					/*
 					 * This is a TOTAL hack, but should improve the speed of map building...
 					 * 
@@ -125,8 +100,10 @@ System.out.print(mapGrid.size()+":");
 					 * Note that by renaming the Tile object, the GameObject is unaffected, so there is no harm.  Might be
 					 * confusing if someone were to try to debug this code (How many friggen Borderlands are there!!) but
 					 * I'm guessing that will never happen.  Famous last words....?
+					 * 
+					 * This hack didn't work for at least one Super Realm River tile
 					 */
-					tile.changeName(Tile.ANCHOR_TILENAME);
+					tile.changeName(anchor.getGameObject().getName());
 				}
 				Point pos = tmp.getPosition();
 				int rot = tmp.getRotation();
@@ -144,23 +121,124 @@ System.out.print(mapGrid.size()+":");
 			}
 		}
 		
-		for (Iterator i=mapGrid.values().iterator();i.hasNext();) {
-			Tile tile = (Tile)i.next();
+		if (!validateAdjacentTiles(mapGrid)) return false;
+		if (!validateLakeWoodsTile(hostPrefs, mapGrid, anchor)) return false;
+		if (!validateRiver(hostPrefs, mapGrid)) return false;
+		
+		for (Tile tile : mapGrid.values()) {
 			tile.writeToGameObject();
 		}
 		System.out.println();
 		return true;
 	}
+	private static void addPossibleTilePlacements(Hashtable<Point, Tile> mapGrid, Tile tile, Tile anchor, HostPrefWrapper hostPrefs, ArrayList<Point> availableMapPositions, ArrayList<ArrayList<TileMappingPossibility>> allTileResults, ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio1, ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio2) {
+		addPossibleTilePlacements(mapGrid,tile,anchor,hostPrefs,availableMapPositions,allTileResults,tileResultsPrio1,tileResultsPrio2,hostPrefs.hasPref(Constants.MAP_BUILDING_RANGE_SETUP),hostPrefs.hasPref(Constants.MAP_BUILDING_RANGE_SETUP_VARIANT));
+	}
+	private static void addPossibleTilePlacements(Hashtable<Point, Tile> mapGrid, Tile tile, Tile anchor, HostPrefWrapper hostPrefs, ArrayList<Point> availableMapPositions, ArrayList<ArrayList<TileMappingPossibility>> allTileResults, ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio1, ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio2, boolean rangeSetup, boolean rangeSetupVariant) {
+		// Only use unmapped tiles
+		if (!mapGrid.contains(tile)) {
+			ArrayList<TileMappingPossibility> tileResults = new ArrayList<>();					
+			// Try the tile in every available position
+			for (Point pos : availableMapPositions) {						
+				// Try every rotation
+				for (int rot=0;rot<6;rot++) {
+					// Test the tile at pos, with rotation rot
+					if (Tile.isMappingPossibility(mapGrid,tile,pos,rot,anchor.getGameObject().getName(),hostPrefs.hasPref(Constants.MAP_BUILDING_HILL_TILES),rangeSetup,rangeSetupVariant)) {
+						tileResults.add(new TileMappingPossibility(tile,pos,rot));
+						if (hostPrefs.hasPref(Constants.MAP_BUILDING_INCREASED_PRIO_TILE_PLACEMENT) && Tile.isMappingNextToPrioritizedTile(mapGrid,tile,pos,rot)) {
+							tileResults.add(new TileMappingPossibility(tile,pos,rot));
+							tileResults.add(new TileMappingPossibility(tile,pos,rot));
+						}
+					}
+				}
+			}
+			if (tileResults.size()>0) {
+				// Adding the tile results in by tile prevents unfair weighting per tile
+				if (tile.getGameObject().hasThisAttribute(Constants.MAP_BUILDING_PRIO)) {
+					if (tile.getGameObject().getThisAttribute(Constants.MAP_BUILDING_PRIO).matches("1")) {
+						tileResultsPrio1.add(tileResults);
+					} else {
+						tileResultsPrio2.add(tileResults);
+					}
+				} else {
+					allTileResults.add(tileResults);
+				}
+			}
+		}
+	}
+	public static boolean validateAdjacentTiles(Hashtable<Point, Tile> mapGrid) {
+		int neededCount = 2;
+		for (Tile tile : mapGrid.values()) {
+			Point pos = tile.getMapPosition();
+			int adjCount = 0;
+			for (int edge=0;edge<6;edge++) {
+				Point adjPos = Tile.getAdjacentPosition(pos,edge);
+				Tile adjTile = mapGrid.get(adjPos);
+				if (adjTile!=null) {
+					adjCount++;
+				}
+				if (adjCount>=neededCount) continue;
+				if (edge==5) return false;
+			}
+		}
+		return true;
+	}
+	public static boolean validateLakeWoodsTile(HostPrefWrapper hostPrefs, Hashtable<Point, Tile> mapGrid, Tile anchor) {
+		if (hostPrefs.hasPref(Constants.MAP_BUILDING_LAKE_WOODS_MUST_CONNECT)) {
+			for (Tile tile : mapGrid.values()) {
+				if (tile.getGameObject().getName().matches("Lake Woods")) {
+					for (String clearing : tile.getClearings()) {
+						if (!tile.connectsToTilename(mapGrid,clearing,anchor.getGameObject().getName())) {
+							return false;
+						}
+					}
+				}
+			}
+		}
+		return true;
+	}
+	public static boolean validateRiver(HostPrefWrapper hostPrefs, Hashtable<Point, Tile> mapGrid) {
+		if (hostPrefs.hasPref(Constants.MAP_BUILDING_NON_RIVER_TILES_ADJACENT_TO_RIVER) || hostPrefs.hasPref(Constants.MAP_BUILDING_2_NON_RIVER_TILES_ADJACENT_TO_RIVER)) {
+			int neededCount = 1;
+			if (hostPrefs.hasPref(Constants.MAP_BUILDING_2_NON_RIVER_TILES_ADJACENT_TO_RIVER)) {
+				neededCount = 2;
+			}
+			for (Tile tile : mapGrid.values()) {
+				if (tile.hasRiverPaths(0)) {
+					Point pos = tile.getMapPosition();
+					int adjCount = 0;
+					for (int edge=0;edge<6;edge++) {
+						Point adjPos = Tile.getAdjacentPosition(pos,edge);
+						Tile adjTile = mapGrid.get(adjPos);
+						if (adjTile!=null && !adjTile.hasRiverPaths(0)) {
+							adjCount++;
+						}
+						if (adjCount>=neededCount) continue;
+						if (edge==5) return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
+	public static Hashtable<Point, Tile> getMapGrid(GameData data, HostPrefWrapper hostPrefs) {
+		Hashtable<Point, Tile> mapGrid = new Hashtable<>();
+		Collection<String> keyVals = GamePool.makeKeyVals(hostPrefs.getGameKeyVals());
+		ArrayList<Tile> tiles = startTileList(data,keyVals);
+		for (Tile tile : tiles) {
+			tile.readFromGameObject();
+			mapGrid.put(Tile.getPositionFromGameObject(tile.getGameObject()),tile);
+		}
+		return mapGrid;
+	}
 	public static void main(String[]args) {
 	    RealmLoader loader = new RealmLoader();
 		GameData data = loader.getData();
 		System.out.println("loaded "+data.getGameObjects().size());
-		ArrayList keyVals = new ArrayList();
-		keyVals.add("original_game");
-		while(!MapBuilder.autoBuildMap(data,keyVals));
-		System.out.println();
-		for (Iterator i=data.getGameObjects().iterator();i.hasNext();) {
-			GameObject obj = (GameObject)i.next();
+		ArrayList<String> keyVals = new ArrayList<>();
+		keyVals.add("super_realm");
+		while(!MapBuilder.autoBuildMap(data,keyVals))
+		for (GameObject obj : data.getGameObjects()) {
 			if (obj.hasKey("tile")) {
 				System.out.println(obj+":   "+obj.getAttributeBlock("mapGrid"));
 			}

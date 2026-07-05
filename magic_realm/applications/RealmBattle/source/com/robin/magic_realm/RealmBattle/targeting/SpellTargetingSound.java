@@ -1,25 +1,7 @@
-/* 
- * RealmSpeak is the Java application for playing the board game Magic Realm.
- * Copyright (c) 2005-2015 Robin Warren
- * E-mail: robin@dewkid.com
- * 
- * This program is free software: you can redistribute it and/or modify it under the terms of the
- * GNU General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
- * 
- * You should have received a copy of the GNU General Public License along with this program. If not, see
- *
- * http://www.gnu.org/licenses/
- */
 package com.robin.magic_realm.RealmBattle.targeting;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 
 import com.robin.game.objects.GameData;
 import com.robin.game.objects.GameObject;
@@ -44,18 +26,10 @@ public class SpellTargetingSound extends SpellTargetingSingle {
 		TileLocation here = battleModel.getBattleLocation();
 		GameData gameData = spell.getGameObject().getGameData();
 		GamePool pool = new GamePool(gameData.getGameObjects());
-		Collection tiles = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
-		ArrayList sixClearingTiles = new ArrayList();
-		for (Iterator i=tiles.iterator();i.hasNext();) {
-			GameObject tile = (GameObject)i.next();
-			TileComponent tc = (TileComponent)RealmComponent.getRealmComponent(tile);
-			if (tc.getClearingCount()==6) {
-				sixClearingTiles.add(tile);
-			}
-		}
-		Collection c = pool.find("sound,chit");
-		for (Iterator i=c.iterator();i.hasNext();) {
-			GameObject soundChitObject = (GameObject)i.next();
+		
+		ArrayList<GameObject> clearingTiles = getFilteredTiles();
+		Collection<GameObject> c = pool.find("sound,chit");
+		for (GameObject soundChitObject : c) {
 			GameObject tile = soundChitObject.getHeldBy();
 			if (tile!=null && !tile.hasThisAttribute("tile")) {
 				tile = tile.getHeldBy(); // this jumps up one from lost castle or city
@@ -63,22 +37,67 @@ public class SpellTargetingSound extends SpellTargetingSingle {
 			if (tile!=null) {
 				SoundChitComponent soundChit = (SoundChitComponent)RealmComponent.getRealmComponent(soundChitObject);
 				if (soundChit.isFaceUp()) {
-					gameObjects.add(soundChitObject);
-					identifiers.add(tile.getName());
-					ArrayList tileChoices = new ArrayList();
+					int clearing = soundChitObject.getThisInt("clearing");
+					ArrayList<GameObject> tileChoices = new ArrayList<>();
 					if (here.tile.getGameObject().equals(tile)) {
-						// Moving sound from here to somewhere else
-						tileChoices.addAll(sixClearingTiles);
+						gameObjects.add(soundChitObject);
+						identifiers.add(tile.getName());
+						for (GameObject t : clearingTiles) {
+							TileComponent tc = new TileComponent(t);
+							if (tc.getClearing(clearing)!=null) {
+								// Moving sound from here to somewhere else
+								tileChoices.addAll(clearingTiles);
+							}
+						}
 						tileChoices.remove(here.tile.getGameObject());
 					}
 					else {
-						// Moving sound from somewhere else to here
-						tileChoices.add(here.tile.getGameObject());
+						if (here.tile.getClearing(clearing)!=null) {
+							// Moving sound from somewhere else to here
+							tileChoices.add(here.tile.getGameObject());
+							gameObjects.add(soundChitObject);
+							identifiers.add(tile.getName());
+						}
 					}
 					secondaryTargets.put(tile.getName(),tileChoices);
 				}
 			}
 		}
 		return true;
+	}
+	public void updateSecondaryTargetsAfterSelection(TileLocation battleLocation, RealmComponent theTarget) {
+		GameObject soundChitObject = theTarget.getGameObject();
+		GameObject tile = soundChitObject.getHeldBy();
+		if (tile!=null && !tile.hasThisAttribute("tile")) {
+			tile = tile.getHeldBy(); // this jumps up one from lost castle or city
+		}
+		if (!battleLocation.tile.getGameObject().equals(tile)) return;
+		
+		secondaryTargets.clear();
+		int clearing = soundChitObject.getThisInt("clearing");
+		Collection<GameObject> clearingTiles = getFilteredTiles();
+		ArrayList<GameObject> tileChoices = new ArrayList<>();
+		for (GameObject t : clearingTiles) {
+			TileComponent tc = new TileComponent(t);
+			if (tc.getClearing(clearing)!=null) {
+				tileChoices.add(t);
+			}
+		}
+		tileChoices.remove(tile);
+		secondaryTargets.put(tile.getName(),tileChoices);
+	}
+	
+	private ArrayList<GameObject> getFilteredTiles() {
+		GameData gameData = spell.getGameObject().getGameData();	
+		Collection<GameObject> tiles = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
+		ArrayList<GameObject> clearingTiles = new ArrayList<>();
+		for (GameObject tile : tiles) {
+			TileComponent tc = (TileComponent)RealmComponent.getRealmComponent(tile);
+			int clearingReq = spell.getGameObject().getThisInt("tile_req");
+			if (tc.getClearingCount()>=clearingReq || clearingReq==0) {
+				clearingTiles.add(tile);
+			}
+		}
+		return clearingTiles;
 	}
 }
