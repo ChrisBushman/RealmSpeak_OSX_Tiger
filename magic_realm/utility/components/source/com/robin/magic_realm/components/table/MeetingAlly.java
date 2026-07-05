@@ -19,7 +19,7 @@ public class MeetingAlly extends Meeting {
 	public String applyOne(CharacterWrapper character) {
 		String text = "Boon (x 1)";
 		String result = useCompletedActiveTask(character,text);
-		if (result!=null && !result.isEmpty()) {
+		if (result!=null && result.length() > 0) {
 			return result;
 		}
 		processPrice(character,0);

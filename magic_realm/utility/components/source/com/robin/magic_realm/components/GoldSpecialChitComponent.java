@@ -221,7 +221,7 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 			}
 			if (getGameObject().hasThisAttribute(Constants.NOMAD)) {
 				String ability = getGameObject().getThisAttribute("text");
-				if (ability!=null && !ability.isEmpty()) {
+				if (ability!=null && ability.length() > 0) {
 					text.append(rowHeaderStart);
 					text.append("Special ability:");
 					text.append(rowContentStart);

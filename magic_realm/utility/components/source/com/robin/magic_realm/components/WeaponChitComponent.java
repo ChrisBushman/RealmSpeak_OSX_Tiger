@@ -320,11 +320,11 @@ public class WeaponChitComponent extends RoundChitComponent {
 		textType = "BIG_BOLD";
 		if (RealmComponent.displayColoredStats) {
 			String defaultSpeed = getAttribute(statSide,"attack_speed");
-			if ((defaultSpeed==null || defaultSpeed.isEmpty()) && speed!=null) {
+			if ((defaultSpeed==null || defaultSpeed.length() == 0) && speed!=null) {
 				textType = "BIG_BOLD_BLUE";
-			} else if(speed!=null && defaultSpeed!=null && !defaultSpeed.isEmpty() && speed.getNum()<Integer.parseInt(defaultSpeed)) {
+			} else if(speed!=null && defaultSpeed!=null && defaultSpeed.length() > 0 && speed.getNum()<Integer.parseInt(defaultSpeed)) {
 				textType = "BIG_BOLD_BLUE";
-			} else if(speed!=null && defaultSpeed!=null && !defaultSpeed.isEmpty() && speed.getNum()>Integer.parseInt(defaultSpeed)) {
+			} else if(speed!=null && defaultSpeed!=null && defaultSpeed.length() > 0 && speed.getNum()>Integer.parseInt(defaultSpeed)) {
 				textType = "BIG_BOLD_RED";
 			}
 		}

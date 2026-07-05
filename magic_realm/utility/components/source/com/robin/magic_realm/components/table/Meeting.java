@@ -167,7 +167,7 @@ public abstract class Meeting extends Trade {
 		}
 		String text = "Insult";
 		String result = useCompletedActiveTask(character,text);
-		if (result!=null && !result.isEmpty()) {
+		if (result!=null && result.length() > 0) {
 			return result;
 		}
 		doInsult(character);
@@ -179,7 +179,7 @@ public abstract class Meeting extends Trade {
 		}
 		String text = "Challenge";
 		String result = useCompletedActiveTask(character,text);
-		if (result!=null && !result.isEmpty()) {
+		if (result!=null && result.length() > 0) {
 			return result;
 		}
 		doChallenge(character);
@@ -188,7 +188,7 @@ public abstract class Meeting extends Trade {
 	protected String applyNoDeal(CharacterWrapper character) {
 		String text = "No Deal";
 		String result = useCompletedActiveTask(character,text);
-		if (result!=null && !result.isEmpty()) {
+		if (result!=null && result.length() > 0) {
 			return result;
 		}
 		return text;
@@ -196,7 +196,7 @@ public abstract class Meeting extends Trade {
 	protected String applyBlockBattle(CharacterWrapper character) {
 		String text = BLOCK_BATTLE;
 		String result = useCompletedActiveTask(character,text);
-		if (result!=null && !result.isEmpty()) {
+		if (result!=null && result.length() > 0) {
 			return result;
 		}
 		doBlockBattle(character);
@@ -205,7 +205,7 @@ public abstract class Meeting extends Trade {
 	protected String applyPrice(CharacterWrapper character, int mult) {
 		String text = "Price x "+mult;
 		String result = useCompletedActiveTask(character,text);
-		if (result!=null && !result.isEmpty()) {
+		if (result!=null && result.length() > 0) {
 			return result;
 		}
 		processPrice(character,mult);
@@ -284,7 +284,7 @@ public abstract class Meeting extends Trade {
 				return;
 			}
 			String amountString = last.getGameObject().getThisAttribute(Constants.HIRE_WITH_CHIT);
-			if (amountString.isEmpty()) amountString = "1";
+			if (amountString.length() == 0) amountString = "1";
 			int amount = Integer.parseInt(amountString);
 			ArrayList<CharacterActionChitComponent> chits = character.getActiveChits();
 			if (chits == null || chits.size() == 0 || chits.size()<amount) {

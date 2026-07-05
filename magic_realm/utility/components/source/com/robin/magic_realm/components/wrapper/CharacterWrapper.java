@@ -1444,7 +1444,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 	 */
 	public int getRelationship(String relBlock,String groupName) {
 		boolean rovingNative = false;
-		if (groupName!=null && !groupName.isEmpty()) {
+		if (groupName!=null && groupName.length() > 0) {
 			GameData data = getGameObject().getGameData();
 			GamePool pool = new GamePool(data.getGameObjects());
 			GameObject nativeHq = pool.findFirst("rank=HQ,native="+groupName);

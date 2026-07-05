@@ -471,7 +471,7 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 		ArrayList<GameObject> monsters = pool.find("monster,setup_start");
 		for (GameObject monster : monsters) {
 			String setupStart = monster.getThisAttribute("setup_start");
-			if (setupStart!=null && !setupStart.isEmpty()) {
+			if (setupStart!=null && setupStart.length() > 0) {
 				ArrayList<GameObject> boxes = pool.find("name="+setupStart+",treasure_location");
 				for (GameObject box : boxes) {
 					String guardianAndSite = monster.getName()+" ("+box.getName()+")";

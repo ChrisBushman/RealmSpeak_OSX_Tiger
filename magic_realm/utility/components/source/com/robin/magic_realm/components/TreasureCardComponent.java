@@ -245,11 +245,11 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 						}
 						if (!(speedString.length() == 0)) {
 							String defaultSpeed = gameObject.getThisAttribute("attack_speed");
-							if ((defaultSpeed==null || defaultSpeed.isEmpty()) && speed!=null) {
+							if ((defaultSpeed==null || defaultSpeed.length() == 0) && speed!=null) {
 								textTpye2 = "CLOSED_BLUE";
-							} else if(speed!=null && defaultSpeed!=null && !defaultSpeed.isEmpty() && speed.getNum()<Integer.parseInt(defaultSpeed)) {
+							} else if(speed!=null && defaultSpeed!=null && defaultSpeed.length() > 0 && speed.getNum()<Integer.parseInt(defaultSpeed)) {
 								textTpye2 = "CLOSED_BLUE";
-							} else if(speed!=null && defaultSpeed!=null && !defaultSpeed.isEmpty() && speed.getNum()>Integer.parseInt(defaultSpeed)) {
+							} else if(speed!=null && defaultSpeed!=null && defaultSpeed.length() > 0 && speed.getNum()>Integer.parseInt(defaultSpeed)) {
 								textTpye2 = "CLOSED_ORANGE";
 							}
 						}

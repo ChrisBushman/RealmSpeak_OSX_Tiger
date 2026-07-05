@@ -298,7 +298,7 @@ public class RealmUtility {
         }
 		String levelKey = "level_"+startingSpellLevel;
 		Collection<String> types = character.getGameObject().getAttributeList(levelKey,"spelltypes"); // like [I,VII] (for example)
-		if (types!=null && !types.isEmpty()) {
+		if (types!=null && types.length() > 0) {
 			int spellCount = character.getGameObject().getAttributeInt(levelKey,"spellcount");
 			ArrayList<GameObject> choiceSpells = new ArrayList<GameObject>();
 			for (String type : types) {
@@ -320,7 +320,7 @@ public class RealmUtility {
 		}
 //		if (enchantOption) {
 //			Collection magicChits = character.getEnchantableChits();
-//			if (!magicChits.isEmpty()) {
+//			if (magicChits.length() > 0) {
 //				ChitChooser chooser = new ChitChooser(new JFrame(),"Enchant chits?",character.getEnchantableChits(),character.getRecordedSpells(data)) {
 //					protected boolean canPressOkay() {
 //						return true;
@@ -499,7 +499,7 @@ public class RealmUtility {
 			
 			if (hostPrefs.hasPref(Constants.SR_REVEAL_TRAVELERS) && rcLocation != null && rcLocation.hasClearing()) {
 				String nativeName = rc.getGameObject().getThisAttribute(RealmComponent.NATIVE);
-				if (nativeName!=null && !nativeName.isEmpty()) {
+				if (nativeName!=null && nativeName.length() > 0) {
 					GamePool pool = new GamePool(rc.getGameObject().getGameData().getGameObjects());
 					ArrayList<GameObject> boxes = pool.find("summon_n="+nativeName.toLowerCase());
 					for (GameObject box : boxes) {
@@ -1064,7 +1064,7 @@ public class RealmUtility {
 		RealmObjectMaster rom = RealmObjectMaster.getRealmObjectMaster(data);
 		GamePool gsPool = new GamePool(rom.findObjects("gold_special"));
 		GameObject[] chit = new GameObject[2];
-		while(!gsPool.isEmpty()) {
+		while(gsPool.size() > 0) {
 			GameObject first = gsPool.get(0);
 			String pair = first.getThisAttribute("pair");
 			ArrayList<GameObject> list = gsPool.extract("pair="+pair); // should always be 2

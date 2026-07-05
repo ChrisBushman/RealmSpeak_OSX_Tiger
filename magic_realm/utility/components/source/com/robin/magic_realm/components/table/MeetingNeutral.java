@@ -40,7 +40,7 @@ public class MeetingNeutral extends Meeting {
 	public String applySix(CharacterWrapper character) {
 		String text = "Trouble!";
 		String result = useCompletedActiveTask(character,text);
-		if (result!=null && !result.isEmpty()) {
+		if (result!=null && result.length() > 0) {
 			return result;
 		}
 		MeetingUnfriendly table = new MeetingUnfriendly(getParentFrame(),tradeInfo,merchandise,hireGroup);

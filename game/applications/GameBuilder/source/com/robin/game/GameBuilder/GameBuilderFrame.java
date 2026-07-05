@@ -195,7 +195,7 @@ public class GameBuilderFrame extends JFrame {
 								new String[] { "", "original_game", "rw_expansion_1", "super_realm"},
 								"");
 						if (game==null) return;
-						if (!game.isEmpty()) keyVals.add(game);
+						if (game.length() > 0) keyVals.add(game);
 						GameObjectTreeView view = new GameObjectTreeView(data.doSetup(result,setup,keyVals));
 						view.setTitle("Test Setup");
 						view.setVisible(true);

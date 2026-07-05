@@ -192,7 +192,7 @@ public class CombatWrapper extends GameObjectWrapper {
 	}
 	public boolean hasCastSpell() {
 		String id = getString(CAST_SPELL);
-		return id!=null && !id.isEmpty();
+		return id!=null && id.length() > 0;
 	}
 	public void clearCastSpell() {
 		GameObject go = getCastSpell();

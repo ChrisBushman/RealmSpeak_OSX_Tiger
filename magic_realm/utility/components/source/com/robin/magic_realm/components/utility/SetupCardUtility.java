@@ -1353,7 +1353,7 @@ public class SetupCardUtility {
 		ArrayList<String> query = new ArrayList<String>();
 		query.add("denizen");
 		query.add(RealmComponent.NATIVE+"="+groupName);
-		if (boardNum!=null && !boardNum.isEmpty()) {
+		if (boardNum!=null && boardNum.length() > 0) {
 			query.add(Constants.BOARD_NUMBER+"="+boardNum);
 		}
 		ArrayList<GameObject> denizens = pool.find(query);

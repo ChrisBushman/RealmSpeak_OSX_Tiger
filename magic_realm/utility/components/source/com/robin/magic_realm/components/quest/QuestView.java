@@ -150,7 +150,7 @@ public class QuestView extends JPanel implements Scrollable {
 			String title = "Quest related things";	
 			if (quest.getGameObject().hasThisAttribute(QuestConstants.MAKRED_VIEW_TITLE)) {
 				String customTitle = quest.getGameObject().getThisAttribute(QuestConstants.MAKRED_VIEW_TITLE);
-				if (customTitle!=null && !customTitle.isEmpty()) {
+				if (customTitle!=null && customTitle.length() > 0) {
 					title = customTitle;
 				}
 			}
