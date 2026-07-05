@@ -96,7 +96,7 @@ public class QuestRequirementLoot extends QuestRequirement {
 						String mark = go.getThisAttribute(QuestConstants.QUEST_MARK);
 						if (mark==null || !mark.equals(questId)) continue;
 					}
-					if (getRequiredAbility()!=null && !getRequiredAbility().isEmpty()) {
+					if (getRequiredAbility()!=null && getRequiredAbility().length() > 0) {
 						if (!go.hasAllKeyVals(getRequiredAbility())) {
 							continue;
 						}
@@ -133,7 +133,7 @@ public class QuestRequirementLoot extends QuestRequirement {
 			sb.append(regex);
 			sb.append("/");
 		}
-		if (getRequiredAbility()!=null && !getRequiredAbility().isEmpty()) {
+		if (getRequiredAbility()!=null && getRequiredAbility().length() > 0) {
 			sb.append(" with the ability "+getRequiredAbility());
 		}
 		sb.append(".");

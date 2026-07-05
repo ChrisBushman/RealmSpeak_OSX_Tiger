@@ -28,7 +28,7 @@ public class QuestRequirementTreachery extends QuestRequirement {
 		Pattern pattern = Pattern.compile(getRegExFilter());
 		for (String id : combatCharacter.getBetrayedIds()) {
 			GameObject victim = character.getGameData().getGameObject(id);
-			if (getRegExFilter().isEmpty() || pattern.matcher(victim.getName()).find()) {
+			if (getRegExFilter().length() == 0 || pattern.matcher(victim.getName()).find()) {
 				if (killInCombat()) {
 					boolean killedVictimInCombat = false;
 					ArrayList<GameObject> kills = character.getKills(character.getCurrentDayKey());

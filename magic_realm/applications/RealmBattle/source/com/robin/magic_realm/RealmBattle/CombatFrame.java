@@ -674,7 +674,7 @@ public class CombatFrame extends JFrame {
 	public void updateRandomAssignment() {
 		ArrayList<String> list = activeCharacter.getGameObject().getThisAttributeList(Constants.RANDOM_ASSIGNMENT_WINNER);
 		if (list!=null) {
-			list = new ArrayList<RealmComponent>(list);
+			list = new ArrayList<String>(list);
 			if (list.size()>0) {
 				String denizenId = list.remove(0);
 				activeCharacter.getGameObject().setThisAttributeList(Constants.RANDOM_ASSIGNMENT_WINNER,list);
@@ -1208,7 +1208,7 @@ public class CombatFrame extends JFrame {
 	}
 	private void showInventory() {
 		// Use the trade dialog to show detail
-		RealmTradeDialog viewer = new RealmTradeDialog(this,"Inventory for the "+activeCharacter.getCharacterName(),false,false,false);
+		final RealmTradeDialog viewer = new RealmTradeDialog(this,"Inventory for the "+activeCharacter.getCharacterName(),false,false,false);
 		viewer.setTradeObjects(activeCharacter.getInventory());
 		
 		viewer.tradeTable.addMouseListener(new MouseAdapter() {

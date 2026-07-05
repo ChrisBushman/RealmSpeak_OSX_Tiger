@@ -75,7 +75,7 @@ public class QuestRequirementClearing extends QuestRequirement {
 	}
 
 	private boolean noChitsToCheck() {
-		return ((getChitName()==null || getChitName().isEmpty()) && (getChitType()==null || getChitType() == ChitType.Any) && !requiresMark());
+		return ((getChitName()==null || getChitName().length() == 0) && (getChitType()==null || getChitType() == ChitType.Any) && !requiresMark());
 	}
 	
 	protected String buildDescription() {
@@ -109,13 +109,13 @@ public class QuestRequirementClearing extends QuestRequirement {
 			else {
 				sb.append(" chits");
 			}
-			if ((getChitName() != null && !getChitName().isEmpty()) || (getChitType() != null && getChitType() != ChitType.Any)) {
+			if ((getChitName() != null && getChitName().length() > 0) || (getChitType() != null && getChitType() != ChitType.Any)) {
 				sb.append(" matching");
 			}
-			if (getChitName() != null && !getChitName().isEmpty()) {
+			if (getChitName() != null && getChitName().length() > 0) {
 				sb.append(" the name "+getChitName());
 			}
-			if (getChitName() != null && !getChitName().isEmpty() && getChitType() != null && getChitType() != ChitType.Any) {
+			if (getChitName() != null && getChitName().length() > 0 && getChitType() != null && getChitType() != ChitType.Any) {
 				sb.append(" and");
 			}
 			if (getChitType() != null && getChitType() != ChitType.Any) {

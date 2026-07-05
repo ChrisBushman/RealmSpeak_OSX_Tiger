@@ -119,14 +119,14 @@ public class RealmGmFrame extends JFrame {
 		gameOptions.setEnabled(editor!=null);
 	}
 	private void editDescription() {
-		AggressiveDialog dialog = new AggressiveDialog(this,"Scenario Description",true);
+		final AggressiveDialog dialog = new AggressiveDialog(this,"Scenario Description",true);
 		dialog.setLayout(new BorderLayout());
 		dialog.setSize(500, 500);
 		dialog.setLocationRelativeTo(this);
 		
 		JPanel panel = new JPanel(new BorderLayout());
 		Box box = Box.createVerticalBox();
-		JTextArea input = new JTextArea();
+		final JTextArea input = new JTextArea();
 		input.setLineWrap(true);
 		input.setWrapStyleWord(true);
 		input.setText(editor.getGameData().getScenarioDescription()==null?"":editor.getGameData().getScenarioDescription());

@@ -298,7 +298,7 @@ public class RealmUtility {
         }
 		String levelKey = "level_"+startingSpellLevel;
 		Collection<String> types = character.getGameObject().getAttributeList(levelKey,"spelltypes"); // like [I,VII] (for example)
-		if (types!=null && types.length() > 0) {
+		if (types!=null && types.size() > 0) {
 			int spellCount = character.getGameObject().getAttributeInt(levelKey,"spellcount");
 			ArrayList<GameObject> choiceSpells = new ArrayList<GameObject>();
 			for (String type : types) {

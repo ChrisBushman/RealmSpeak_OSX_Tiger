@@ -1217,7 +1217,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 					for (String type : inventory.getThisAttributeList(Constants.MONSTER_CONTROL)) {
 						Integer[] values = controls.get(type);
 						int durationCalc = values==null?duration:((values[0]==0||duration==0)?0:Math.max(values[0], duration));
-						int limitCalc = values==null?limit:((values[1]==0||limit==0)?0:Math.addExact(values[1], limit));
+						int limitCalc = values==null?limit:((values[1]==0||limit==0)?0:values[1]+limit);
 						controls.put(type,new Integer[] {durationCalc,limitCalc});
 					}
 				}

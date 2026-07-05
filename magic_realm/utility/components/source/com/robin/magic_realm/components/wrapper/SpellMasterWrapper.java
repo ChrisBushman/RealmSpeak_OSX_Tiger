@@ -445,13 +445,13 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 		String duration = spell.getGameObject().getThisAttribute("duration");
 		ArrayList<String> list = getList(duration);
 		if (list!=null && list.contains(spell.getGameObject().getStringId())) {
-			list = new ArrayList<GameObject>(list);
+			list = new ArrayList<String>(list);
 			list.remove(spell.getGameObject().getStringId());
 			setList(duration,list);
 		}
 		list = getList(MIDNIGHT_SPELLS);
 		if (list!=null && list.contains(spell.getGameObject().getStringId())) {
-			list = new ArrayList<GameObject>(list);
+			list = new ArrayList<String>(list);
 			list.remove(spell.getGameObject().getStringId());
 			setList(MIDNIGHT_SPELLS,list);
 		}

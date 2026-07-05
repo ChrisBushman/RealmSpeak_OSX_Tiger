@@ -23,7 +23,7 @@ public class QuestRequirementWeather extends QuestRequirement {
 			}
 		}
 		
-		if (getWeather().isEmpty()) {
+		if (getWeather().length() == 0) {
 			return true;
 		}
 		
@@ -36,7 +36,7 @@ public class QuestRequirementWeather extends QuestRequirement {
 		if (weatherEnabled()) {
 			sb.append("Weather must be enabled. ");
 		}
-		if (!getWeather().isEmpty()) {
+		if (getWeather().length() > 0) {
 			sb.append("Weather must be '"+getWeather()+"'.");
 		}
 		return sb.toString();

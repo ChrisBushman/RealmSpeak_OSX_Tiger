@@ -52,7 +52,7 @@ public class QuestRequirementCharacterType extends QuestRequirement {
 			default:
 				break;
 		}
-		if (getRegExFilter() != null && !getRegExFilter().isEmpty()) {
+		if (getRegExFilter() != null && getRegExFilter().length() > 0) {
 			Pattern pattern = Pattern.compile(getRegExFilter());
 			return pattern.matcher(character.getName()).find() || (transmorph != null && pattern.matcher(transmorph.getName()).find());
 		}
@@ -65,7 +65,7 @@ public class QuestRequirementCharacterType extends QuestRequirement {
 		if (getType() != TransmorphType.Any) {
 			sb.append("a "+getType());
 		}
-		if (getRegExFilter() != null && !getRegExFilter().isEmpty()) {
+		if (getRegExFilter() != null && getRegExFilter().length() > 0) {
 			if (getType() != TransmorphType.Any) {
 				sb.append(" and ");
 			}

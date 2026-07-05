@@ -1127,7 +1127,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		}
 		tabs.addTab(null, ImageCache.getIcon("tab/chat"), getChatPanel(),"Chat");
 
-		boolean[] tabChangedByThisPress = {false};
+		final boolean[] tabChangedByThisPress = {false};
 		tabs.addChangeListener(new javax.swing.event.ChangeListener() { public void stateChanged(javax.swing.event.ChangeEvent e) { tabChangedByThisPress[0] = true; } });
 		tabs.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {

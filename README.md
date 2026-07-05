@@ -66,6 +66,50 @@ from that to figure out how to setup projects in your favorite IDE.
 sch4fchen
 
 
+# Building for OS X Tiger (Java 1.5)
+
+This fork targets **Java 1.5 (Tiger)** for compatibility with OS X Tiger (Mac OS X 10.4).
+The build compiles with `-source 1.5 -target 1.5` and a bootclasspath pointing to the
+Tiger runtime jars bundled in `libraries/classes.jar` and `libraries/ui.jar`.
+
+Because modern JDKs have dropped support for `-source 1.5`, you must build with
+**Temurin 8** (the last JDK that still accepts `-source 1.5`).
+
+### Prerequisites
+
+1. Install [Apache Ant](http://ant.apache.org/) (1.8 or later).
+
+2. Install Temurin 8 JDK. On macOS with Homebrew:
+
+   ```
+   brew install --cask temurin@8
+   ```
+
+   Or download it from [Adoptium](https://adoptium.net/temurin/releases/?version=8).
+
+### Build
+
+Point `JAVA_HOME` at Temurin 8 and run Ant:
+
+```sh
+export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
+export PATH="$JAVA_HOME/bin:$PATH"
+ant -f build/build.xml build-all-projects
+```
+
+A successful build prints `BUILD SUCCESSFUL` and produces jar files in the `products/` directory.
+
+### Run
+
+```sh
+cd products
+java -jar RealmSpeakFull.jar
+```
+
+Or on Tiger, double-click `run.bat` (Windows) / launch directly via `java -jar`.
+
+---
+
 # License
 
 RealmSpeak is the Java application for playing the board game Magic Realm.

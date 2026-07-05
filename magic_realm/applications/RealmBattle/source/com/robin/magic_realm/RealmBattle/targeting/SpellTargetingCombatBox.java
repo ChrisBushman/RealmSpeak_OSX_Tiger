@@ -28,18 +28,13 @@ public class SpellTargetingCombatBox extends SpellTargeting {
 		Object selection = chooser.getSelectedItem();
 		if (selection == null) return false;
 		String combatBox = "";
-		switch(selection.toString()) {
-			case BOX_0:
-				combatBox = "0";
-				break;
-			case BOX_1:
-				combatBox = "1";
-				break;
-			case BOX_2:
-				combatBox = "2";
-				break;
-			default:
-				combatBox = "";
+		String sel = selection.toString();
+		if (BOX_0.equals(sel)) {
+			combatBox = "0";
+		} else if (BOX_1.equals(sel)) {
+			combatBox = "1";
+		} else if (BOX_2.equals(sel)) {
+			combatBox = "2";
 		}
 		spell.setExtraIdentifier(combatBox);
 		return true;

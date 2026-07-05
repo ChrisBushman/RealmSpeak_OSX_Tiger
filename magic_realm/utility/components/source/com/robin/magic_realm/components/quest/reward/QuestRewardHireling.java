@@ -67,7 +67,7 @@ public class QuestRewardHireling extends QuestReward {
 
 		if (at == ChitAcquisitionType.Lose) {
 			character.removeHireling(selected);
-			if (renameHirelingTo() != null && !renameHirelingTo().isEmpty()) {
+			if (renameHirelingTo() != null && renameHirelingTo().length() > 0) {
 				selected.setName(renameHirelingTo());
 			}
 		}
@@ -117,7 +117,7 @@ public class QuestRewardHireling extends QuestReward {
 				}
 			}
 			
-			if (renameHirelingTo() != null && !renameHirelingTo().isEmpty()) {
+			if (renameHirelingTo() != null && renameHirelingTo().length() > 0) {
 				selected.setName(renameHirelingTo());
 			}
 			

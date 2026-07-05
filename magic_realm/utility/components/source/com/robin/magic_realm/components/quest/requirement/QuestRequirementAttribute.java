@@ -271,7 +271,7 @@ public class QuestRequirementAttribute extends QuestRequirement {
 		sb.append(getAttributeType().getDescription(realValue != 1));
 		if(hasRegExFilter()) {
 			sb.append(" from ");
-			if (!getRegExDescription().isEmpty()) {
+			if (getRegExDescription().length() > 0) {
 				sb.append(getRegExDescription());
 			} else {
 				sb.append(getRegExFilter());

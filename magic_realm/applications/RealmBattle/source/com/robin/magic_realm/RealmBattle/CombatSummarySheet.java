@@ -184,7 +184,7 @@ public class CombatSummarySheet extends JPanel {
 		g.drawString("ATTACKERS",x+200,y);
 		y -= 45;
 		int row=0;
-		for (RealmComponent battleParticipant : combatFrame.getAllParticipants()) {
+		for (final RealmComponent battleParticipant : combatFrame.getAllParticipants()) {
 			CombatWrapper cr = new CombatWrapper(battleParticipant.getGameObject());
 			row+=1;
 			y += 90;

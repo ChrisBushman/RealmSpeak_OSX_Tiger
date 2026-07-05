@@ -1937,7 +1937,7 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 		chooser.setAcceptAllFileFilterUsed(false);
 		chooser.setFileFilter(gameDataFileFilter);
 		if (chooser.showOpenDialog(this)==JFileChooser.APPROVE_OPTION) {
-			RealmLoader.DATA_PATH = chooser.getSelectedFile().toPath().toString();
+			RealmLoader.DATA_PATH = chooser.getSelectedFile().getAbsolutePath();
 		}
 	}
 	public JDesktopPane getDesktop() {

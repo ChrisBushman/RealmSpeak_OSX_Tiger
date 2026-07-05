@@ -598,7 +598,7 @@ public class QuestLocation extends GameObjectWrapper {
 			Quest clonedQuest = new Quest(clonedQuestGo);
 			for (QuestLocation loc : clonedQuest.getLocations()) {
 				if (loc.getTagName().matches(this.getTagName())) {
-					if (loc.getLockAddress()!=null&&!loc.getLockAddress().isEmpty()) {
+					if (loc.getLockAddress()!=null&&loc.getLockAddress().length() > 0) {
 						this.setLockAddress(loc.getLockAddress());
 						return true;
 					}
@@ -609,7 +609,7 @@ public class QuestLocation extends GameObjectWrapper {
 	}
 	
 	private void setLocationAddressForClonedQuests(String message) {
-		if (this.getLockAddress()==null || this.getLockAddress().isEmpty()) return;
+		if (this.getLockAddress()==null || this.getLockAddress().length() == 0) return;
 		GameObject questGo = getGameObject().getHeldBy();
 		Quest quest = new Quest(questGo);
 		for (GameObject clonedQuestGo : quest.findClones(getGameData().getGameObjects())) {

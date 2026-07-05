@@ -1184,7 +1184,7 @@ public class TreasureUtility {
 		}
 		if (thing.hasThisAttribute(Constants.CHIT_SPEED)) {
 			String val = thing.getThisAttribute(Constants.CHIT_SPEED);
-			ArrayList<?> changes = new ArrayList<?>(StringUtilities.stringToCollection(val,","));
+			ArrayList changes = new ArrayList(StringUtilities.stringToCollection(val,","));
 			if (changes.size()==3) { // there MUST be three to indicate 0,1,2 asterisks
 				for (CharacterActionChitComponent chit : allChits) {
 					if (!chit.isMoveFight() && !chit.isTreasureChit()) { // MOVE/FIGHT and treasure-based chits are not affected

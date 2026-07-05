@@ -25,7 +25,7 @@ public class QuestRequirementTraveler extends QuestRequirement {
 		Pattern pattern = Pattern.compile(getRegExFilter());
 		String questId = getParentQuest().getGameObject().getStringId();
 		for (RealmComponent traveler : loc.clearing.getClearingComponents()) {
-			if (getRegExFilter().isEmpty() || pattern.matcher(traveler.getGameObject().getName()).find()) {
+			if (getRegExFilter().length() == 0 || pattern.matcher(traveler.getGameObject().getName()).find()) {
 				if (requiresMark()) {
 					String mark = traveler.getGameObject().getThisAttribute(QuestConstants.QUEST_MARK);
 					if (mark==null || !mark.equals(questId)) continue;
@@ -43,7 +43,7 @@ public class QuestRequirementTraveler extends QuestRequirement {
 			sb.append(" a marked");
 		}
 		sb.append(" traveler");
-		if (!getRegExFilter().isEmpty()) {
+		if (getRegExFilter().length() > 0) {
 			sb.append("with the name: "+getRegExFilter());
 		}
 		else {

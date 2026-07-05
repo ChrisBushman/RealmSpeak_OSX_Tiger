@@ -108,7 +108,7 @@ public class QuestRequirementTrade extends QuestRequirement {
 		if (tradeWithConditionalFame()) {
 			sb.append(" with conditional fame");
 		}
-		if (getTradeItemRegEx()!=null && !getTradeItemRegEx().isEmpty()) {
+		if (getTradeItemRegEx()!=null && getTradeItemRegEx().length() > 0) {
 			if (tradeItem() || tradeTreasure() || tradeSpell()) {
 				sb.append(",");	
 			}
@@ -119,7 +119,7 @@ public class QuestRequirementTrade extends QuestRequirement {
 				sb.append(",");	
 			}
 		}
-		if (getTradeWithRegEx()!=null && !getTradeWithRegEx().isEmpty()) {
+		if (getTradeWithRegEx()!=null && getTradeWithRegEx().length() > 0) {
 			sb.append(" ");	
 			sb.append(tt==TradeType.Buy?"from":"to");
 			sb.append(" the ");

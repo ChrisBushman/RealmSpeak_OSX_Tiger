@@ -118,12 +118,12 @@ public class ListChooser extends AggressiveDialog implements ActionListener {
 
 	public Vector getSelectedItems() {
 		if (!list.isSelectionEmpty()) {
-			List items = list.getSelectedValuesList();
+			Object[] items = list.getSelectedValues();
 			Vector itemsVector = null;
 			if (items != null) {
-				itemsVector = new Vector(items.size());
-				for (int i = 0; i < items.size(); i++) {
-					itemsVector.addElement(items.get(i));
+				itemsVector = new Vector(items.length);
+				for (int i = 0; i < items.length; i++) {
+					itemsVector.addElement(items[i]);
 				}
 			}
 			return itemsVector;

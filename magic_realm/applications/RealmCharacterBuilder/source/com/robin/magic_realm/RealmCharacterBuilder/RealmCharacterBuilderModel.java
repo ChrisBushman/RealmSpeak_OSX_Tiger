@@ -2,7 +2,6 @@ package com.robin.magic_realm.RealmCharacterBuilder;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.nio.file.Files;
 import java.util.*;
 
 import javax.imageio.ImageIO;
@@ -544,7 +543,9 @@ public class RealmCharacterBuilderModel {
 		// Extract to a unique temp dir so concurrent instances don't collide on shared filenames
 		File tempDir;
 		try {
-			tempDir = Files.createTempDirectory("rschar_").toFile();
+			tempDir = File.createTempFile("rschar_", null);
+			tempDir.delete();
+			tempDir.mkdir();
 		} catch (IOException ex) {
 			throw new RealmCharacterException("Unable to create temp dir for "+file.getAbsolutePath()+": "+ex);
 		}

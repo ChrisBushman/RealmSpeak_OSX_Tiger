@@ -98,7 +98,7 @@ public class QuestRewardSummonTraveler extends QuestReward {
 		} else {
 			sb.append("a single or multiple travelers");
 		}
-		if (!travelerName().isEmpty()) {
+		if (travelerName().length() > 0) {
 			sb.append(" with the name "+travelerName());
 		}
 		if (locationOnly()) {

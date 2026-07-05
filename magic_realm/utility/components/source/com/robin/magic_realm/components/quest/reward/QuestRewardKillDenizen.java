@@ -41,7 +41,7 @@ public class QuestRewardKillDenizen extends QuestReward {
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
 		ArrayList<GameObject> denizens = new ArrayList<GameObject>();
-		if (!getDenizenNameRegex().isEmpty()) {
+		if (getDenizenNameRegex().length() > 0) {
 			denizens = character.getGameData().getGameObjectsByNameRegex(getDenizenNameRegex());
 		}
 		else {
@@ -137,7 +137,7 @@ public class QuestRewardKillDenizen extends QuestReward {
 	
 	public String getDescription() {
 		StringBuffer sb = new StringBuffer();
-		if (getDenizenNameRegex().isEmpty()) {
+		if (getDenizenNameRegex().length() == 0) {
 			sb.append("All denizens are killed");
 		}
 		else {

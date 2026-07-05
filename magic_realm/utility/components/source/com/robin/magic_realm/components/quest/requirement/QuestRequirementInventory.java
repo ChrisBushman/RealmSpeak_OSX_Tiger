@@ -113,7 +113,7 @@ public class QuestRequirementInventory extends QuestRequirementLoot {
 			sb.append(regex);
 			sb.append("/");
 		}
-		if (getRequiredAbility()!=null && !getRequiredAbility().isEmpty()) {
+		if (getRequiredAbility()!=null && getRequiredAbility().length() > 0) {
 			sb.append(" with the ability "+getRequiredAbility());
 		}
 		sb.append(".");

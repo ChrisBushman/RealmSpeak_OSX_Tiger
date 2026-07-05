@@ -168,7 +168,7 @@ public class CenteredMapView extends JComponent {
 		this.gameData = data;
 		game = GameWrapper.findGame(gameData);
 		calendar = RealmCalendar.getCalendar(data);
-		mapGrid = new Hashtable<Point, Tile>();
+		mapGrid = new Hashtable<Point, TileComponent>();
 		planningMapGrid = new Hashtable<Point, Tile>();
 		availablePositions = new ArrayList<Point>();
 		chatLines = new ArrayList<ChatLine>();

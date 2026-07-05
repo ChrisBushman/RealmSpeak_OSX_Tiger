@@ -33,7 +33,7 @@ public class QuestChooser extends AggressiveDialog {
 	public Quest getChosenQuest() {
 		return chosenQuest;
 	}
-	private void initComponents(CharacterWrapper character) {
+	private void initComponents(final CharacterWrapper character) {
 		setSize(800,600);
 		setLayout(new BorderLayout());
 		questList = new JList(listOfQuests.toArray());

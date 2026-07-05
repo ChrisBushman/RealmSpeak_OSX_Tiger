@@ -40,7 +40,7 @@ public class QuestRequirementHire extends QuestRequirement {
 		if (getNumberOfHirelings()!=0) {
 			sb.append(" "+getNumberOfHirelings());
 		}
-		if (getRegExFilter()!=null && !getRegExFilter().isEmpty()) {
+		if (getRegExFilter()!=null && getRegExFilter().length() > 0) {
 			sb.append(" "+getRegExFilter()+"s");
 		}
 		else {

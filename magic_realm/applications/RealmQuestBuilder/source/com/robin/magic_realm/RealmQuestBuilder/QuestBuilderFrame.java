@@ -151,7 +151,7 @@ public class QuestBuilderFrame extends JFrame {
 		chooser.setAcceptAllFileFilterUsed(false);
 		chooser.setFileFilter(GameFileFilters.createGameDataFileFilter());
 		if (chooser.showOpenDialog(this)==JFileChooser.APPROVE_OPTION) {
-			RealmLoader.DATA_PATH = chooser.getSelectedFile().toPath().toString();
+			RealmLoader.DATA_PATH = chooser.getSelectedFile().getAbsolutePath();
 			return true;
 		}
 		return false;

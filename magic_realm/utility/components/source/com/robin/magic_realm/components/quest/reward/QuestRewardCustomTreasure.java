@@ -40,7 +40,7 @@ public class QuestRewardCustomTreasure extends QuestReward {
 	}
 	
 	public void processReward(JFrame frame,CharacterWrapper character) {
-		if (getTreasureRegex().isEmpty()) return;
+		if (getTreasureRegex().length() == 0) return;
 		GameObject treasure = character.getGameData().getGameObjectByNameIgnoreCase(getTreasureRegex());
 		if (treasure == null) return;
 		GameObject customTreasure = treasure.copy();

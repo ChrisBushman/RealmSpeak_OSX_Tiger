@@ -45,7 +45,7 @@ public class LoggingFormatter extends Formatter {
 				sb.append(element.toString());
 			}
 		}
-		sb.append(System.lineSeparator());
+		sb.append(System.getProperty("line.separator"));
 		return sb.toString();
 	}
 	private static String truncateClassName(String className) {

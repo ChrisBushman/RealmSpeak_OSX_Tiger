@@ -22,7 +22,7 @@ public class MapDefaultViewControl extends JPanel {
 	private boolean userPositioned = false;
 	private Point dragStartInPanel = null;
 
-	public MapDefaultViewControl(CenteredMapView map) {
+	public MapDefaultViewControl(final CenteredMapView map) {
 		super(new BorderLayout(2,0));
 		setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createLineBorder(Color.darkGray),
@@ -44,7 +44,7 @@ public class MapDefaultViewControl extends JPanel {
 	}
 
 	private JComponent createGripHandle() {
-		JComponent grip = new JComponent() {
+		final JComponent grip = new JComponent() {
 			protected void paintComponent(Graphics g) {
 				g.setColor(Color.darkGray);
 				for (int row=0;row<3;row++) {
@@ -58,10 +58,12 @@ public class MapDefaultViewControl extends JPanel {
 		grip.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 		grip.setToolTipText("Drag to move");
 
-		MouseAdapter dragHandler = new MouseAdapter() {
+		MouseAdapter clickHandler = new MouseAdapter() {
 			public void mousePressed(MouseEvent ev) {
 				dragStartInPanel = SwingUtilities.convertPoint(grip,ev.getPoint(),MapDefaultViewControl.this);
 			}
+		};
+		MouseMotionAdapter dragHandler = new MouseMotionAdapter() {
 			public void mouseDragged(MouseEvent ev) {
 				userPositioned = true;
 				Point nowInPanel = SwingUtilities.convertPoint(grip,ev.getPoint(),MapDefaultViewControl.this);
@@ -69,7 +71,7 @@ public class MapDefaultViewControl extends JPanel {
 				moveTo(loc.x+(nowInPanel.x-dragStartInPanel.x), loc.y+(nowInPanel.y-dragStartInPanel.y));
 			}
 		};
-		grip.addMouseListener(dragHandler);
+		grip.addMouseListener(clickHandler);
 		grip.addMouseMotionListener(dragHandler);
 		return grip;
 	}

@@ -74,7 +74,7 @@ public class QuestRequirementKillDenizenSummonedByChit extends QuestRequirement 
 			GameObject holder = SetupCardUtility.getDenizenHolder(kill);
 			if (holder!=null) {
 				String summonList = holder.getThisAttribute("summon");
-				if (getChit().matches(QuestRequirement.NONE) && (summonList==null || summonList.isEmpty())) {
+				if (getChit().matches(QuestRequirement.NONE) && (summonList==null || summonList.length() == 0)) {
 					return true;
 				}
 				if (summonList!=null) {

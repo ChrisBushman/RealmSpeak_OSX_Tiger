@@ -920,7 +920,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		}
 	}
 
-	private void handleDirectInfo(RealmDirectInfoHolder info) {
+	private void handleDirectInfo(final RealmDirectInfoHolder info) {
 		String command = info.getCommand();
 		if (RealmDirectInfoHolder.HOST_DETAIL_LOG.equals(command)) {
 			RealmLogWindow.getSingleton().clearLog();

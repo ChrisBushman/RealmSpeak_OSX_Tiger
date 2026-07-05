@@ -19,7 +19,7 @@ public class QuestRequirementGuild extends QuestRequirement {
 	}
 
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
-		if (character.getCurrentGuild() != null && (getGuildName().isEmpty() || Pattern.compile(getGuildName()).matcher(character.getCurrentGuild()).find())) {
+		if (character.getCurrentGuild() != null && (getGuildName().length() == 0 || Pattern.compile(getGuildName()).matcher(character.getCurrentGuild()).find())) {
 			if (exceedAllowed()) {
 				return character.getCurrentGuildLevel() >= getGuildLevel();
 			}
@@ -33,7 +33,7 @@ public class QuestRequirementGuild extends QuestRequirement {
 	}
 
 	protected String buildDescription() {
-		if (getGuildName().isEmpty()) {
+		if (getGuildName().length() == 0) {
 			return "Character must be level "+getGuildLevel()+" member in any guild.";
 		}
 		return "Character must be level "+getGuildLevel()+" member in the "+getGuildName()+".";

@@ -93,7 +93,7 @@ public class RealmInspectorFrame extends RealmSpeakInternalFrame {
 		// so a Swing child added directly to map would never actually be painted. The "Default
 		// View"/"Set Default" overlay is therefore added as a SIBLING of map inside a JLayeredPane,
 		// on a higher layer so it floats on top and still receives its own click events.
-		JLayeredPane mapLayeredPane = new JLayeredPane();
+		final JLayeredPane mapLayeredPane = new JLayeredPane();
 		mapLayeredPane.add(map,JLayeredPane.DEFAULT_LAYER);
 		final MapDefaultViewControl defaultViewControl = new MapDefaultViewControl(map);
 		mapLayeredPane.add(defaultViewControl,JLayeredPane.PALETTE_LAYER);

@@ -46,7 +46,6 @@ public class TileLocationChooser extends AggressiveDialog {
 		this.viewer = map;
 		selectedLocation = null;
 		initComponents();
-		setIconImage(IconFactory.findIcon("images/interface/build.gif").getImage());
 		if (lastDisplayArea == null) {
 			setSize(800,600);
 			setLocationRelativeTo(parent);

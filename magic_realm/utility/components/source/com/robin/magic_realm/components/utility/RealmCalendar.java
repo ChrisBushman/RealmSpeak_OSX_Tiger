@@ -457,17 +457,10 @@ public class RealmCalendar {
 		}
 	}
 	public static int getWeatherInt(String weather) {
-		switch (weather) {
-		case RealmCalendar.WEATHER_SPECIAL:
-			return 3;
-		case RealmCalendar.WEATHER_STORM:
-			return 4;
-		case RealmCalendar.WEATHER_SHOWERS:
-			return 5;
-		default:
-		case RealmCalendar.WEATHER_CLEAR:
-			return 6;
-		}
+		if (WEATHER_SPECIAL.equals(weather)) return 3;
+		if (WEATHER_STORM.equals(weather)) return 4;
+		if (WEATHER_SHOWERS.equals(weather)) return 5;
+		return 6;
 	}
 	public static boolean isSeventhDay(int day) {
 		return day==7 || day==14 || day==21 || day==28;

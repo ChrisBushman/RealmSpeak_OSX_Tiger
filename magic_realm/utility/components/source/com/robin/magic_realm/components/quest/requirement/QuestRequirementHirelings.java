@@ -48,7 +48,7 @@ public class QuestRequirementHirelings extends QuestRequirement {
 		}
 		Pattern pattern = Pattern.compile(getRegExFilter());
 		for (RealmComponent hireling : hirelings) {
-			if (getRegExFilter().isEmpty() || pattern.matcher(hireling.getGameObject().getName()).find()) {
+			if (getRegExFilter().length() == 0 || pattern.matcher(hireling.getGameObject().getName()).find()) {
 				if (sameLocation() && !(hireling.getCurrentLocation().tile == character.getCurrentLocation().tile && hireling.getCurrentLocation().clearing == character.getCurrentLocation().clearing)) continue;
 				if (checkStats()) {
 					BattleChit denizen = null;

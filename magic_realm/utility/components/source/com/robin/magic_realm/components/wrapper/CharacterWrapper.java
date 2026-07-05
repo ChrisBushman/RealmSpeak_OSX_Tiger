@@ -2969,7 +2969,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 	public void removeMinion(GameObject go) {
 		ArrayList<String> list = getList(MINION_ID);
 		if (list!=null && list.contains(go.getStringId())) {
-			list = new ArrayList<RealmComponent>(list);
+			list = new ArrayList<String>(list);
 			list.remove(go.getStringId());
 			if (list.size()>0) {
 				setList(MINION_ID,list);
@@ -4746,7 +4746,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 		ArrayList<String> list = null;
 		String foundEnemyList = getString(FOUND_HIDDEN_ENEMIES);
 		if (foundEnemyList!=null && foundEnemyList.length()>0) {
-			list = new ArrayList<RealmComponent>();
+			list = new ArrayList<String>();
 			StringTokenizer tokens = new StringTokenizer(foundEnemyList,",");
 			while(tokens.hasMoreTokens()) {
 				list.add(tokens.nextToken());
@@ -7678,14 +7678,14 @@ public class CharacterWrapper extends GameObjectWrapper {
 	public void removeSpellExtraAction(String action) {
 		ArrayList<String> list = getList(SPELL_EXTRA_ACTIONS);
 		if (list!=null) {
-			list = new ArrayList<RealmComponent>(list);
+			list = new ArrayList<String>(list);
 			int n = list.indexOf(action);
 			if (n>=0) {
 				list.remove(n);
 				setList(SPELL_EXTRA_ACTIONS,list);
-				
+
 				list = getList(SPELL_EXTRA_ACTION_SOURCE);
-				list = new ArrayList<RealmComponent>(list);
+				list = new ArrayList<String>(list);
 				list.remove(n);
 				setList(SPELL_EXTRA_ACTION_SOURCE,list);
 			}

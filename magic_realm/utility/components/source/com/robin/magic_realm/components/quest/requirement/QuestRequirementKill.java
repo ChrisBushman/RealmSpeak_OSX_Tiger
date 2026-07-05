@@ -133,10 +133,10 @@ public class QuestRequirementKill extends QuestRequirement {
 			sb.append(" denizen");
 		}
 		sb.append(val==1?"":"s");
-		if(!getRegExFilter().isEmpty()) {
+		if(getRegExFilter().length() != 0) {
 			sb.append(" that match");
 			sb.append(val==1?"es ":" ");
-			if (!getRegExDescription().isEmpty()) {
+			if (getRegExDescription().length() > 0) {
 				sb.append(getRegExDescription());
 			} else {
 				sb.append(getRegExFilter());

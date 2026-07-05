@@ -52,7 +52,7 @@ public class QuestRewardSummonFromAppearanceToChit extends QuestReward {
 		}
 		
 		ArrayList<GameObject> validChits = new ArrayList<GameObject>();
-		if (!getChit().isEmpty()) {
+		if (getChit().length() > 0) {
 			ArrayList<GameObject> chits = character.getGameData().getGameObjectsByNameRegex(getChit());
 			for (GameObject chit : chits) {
 				RealmComponent rc = RealmComponent.getRealmComponent(chit);
@@ -134,7 +134,7 @@ public class QuestRewardSummonFromAppearanceToChit extends QuestReward {
 		}
 
 		ArrayList<GameObject> validDenizens = new ArrayList<GameObject>();
-		if (!getDenizenName().isEmpty()) {
+		if (getDenizenName().length() > 0) {
 			ArrayList<GameObject> possibleDenizens = character.getGameData().getGameObjectsByNameRegex(getDenizenName());
 			for (GameObject denizen : possibleDenizens) {
 				if (denizen.hasThisAttribute("vulnerability") && denizen.hasThisAttribute("setup_start")) {
@@ -215,16 +215,16 @@ public class QuestRewardSummonFromAppearanceToChit extends QuestReward {
 	public String getDescription() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("Summons ");
-		if (!getDenizenName().isEmpty()) {
+		if (getDenizenName().length() > 0) {
 			sb.append(getDenizenName()+"(s) ");
 		}
-		if (!getChit().isEmpty()) {
+		if (getChit().length() > 0) {
 			sb.append("to "+getChit());
 		}
-		if (summonTo() != SummonTo.Anywhere && !getChit().isEmpty()) {
+		if (summonTo() != SummonTo.Anywhere && getChit().length() > 0) {
 			sb.append(" of ");
 		}
-		if (summonTo() != SummonTo.Anywhere && getChit().isEmpty()) {
+		if (summonTo() != SummonTo.Anywhere && getChit().length() == 0) {
 			sb.append(" to ");
 		}
 		if (summonTo() != SummonTo.Anywhere) {

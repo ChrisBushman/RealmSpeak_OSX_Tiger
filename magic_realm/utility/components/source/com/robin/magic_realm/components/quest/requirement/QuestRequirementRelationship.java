@@ -25,7 +25,7 @@ public class QuestRequirementRelationship extends QuestRequirement {
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
 		Pattern pattern = Pattern.compile(getNativesRegex().toLowerCase());
 		for (GameObject nativeGroup : getRepresentativeNatives(character)) {
-			if (getNativesRegex().isEmpty() || pattern.matcher(nativeGroup.getName().toLowerCase()).find()) {
+			if (getNativesRegex().length() == 0 || pattern.matcher(nativeGroup.getName().toLowerCase()).find()) {
 					if (exceedAllowed() && character.getRelationship(nativeGroup) >= getRelationshipLevel()) {
 						return true;
 					}
@@ -43,7 +43,7 @@ public class QuestRequirementRelationship extends QuestRequirement {
 	protected String buildDescription() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("Characters relationship with ");
-		if (!getNativesRegex().isEmpty()) {
+		if (getNativesRegex().length() > 0) {
 				sb.append(getNativesRegex());
 		}
 		else {
