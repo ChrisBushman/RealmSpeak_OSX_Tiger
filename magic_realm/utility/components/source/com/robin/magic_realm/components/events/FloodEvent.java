@@ -59,7 +59,7 @@ public class FloodEvent implements IEvent {
 		else {
 			return description;
 		}
-		if (text.isEmpty()) return description;
+		if ((text.length() == 0)) return description;
 		text = "In " + text.substring(0,text.length()-2) + " Flood is cast in the first round of combat.";
 		return text;
 	}

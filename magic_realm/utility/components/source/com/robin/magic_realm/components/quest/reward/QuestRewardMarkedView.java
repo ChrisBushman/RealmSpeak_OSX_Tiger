@@ -25,7 +25,7 @@ public class QuestRewardMarkedView extends QuestReward {
 			} else {
 				getParentQuest().getGameObject().removeThisAttribute(QuestConstants.MAKRED_VIEW_NO_SECRETS);
 			}
-			if (title()!=null && !title().isEmpty()) {
+			if (title()!=null && !(title().length() == 0)) {
 				getParentQuest().getGameObject().setThisAttribute(QuestConstants.MAKRED_VIEW_TITLE,title());
 			} else {
 				getParentQuest().getGameObject().removeThisAttribute(QuestConstants.MAKRED_VIEW_TITLE);

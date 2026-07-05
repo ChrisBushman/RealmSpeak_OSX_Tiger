@@ -1339,7 +1339,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		else {
 			baseValue=getGameObject().getThisAttribute(Constants.VULNERABILITY);
 		}
-		if (fallback!=null && (baseValue==null||baseValue.isEmpty())) {
+		if (fallback!=null && (baseValue==null||(baseValue.length() == 0))) {
 			baseValue=fallback;
 		}
 		

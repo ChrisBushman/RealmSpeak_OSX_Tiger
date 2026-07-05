@@ -752,7 +752,7 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 		
 		if (this.affectedByKey(Constants.DISENCHANT_POTION) && attacker.isMonster()) {
 			MonsterChitComponent monster = (MonsterChitComponent)attacker;
-			if (!attacker.getAttackSpell().isEmpty() || (monster.getThisAttribute(Constants.VULNERABILITY).matches("T") && monster.hasMagicType())) {
+			if (!(attacker.getAttackSpell().length() == 0) || (monster.getThisAttribute(Constants.VULNERABILITY).matches("T") && monster.hasMagicType())) {
 				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Cannot hit "+this.getName()+", as the character is affected by Disenchantment Potion.");
 				return false;
 			}

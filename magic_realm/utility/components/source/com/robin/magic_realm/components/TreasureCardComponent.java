@@ -243,7 +243,7 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 						} else if(defaultStrength.strongerThan(strength)) {
 							textTpye = "CLOSED_ORANGE";
 						}
-						if (!speedString.isEmpty()) {
+						if (!(speedString.length() == 0)) {
 							String defaultSpeed = gameObject.getThisAttribute("attack_speed");
 							if ((defaultSpeed==null || defaultSpeed.isEmpty()) && speed!=null) {
 								textTpye2 = "CLOSED_BLUE";

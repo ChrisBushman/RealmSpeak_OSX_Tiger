@@ -77,11 +77,11 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 			}
 			else {
 				String lightColorString = getAttribute("light", "chit_color");
-				if (lightColorString == null || lightColorString.isEmpty()) {
+				if (lightColorString == null || (lightColorString.length() == 0)) {
 					lightColorString = getAttribute("intact", "chit_color");
 				}
 				String darkColorString = getAttribute("dark", "chit_color");
-				if (darkColorString == null || darkColorString.isEmpty()) {
+				if (darkColorString == null || (darkColorString.length() == 0)) {
 					darkColorString = getAttribute("damaged", "chit_color");
 				}
 				lightColor = MagicRealmColor.getColor(lightColorString);
@@ -757,7 +757,7 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 		return getFaceAttributeString("magic_type");
 	}
 	public boolean hasMagicType() {
-		return !getAttribute(getLightSideStat(),"magic_type").isEmpty() || !getAttribute(getDarkSideStat(),"magic_type").isEmpty();
+		return !(getAttribute(getLightSideStat(),"magic_type").length() == 0) || !(getAttribute(getDarkSideStat(),"magic_type").length() == 0);
 	}
 	public String getAttackSpell() {
 		return getFaceAttributeString("attack_spell");

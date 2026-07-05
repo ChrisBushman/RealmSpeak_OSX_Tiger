@@ -623,7 +623,7 @@ public class BattleModel {
 					monsterSpells.put(Integer.valueOf(denizen.getAttackSpeed().getNum()),denizen);
 				}
 				else if ((denizen.getGameObject().hasThisAttribute(Constants.FAST_CASTER) || ((ChitComponent)denizen).hasFaceAttribute(Constants.FAST_CASTER))
-						&& denizen.getMagicType()!=null&&!denizen.getMagicType().isEmpty()) {
+						&& denizen.getMagicType()!=null&&(denizen.getMagicType().length() > 0)) {
 					String spellName = denizen.getAttackSpell();
 					SpellWrapper spell = null;
 					for (GameObject held : denizen.getGameObject().getHold()) {
@@ -1152,7 +1152,7 @@ public class BattleModel {
 				}
 			}
 			if (changeTacticsForNonSpellAttack && combat.getCastSpell()==null) {
-				if (((magicType == null || magicType.isEmpty()) && (attackSpell == null || attackSpell.isEmpty()))
+				if (((magicType == null || (magicType.length() == 0)) && (attackSpell == null || (attackSpell.length() == 0)))
 						|| (combatRound!=1 && (rc.getGameObject().hasThisAttribute(Constants.CAST_ONLY_IN_FIRST_COMBAT_ROUND) || ((ChitComponent)rc).hasFaceAttribute(Constants.CAST_ONLY_IN_FIRST_COMBAT_ROUND)))) {
 					rc.flip();
 				}
@@ -1389,7 +1389,7 @@ public class BattleModel {
 				transmorphed = true;
 			}
 		}
-		if ((attacker.isMonster() || attacker.isNative() || transmorphed) && magicType!=null && !magicType.isEmpty()
+		if ((attacker.isMonster() || attacker.isNative() || transmorphed) && magicType!=null && !(magicType.length() == 0)
 				&& (attacker.getGameObject().hasThisAttribute(Constants.SPELL_TARGETS_SELF) || ((ChitComponent)attacker).hasFaceAttribute(Constants.SPELL_TARGETS_SELF))) {
 			String spellName = attacker.getAttackSpell();
 			SpellWrapper spell = null;
@@ -2034,7 +2034,7 @@ public class BattleModel {
 						setSpellCasting();
 						spellCasted = true;
 					}
-					if ((attacker.isMonster() || attacker.isNative() || transmorphed) && !magicType.isEmpty()
+					if ((attacker.isMonster() || attacker.isNative() || transmorphed) && !(magicType.length() == 0)
 							&& !attacker.getGameObject().hasThisAttribute(Constants.SPELL_TARGETS_SELF) && !((ChitComponent)attacker).hasFaceAttribute(Constants.SPELL_TARGETS_SELF)) {
 						String spellName = attacker.getAttackSpell();
 						SpellWrapper spell = null;

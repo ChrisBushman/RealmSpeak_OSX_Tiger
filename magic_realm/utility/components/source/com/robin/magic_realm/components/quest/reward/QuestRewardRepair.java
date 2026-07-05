@@ -19,7 +19,7 @@ public class QuestRewardRepair extends QuestReward {
 	}
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
-		if (!getRegex().isEmpty()) {
+		if ((getRegex().length() > 0)) {
 			Pattern pattern = Pattern.compile(getRegex());
 			for (GameObject obj : character.getInventory()) {
 				if (!pattern.matcher(obj.getName()).find()) continue;
@@ -39,7 +39,7 @@ public class QuestRewardRepair extends QuestReward {
 	}
 	
 	public String getDescription() {
-		if (!getRegex().isEmpty()) {
+		if ((getRegex().length() > 0)) {
 			return "Repairs '"+getRegex()+"' of the character.";
 		}
 		return "Repairs all items of the character.";

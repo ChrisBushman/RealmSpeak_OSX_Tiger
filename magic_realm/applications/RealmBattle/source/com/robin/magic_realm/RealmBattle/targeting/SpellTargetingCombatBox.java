@@ -52,6 +52,6 @@ public class SpellTargetingCombatBox extends SpellTargeting {
 
 	@Override
 	public boolean hasTargets() {
-		return spell.getExtraIdentifier() != null && !spell.getExtraIdentifier().isEmpty();
+		return spell.getExtraIdentifier() != null && !(spell.getExtraIdentifier().length() == 0);
 	}
 }

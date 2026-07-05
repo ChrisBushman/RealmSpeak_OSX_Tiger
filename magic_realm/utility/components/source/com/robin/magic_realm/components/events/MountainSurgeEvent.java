@@ -72,7 +72,7 @@ public class MountainSurgeEvent implements IEvent {
 		else {
 			return description;
 		}
-		if (text.isEmpty()) return description;
+		if ((text.length() == 0)) return description;
 		text = "In "+text.substring(0,text.length()-2) + " Mountain Surge is cast and lasts until the seventh day of the week.";
 		return text;
 	}

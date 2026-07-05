@@ -39,7 +39,7 @@ public class QuestRequirementNextPhase extends QuestRequirement {
 		return getInt(PHASES_TO_SKIP);
 	}
 	private GamePhaseType getPhaseStarted() {
-		if (getString(PHASE_STARTED) == null || getString(PHASE_STARTED).isEmpty()) return GamePhaseType.Unspecified;
+		if (getString(PHASE_STARTED) == null || getString(PHASE_STARTED).length() == 0) return GamePhaseType.Unspecified;
 		return GamePhaseType.valueOf(getString(PHASE_STARTED));
 	}
 	private DayKey getDayStarted() {
