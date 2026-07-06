@@ -106,7 +106,7 @@ cd products
 java -jar RealmSpeakFull.jar
 ```
 
-Or on Tiger, double-click `run.bat` (Windows) / launch directly via `java -jar`.
+Or on Tiger, double-click `RealmSpeak.command` / launch directly via `java -jar`.
 
 ---
 
