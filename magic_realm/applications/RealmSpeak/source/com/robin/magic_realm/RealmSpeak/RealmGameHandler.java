@@ -143,7 +143,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		log = RealmLogWindow.getSingleton();
 
 		setFrameIcon(IconFactory.findIcon("images/interface/options.gif"));
-		setSize(500, 300);
+		setSize(500, 400);
 		setLocation(200, 100);
 		setContentPane(new JPanel(new BorderLayout()));
 		characterList = new ArrayList<CharacterWrapper>();

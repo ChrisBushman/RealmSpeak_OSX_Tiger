@@ -388,11 +388,11 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 	}
 	private void showCredits() {
 		String fontName = "Dialog";
-		Font header = new Font(fontName,Font.BOLD,22);
+		Font header = new Font(fontName,Font.BOLD,20);
 		Color headerColor = Color.green;
-		Font subheader = new Font(fontName,Font.BOLD,18);
+		Font subheader = new Font(fontName,Font.BOLD,16);
 		Color subheaderColor = new Color(0,0,120);
-		Font listing = new Font(fontName,Font.BOLD,16);
+		Font listing = new Font(fontName,Font.BOLD,14);
 		Color listingColor = Color.black;
 		
 		ScrollingText scroller = new ScrollingText(IconFactory.findIcon("pending/logo/parchment.png"),new Insets(32,0,30,0));
@@ -448,7 +448,8 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 		scroller.addLine(new ScrollLine("Redesigned Melee Sections",subheader,subheaderColor));
 		scroller.addLine(new ScrollLine("Jay Richardson",listing,listingColor));
 		scroller.addLine(new ScrollLine());
-		scroller.addLine(new ScrollLine("Redesigned Combat Charts for Super Realm",subheader,subheaderColor));
+		scroller.addLine(new ScrollLine("Redesigned Combat Charts",subheader,subheaderColor));
+		scroller.addLine(new ScrollLine("for Super Realm",subheader,subheaderColor));
 		scroller.addLine(new ScrollLine("Casey Benn",listing,listingColor));
 		scroller.addLine(new ScrollLine());
 		scroller.addLine(new ScrollLine("Remodeled Counter Layout",subheader,subheaderColor));
@@ -515,6 +516,7 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 		scroller.addLine(new ScrollLine());
 		scroller.addLine(new ScrollLine("Super Realm",subheader,subheaderColor));
 		scroller.addLine(new ScrollLine("Anomalous Host",listing,listingColor));
+		scroller.addLine(new ScrollLine());
 		scroller.addLine(new ScrollLine("Super Realm Graphics",subheader,subheaderColor));
 		scroller.addLine(new ScrollLine("Casey Benn",listing,listingColor));
 		scroller.addLine(new ScrollLine("Battle for Wesnoth",listing,listingColor,null,0,SwingConstants.CENTER,"https://www.wesnoth.org/"));
@@ -2420,6 +2422,12 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 		}
 	}
 	public static void main(String[]args) {
+		// Must be set before AWT initializes so the macOS menu bar shows a proper name.
+		// apple.awt.application.name works on Java 6+ / modern macOS.
+		// com.apple.mrj.application.apple.menu.about.name is the Tiger-era equivalent.
+		String appName = "RealmSpeak " + Constants.REALM_SPEAK_VERSION + " for OS X";
+		System.setProperty("apple.awt.application.name", appName);
+		System.setProperty("com.apple.mrj.application.apple.menu.about.name", appName);
 		RealmUtility.findImagesFolderOrExit();
 		RealmCharacterBuilderModel.loadAllCustomCharacters();
 		LoggingHandler.initLogging();

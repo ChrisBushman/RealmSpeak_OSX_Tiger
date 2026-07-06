@@ -78,10 +78,16 @@ public class LoggingHandler extends Handler {
 		for (Iterator i=System.getProperties().keySet().iterator();i.hasNext();) {
 			String propertyKey = (String)i.next();
 			if (propertyKey.startsWith("com")) {
-				Logger aLogger = Logger.getLogger(propertyKey);
 				String property = System.getProperty(propertyKey);
-				aLogger.setLevel(Level.parse(property));
-System.out.println("Logging for "+propertyKey+": "+property);
+				Level level;
+				try {
+					level = Level.parse(property);
+				} catch (IllegalArgumentException ex) {
+					continue; // property value is not a valid log level; skip it
+				}
+				Logger aLogger = Logger.getLogger(propertyKey);
+				aLogger.setLevel(level);
+				System.out.println("Logging for "+propertyKey+": "+property);
 			}
 		}
 	}

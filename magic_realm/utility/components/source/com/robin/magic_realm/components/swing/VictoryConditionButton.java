@@ -12,7 +12,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.text.*;
 
 public class VictoryConditionButton extends JPanel {
-	private static Font font = new Font("Dialog",Font.PLAIN,18);
+	private static Font font = new Font("Dialog",Font.PLAIN,16);
 	private JLabel titleLabel;
 	private JTextPane descriptionField;
 	private boolean selected = false;

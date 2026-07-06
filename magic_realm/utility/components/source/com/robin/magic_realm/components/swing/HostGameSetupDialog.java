@@ -491,7 +491,9 @@ public class HostGameSetupDialog extends AggressiveDialog {
 		
 		JPanel mainBox = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
-		
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1.0;
+
 		c.gridy=0;
 		c.weighty = 0.10;
 		mainBox.add(hostingBox,c);
@@ -500,7 +502,7 @@ public class HostGameSetupDialog extends AggressiveDialog {
 		boardSetupSplit.add(buildGamePlayBox(group),"West");
 		boardSetupSplit.add(buildBoardSetupBox(group),"Center");
 		boardSetupSplit.add(buildRatingBox(),"East");
-		boardSetupSplit.setMaximumSize(new Dimension(1000,100));
+		boardSetupSplit.setMaximumSize(new Dimension(2000,300));
 		c.gridy=1;
 		c.weighty = 0.10;
 		mainBox.add(boardSetupSplit,c);
@@ -508,7 +510,6 @@ public class HostGameSetupDialog extends AggressiveDialog {
 		c.gridy=2;
 		c.weighty = 1.00;
 		c.ipady = 40;
-		c.fill = GridBagConstraints.HORIZONTAL;
 		mainBox.add(buildVictoryBox(),c);
 		
 		JPanel mainPanel = new JPanel(new BorderLayout());
@@ -651,6 +652,8 @@ public class HostGameSetupDialog extends AggressiveDialog {
 		
 		optionSpecifics.add(generalSpecifics,BorderLayout.NORTH);
 		optionSpecifics.add(questSpecifics,BorderLayout.SOUTH);
+		// Prevent long checkbox text from driving column overflow in GridBagLayout
+		optionSpecifics.setPreferredSize(new Dimension(1, 30));
 		panel.add(optionSpecifics,BorderLayout.NORTH);
 	
 		JPanel buttonPanel = new JPanel(new GridLayout(2,1));
@@ -811,9 +814,14 @@ public class HostGameSetupDialog extends AggressiveDialog {
 			labelTable.put( 4, new JLabel("4") );
 			labelTable.put( 5, new JLabel("5 - Smart (Long)  ") );
 			minMapRating.setLabelTable( labelTable );
+			minMapRating.setPreferredSize(new Dimension(180, 220));
+			minMapRating.setMinimumSize(new Dimension(180, 100));
 		ratingBox.add(minMapRating);
-		
+
 		ratingBox.setBorder(BorderFactory.createTitledBorder("Minimum Map Rating"));
+		// Force ratingBox preferred width so BorderLayout East allocates enough for slider labels
+		ratingBox.setPreferredSize(new Dimension(210, 280));
+		ratingBox.setMinimumSize(new Dimension(210, 100));
 		return ratingBox;
 	}
 	private Box buildBoardSetupBox(UniformLabelGroup group) {
@@ -823,7 +831,6 @@ public class HostGameSetupDialog extends AggressiveDialog {
 				boardAutoSetup = notifier.getRadioButton("(RealmSpeak builds map)");
 				boardSetupOptions.add(boardAutoSetup);
 			box.add(boardAutoSetup);
-				minMapRating = notifier.getSlider(0,5,0);
 			box.add(Box.createHorizontalGlue());
 		boardSetupBox.add(box);
 			box = group.createLabelLine("Player Pick");
