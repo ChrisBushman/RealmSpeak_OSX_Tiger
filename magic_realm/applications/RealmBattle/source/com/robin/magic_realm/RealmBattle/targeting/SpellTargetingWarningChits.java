@@ -27,22 +27,23 @@ public class SpellTargetingWarningChits extends SpellTargeting {
 	public boolean assign(HostPrefWrapper hostPrefs, CharacterWrapper activeCharacter) {
 		GameObject warningChit = null;
 		if (gameObjects.size()==1) {
-			warningChit = gameObjects.get(0);
+			warningChit = (GameObject) gameObjects.get(0);
 		}
 		else {
-			warningChit = gameObjects.get(RandomNumber.getRandom(gameObjects.size()));
+			warningChit = (GameObject) gameObjects.get(RandomNumber.getRandom(gameObjects.size()));
 		}
 		String type = warningChit.getThisAttribute(RealmComponent.TILE_TYPE);
 		GamePool pool = new GamePool(activeCharacter.getGameData().getGameObjects());
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add(RealmComponent.WARNING);
 		query.add("!"+RealmComponent.DWELLING);
 		query.add(RealmComponent.TILE_TYPE+"="+type);
-		ArrayList<GameObject> options = pool.find(query);
+		ArrayList options = pool.find(query);
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(combatFrame,"Select other warning chit",false);
 		String key = "chit";
 		int keyN = 0;
-		for (GameObject option : options) {
+		for (java.util.Iterator _j14it820 = (options).iterator(); _j14it820.hasNext(); ) {
+		  GameObject option = (GameObject) _j14it820.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(option);
 			GameObject tile = option.getHeldBy();
 			chooser.addOption(key+keyN,tile.getNameWithNumber());
@@ -58,14 +59,15 @@ public class SpellTargetingWarningChits extends SpellTargeting {
 		gameObjects.clear();
 		TileLocation loc = battleModel.getBattleLocation();
 		if (loc == null || loc.tile == null) return false;
-		ArrayList<String> invalidTypes = new ArrayList<String>();
+		ArrayList invalidTypes = new ArrayList();
 		if (spell.getGameObject().hasThisAttribute(Constants.TARGET_INVALID_CHIT_TYPES)) {
 			StringTokenizer types = new StringTokenizer(spell.getGameObject().getThisAttribute(Constants.TARGET_INVALID_CHIT_TYPES),",");
 			while(types.hasMoreTokens()) {
 				invalidTypes.add(types.nextToken());
 			}
 		}
-		for (GameObject go : loc.tile.getHold()) {
+		for (java.util.Iterator _j14it821 = (loc.tile.getHold()).iterator(); _j14it821.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it821.next();
 			if (go.hasThisAttribute(RealmComponent.WARNING) && !go.hasThisAttribute(RealmComponent.DWELLING)) {
 				if (!invalidTypes.contains(go.getThisAttribute(RealmComponent.TILE_TYPE))) {
 					gameObjects.add(go);

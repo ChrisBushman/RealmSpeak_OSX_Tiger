@@ -12,13 +12,13 @@ public class ImageSplitter {
 	private ImageIcon icon;
 	private int imagesPerRow;
 	private int columnWidth;
-	private ArrayList<Integer> rowHeights;
+	private ArrayList rowHeights;
 	
 	public ImageSplitter(String path,int columnWidth) {
 		this.icon = IconFactory.findIcon(path);
 		this.columnWidth = columnWidth;
 		imagesPerRow = icon.getIconWidth()/columnWidth;
-		this.rowHeights = new ArrayList<Integer>();
+		this.rowHeights = new ArrayList();
 	}
 	public void addRow(int rowHeight) {
 		rowHeights.add(Integer.valueOf(rowHeight));
@@ -31,12 +31,12 @@ public class ImageSplitter {
 	private int getY(int row) {
 		int y = 0;
 		for (int i=0;i<(row-1);i++) {
-			y += rowHeights.get(i).intValue();
+			y += ((Integer) rowHeights.get(i)).intValue();
 		}
 		return y;
 	}
 	private int getH(int row) {
-		int h = rowHeights.get(row-1).intValue();
+		int h = ((Integer) rowHeights.get(row-1)).intValue();
 		return h;
 	}
 	public ImageIcon[] getImageIcons(int row) {

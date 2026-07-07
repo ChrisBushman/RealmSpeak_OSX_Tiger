@@ -124,7 +124,7 @@ public class StartingInventoryEditPanel extends AdvantageEditPanel {
 		}
 	}
 	private void pickTreasure() {
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add("treasure");
 		query.add("!treasure_within_treasure");
 		query.add("!book");
@@ -137,7 +137,7 @@ public class StartingInventoryEditPanel extends AdvantageEditPanel {
 		}
 	}
 	private void pickHorse() {
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add("horse");
 		GameObject go = pickGameObject(query,"Choose a Horse:");
 		if (go!=null) {
@@ -145,7 +145,7 @@ public class StartingInventoryEditPanel extends AdvantageEditPanel {
 		}
 	}
 	private void pickWeapon() {
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add("weapon");
 		query.add("!treasure");
 		GameObject go = pickGameObject(query,"Choose a Weapon:");
@@ -153,11 +153,12 @@ public class StartingInventoryEditPanel extends AdvantageEditPanel {
 			extraInventory = new WeaponChitComponent(go);
 		}
 	}
-	private GameObject pickGameObject(ArrayList<String> query,String title) {
+	private GameObject pickGameObject(ArrayList query,String title) {
 		GamePool pool = new GamePool(magicRealmData.getGameObjects());
-		ArrayList<GameObject> list = pool.find(query);
-		ArrayList<GameObject> remove = new ArrayList<GameObject>();
-		for(GameObject go:list) {
+		ArrayList list = pool.find(query);
+		ArrayList remove = new ArrayList();
+		for (java.util.Iterator _j14it939 = (list).iterator(); _j14it939.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it939.next();
 			if (go.getHoldCount()>0) {
 				remove.add(go);
 			}
@@ -170,17 +171,20 @@ public class StartingInventoryEditPanel extends AdvantageEditPanel {
 		list.removeAll(remove);
 		
 		//filter duplicates
-		ArrayList<GameObject> listFiltered = new ArrayList<GameObject>();
-		ArrayList<String> names = new ArrayList<String>();
-		for (GameObject go:list) {
+		ArrayList listFiltered = new ArrayList();
+		ArrayList names = new ArrayList();
+		for (java.util.Iterator _j14it940 = (list).iterator(); _j14it940.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it940.next();
 			if (!names.contains(go.getName())) {
 				listFiltered.add(go);
 				names.add(go.getName());
 			}
 		}
 		
-		Collections.sort(listFiltered,new Comparator<GameObject>() {
-			public int compare(GameObject g1,GameObject g2) {
+		Collections.sort(listFiltered,new Comparator() {
+			public int compare(Object o1,Object o2) {
+				GameObject g1 = (GameObject) o1;
+				GameObject g2 = (GameObject) o2;
 				return g1.getName().compareTo(g2.getName());
 			}
 		});

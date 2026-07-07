@@ -9,7 +9,6 @@ import com.robin.magic_realm.components.wrapper.CombatWrapper;
 
 public class AnimateEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		GameObject go = context.Target.getGameObject();
 		
@@ -31,12 +30,14 @@ public class AnimateEffect implements ISpellEffect {
 		go.setAttribute("dark","move_speed",go.getAttributeInt("dark","move_speed")+1);
 		
 		if (go.getHoldCount()==1) {
-			GameObject weapon = go.getHold().get(0);
+			GameObject weapon = (GameObject) go.getHold().get(0);
 			weapon.setAttribute("light","attack_speed",weapon.getAttributeInt("light","attack_speed")+1);
 			weapon.setAttribute("dark","attack_speed",weapon.getAttributeInt("dark","attack_speed")+1);
 		}
-		
-		for (MONSTER_TYPES monsterType : Constants.MONSTER_TYPES.values()) {
+
+		MONSTER_TYPES[] _mtypes2024 = Constants.MONSTER_TYPES.values();
+		for (int _i2024 = 0; _i2024 < _mtypes2024.length; _i2024++) {
+		  MONSTER_TYPES monsterType = _mtypes2024[_i2024];
 			if (go.hasThisAttribute(monsterType.toString())) {
 				go.addThisAttributeListItem("monster_type_an", monsterType.toString());
 				go.removeThisAttribute(monsterType.toString());
@@ -50,7 +51,6 @@ public class AnimateEffect implements ISpellEffect {
 		monster.setSheetOwner(true);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		GameObject caster = context.Spell.getCaster().getGameObject();
 		
@@ -58,7 +58,8 @@ public class AnimateEffect implements ISpellEffect {
 		if (go.hasThisAttribute(Constants.UNDEAD_SUMMONED)) { // so it doesn't get stuck in an infinite loop!
 			go.setName(go.getName().substring(Constants.UNDEAD_PREFIX.length()));
 			go.removeThisAttribute(Constants.UNDEAD_SUMMONED);
-			for (String monsterType : go.getThisAttributeList("monster_type_an")) {
+			for (java.util.Iterator _j14it2025 = (go.getThisAttributeList("monster_type_an")).iterator(); _j14it2025.hasNext(); ) {
+			  String monsterType = (String) _j14it2025.next();
 				go.setThisAttribute(monsterType);
 			}
 			go.removeThisAttribute("monster_type_an");
@@ -67,7 +68,7 @@ public class AnimateEffect implements ISpellEffect {
 			go.removeAttributeBlock("light_an");
 			go.removeAttributeBlock("dark_an");
 			if (go.getHoldCount()==1) {
-				GameObject weapon = go.getHold().get(0);
+				GameObject weapon = (GameObject) go.getHold().get(0);
 				weapon.setAttribute("light","attack_speed",weapon.getAttributeInt("light","attack_speed")-1);
 				weapon.setAttribute("dark","attack_speed",weapon.getAttributeInt("dark","attack_speed")-1);
 			}

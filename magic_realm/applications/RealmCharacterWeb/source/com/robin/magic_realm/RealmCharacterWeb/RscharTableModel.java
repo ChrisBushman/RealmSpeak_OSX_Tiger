@@ -14,12 +14,12 @@ public class RscharTableModel extends AbstractTableModel {
 		"Folder",
 	};
 	
-	private ArrayList<RscharLayout> layoutRecords;
+	private ArrayList layoutRecords;
 	
 	public RscharTableModel() {
 		layoutRecords = null;
 	}
-	public void setRecords(ArrayList<RscharLayout> layoutRecords) {
+	public void setRecords(ArrayList layoutRecords) {
 		this.layoutRecords = layoutRecords;
 		fireTableDataChanged();
 	}

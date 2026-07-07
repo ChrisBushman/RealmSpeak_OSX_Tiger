@@ -58,11 +58,12 @@ public class CharacterOptionsDialog extends AggressiveDialog {
 		String[] locs = character.getStartingLocations(forceInnStart);
 		startChoose = new JRadioButton[locs.length];
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());
-		Collection<GameObject> startDwellings = pool.find("dwelling,!general_dwelling");
-		ArrayList<String> startDwellingNames = new ArrayList<String>();
+		Collection startDwellings = pool.find("dwelling,!general_dwelling");
+		ArrayList startDwellingNames = new ArrayList();
 		startDwellingNames.add("Ghost");
 		startDwellingNames.add("Ghosts");
-		for (GameObject go:startDwellings) {
+		for (java.util.Iterator _j14it1078 = (startDwellings).iterator(); _j14it1078.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1078.next();
 			startDwellingNames.add(go.getName());
 		}
 		int j=0;

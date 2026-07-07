@@ -68,11 +68,11 @@ public class TileComponent extends ChitComponent {
 	// protected int TILE_HEIGHT;
 	// protected int CLEARING_RADIUS;
 
-	protected HashMap<String,String>[] tileImagePath;
+	protected HashMap[] tileImagePath;
 //	protected String[] tileFolderName;
 //	protected String[] tileImageName;
-	protected ArrayList<ClearingDetail>[] clearings;
-	protected ArrayList<PathDetail>[] paths;
+	protected ArrayList[] clearings;
+	protected ArrayList[] paths;
 	protected Point[] offroadPos;
 
 	// if 0, then image is solid and drawing is not seen
@@ -85,7 +85,7 @@ public class TileComponent extends ChitComponent {
 	private boolean alwaysPaint = false;
 	private boolean needsRepaint = true;
 
-	private Hashtable<String,TileComponent> edgeTiles = new Hashtable<String,TileComponent>();
+	private Hashtable edgeTiles = new Hashtable();
 
 	private Rectangle lastPaintLocation = null;
 	private Point[] lastOffroadPaintLocation = new Point[2];
@@ -124,9 +124,10 @@ public class TileComponent extends ChitComponent {
 	/**
 	 * Returns a collection of strings representing precise connected edges AFTER rotation (ie., N,S,NE)
 	 */
-	public ArrayList<String> getConnectedEdges() {
-		ArrayList<String> list = new ArrayList<String>();
-		for (PathDetail path : paths[getFacingIndex()]) {
+	public ArrayList getConnectedEdges() {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it1384 = (paths[getFacingIndex()]).iterator(); _j14it1384.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it1384.next();
 			String edge = path.getEdge();
 			if (edge != null) {
 				String rotEdge = Tile.convertEdge(edge, rotation);
@@ -138,7 +139,8 @@ public class TileComponent extends ChitComponent {
 	}
 
 	public PathDetail getEdgePath(String edgeName) {
-		for (PathDetail path : paths[getFacingIndex()]) {
+		for (java.util.Iterator _j14it1385 = (paths[getFacingIndex()]).iterator(); _j14it1385.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it1385.next();
 			String edge = path.getEdge();
 			if (edge != null) {
 				String rotEdge = Tile.convertEdge(edge, rotation);
@@ -153,9 +155,10 @@ public class TileComponent extends ChitComponent {
 	/**
 	 * Returns a collection of PathDetail objects that connect this clearing to another (or null if none)
 	 */
-	public ArrayList<PathDetail> findConnections(ClearingDetail clearing) {
-		ArrayList<PathDetail> connections = new ArrayList<PathDetail>();
-		for (PathDetail path : paths[getFacingIndex()]) {
+	public ArrayList findConnections(ClearingDetail clearing) {
+		ArrayList connections = new ArrayList();
+		for (java.util.Iterator _j14it1386 = (paths[getFacingIndex()]).iterator(); _j14it1386.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it1386.next();
 			if (path.findConnection(clearing) != null) {
 				connections.add(path);
 			}
@@ -163,9 +166,10 @@ public class TileComponent extends ChitComponent {
 		return connections.isEmpty() ? null : connections;
 	}
 	
-	public ArrayList<PathDetail> findConnectedMapEdges(ClearingDetail clearing) {
-		ArrayList<PathDetail> connections = new ArrayList<PathDetail>();
-		for (PathDetail path : paths[getFacingIndex()]) {
+	public ArrayList findConnectedMapEdges(ClearingDetail clearing) {
+		ArrayList connections = new ArrayList();
+		for (java.util.Iterator _j14it1387 = (paths[getFacingIndex()]).iterator(); _j14it1387.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it1387.next();
 			if (path.connectsToMapEdge() && path.hasClearing(clearing)) {
 				connections.add(path);
 			}
@@ -251,8 +255,8 @@ public class TileComponent extends ChitComponent {
 		return gameObject.getThisAttribute(RealmComponent.TILE_TYPE);
 	}
 
-	public static Hashtable<String, Point> getEdgePositionHash() {
-		Hashtable<String, Point> edgePositionHash = new Hashtable<String, Point>();
+	public static Hashtable getEdgePositionHash() {
+		Hashtable edgePositionHash = new Hashtable();
 		edgePositionHash.put("S", new Point(TILE_WIDTH >> 1, TILE_HEIGHT));
 		edgePositionHash.put("SW", new Point(TILE_WIDTH >> 3, TILE_HEIGHT - (TILE_HEIGHT >> 2)));
 		edgePositionHash.put("NW", new Point(TILE_WIDTH >> 3, TILE_HEIGHT >> 2));
@@ -284,7 +288,7 @@ public class TileComponent extends ChitComponent {
 		String ext = ".gif";
 		String folderPath = "images/"+folder;
 		String fullImage = imageName + imageEnd + ext;
-		tileImagePath[side] = new HashMap<String,String>();
+		tileImagePath[side] = new HashMap();
 		if (displayTilesStyle == DISPLAY_TILES_STYLE_LEGENDARY) {
 			String legendaryTilePath = folderPath+"_legendary"+"/"+fullImage;
 			if (ResourceFinder.exists(legendaryTilePath)) {
@@ -299,7 +303,8 @@ public class TileComponent extends ChitComponent {
 		}
 		folderPath=folderPath+"/";
 		if (calendar!=null) {
-			for (GameObject season:calendar.getAllSeasons()) {
+			for (java.util.Iterator _j14it1388 = (calendar.getAllSeasons()).iterator(); _j14it1388.hasNext(); ) {
+			  GameObject season = (GameObject) _j14it1388.next();
 				String seasonName = season.getName();
 				String seasonTilePath = folderPath+seasonName.toLowerCase()+"/"+fullImage;
 				if (ResourceFinder.exists(seasonTilePath)) {
@@ -316,7 +321,7 @@ public class TileComponent extends ChitComponent {
 				
 		// Setup clearings
 		Hashtable clearingPositionHash = new Hashtable();
-		clearings[side] = new ArrayList<ClearingDetail>();
+		clearings[side] = new ArrayList();
 		for (int i = 1; i <= 6; i++) {
 			String typeKey = "clearing_" + i + "_type";
 			String xyKey = "clearing_" + i + "_xy";
@@ -354,7 +359,7 @@ public class TileComponent extends ChitComponent {
 		}
 		// Setup paths
 		Hashtable edgePositionHash = getEdgePositionHash();
-		paths[side] = new ArrayList<PathDetail>();
+		paths[side] = new ArrayList();
 		int i = 1;
 		String from;
 		while ((from = (String) hash.get("path_" + i + "_from")) != null) {
@@ -455,7 +460,8 @@ public class TileComponent extends ChitComponent {
 		Point2D rotatedPoint = GraphicsUtil.rotate(relativePoint, tileCenter, -rotation * radians_degrees60);
 		int tx = (int) rotatedPoint.getX();
 		int ty = (int) rotatedPoint.getY();
-		for (ClearingDetail clearing : clearings[getFacingIndex()]) {
+		for (java.util.Iterator _j14it1389 = (clearings[getFacingIndex()]).iterator(); _j14it1389.hasNext(); ) {
+		  ClearingDetail clearing = (ClearingDetail) _j14it1389.next();
 			Point p = clearing.getPosition();
 			Shape s = getClearingShape(p, CLEARING_RADIUS);
 			if (s.contains(tx, ty)) {
@@ -463,7 +469,8 @@ public class TileComponent extends ChitComponent {
 			}
 		}
 		// Check map edges (if any)
-		for (ClearingDetail clearing : getMapEdges()) {
+		for (java.util.Iterator _j14it1390 = (getMapEdges()).iterator(); _j14it1390.hasNext(); ) {
+		  ClearingDetail clearing = (ClearingDetail) _j14it1390.next();
 			Point p = clearing.getPosition();
 			Shape s = getClearingShape(p, EDGE_RADIUS);
 			if (s.contains(tx, ty)) {
@@ -473,7 +480,7 @@ public class TileComponent extends ChitComponent {
 		return null;
 	}
 
-	public ArrayList<ClearingDetail> getClearings() {
+	public ArrayList getClearings() {
 		return getClearings(null);
 	}
 
@@ -484,18 +491,20 @@ public class TileComponent extends ChitComponent {
 	/**
 	 * @param clearingType If clearingType is null, all clearings are returned
 	 */
-	public ArrayList<ClearingDetail> getClearings(String clearingType) {
-		ArrayList<ClearingDetail> list = new ArrayList<ClearingDetail>();
-		for (ClearingDetail clearing : clearings[getFacingIndex()]) {
+	public ArrayList getClearings(String clearingType) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it1391 = (clearings[getFacingIndex()]).iterator(); _j14it1391.hasNext(); ) {
+		  ClearingDetail clearing = (ClearingDetail) _j14it1391.next();
 			if (clearingType == null || clearing.getType().equals(clearingType)) {
 				list.add(clearing);
 			}
 		}
 		return list;
 	}
-	public ArrayList<ClearingDetail> getEnchantedClearings() {
-		ArrayList<ClearingDetail> list = new ArrayList<ClearingDetail>();
-		for (ClearingDetail clearing : clearings[ENCHANTED_INDEX]) {
+	public ArrayList getEnchantedClearings() {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it1392 = (clearings[ENCHANTED_INDEX]).iterator(); _j14it1392.hasNext(); ) {
+		  ClearingDetail clearing = (ClearingDetail) _j14it1392.next();
 			list.add(clearing);
 		}
 		return list;
@@ -509,7 +518,8 @@ public class TileComponent extends ChitComponent {
 		catch(NumberFormatException ex) {
 			// Not a number, try edge
 			String edge = numString.substring(1); // skip dot
-			for (ClearingDetail mapEdge:getMapEdges()) {
+			for (java.util.Iterator _j14it1393 = (getMapEdges()).iterator(); _j14it1393.hasNext(); ) {
+			  ClearingDetail mapEdge = (ClearingDetail) _j14it1393.next();
 				if (mapEdge.getType().equals(edge)) {
 					return mapEdge;
 				}
@@ -519,7 +529,8 @@ public class TileComponent extends ChitComponent {
 	}
 
 	public ClearingDetail getClearing(int clearingNum) {
-		for (ClearingDetail clearing : clearings[getFacingIndex()]) {
+		for (java.util.Iterator _j14it1394 = (clearings[getFacingIndex()]).iterator(); _j14it1394.hasNext(); ) {
+		  ClearingDetail clearing = (ClearingDetail) _j14it1394.next();
 			if (clearing.getNum() == clearingNum) {
 				return clearing;
 			}
@@ -527,9 +538,10 @@ public class TileComponent extends ChitComponent {
 		return null;
 	}
 	
-	public ArrayList<ClearingDetail> getMapEdges() {
-		ArrayList<ClearingDetail> mapEdges = new ArrayList<ClearingDetail>();
-		for (PathDetail path : paths[getFacingIndex()]) {
+	public ArrayList getMapEdges() {
+		ArrayList mapEdges = new ArrayList();
+		for (java.util.Iterator _j14it1395 = (paths[getFacingIndex()]).iterator(); _j14it1395.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it1395.next();
 			if (path.connectsToMapEdge()) {
 				mapEdges.add(path.getEdgeAsClearing());
 			}
@@ -542,7 +554,7 @@ public class TileComponent extends ChitComponent {
 	 */
 	public void resetClearingPositions() {
 		int facingIndex = getFacingIndex();
-		ArrayList<ClearingDetail> allClearings = new ArrayList<ClearingDetail>();
+		ArrayList allClearings = new ArrayList();
 		
 		// Regular clearings
 		allClearings.addAll(clearings[facingIndex]);
@@ -550,7 +562,8 @@ public class TileComponent extends ChitComponent {
 		// Edge of the map clearings
 		allClearings.addAll(getMapEdges()); // Might not be any
 		
-		for (ClearingDetail detail : allClearings) {
+		for (java.util.Iterator _j14it1396 = (allClearings).iterator(); _j14it1396.hasNext(); ) {
+		  ClearingDetail detail = (ClearingDetail) _j14it1396.next();
 			detail.setAbsolutePosition(null);
 		}
 	}
@@ -559,14 +572,15 @@ public class TileComponent extends ChitComponent {
 		// Update absolute clearing locations (used when determining halfway points)
 		int facingIndex = getFacingIndex();
 		
-		ArrayList<ClearingDetail> allClearings = new ArrayList<ClearingDetail>();
+		ArrayList allClearings = new ArrayList();
 		// Regular clearings
 		allClearings.addAll(clearings[facingIndex]);
 		
 		// Edge of the map clearings
 		allClearings.addAll(getMapEdges()); // Might not be any
 		
-		for (ClearingDetail detail : allClearings) {
+		for (java.util.Iterator _j14it1397 = (allClearings).iterator(); _j14it1397.hasNext(); ) {
+		  ClearingDetail detail = (ClearingDetail) _j14it1397.next();
 			if (detail.getAbsolutePosition() == null) {
 				Point rotatedPosition = convertPoint(detail.getPosition());
 				Point absPos = new Point(lastPaintLocation.x + rotatedPosition.x, lastPaintLocation.y + rotatedPosition.y);
@@ -613,7 +627,8 @@ public class TileComponent extends ChitComponent {
 					Composite old = g.getComposite();
 					AlphaComposite composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f);
 					g.setComposite(composite);
-					for (ClearingDetail detail : clearings[facingIndex]) {
+					for (java.util.Iterator _j14it1398 = (clearings[facingIndex]).iterator(); _j14it1398.hasNext(); ) {
+					  ClearingDetail detail = (ClearingDetail) _j14it1398.next();
 						Color c = detail.getColor();
 						if (c != null) {
 							g.setColor(c);
@@ -626,7 +641,8 @@ public class TileComponent extends ChitComponent {
 
 				// Draw mountains
 				int mntRad = CLEARING_RADIUS << 1;
-				for (ClearingDetail detail : clearings[facingIndex]) {
+				for (java.util.Iterator _j14it1399 = (clearings[facingIndex]).iterator(); _j14it1399.hasNext(); ) {
+				  ClearingDetail detail = (ClearingDetail) _j14it1399.next();
 					if (detail.getType().equals("mountain")) {
 						g.setColor(Color.gray);
 						Point p = detail.getPosition();
@@ -636,7 +652,8 @@ public class TileComponent extends ChitComponent {
 
 				// Enhance magic
 				magicRad = CLEARING_RADIUS + 8;
-				for (ClearingDetail detail : clearings[facingIndex]) {
+				for (java.util.Iterator _j14it1400 = (clearings[facingIndex]).iterator(); _j14it1400.hasNext(); ) {
+				  ClearingDetail detail = (ClearingDetail) _j14it1400.next();
 					Color c = detail.getColor();
 					if (c != null) {
 						g.setColor(c);
@@ -647,7 +664,8 @@ public class TileComponent extends ChitComponent {
 
 				if (fullDetail) {
 					// Draw black version
-					for (ClearingDetail detail : clearings[facingIndex]) {
+					for (java.util.Iterator _j14it1401 = (clearings[facingIndex]).iterator(); _j14it1401.hasNext(); ) {
+					  ClearingDetail detail = (ClearingDetail) _j14it1401.next();
 						g.setColor(Color.black);
 						drawClearing(g, detail, CLEARING_RADIUS, false);
 						if (detail.isWater()) {
@@ -660,7 +678,8 @@ public class TileComponent extends ChitComponent {
 						}
 					}
 				}
-				for (PathDetail detail : paths[facingIndex]) {
+				for (java.util.Iterator _j14it1402 = (paths[facingIndex]).iterator(); _j14it1402.hasNext(); ) {
+				  PathDetail detail = (PathDetail) _j14it1402.next();
 					if (fullDetail) {
 						g.setColor(Color.black);
 						drawPath(g, detail, CLEARING_RADIUS, false);
@@ -683,7 +702,8 @@ public class TileComponent extends ChitComponent {
 				}
 
 				// Add Color
-				for (ClearingDetail detail : clearings[facingIndex]) {
+				for (java.util.Iterator _j14it1403 = (clearings[facingIndex]).iterator(); _j14it1403.hasNext(); ) {
+				  ClearingDetail detail = (ClearingDetail) _j14it1403.next();
 					if (detail.isCave()) {
 						g.setColor(Color.black);
 					}
@@ -701,10 +721,10 @@ public class TileComponent extends ChitComponent {
 				String imagePath = null;
 				if (calendar!=null) {
 					String seasonName = calendar.getSeasonName(game.getMonth());
-					imagePath = tileImagePath[facingIndex].get(seasonName);
+					imagePath = (String) tileImagePath[facingIndex].get(seasonName);
 				}
 				if (imagePath==null) {
-					imagePath = tileImagePath[facingIndex].get(DEFAULT_IMAGE_PATH);
+					imagePath = (String) tileImagePath[facingIndex].get(DEFAULT_IMAGE_PATH);
 				}
 				ImageIcon imageIcon = IconFactory.findIcon(imagePath); // don't cache the image - no need
 				if (iconDimensions == null) {
@@ -764,7 +784,8 @@ public class TileComponent extends ChitComponent {
 		}
 
 		// Highlight Clearings (if any are marked)
-		for (ClearingDetail detail : clearings[facingIndex]) {
+		for (java.util.Iterator _j14it1404 = (clearings[facingIndex]).iterator(); _j14it1404.hasNext(); ) {
+		  ClearingDetail detail = (ClearingDetail) _j14it1404.next();
 			if (detail.isMarked()) {
 				g.setColor(detail.getMarkColor());
 				Point p = detail.getAbsolutePosition();
@@ -776,7 +797,8 @@ public class TileComponent extends ChitComponent {
 		
 		// Highlight Map Edges (if any are marked)
 		boolean didClip = false;
-		for (PathDetail path : paths[facingIndex]) {
+		for (java.util.Iterator _j14it1405 = (paths[facingIndex]).iterator(); _j14it1405.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it1405.next();
 			if (path.connectsToMapEdge()) {
 				ClearingDetail detail = path.getEdgeAsClearing();
 				if (detail.isMarked()) {
@@ -806,24 +828,26 @@ public class TileComponent extends ChitComponent {
 		return lastOffroadPaintLocation[facingIndex];
 	}
 
-	protected void drawHold(Graphics2D g, ArrayList<GameObject> hold, int offset, HashMap clearingCount, ChitDisplayOption displayOption) {
+	protected void drawHold(Graphics2D g, ArrayList hold, int offset, HashMap clearingCount, ChitDisplayOption displayOption) {
 		Point offroad = new Point(getOffroadPoint());
 		offroad.x += lastPaintLocation.x;
 		offroad.y += lastPaintLocation.y;
 		
-		ArrayList<RealmComponent> componentsToDraw = new ArrayList<RealmComponent>();
+		ArrayList componentsToDraw = new ArrayList();
 		
 		if (displayOption.tileBewitchingSpells) {
 			SpellMasterWrapper spellMaster = SpellMasterWrapper.getSpellMaster(getGameObject().getGameData());
-			ArrayList<SpellWrapper> spells = spellMaster.getAffectingSpells(getGameObject());
-			for (SpellWrapper spell:spells) {
+			ArrayList spells = spellMaster.getAffectingSpells(getGameObject());
+			for (java.util.Iterator _j14it1406 = (spells).iterator(); _j14it1406.hasNext(); ) {
+			  SpellWrapper spell = (SpellWrapper) _j14it1406.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(spell.getGameObject());
 				componentsToDraw.add(rc);
 			}
 		}
 		
 		if (showBorderlandConnectedClearings) {
-			for (ClearingDetail c:getClearings()) {
+			for (java.util.Iterator _j14it1407 = (getClearings()).iterator(); _j14it1407.hasNext(); ) {
+			  ClearingDetail c = (ClearingDetail) _j14it1407.next();
 				if (!c.isConnectsToBorderland()) {
 					g.setColor(Color.red);
 					Point p = c.getAbsolutePosition();
@@ -838,7 +862,8 @@ public class TileComponent extends ChitComponent {
 		}
 				
 		// Now do the hold
-		for (GameObject obj : hold) {
+		for (java.util.Iterator _j14it1408 = (hold).iterator(); _j14it1408.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it1408.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(obj);
 			if (rc == null) {
 				System.err.println("No RealmComponent found for " + obj.getName() + " during TileComponent.drawHold?!?");
@@ -849,7 +874,8 @@ public class TileComponent extends ChitComponent {
 			}
 			if (rc.isTreasureLocation() && !rc.isCacheChit() && displayOption.siteCards) {
 				// Check TLs for face up SITE CARDS, cuz those should be painted too
-				for (GameObject thing : rc.getGameObject().getHold()) {
+				for (java.util.Iterator _j14it1409 = (rc.getGameObject().getHold()).iterator(); _j14it1409.hasNext(); ) {
+				  GameObject thing = (GameObject) _j14it1409.next();
 					RealmComponent trc = RealmComponent.getRealmComponent(thing);
 					if (trc.isTreasure()) {
 						TreasureCardComponent treasure = (TreasureCardComponent) trc;
@@ -868,7 +894,8 @@ public class TileComponent extends ChitComponent {
 		// Biggest ones on the bottom
 		Collections.sort(componentsToDraw);
 
-		for (RealmComponent rc : componentsToDraw) {
+		for (java.util.Iterator _j14it1410 = (componentsToDraw).iterator(); _j14it1410.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1410.next();
 			int w = rc.getSize().width;
 			int h = rc.getSize().height;
 
@@ -921,7 +948,7 @@ public class TileComponent extends ChitComponent {
 						// if (rc==null) throw new IllegalStateException("rc is null!?!");
 						// if (p==null) throw new IllegalStateException("p is null!?!");
 						rc.paint(g.create(p.x - (w >> 1) - shift, p.y - (h >> 1) - shift, w, h));
-						clearingCount.put(numString,count+1);
+						clearingCount.put(numString,Integer.valueOf(count+1));
 //						clearingCount[index]++;
 					}
 					else {
@@ -935,9 +962,10 @@ public class TileComponent extends ChitComponent {
 		}
 	}
 
-	public ArrayList<RealmComponent> getOffroadRealmComponents() {
-		ArrayList<RealmComponent> found = new ArrayList<RealmComponent>();
-		for (GameObject obj : gameObject.getHold()) {
+	public ArrayList getOffroadRealmComponents() {
+		ArrayList found = new ArrayList();
+		for (java.util.Iterator _j14it1411 = (gameObject.getHold()).iterator(); _j14it1411.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it1411.next();
 			RealmComponent goc = RealmComponent.getRealmComponent(obj);
 			String clearingNum = obj.getThisAttribute("clearing");
 			if (goc instanceof StateChitComponent) {
@@ -956,16 +984,18 @@ public class TileComponent extends ChitComponent {
 	/**
 	 * Returns a collection of all RealmComponents in this clearing. It does not directly return objects contained by other objects, except for RedSpecialChitComponent and TWT Sites
 	 */
-	public ArrayList<RealmComponent> getRealmComponentsAt(int clearing) {
-		ArrayList<RealmComponent> found = new ArrayList<RealmComponent>();
-		ArrayList<GameObject> hold = new ArrayList<GameObject>(gameObject.getHold());
-		for (GameObject obj : hold) {
+	public ArrayList getRealmComponentsAt(int clearing) {
+		ArrayList found = new ArrayList();
+		ArrayList hold = new ArrayList(gameObject.getHold());
+		for (java.util.Iterator _j14it1412 = (hold).iterator(); _j14it1412.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it1412.next();
 			if (!obj.hasThisAttribute("otherClearing")) { // ignore components that are partway
 				RealmComponent goc = RealmComponent.getRealmComponent(obj);
 				String clearingNum = obj.getThisAttribute("clearing");
 				if (goc.isRedSpecial()) {
-					ArrayList<GameObject> innerHold = new ArrayList<GameObject>(obj.getHold());
-					for (GameObject chit : innerHold) {
+					ArrayList innerHold = new ArrayList(obj.getHold());
+					for (java.util.Iterator _j14it1413 = (innerHold).iterator(); _j14it1413.hasNext(); ) {
+					  GameObject chit = (GameObject) _j14it1413.next();
 						String innerClearingNum = chit.getThisAttribute("clearing");
 						if (innerClearingNum != null && innerClearingNum.equals(String.valueOf(clearing))) {
 							StateChitComponent innerState = (StateChitComponent) RealmComponent.getRealmComponent(chit);
@@ -981,10 +1011,11 @@ public class TileComponent extends ChitComponent {
 		return found;
 	}
 	
-	public ArrayList<RealmComponent> getRealmComponentsBetweenClearing(int clearing) {
-		ArrayList<RealmComponent> found = new ArrayList<RealmComponent>();
-		ArrayList<GameObject> hold = new ArrayList<GameObject>(gameObject.getHold());
-		for (GameObject obj : hold) {
+	public ArrayList getRealmComponentsBetweenClearing(int clearing) {
+		ArrayList found = new ArrayList();
+		ArrayList hold = new ArrayList(gameObject.getHold());
+		for (java.util.Iterator _j14it1414 = (hold).iterator(); _j14it1414.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it1414.next();
 			if (obj.hasThisAttribute("otherClearing")) { // only components that are partway
 				RealmComponent goc = RealmComponent.getRealmComponent(obj);
 				String clearingNum = obj.getThisAttribute("clearing");
@@ -999,14 +1030,16 @@ public class TileComponent extends ChitComponent {
 	/**
 	 * Returns a collection of chits that can be shown to the player when they get the "Clues" result on a search table.
 	 */
-	public Collection<StateChitComponent> getClues() {
-		ArrayList<StateChitComponent> clues = new ArrayList<StateChitComponent>();
-		for (GameObject obj : gameObject.getHold()) {
+	public Collection getClues() {
+		ArrayList clues = new ArrayList();
+		for (java.util.Iterator _j14it1415 = (gameObject.getHold()).iterator(); _j14it1415.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it1415.next();
 			RealmComponent goc = RealmComponent.getRealmComponent(obj);
 			if (goc instanceof StateChitComponent) {
 				StateChitComponent state = (StateChitComponent) goc;
 				if (state.isRedSpecial()) {
-					for (GameObject chit : obj.getHold()) {
+					for (java.util.Iterator _j14it1416 = (obj.getHold()).iterator(); _j14it1416.hasNext(); ) {
+					  GameObject chit = (GameObject) _j14it1416.next();
 						StateChitComponent innerState = (StateChitComponent) RealmComponent.getRealmComponent(chit);
 						if (innerState.isFaceDown()) {
 							clues.add(innerState);
@@ -1053,7 +1086,7 @@ public class TileComponent extends ChitComponent {
 		}
 	}
 
-	public ArrayList<StateChitComponent> setChitsFaceUp() {
+	public ArrayList setChitsFaceUp() {
 		return setChitsFacing(true);
 	}
 
@@ -1065,7 +1098,8 @@ public class TileComponent extends ChitComponent {
 	 * @return true if any Character is in this tile
 	 */
 	public boolean holdsCharacter() {
-		for (GameObject go : gameObject.getHold()) {
+		for (java.util.Iterator _j14it1417 = (gameObject.getHold()).iterator(); _j14it1417.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1417.next();
 			RealmComponent roc = RealmComponent.getRealmComponent(go);
 			if (roc.isPlayerControlledLeader()) {
 				return true;
@@ -1075,8 +1109,9 @@ public class TileComponent extends ChitComponent {
 	}
 
 	public void resetChitsSummoned() {
-		ArrayList<GameObject> hold = new ArrayList<GameObject>(gameObject.getHold()); // to prevent concurrent modification when red specials are revealed
-		for (GameObject go : hold) {
+		ArrayList hold = new ArrayList(gameObject.getHold()); // to prevent concurrent modification when red specials are revealed
+		for (java.util.Iterator _j14it1418 = (hold).iterator(); _j14it1418.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1418.next();
 			RealmComponent roc = RealmComponent.getRealmComponent(go);
 			if (roc instanceof StateChitComponent) {
 				StateChitComponent state = (StateChitComponent) roc;
@@ -1085,10 +1120,11 @@ public class TileComponent extends ChitComponent {
 		}
 	}
 
-	private ArrayList<StateChitComponent> setChitsFacing(boolean up) {
-		ArrayList<StateChitComponent> flipped = new ArrayList<StateChitComponent>();
-		ArrayList<GameObject> hold = new ArrayList<GameObject>(gameObject.getHold()); // to prevent concurrent modification when red specials are revealed
-		for (GameObject go : hold) {
+	private ArrayList setChitsFacing(boolean up) {
+		ArrayList flipped = new ArrayList();
+		ArrayList hold = new ArrayList(gameObject.getHold()); // to prevent concurrent modification when red specials are revealed
+		for (java.util.Iterator _j14it1419 = (hold).iterator(); _j14it1419.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1419.next();
 			RealmComponent roc = RealmComponent.getRealmComponent(go);
 			if (roc instanceof StateChitComponent) {
 				StateChitComponent state = (StateChitComponent) roc;
@@ -1126,10 +1162,10 @@ public class TileComponent extends ChitComponent {
 	}
 
 	public TileComponent getAdjacentTile(String rotatedEdge) {
-		return edgeTiles.get(rotatedEdge);
+		return (TileComponent) edgeTiles.get(rotatedEdge);
 	}
 
-	public Collection<TileComponent> getAllAdjacentTiles() {
+	public Collection getAllAdjacentTiles() {
 		return edgeTiles.values();
 	}
 
@@ -1152,7 +1188,8 @@ public class TileComponent extends ChitComponent {
 	}
 
 	public boolean areMarkedClearings() {
-		for (ClearingDetail detail : clearings[getFacingIndex()]) {
+		for (java.util.Iterator _j14it1420 = (clearings[getFacingIndex()]).iterator(); _j14it1420.hasNext(); ) {
+		  ClearingDetail detail = (ClearingDetail) _j14it1420.next();
 			if (detail.isMarked()) {
 				return true;
 			}
@@ -1160,14 +1197,15 @@ public class TileComponent extends ChitComponent {
 		return false;
 	}
 
-	public ArrayList<PathDetail> getHiddenPaths() {
+	public ArrayList getHiddenPaths() {
 		return getHiddenPaths(false);
 	}
-	public ArrayList<PathDetail> getHiddenPaths(boolean currentSideOnly) {
-		ArrayList<PathDetail> list = new ArrayList<PathDetail>();
+	public ArrayList getHiddenPaths(boolean currentSideOnly) {
+		ArrayList list = new ArrayList();
 		for (int side = 0; side < 2; side++) {
 			if (currentSideOnly && side!=getFacingIndex()) continue;
-			for (PathDetail path : paths[side]) {
+			for (java.util.Iterator _j14it1421 = (paths[side]).iterator(); _j14it1421.hasNext(); ) {
+			  PathDetail path = (PathDetail) _j14it1421.next();
 				if (path.isHidden()) {
 					list.add(path);
 				}
@@ -1176,14 +1214,15 @@ public class TileComponent extends ChitComponent {
 		return list;
 	}
 
-	public ArrayList<PathDetail> getSecretPassages() {
+	public ArrayList getSecretPassages() {
 		return getSecretPassages(false);
 	}
-	public ArrayList<PathDetail> getSecretPassages(boolean currentSideOnly) {
-		ArrayList<PathDetail> list = new ArrayList<PathDetail>();
+	public ArrayList getSecretPassages(boolean currentSideOnly) {
+		ArrayList list = new ArrayList();
 		for (int side = 0; side < 2; side++) {
 			if (currentSideOnly && side!=getFacingIndex()) continue;
-			for (PathDetail path : paths[side]) {
+			for (java.util.Iterator _j14it1422 = (paths[side]).iterator(); _j14it1422.hasNext(); ) {
+			  PathDetail path = (PathDetail) _j14it1422.next();
 				if (path.isSecret()) {
 					list.add(path);
 				}
@@ -1192,18 +1231,19 @@ public class TileComponent extends ChitComponent {
 		return list;
 	}
 	
-	public ArrayList<String> getChitDescriptionList() {
+	public ArrayList getChitDescriptionList() {
 		// The following will be a concatenated string that contains tilename and all state chit names:
 		// For example:
 		// high pass:ruins:lost city:hoard:lair:patter:flutter:ruins c
 		//
 		// If playing multiple boards, those designations will appear too
 		// high pass:ruins:lost city:hoard b:lair:patter b:flutter:ruins c b
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList list = new ArrayList();
 		
 		list.add(getTileNameNoBoard().toLowerCase());
-		ArrayList<GameObject> hold = new ArrayList<GameObject>(gameObject.getHold());
-		for (GameObject go : hold) {
+		ArrayList hold = new ArrayList(gameObject.getHold());
+		for (java.util.Iterator _j14it1423 = (hold).iterator(); _j14it1423.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1423.next();
 			RealmComponent roc = RealmComponent.getRealmComponent(go);
 			if (roc instanceof StateChitComponent) {
 				StateChitComponent state = (StateChitComponent) roc;
@@ -1219,8 +1259,8 @@ public class TileComponent extends ChitComponent {
 	/**
 	 * Recursive method for retrieving all held state chit names
 	 */
-	private ArrayList<String> getChitDescriptionList(StateChitComponent state) {
-		ArrayList<String> list = new ArrayList<String>();
+	private ArrayList getChitDescriptionList(StateChitComponent state) {
+		ArrayList list = new ArrayList();
 		String name = state.getGameObject().getName().toLowerCase();
 		list.add(name);
 		if (state instanceof WarningChitComponent) {
@@ -1228,7 +1268,8 @@ public class TileComponent extends ChitComponent {
 			list.add(name.substring(0,name.length()-2));
 		}
 		
-		for (GameObject go : state.getGameObject().getHold()) {
+		for (java.util.Iterator _j14it1424 = (state.getGameObject().getHold()).iterator(); _j14it1424.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1424.next();
 			RealmComponent roc = RealmComponent.getRealmComponent(go);
 			if (roc instanceof StateChitComponent) {
 				StateChitComponent st = (StateChitComponent) roc;
@@ -1264,19 +1305,22 @@ public class TileComponent extends ChitComponent {
 	/**
 	 * All sources of color in the tile
 	 */
-	public ArrayList<ColorMagic> getAllSourcesOfColor() {
-		ArrayList<ColorMagic> list = new ArrayList<ColorMagic>();
-		for (ClearingDetail clearing:getClearings()) {
+	public ArrayList getAllSourcesOfColor() {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it1425 = (getClearings()).iterator(); _j14it1425.hasNext(); ) {
+		  ClearingDetail clearing = (ClearingDetail) _j14it1425.next();
 			list.addAll(clearing.getAllSourcesOfColor(true));
 		}
-		for (RealmComponent rc:getOffroadRealmComponents()) {
+		for (java.util.Iterator _j14it1426 = (getOffroadRealmComponents()).iterator(); _j14it1426.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1426.next();
 			list.addAll(SpellUtility.getSourcesOfColor(rc));
 		}
 		return list;
 	}
-	public ArrayList<RealmComponent> getAllClearingComponents() {
-		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
-		for (ClearingDetail clearing:getClearings()) {
+	public ArrayList getAllClearingComponents() {
+		ArrayList ret = new ArrayList();
+		for (java.util.Iterator _j14it1427 = (getClearings()).iterator(); _j14it1427.hasNext(); ) {
+		  ClearingDetail clearing = (ClearingDetail) _j14it1427.next();
 			ret.addAll(clearing.getClearingComponents());
 		}
 		return ret;
@@ -1371,7 +1415,8 @@ public class TileComponent extends ChitComponent {
 	}
 	
 	private void energizeItems() {
-		for (ClearingDetail cl : getClearings()) {
+		for (java.util.Iterator _j14it1428 = (getClearings()).iterator(); _j14it1428.hasNext(); ) {
+		  ClearingDetail cl = (ClearingDetail) _j14it1428.next();
 			cl.energizeItems();
 		}
 	}
@@ -1380,7 +1425,7 @@ public class TileComponent extends ChitComponent {
 		if (tile1.equals(tile2)) {
 			String string1 = num1+"_"+num2;
 			String string2 = num2+"_"+num1;
-			ArrayList<String> list = tile1.getGameObject().getThisAttributeList(Constants.THORNS);
+			ArrayList list = tile1.getGameObject().getThisAttributeList(Constants.THORNS);
 			if (list==null||!list.contains(string1)) tile1.getGameObject().addThisAttributeListItem(Constants.THORNS,string1);
 			if (list==null||!list.contains(string2)) tile1.getGameObject().addThisAttributeListItem(Constants.THORNS,string2);
 		} else {
@@ -1390,8 +1435,8 @@ public class TileComponent extends ChitComponent {
 			String edgeName2 = ClearingUtility.getEdgeNameBetweenClearings(clearing1,clearing2);
 			String string1 = num1+"_"+edgeName1;
 			String string2 = num2+"_"+edgeName2;
-			ArrayList<String> list1 = tile1.getGameObject().getThisAttributeList(Constants.THORNS);
-			ArrayList<String> list2 = tile2.getGameObject().getThisAttributeList(Constants.THORNS);
+			ArrayList list1 = tile1.getGameObject().getThisAttributeList(Constants.THORNS);
+			ArrayList list2 = tile2.getGameObject().getThisAttributeList(Constants.THORNS);
 			if (list1==null||!list1.contains(string1)) tile1.getGameObject().addThisAttributeListItem(Constants.THORNS,string1);
 			if (list2==null||!list2.contains(string2)) tile2.getGameObject().addThisAttributeListItem(Constants.THORNS,string2);
 		}
@@ -1401,7 +1446,7 @@ public class TileComponent extends ChitComponent {
 		if (tile1.equals(tile2)) {
 			String string1 = num1+"_"+num2;
 			String string2 = num2+"_"+num1;
-			ArrayList<String> list = tile1.getGameObject().getThisAttributeList(Constants.THORNS);
+			ArrayList list = tile1.getGameObject().getThisAttributeList(Constants.THORNS);
 			if (list==null||!list.contains(string1)) tile1.getGameObject().addThisAttributeListItem(Constants.THORNS,string1);
 			if (list==null||!list.contains(string2)) tile1.getGameObject().addThisAttributeListItem(Constants.THORNS,string2);
 		} else {

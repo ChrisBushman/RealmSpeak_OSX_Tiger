@@ -33,7 +33,7 @@ public class LocationTableModel extends AbstractTableModel {
 
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		if (rowIndex < getRowCount()) {
-			QuestLocation loc = quest.getLocations().get(rowIndex);
+			QuestLocation loc = (QuestLocation) quest.getLocations().get(rowIndex);
 			switch (columnIndex) {
 				case 0:
 					return loc.getName();

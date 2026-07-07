@@ -37,10 +37,10 @@ public class GameServer extends GameNet {
 	protected String clientName;
 	protected String clientIP;
 	
-	protected ArrayList<GameObjectChange> objectChanges;
+	protected ArrayList objectChanges;
 	
-	protected ArrayList<InfoObject> infoDirects;
-	protected ArrayList<String[]> broadcasts;
+	protected ArrayList infoDirects;
+	protected ArrayList broadcasts;
 	protected boolean shuttingDown = false;
 	
 	protected boolean directSentAndReceived = false;
@@ -49,8 +49,8 @@ public class GameServer extends GameNet {
 		this.host = host;
 		this.connection = connection;
 		objectChanges = null;
-		infoDirects = new ArrayList<InfoObject>(10);
-		broadcasts = new ArrayList<String[]>(50);
+		infoDirects = new ArrayList(10);
+		broadcasts = new ArrayList(50);
 		setName(THREAD_NAME);
 	}
 	public void broadcast(String key,String message) {
@@ -67,7 +67,7 @@ public class GameServer extends GameNet {
 	}
 	private String[] getNextBroadcast() {
 		if (isBroadcast()) {
-			return broadcasts.remove(0);
+			return (String[]) broadcasts.remove(0);
 		}
 		return null;
 	}
@@ -90,7 +90,7 @@ public class GameServer extends GameNet {
 	}
 	private InfoObject getNextInfoDirect() {
 		if (!infoDirects.isEmpty()) {
-			return infoDirects.remove(0);
+			return (InfoObject) infoDirects.remove(0);
 		}
 		return null;
 	}
@@ -108,10 +108,10 @@ public class GameServer extends GameNet {
 		}
 		return false;
 	}
-	public void addObjectChanges(Collection<GameObjectChange> inChanges) {
+	public void addObjectChanges(Collection inChanges) {
 		if (objectChanges==null) {
 			// If objectChanges is null, then we haven't grabbed the master-to-game changes.  Do that now!
-			objectChanges = new ArrayList<GameObjectChange>(host.getMasterToGameChanges());
+			objectChanges = new ArrayList(host.getMasterToGameChanges());
 		}
 		objectChanges.addAll(inChanges);
 	}
@@ -156,10 +156,10 @@ public class GameServer extends GameNet {
 					getOutputStream().writeInt(RESPOND_NEED_UPDATE);
 					if (objectChanges==null) {
 						// If objectChanges is null, then we haven't grabbed the master-to-game changes.  Do that now!
-						objectChanges = new ArrayList<GameObjectChange>(host.getMasterToGameChanges());
+						objectChanges = new ArrayList(host.getMasterToGameChanges());
 					}
 					logger.fine("Server for "+clientName+" sending update with "+objectChanges.size()+" changes.");
-					ArrayList<GameObjectChange> toSend = new ArrayList<GameObjectChange>();
+					ArrayList toSend = new ArrayList();
 					while(!objectChanges.isEmpty()) {
 						toSend.add(objectChanges.remove(0));
 					}

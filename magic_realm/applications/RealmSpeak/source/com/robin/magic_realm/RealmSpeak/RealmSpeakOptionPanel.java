@@ -204,17 +204,15 @@ public class RealmSpeakOptionPanel extends JDialog {
 		}
 		String headerMode = options.getOptions().get(RealmSpeakOptions.HEADER_CHAT_LINES);
 		if (headerMode==null) headerMode = "PlayerName";
-		switch(HeaderMode.valueOf(headerMode)) {
-			case PlayerName:
+		{
+			HeaderMode _hm = HeaderMode.valueOf(headerMode);
+			if (_hm == HeaderMode.PlayerName) {
 				showChatLineHeaderPlayerNameOption.setSelected(true);
-				break;
-			case Both:
+			} else if (_hm == HeaderMode.Both) {
 				showChatLineHeaderBothNameOption.setSelected(true);
-				break;
-			case CharacterName:
-			default:
+			} else {
 				showChatLineHeaderCharacterNameOption.setSelected(true);
-				break;
+			}
 		}
 		String val = options.getOptions().get(RealmSpeakOptions.DAILY_COMBAT);
 		if ("ON".equals(val)) {

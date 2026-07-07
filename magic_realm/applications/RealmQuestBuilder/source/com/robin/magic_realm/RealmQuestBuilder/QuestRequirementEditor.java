@@ -37,17 +37,15 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 		return canceledEdit;
 	}
 
-	protected ArrayList<QuestPropertyBlock> createPropertyBlocks() {
-		ArrayList<QuestPropertyBlock> list = new ArrayList<QuestPropertyBlock>();
+	protected ArrayList createPropertyBlocks() {
+		ArrayList list = new ArrayList();
 		list.add(new QuestPropertyBlock(QuestRequirement.NOT,"NOT",FieldType.Boolean));
-		switch (requirement.getRequirementType()) {
-			case Action:
+		{
+			QuestRequirement.RequirementType _rt = requirement.getRequirementType();
+			if (_rt == QuestRequirement.RequirementType.Action) {
 				list.add(new QuestPropertyBlock(QuestRequirementAction.ACTION, "Action", FieldType.StringSelector, CharacterActionType.values()));
 				list.add(new QuestPropertyBlock(QuestRequirementAction.ACTION_WITHOUT_NATIVES, "Hire and trade action without natives", FieldType.Boolean));
-				break;
-			case Active:
-				break;
-			case Attribute:
+			} else if (_rt == QuestRequirement.RequirementType.Attribute) {
 				list.add(new QuestPropertyBlock(QuestRequirementAttribute.ATTRIBUTE_TYPE, "Which attribute to measure", FieldType.StringSelector, AttributeType.values()));
 				list.add(new QuestPropertyBlock(QuestRequirementAttribute.TARGET_VALUE_TYPE, "Only count points gained during the", FieldType.StringSelector, TargetValueType.values()));
 				list.add(new QuestPropertyBlock(QuestRequirementAttribute.VALUE, "How much should it be", FieldType.NumberAll));
@@ -55,27 +53,22 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRequirementAttribute.REGEX_DESCRIPTION, "Optional description for regex", FieldType.TextLine));
 				list.add(new QuestPropertyBlock(QuestRequirementAttribute.INCLUDE_INVENTORY, "Do count fame/notoriety of inventory", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirement.AUTO_JOURNAL, "Auto Journal Entry", FieldType.Boolean));
-				break;
-			case CastMultipleSpells:
+			} else if (_rt == QuestRequirement.RequirementType.CastMultipleSpells) {
 				list.add(new QuestPropertyBlock(QuestRequirementCastMultipleSpells.NUMBER_OF_SPELLS, "Number of spells", FieldType.Number));
 				list.add(new QuestPropertyBlock(QuestRequirementCastMultipleSpells.UNIQUE, "Unique spells", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementCastMultipleSpells.TARGET_VALUE_TYPE, "Only count points gained during the", FieldType.StringSelector, TargetValueType.values()));
-				break;
-			case CastSpell:
+			} else if (_rt == QuestRequirement.RequirementType.CastSpell) {
 				list.add(new QuestPropertyBlock(QuestRequirementCastSpell.REGEX_FILTER, "Spell to be cast (regex)", FieldType.Regex, null, new String[] {"spell"}));
 				list.add(new QuestPropertyBlock(QuestRequirementCastSpell.SCROLL_OR_BOOK, "Must use a scroll or book", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementCastSpell.ARTIFACT, "Must use an artifact", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementCastSpell.RING, "Must use a ring", FieldType.Boolean));
-				break;
-			case CharacterClass:
+			} else if (_rt == QuestRequirement.RequirementType.CharacterClass) {
 				list.add(new QuestPropertyBlock(QuestRequirementCharacterClass.REGEX_FILTER, "Character(s)", FieldType.Regex, null, new String[] {"character"}));
-				break;
-			case CharacterType:
+			} else if (_rt == QuestRequirement.RequirementType.CharacterType) {
 				list.add(new QuestPropertyBlock(QuestRequirementCharacterType.REQUIRES_TRANSMORPHED, "Must be transmorphed", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementCharacterType.TYPE, "Type", FieldType.StringSelector, TransmorphType.values()));
 				list.add(new QuestPropertyBlock(QuestRequirementCharacterType.REGEX_FILTER, "Characters or transmorphed name", FieldType.Regex, null, new String[] {"denizen", "character"}));
-				break;
-			case Chit:
+			} else if (_rt == QuestRequirement.RequirementType.Chit) {
 				list.add(new QuestPropertyBlock(QuestRequirementChit.TYPE, "Chit type", FieldType.StringSelector, QuestRequirementChit.ChitType.values()));
 				list.add(new QuestPropertyBlock(QuestRequirementChit.AMOUNT, "Number of chits", FieldType.Number));
 				list.add(new QuestPropertyBlock(QuestRequirementChit.STRENGTH, "Strength of the chits", FieldType.StringSelector, VulnerabilityType.values()));
@@ -85,8 +78,7 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRequirementChit.ONLY_ACTIVE, "Chits must be active", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementChit.NOT_FATIGUED, "Chits must not be fatigued", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementChit.NOT_WOUNDED, "Chits must not be wounded", FieldType.Boolean));
-				break;
-			case Clearing:
+			} else if (_rt == QuestRequirement.RequirementType.Clearing) {
 				list.add(new QuestPropertyBlock(QuestRequirementClearing.TILE, "Check all clearings of tile", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementClearing.TILE_SIDE, "Tile side", FieldType.StringSelector, LocationTileSideType.values()));
 				list.add(new QuestPropertyBlock(QuestRequirementClearing.TYPE, "Clearing type", FieldType.StringSelector, LocationClearingType.values()));
@@ -94,64 +86,42 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRequirementClearing.CHIT_TYPE, "Chit type", FieldType.StringSelector, ChitType.values()));
 				list.add(new QuestPropertyBlock(QuestRequirementClearing.CHIT_NAME, "Chit name", FieldType.Regex, null, null));
 				list.add(new QuestPropertyBlock(QuestRequirementClearing.MARK_REQUIRED, "Chit requires a mark", FieldType.Boolean));
-				
-				break;
-			case ColorMagic:
+			} else if (_rt == QuestRequirement.RequirementType.ColorMagic) {
 				list.add(new QuestPropertyBlock(QuestRequirementColorMagic.COLOR_KEY, "In the presence of color magic.", FieldType.StringSelector, Constants.MAGIC_COLORS));
-				break;
-			case Counter:
+			} else if (_rt == QuestRequirement.RequirementType.Counter) {
 				list.add(new QuestPropertyBlock(QuestRequirementCounter.COUNTER, "Quest Counter", FieldType.GameObjectWrapperSelector, quest.getCounters().toArray()));
 				list.add(new QuestPropertyBlock(QuestRequirementCounter.TARGET_VALUE, "Target count", FieldType.NumberAll));
 				list.add(new QuestPropertyBlock(QuestRequirementCounter.EXCEED_TARGET_VALUE, "Exceed target value allowed", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementCounter.SUBCEED_TARGET_VALUE, "Subceed target value allowed", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirement.AUTO_JOURNAL, "Auto Journal Entry", FieldType.Boolean));
-				break;
-			case Curse:
+			} else if (_rt == QuestRequirement.RequirementType.Curse) {
 				list.add(new QuestPropertyBlock(QuestRequirementCurse.CURSE, "Curse", FieldType.StringSelector, getCurseStrings().toArray()));
-				break;
-			case Discovery:
+			} else if (_rt == QuestRequirement.RequirementType.Discovery) {
 				list.add(new QuestPropertyBlock(QuestRequirementDiscovery.DISCOVERY_KEY, "Discovery", FieldType.StringSelector, getDiscoveryStrings().toArray()));
-				break;
-			case Enchant:
+			} else if (_rt == QuestRequirement.RequirementType.Enchant) {
 				list.add(new QuestPropertyBlock(QuestRequirementEnchant.TYPE, "Target", FieldType.StringSelector, new String[] { "chit", RealmComponent.TILE} ));
 				list.add(new QuestPropertyBlock(QuestRequirementEnchant.CHIT, "Enchanted chit / chit must be on the tile", FieldType.StringSelector, getAllChitTypes() ));
 				list.add(new QuestPropertyBlock(QuestRequirementEnchant.SITE, "Site ust be on the tile?", FieldType.StringSelector, getTreasureLocationsAndRedSpecialsAndDwellingsStrings().toArray()));
-				break;
-			case Fighter:
-				break;
-			case Fly:
+			} else if (_rt == QuestRequirement.RequirementType.Fly) {
 				list.add(new QuestPropertyBlock(QuestRequirementFly.FLY, "Needs to fly?", FieldType.StringSelector, new String[] { QuestRequirementFly.FLYING,QuestRequirementFly.ABILITY_TO_FLY }));
-				break;
-			case FoundHiddenEnemies:
-				break;
-			case GameEnd:
-				break;
-			case GamePhase:
+			} else if (_rt == QuestRequirement.RequirementType.GamePhase) {
 				list.add(new QuestPropertyBlock(QuestRequirementGamePhase.GAME_PHASE_TYPE, "Only at", FieldType.StringSelector, GamePhaseType.values()));
-				break;
-			case Gender:
+			} else if (_rt == QuestRequirement.RequirementType.Gender) {
 				list.add(new QuestPropertyBlock(QuestRequirementGender.GENDER, "Gender", FieldType.StringSelector, new String[] { GenderType.Female.toString(), GenderType.Male.toString() }));
-				break;
-			case Guild:
+			} else if (_rt == QuestRequirement.RequirementType.Guild) {
 				list.add(new QuestPropertyBlock(QuestRequirementGuild.GUILD, "Guild", FieldType.Regex, null, new String[] { "guild" }));
 				list.add(new QuestPropertyBlock(QuestRequirementGuild.GUILD_LEVEL, "Guild level (1-3)", FieldType.Number));
 				list.add(new QuestPropertyBlock(QuestRequirementGuild.EXCEED_LEVEL, "Exceed target level allowed", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementGuild.SUBCEED_LEVEL, "Subceed target level allowed", FieldType.Boolean));
-				break;
-			case GuildLocation:
+			} else if (_rt == QuestRequirement.RequirementType.GuildLocation) {
 				list.add(new QuestPropertyBlock(QuestRequirementGuildLocation.GUILD, "Guild", FieldType.Regex, null, new String[] { "guild" }));
 				list.add(new QuestPropertyBlock(QuestRequirementGuildLocation.CURRENT_GUILD, "Check for current Guild", FieldType.Boolean));
-				break;
-			case Hidden:
-				break;
-			case HideResult:
+			} else if (_rt == QuestRequirement.RequirementType.HideResult) {
 				list.add(new QuestPropertyBlock(QuestRequirementHideResult.DIE_ROLL, "Die roll", FieldType.StringSelector, DieRollType.values()));
-				break;
-			case Hire:
+			} else if (_rt == QuestRequirement.RequirementType.Hire) {
 				list.add(new QuestPropertyBlock(QuestRequirementHire.REGEX_FILTER, "Denizen", FieldType.Regex, null, new String[] { "denizen" }));
 				list.add(new QuestPropertyBlock(QuestRequirementHire.NUMBER_OF_HIRELINGS, "Number of hirelings", FieldType.Number));
-				break;
-			case Hirelings:
+			} else if (_rt == QuestRequirement.RequirementType.Hirelings) {
 				list.add(new QuestPropertyBlock(QuestRequirementHirelings.HIRELING_REGEX, "Hireling RegEx", FieldType.Regex, null, new String[] { "denizen" }));
 				list.add(new QuestPropertyBlock(QuestRequirementHirelings.AMOUNT, "Number of hirelings", FieldType.Number));
 				list.add(new QuestPropertyBlock(QuestRequirementHirelings.MUST_FOLLOW, "Must be following", FieldType.Boolean));
@@ -167,8 +137,7 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRequirementHirelings.ARMORED, "Must be armored", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementHirelings.CHECK_BOTH_SIDES, "Check ligth and dark chit sides", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementHirelings.INCLUDE_WEAPONS, "Include monster weapons", FieldType.Boolean));
-				break;
-			case Inventory:
+			} else if (_rt == QuestRequirement.RequirementType.Inventory) {
 				list.add(new QuestPropertyBlock(QuestRequirementLoot.TREASURE_TYPE, "Type of inventory", FieldType.StringSelector, TreasureType.values()));
 				list.add(new QuestPropertyBlock(QuestRequirementLoot.REGEX_FILTER, "Inventory name filter (regex)", FieldType.Regex, null, new String[] { "item","treasure_within_treasure" }));
 				list.add(new QuestPropertyBlock(QuestRequirementInventory.NUMBER, "How many in inventory?", FieldType.NumberAll));
@@ -178,16 +147,14 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRequirementLoot.REQ_MARK, "Require mark?", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementLoot.ADD_MARK, "Add marks to items?", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementLoot.REQ_ABILITY, "Requires ability?", FieldType.TextLine));
-				break;
-			case InventoryValue:
+			} else if (_rt == QuestRequirement.RequirementType.InventoryValue) {
 				list.add(new QuestPropertyBlock(QuestRequirementInventoryValue.GOLD_VALUE, "Value of Gold", FieldType.NumberAll));
 				list.add(new QuestPropertyBlock(QuestRequirementInventoryValue.FAME_VALUE, "Value of Fame", FieldType.NumberAll));
 				list.add(new QuestPropertyBlock(QuestRequirementLoot.TREASURE_TYPE, "Type of inventory", FieldType.StringSelector, TreasureType.values()));
 				list.add(new QuestPropertyBlock(QuestRequirementLoot.REGEX_FILTER, "Inventory name filter (regex)", FieldType.Regex, null, new String[] { "item","treasure_within_treasure" }));
 				list.add(new QuestPropertyBlock(QuestRequirementLoot.REQ_MARK, "Add marks to items?", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementLoot.REQ_ABILITY, "Requires ability?", FieldType.TextLine));
-				break;
-			case Kill:
+			} else if (_rt == QuestRequirement.RequirementType.Kill) {
 				list.add(new QuestPropertyBlock(QuestRequirementKill.REGEX_FILTER, "Denizen name filter (regex)", FieldType.Regex, null, new String[] { "denizen" }));
 				list.add(new QuestPropertyBlock(QuestRequirementKill.REGEX_DESCRIPTION, "Optional description for regex", FieldType.TextLine));
 				list.add(new QuestPropertyBlock(QuestRequirementKill.VALUE, "How many (" + QuestConstants.ALL_VALUE + " means ALL)", FieldType.Number));
@@ -196,73 +163,56 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRequirementKill.TARGET_VALUE_TYPE, "Only count points gained during the", FieldType.StringSelector, TargetValueType.values()));
 				list.add(new QuestPropertyBlock(QuestRequirementKill.REQUIRE_MARK, "Mark is required", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementKill.KILL_CHARACTERS, "Must kill characters (not denizens)", FieldType.Boolean));
-				break;
-			case KillDenizenSummonedByChit:
+			} else if (_rt == QuestRequirement.RequirementType.KillDenizenSummonedByChit) {
 				list.add(new QuestPropertyBlock(QuestRequirementKillDenizenSummonedByChit.CHIT, "Chit type", FieldType.StringSelector, getAllChitTypes()));
 				list.add(new QuestPropertyBlock(QuestRequirementKillDenizenSummonedByChit.TILE_TYPE, "Tile type", FieldType.StringSelector, getAllTileTypes()));
 				list.add(new QuestPropertyBlock(QuestRequirementKillDenizenSummonedByChit.SAME_CLEARING, "Must be in the clearing with the chit", FieldType.Boolean));
-				break;
-			case KillGuardian:
+			} else if (_rt == QuestRequirement.RequirementType.KillGuardian) {
 				list.add(new QuestPropertyBlock(QuestRequirementKillGuardian.GUARDIAN_AND_SITE, "Guardian", FieldType.StringSelector, getGuardians().toArray()));
 				list.add(new QuestPropertyBlock(QuestRequirementKillGuardian.TARGET_VALUE_TYPE, "Only count points gained during the", FieldType.StringSelector, TargetValueType.values()));
-				break;
-			case LearnAwaken:
+			} else if (_rt == QuestRequirement.RequirementType.LearnAwaken) {
 				list.add(new QuestPropertyBlock(QuestRequirementLearnAwaken.REGEX_FILTER, "Spell filter (regex)", FieldType.Regex, null, new String[] { "spell,learnable" }));
 				list.add(new QuestPropertyBlock(QuestRequirementLearnAwaken.MUST_LEARN, "Must Learn Spell", FieldType.Boolean));
-				break;
-			case LocationExists:
+			} else if (_rt == QuestRequirement.RequirementType.LocationExists) {
 				list.add(new QuestPropertyBlock(QuestRequirementLocationExists.LOCATION, "Quest Location", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
-				break;	
-			case Loot:
+			} else if (_rt == QuestRequirement.RequirementType.Loot) {
 				list.add(new QuestPropertyBlock(QuestRequirementLoot.TREASURE_TYPE, "Type of Loot to acquire", FieldType.StringSelector, TreasureType.values()));
 				list.add(new QuestPropertyBlock(QuestRequirementLoot.REGEX_FILTER, "Loot name filter (regex)", FieldType.Regex, null, new String[] { "item","treasure_within_treasure" }));
 				list.add(new QuestPropertyBlock(QuestRequirementLoot.REQ_MARK, "Loot requires mark", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementLoot.ADD_MARK, "Add marks to loot?", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementLoot.REQ_ABILITY, "Requires ability?", FieldType.TextLine));
-				break;
-			case NextPhase:
+			} else if (_rt == QuestRequirement.RequirementType.NextPhase) {
 				list.add(new QuestPropertyBlock(QuestRequirementNextPhase.PHASES_TO_SKIP, "Phases to pass (1 day has 4 phases)", FieldType.Number));
-				break;
-			case NoDenizens:
+			} else if (_rt == QuestRequirement.RequirementType.NoDenizens) {
 				list.add(new QuestPropertyBlock(QuestRequirementNoDenizens.NO_MONSTERS, "No Monsters", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementNoDenizens.NO_NATIVES, "No Natives", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementNoDenizens.TILE_WIDE, "All Tile Clearings", FieldType.Boolean));
-				break;
-			case MagicUser:
-				break;
-			case MinorCharacter:
+			} else if (_rt == QuestRequirement.RequirementType.MinorCharacter) {
 				list.add(new QuestPropertyBlock(QuestRequirementMinorCharacter.MINOR_CHARACTER, "Minor character ", FieldType.SmartTextLine, quest.getMinorCharacters().toArray()));
-				break;
-			case MissionCampaign:
+			} else if (_rt == QuestRequirement.RequirementType.MissionCampaign) {
 				list.add(new QuestPropertyBlock(QuestRequirementMissionCampaign.ACTION_TYPE, "Mission/Campaign action", FieldType.StringSelector, CharacterActionType.mcValues()));
 				list.add(new QuestPropertyBlock(QuestRequirementMissionCampaign.DISABLE_ON_PICKUP, "Disable on Pickup", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementMissionCampaign.REGEX_FILTER, "Mission/Campaign filter (regex)", FieldType.Regex, null, new String[] { "mission","campaign" }));
-				break;
-			case OccupyLocation:
+			} else if (_rt == QuestRequirement.RequirementType.OccupyLocation) {
 				list.add(new QuestPropertyBlock(QuestRequirementLocation.LOCATION, "Quest Location", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
 				list.add(new QuestPropertyBlock(QuestRequirementLocation.NON_CLEARING, "Non-clearing location allowed", FieldType.Boolean));
-				break;
-			case Open:
+			} else if (_rt == QuestRequirement.RequirementType.Open) {
 				list.add(new QuestPropertyBlock(QuestRequirementOpen.LOCATION_REGEX, "Location to open/search", FieldType.Regex, null, new String[] { "needs_open", "search" }));
 				list.add(new QuestPropertyBlock(QuestRequirementOpen.OPEN_BY_ANYONE, "Open by anyone (chest or vault)", FieldType.Boolean));
-				break;
-			case Path:
+			} else if (_rt == QuestRequirement.RequirementType.Path) {
 				list.add(new QuestPropertyBlock(QuestRequirementPath.PATH, "Specific Path (like \"CV1 CV3 CV6 CV4 CV5\")", FieldType.SmartTextArea, getAllClearingCodes()));
 				list.add(new QuestPropertyBlock(QuestRequirementPath.TIME_RESTRICTION, "Only count moves made during the", FieldType.StringSelector, TargetValueType.values()));
 				list.add(new QuestPropertyBlock(QuestRequirementPath.CHECK_REVERSE, "Either direction", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementPath.ALLOW_TRANSPORT, "Allow teleport", FieldType.Boolean));
-				break;
-			case Probability:
+			} else if (_rt == QuestRequirement.RequirementType.Probability) {
 				list.add(new QuestPropertyBlock(QuestRequirementProbability.CHANCE, "Probability in % (1-100)", FieldType.Number));
 				list.add(new QuestPropertyBlock(QuestRequirementProbability.MAX_NUMBER_OF_CHECKS, "Max. checks per day (0: unlimited)", FieldType.NumberAll));
-				break;
-			case Relationship:
+			} else if (_rt == QuestRequirement.RequirementType.Relationship) {
 				list.add(new QuestPropertyBlock(QuestRequirementRelationship.NATIVE_GROUP, "Native group", FieldType.Regex, null, new String[] {"native,rank=HQ", "visitor"}));
 				list.add(new QuestPropertyBlock(QuestRequirementRelationship.RELATIONSHIP_LEVEL, "Relationship", FieldType.StringSelector, RelationshipType.RelationshipNames));
 				list.add(new QuestPropertyBlock(QuestRequirementRelationship.EXCEED_LEVEL, "Exceed target level allowed", FieldType.Boolean));
-				list.add(new QuestPropertyBlock(QuestRequirementRelationship.SUBCEED_LEVEL, "Subceed target level allowed", FieldType.Boolean));
-				break;
-			case SearchResult:
+				list.add(new QuestPropertyBlock(QuestRequirementRelationship.SUBCEED_LEVEL, "Subceed target value allowed", FieldType.Boolean));
+			} else if (_rt == QuestRequirement.RequirementType.SearchResult) {
 				list.add(new QuestPropertyBlock(QuestRequirementSearchResult.REQ_TABLENAME, "Search table", FieldType.StringSelector, SearchTableType.values()));
 				list.add(new QuestPropertyBlock(QuestRequirementSearchResult.LOCATION, "Location of search", FieldType.GameObjectWrapperSelector, getOptionalQuestLocationArray().toArray()));
 				list.add(new QuestPropertyBlock(QuestRequirementSearchResult.TARGET_LOC, "Target of search", FieldType.GameObjectWrapperSelector, getOptionalQuestLocationArray().toArray()));
@@ -272,8 +222,7 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRequirementSearchResult.RESULT3, "OR", FieldType.StringSelector, SearchResultType.optionalValues()));
 				list.add(new QuestPropertyBlock(QuestRequirementSearchResult.REQUIRES_GAIN, "Require search effect", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementSearchResult.REQUIRES_NO_GAIN, "Requires no search effect", FieldType.Boolean));
-				break;
-			case SearchTile:
+			} else if (_rt == QuestRequirement.RequirementType.SearchTile) {
 				list.add(new QuestPropertyBlock(QuestRequirementSearchTile.TILE_TYPE, "Tile type", FieldType.StringSelector, getAllTileTypes()));
 				list.add(new QuestPropertyBlock(QuestRequirementSearchTile.CHIT, "Chit", FieldType.StringSelector, getAllChitTypes()));
 				list.add(new QuestPropertyBlock(QuestRequirementSearchTile.HIGHEST_NUMBERED_CLREAING, "Highest numbered clearing with site/sound", FieldType.Boolean));
@@ -281,14 +230,11 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRequirementSearchTile.RESULT1, "Search result", FieldType.StringSelector, SearchResultType.values()));
 				list.add(new QuestPropertyBlock(QuestRequirementSearchTile.RESULT2, "OR", FieldType.StringSelector, SearchResultType.optionalValues()));
 				list.add(new QuestPropertyBlock(QuestRequirementSearchTile.RESULT3, "OR", FieldType.StringSelector, SearchResultType.optionalValues()));
-				break;
-			case Season:
+			} else if (_rt == QuestRequirement.RequirementType.Season) {
 				list.add(new QuestPropertyBlock(QuestRequirementSeason.SEASON, "Season", FieldType.StringSelector, getSeasonStrings().toArray() ));
-				break;
-			case TimePassed:
+			} else if (_rt == QuestRequirement.RequirementType.TimePassed) {
 				list.add(new QuestPropertyBlock(QuestRequirementTimePassed.VALUE, "How many days", FieldType.Number));
-				break;
-			case Trade:
+			} else if (_rt == QuestRequirement.RequirementType.Trade) {
 				list.add(new QuestPropertyBlock(QuestRequirementTrade.TRADE_TYPE, "Buy or Sell", FieldType.StringSelector,  TradeType.values()));
 				list.add(new QuestPropertyBlock(QuestRequirementTrade.TRADE_ITEM_REGEX, "Item Traded", FieldType.Regex, null, new String[] { "item" }));
 				list.add(new QuestPropertyBlock(QuestRequirementTrade.TRADE_WITH_REGEX, "Trade With", FieldType.Regex, null, new String[] { "native,rank=HQ","visitor" }));
@@ -297,46 +243,45 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRequirementTrade.TRADE_SPELL, "Spell?", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementTrade.TRADE_CONDITIONAL_FAME, "Trade item with conditional fame?", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementTrade.ADD_MARK, "Add mark to traded item?", FieldType.Boolean));
-				break;
-			case Traveler:
+			} else if (_rt == QuestRequirement.RequirementType.Traveler) {
 				list.add(new QuestPropertyBlock(QuestRequirementTraveler.TRAVELER_REGEX, "Name", FieldType.Regex, null, new String[] { Constants.TRAVELER_TEMPLATE }));
 				list.add(new QuestPropertyBlock(QuestRequirementTraveler.MARK, "Requires a mark?", FieldType.Boolean));
-				break;
-			case Treachery:
+			} else if (_rt == QuestRequirement.RequirementType.Treachery) {
 				list.add(new QuestPropertyBlock(QuestRequirementTreachery.REGEX_FILTER, "Denizen", FieldType.Regex, null, new String[] {"denizen"}));
 				list.add(new QuestPropertyBlock(QuestRequirementTreachery.NATIVE_ONLY, "Only natives?", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementTreachery.KILL_IN_COMBAT, "Kill betrayed denizen in same combat?", FieldType.Boolean));
-				break;
-			case Teleport:
+			} else if (_rt == QuestRequirement.RequirementType.Teleport) {
 				list.add(new QuestPropertyBlock(QuestRequirementTeleport.TELEPORT_TYPE, "Teleport type", FieldType.StringSelector, getTeleportTypes().toArray()));
-				break;
-			case Weather:
+			} else if (_rt == QuestRequirement.RequirementType.Weather) {
 				list.add(new QuestPropertyBlock(QuestRequirementWeather.WEATHER_ENABLED, "Weather must be enabled", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRequirementWeather.WEATHER, "Weather", FieldType.StringSelector, new String[] {"", RealmCalendar.WEATHER_CLEAR, RealmCalendar.WEATHER_SHOWERS, RealmCalendar.WEATHER_STORM, RealmCalendar.WEATHER_SPECIAL}));
-				break;
+			}
 		}
 		return list;
 	}
 
 	private String[] getAllClearingCodes() {
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList list = new ArrayList();
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
-		for(GameObject go:pool.find("tile")) {
+		for (java.util.Iterator _j14it282 = (pool.find("tile")).iterator(); _j14it282.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it282.next();
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
 			String code = tile.getTileCode();
-			for (ClearingDetail clearing:tile.getClearings()) {
+			for (java.util.Iterator _j14it283 = (tile.getClearings()).iterator(); _j14it283.hasNext(); ) {
+			  ClearingDetail clearing = (ClearingDetail) _j14it283.next();
 				list.add(code+clearing.getNumString());
 			}
 		}
 		Collections.sort(list);
-		return list.toArray(new String[list.size()]);
+		return (String[]) list.toArray(new String[list.size()]);
 	}
-	
+
 	private String[] getAllTileTypes() {
-		ArrayList<String> list = new ArrayList<String>();
-		ArrayList<String> choices = new ArrayList<String>();
+		ArrayList list = new ArrayList();
+		ArrayList choices = new ArrayList();
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
-		for(GameObject go:pool.find("tile")) {
+		for (java.util.Iterator _j14it284 = (pool.find("tile")).iterator(); _j14it284.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it284.next();
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
 			String type = tile.getTileType();
 			if (!list.contains(type)) {
@@ -344,18 +289,19 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 			}
 		}
 		Collections.sort(list);
-		
+
 		choices.add(QuestRequirement.ANY);
 		choices.addAll(list);
-		
-		return choices.toArray(new String[list.size()]);
+
+		return (String[]) choices.toArray(new String[list.size()]);
 	}
-	
+
 	private String[] getAllChitTypes() {
-		ArrayList<String> list = new ArrayList<String>();
-		ArrayList<String> choices = new ArrayList<String>();
+		ArrayList list = new ArrayList();
+		ArrayList choices = new ArrayList();
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
-		for(GameObject go:pool.find("chit,!red_special,!treasure_location,!minor_tl,!traveler,!gold,!guild,!gate")) {
+		for (java.util.Iterator _j14it285 = (pool.find("chit,!red_special,!treasure_location,!minor_tl,!traveler,!gold,!guild,!gate")).iterator(); _j14it285.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it285.next();
 			if (!list.contains(go.getName())) {
 				list.add(go.getName());
 			}
@@ -374,15 +320,15 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 			}
 		}
 		Collections.sort(list);
-		
+
 		choices.add(QuestRequirement.NONE);
 		choices.addAll(list);
-		
-		return choices.toArray(new String[list.size()]);
+
+		return (String[]) choices.toArray(new String[list.size()]);
 	}
-	
-	private static ArrayList<String> getCurseStrings() {
-		ArrayList<String> list = new ArrayList<String>();
+
+	private static ArrayList getCurseStrings() {
+		ArrayList list = new ArrayList();
 		list.add(Constants.ASHES);
 		list.add(Constants.DISGUST);
 		list.add(Constants.EYEMIST);
@@ -392,88 +338,99 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 		list.add(Constants.MESMERIZE);
 		return list;
 	}
-	
-	private ArrayList<String> getDiscoveryStrings() {
-		ArrayList<String> list = new ArrayList<String>();
-		
+
+	private ArrayList getDiscoveryStrings() {
+		ArrayList list = new ArrayList();
+
 		// Build the discovery lists
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
-		for(GameObject go:pool.find("treasure_location,discovery")) {
+		for (java.util.Iterator _j14it286 = (pool.find("treasure_location,discovery")).iterator(); _j14it286.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it286.next();
 			if(!list.contains(go.getName())) list.add(go.getName());
 		}
-		for(GameObject go:pool.find("red_special")) {
+		for (java.util.Iterator _j14it287 = (pool.find("red_special")).iterator(); _j14it287.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it287.next();
 			if(!list.contains(go.getName())) list.add(go.getName());
 		}
 		Collections.sort(list);
-		
-		ArrayList<String> sublist = new ArrayList<String>();
-		for(GameObject go:pool.find("tile")) {
+
+		ArrayList sublist = new ArrayList();
+		for (java.util.Iterator _j14it288 = (pool.find("tile")).iterator(); _j14it288.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it288.next();
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
-			for(PathDetail path:tile.getHiddenPaths()) {
+			for (java.util.Iterator _j14it289 = (tile.getHiddenPaths()).iterator(); _j14it289.hasNext(); ) {
+			  PathDetail path = (PathDetail) _j14it289.next();
 				if(!sublist.contains(path.getFullPathKey())) sublist.add(path.getFullPathKey());
 			}
-			for(PathDetail path:tile.getSecretPassages()) {
+			for (java.util.Iterator _j14it290 = (tile.getSecretPassages()).iterator(); _j14it290.hasNext(); ) {
+			  PathDetail path = (PathDetail) _j14it290.next();
 				if(!sublist.contains(path.getFullPathKey())) sublist.add(path.getFullPathKey());
 			}
 		}
 		Collections.sort(sublist);
 		list.addAll(sublist);
-		
+
 		return list;
 	}
-	
-	private ArrayList<String> getTreasureLocationsAndRedSpecialsAndDwellingsStrings() {
-		ArrayList<String> list = new ArrayList<String>();
-		ArrayList<String> choices = new ArrayList<String>();
-		
+
+	private ArrayList getTreasureLocationsAndRedSpecialsAndDwellingsStrings() {
+		ArrayList list = new ArrayList();
+		ArrayList choices = new ArrayList();
+
 		// Build the discovery lists
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
-		for(GameObject go:pool.find("treasure_location")) {
+		for (java.util.Iterator _j14it291 = (pool.find("treasure_location")).iterator(); _j14it291.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it291.next();
 			if(!list.contains(go.getName())) list.add(go.getName());
 		}
-		for(GameObject go:pool.find("red_special")) {
+		for (java.util.Iterator _j14it292 = (pool.find("red_special")).iterator(); _j14it292.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it292.next();
 			if(!list.contains(go.getName())) list.add(go.getName());
 		}
-		for(GameObject go:pool.find("dwelling,!virtual_dwelling")) {
+		for (java.util.Iterator _j14it293 = (pool.find("dwelling,!virtual_dwelling")).iterator(); _j14it293.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it293.next();
 			if(!list.contains(go.getName())) list.add(go.getName());
 		}
 		Collections.sort(list);
-		
+
 		choices.add(QuestRequirement.NONE);
 		choices.addAll(list);
-		
+
 		return choices;
 	}
 
-	private ArrayList<QuestLocation> getOptionalQuestLocationArray() {
-		ArrayList<QuestLocation> list = new ArrayList<QuestLocation>();
-		ArrayList<QuestLocation> locations = quest.getLocations();
+	private ArrayList getOptionalQuestLocationArray() {
+		ArrayList list = new ArrayList();
+		ArrayList locations = quest.getLocations();
 		if (locations != null) {
 			list.addAll(locations);
 		}
 		list.add(0, null);
 		return list;
 	}
-	
-	private ArrayList<String> getSeasonStrings() {
-		ArrayList<String> list = new ArrayList<String>();
+
+	private ArrayList getSeasonStrings() {
+		ArrayList list = new ArrayList();
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
-		for(GameObject go:pool.find("season")) {
+		for (java.util.Iterator _j14it294 = (pool.find("season")).iterator(); _j14it294.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it294.next();
 			list.add(go.getName());
 		}
-		Collections.sort(list);		
+		Collections.sort(list);
 		return list;
 	}
-	
-	private ArrayList<String> getGuardians() {
-		ArrayList<String> guardians = new ArrayList<String>();
+
+	private ArrayList getGuardians() {
+		ArrayList guardians = new ArrayList();
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
-		ArrayList<GameObject> monsters = pool.find("monster,setup_start");
-		for (GameObject monster : monsters) {
+		ArrayList monsters = pool.find("monster,setup_start");
+		for (java.util.Iterator _j14it295 = (monsters).iterator(); _j14it295.hasNext(); ) {
+		  GameObject monster = (GameObject) _j14it295.next();
 			String setupStart = monster.getThisAttribute("setup_start");
 			if (setupStart!=null && setupStart.length() > 0) {
-				ArrayList<GameObject> boxes = pool.find("name="+setupStart+",treasure_location");
-				for (GameObject box : boxes) {
+				ArrayList boxes = pool.find("name="+setupStart+",treasure_location");
+				for (java.util.Iterator _j14it296 = (boxes).iterator(); _j14it296.hasNext(); ) {
+				  GameObject box = (GameObject) _j14it296.next();
 					String guardianAndSite = monster.getName()+" ("+box.getName()+")";
 					if (!guardians.contains(guardianAndSite)) {
 						guardians.add(guardianAndSite);
@@ -484,11 +441,13 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 		Collections.sort(guardians);
 		return guardians;
 	}
-	
-	private static ArrayList<String> getTeleportTypes() {
-		ArrayList<String> list = new ArrayList<String>();
-		ArrayList<String> teleportTypes = new ArrayList<String>();
-		for (TeleportType type : TeleportType.values()) {
+
+	private static ArrayList getTeleportTypes() {
+		ArrayList list = new ArrayList();
+		ArrayList teleportTypes = new ArrayList();
+		TeleportType[] _j14arr297 = TeleportType.values();
+		for (int _j14i297 = 0; _j14i297 < _j14arr297.length; _j14i297++) {
+		  TeleportType type = _j14arr297[_j14i297];
 			list.add(type.toString());
 		}
 		teleportTypes.add(QuestRequirementTeleport.ANY_TYPE);

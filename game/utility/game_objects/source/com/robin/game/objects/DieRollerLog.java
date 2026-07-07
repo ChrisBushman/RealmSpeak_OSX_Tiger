@@ -15,7 +15,7 @@ public class DieRollerLog implements DieRollerLoggable {
 	
 	private boolean dirty = true;
 	
-	private ArrayList<DieRoller> cache;
+	private ArrayList cache;
 	
 	private GameObject gameObject;
 	
@@ -28,44 +28,49 @@ public class DieRollerLog implements DieRollerLoggable {
 		gameObject.addThisAttributeListItem(REASON_LIST,reason==null?"":reason);
 	}
 	public int getTotalRolls() {
-		ArrayList<String> rolls = gameObject.getThisAttributeList(ROLL_LIST);
+		ArrayList rolls = gameObject.getThisAttributeList(ROLL_LIST);
 		return rolls==null?0:rolls.size();
 	}
 	public Integer[] getDieMultiples() {
-		ArrayList<Integer> multiples = new ArrayList<Integer>();
-		for(DieRoller roller:getDieRollers()) {
+		ArrayList multiples = new ArrayList();
+		for (java.util.Iterator _j14it117 = (getDieRollers()).iterator(); _j14it117.hasNext(); ) {
+		  DieRoller roller = (DieRoller) _j14it117.next();
 			int nod = roller.getNumberOfDice();
-			if (!multiples.contains(nod)) {
-				multiples.add(nod);
+			if (!multiples.contains(Integer.valueOf(nod))) {
+				multiples.add(Integer.valueOf(nod));
 			}
 		}
 		Collections.sort(multiples);
-		return multiples.toArray(new Integer[multiples.size()]);
+		return (Integer[]) multiples.toArray(new Integer[multiples.size()]);
 	}
 	public int getTotalRolls(int numberOfDice) {
 		int count=0;
-		for(DieRoller roller:getDieRollers()) {
+		for (java.util.Iterator _j14it118 = (getDieRollers()).iterator(); _j14it118.hasNext(); ) {
+		  DieRoller roller = (DieRoller) _j14it118.next();
 			if (roller.getNumberOfDice()==numberOfDice) count++;
 		}
 		return count;
 	}
 	public int getTotalDiceRolled() {
 		int dice = 0;
-		for(DieRoller roller:getDieRollers()) {
+		for (java.util.Iterator _j14it119 = (getDieRollers()).iterator(); _j14it119.hasNext(); ) {
+		  DieRoller roller = (DieRoller) _j14it119.next();
 			dice += roller.getNumberOfDice();
 		}
 		return dice;
 	}
 	public int getFrequencyOfDieResult(int result) {
 		int frequency = 0;
-		for(DieRoller roller:getDieRollers()) {
+		for (java.util.Iterator _j14it120 = (getDieRollers()).iterator(); _j14it120.hasNext(); ) {
+		  DieRoller roller = (DieRoller) _j14it120.next();
 			frequency += roller.getDieResultCount(result);
 		}
 		return frequency;
 	}
 	public int getFrequencyOfTotal(int numberOfDice,int result,boolean includeModifier) {
 		int frequency = 0;
-		for(DieRoller roller:getDieRollers()) {
+		for (java.util.Iterator _j14it121 = (getDieRollers()).iterator(); _j14it121.hasNext(); ) {
+		  DieRoller roller = (DieRoller) _j14it121.next();
 			if (roller.getNumberOfDice()==numberOfDice) {
 				int total = roller.getTotal();
 				if (!includeModifier) {
@@ -80,7 +85,8 @@ public class DieRollerLog implements DieRollerLoggable {
 	}
 	public int getFrequencyOfHighDie(int numberOfDice,int result) {
 		int frequency = 0;
-		for(DieRoller roller:getDieRollers()) {
+		for (java.util.Iterator _j14it122 = (getDieRollers()).iterator(); _j14it122.hasNext(); ) {
+		  DieRoller roller = (DieRoller) _j14it122.next();
 			if (roller.getNumberOfDice()==numberOfDice) {
 				if (roller.getHighDieResult()==result) {
 					frequency++;
@@ -89,15 +95,16 @@ public class DieRollerLog implements DieRollerLoggable {
 		}
 		return frequency;
 	}
-	public ArrayList<String> getReasons() {
+	public ArrayList getReasons() {
 		return gameObject.getThisAttributeList(REASON_LIST);
 	}
-	public ArrayList<DieRoller> getDieRollers() {
+	public ArrayList getDieRollers() {
 		if (cache==null || dirty) {
-			cache = new ArrayList<DieRoller>();
-			ArrayList<String> rolls = gameObject.getThisAttributeList(ROLL_LIST);
+			cache = new ArrayList();
+			ArrayList rolls = gameObject.getThisAttributeList(ROLL_LIST);
 			if (rolls!=null) {
-				for(String roll:rolls) {
+				for (java.util.Iterator _j14it123 = (rolls).iterator(); _j14it123.hasNext(); ) {
+				  String roll = (String) _j14it123.next();
 					cache.add(new DieRoller(roll));
 				}
 			}
@@ -109,7 +116,7 @@ public class DieRollerLog implements DieRollerLoggable {
 		NumberFormat percentFormat = NumberFormat.getPercentInstance();
 		percentFormat.setMaximumFractionDigits(2);
 		
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		
 		sb.append("-------------------------\n");
 		sb.append("-- DIE ROLL STATISTICS --\n");
@@ -129,7 +136,8 @@ public class DieRollerLog implements DieRollerLoggable {
 		}
 		sb.append("-------------------------\n");
 		if (includeTotals) {
-			for (int nod:getDieMultiples()) {
+			Integer[] _dm124 = getDieMultiples(); for (int _i124=0;_i124<_dm124.length;_i124++) {
+			  int nod = _dm124[_i124].intValue();
 				if (nod==1) continue;
 				int totalRolls = getTotalRolls(nod);
 				sb.append("For "+totalRolls+" rolls with "+nod+" dice:\n");
@@ -142,7 +150,8 @@ public class DieRollerLog implements DieRollerLoggable {
 			}
 		}
 		if (includeHighDie) {
-			for (int nod:getDieMultiples()) {
+			Integer[] _dm125 = getDieMultiples(); for (int _i125=0;_i125<_dm125.length;_i125++) {
+			  int nod = _dm125[_i125].intValue();
 				if (nod==1) continue;
 				int totalRolls = getTotalRolls(nod);
 				sb.append("For "+totalRolls+" rolls with "+nod+" dice:\n");
@@ -157,25 +166,25 @@ public class DieRollerLog implements DieRollerLoggable {
 		return sb.toString();
 	}
 	public String getAllDieRolls() {
-		ArrayList<DieRoller> rollers = getDieRollers();
-		ArrayList<String> reasons = getReasons();
+		ArrayList rollers = getDieRollers();
+		ArrayList reasons = getReasons();
 		if (reasons==null) return "No die rolls have been recorded yet.";
 		String defaultReason = "<none>";
 		
 		int maxReasonLength = defaultReason.length();
 		for (int i=0;i<reasons.size();i++){
-			maxReasonLength = Math.max(maxReasonLength,reasons.get(i).length());
+			maxReasonLength = Math.max(maxReasonLength,((String)reasons.get(i)).length());
 		}
 		maxReasonLength+=2;
 		
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		appendField(sb,"Reason",maxReasonLength);
 		sb.append("Total  High\n");
 		appendField(sb,"------",maxReasonLength-2,'-');
 		sb.append("  -----  -----\n");
 		for (int i=0;i<rollers.size();i++){
-			DieRoller roller = rollers.get(i);
-			String reason = reasons.get(i);
+			DieRoller roller = (DieRoller) rollers.get(i);
+			String reason = (String) reasons.get(i);
 			appendField(sb,reason.length()==0?"<none>":reason,maxReasonLength);
 			appendField(sb,String.valueOf(roller.getTotal()-roller.getModifier()),7);
 			appendField(sb,String.valueOf(roller.getHighDieResult()),7);
@@ -187,10 +196,10 @@ public class DieRollerLog implements DieRollerLoggable {
 		}
 		return sb.toString();
 	}
-	private static void appendField(StringBuilder sb,String field,int length) {
+	private static void appendField(StringBuffer sb,String field,int length) {
 		appendField(sb,field,length,' ');
 	}
-	private static void appendField(StringBuilder sb,String field,int length,char c) {
+	private static void appendField(StringBuffer sb,String field,int length,char c) {
 		sb.append(field);
 		while(length-field.length()>0) {
 			sb.append(c);

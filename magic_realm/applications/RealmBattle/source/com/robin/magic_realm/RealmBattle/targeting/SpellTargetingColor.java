@@ -19,9 +19,11 @@ public class SpellTargetingColor extends SpellTargetingSingle {
 		ColorMod colorMod = ColorMod.createColorMod(spell.getGameObject());
 		
 		// Character Chits
-		for(RealmComponent rc:battleModel.getAllParticipatingCharacters()){
+		for (java.util.Iterator _j14it836 = (battleModel.getAllParticipatingCharacters()).iterator(); _j14it836.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it836.next();
 			CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
-			for (CharacterActionChitComponent chit:character.getColorChits()) {
+			for (java.util.Iterator _j14it837 = (character.getColorChits()).iterator(); _j14it837.hasNext(); ) {
+			  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it837.next();
 				if (colorMod.willAffect(chit.getColorMagic())) {
 					gameObjects.add(chit.getGameObject());
 				}
@@ -35,7 +37,8 @@ public class SpellTargetingColor extends SpellTargetingSingle {
 		}
 		
 		// Permanent sources (color_source)
-		for (RealmComponent rc:battleModel.getBattleLocation().clearing.getDeepClearingComponents()) {
+		for (java.util.Iterator _j14it838 = (battleModel.getBattleLocation().clearing.getDeepClearingComponents()).iterator(); _j14it838.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it838.next();
 			ColorMagic cm = SpellUtility.getColorMagicFor(rc);
 			if (cm!=null && colorMod.willAffect(cm)) {
 				gameObjects.add(rc.getGameObject());

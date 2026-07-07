@@ -18,7 +18,7 @@ import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class SpellTargetingBewitched extends SpellTargetingSingle {
 	
-	private ArrayList<GameObject> possibleSecondaryTargets = new ArrayList<GameObject>();
+	private ArrayList possibleSecondaryTargets = new ArrayList();
 	private BattleModel battleModel = null;
 	
 	public SpellTargetingBewitched(CombatFrame combatFrame, SpellWrapper spell) {
@@ -31,8 +31,9 @@ public class SpellTargetingBewitched extends SpellTargetingSingle {
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
 		this.battleModel = battleModel;
-		for (RealmComponent participant : combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true,true)) {
-			ArrayList<SpellWrapper> bewitchingSpells = SpellUtility.getBewitchingSpells(participant.getGameObject());
+		for (java.util.Iterator _j14it785 = (combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true,true)).iterator(); _j14it785.hasNext(); ) {
+		  RealmComponent participant = (RealmComponent) _j14it785.next();
+			ArrayList bewitchingSpells = SpellUtility.getBewitchingSpells(participant.getGameObject());
 			if (!participant.hasMagicProtection() && !participant.hasMagicColorImmunity(spell)) {
 				possibleSecondaryTargets.add(participant.getGameObject());
 				if (bewitchingSpells!=null && !bewitchingSpells.isEmpty()) {
@@ -41,11 +42,12 @@ public class SpellTargetingBewitched extends SpellTargetingSingle {
 			}
 			if (participant.isCharacter()) {
 				CharacterWrapper character = new CharacterWrapper(participant.getGameObject());
-				for (GameObject go:character.getInventory()) {
+				for (java.util.Iterator _j14it786 = (character.getInventory()).iterator(); _j14it786.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it786.next();
 					RealmComponent itemRc = RealmComponent.getRealmComponent(go);
 					if (isAddableItem(itemRc)) {
 						possibleSecondaryTargets.add(go);
-						ArrayList<SpellWrapper> spells = SpellUtility.getBewitchingSpells(go);
+						ArrayList spells = SpellUtility.getBewitchingSpells(go);
 						if (spells!=null && !spells.isEmpty()) {
 							gameObjects.add(go);
 						}
@@ -54,23 +56,25 @@ public class SpellTargetingBewitched extends SpellTargetingSingle {
 						gameObjects.add(participant.getGameObject());
 					}
 				}
-				for (StateChitComponent chit : character.getFlyChits()) {
+				for (java.util.Iterator _j14it787 = (character.getFlyChits()).iterator(); _j14it787.hasNext(); ) {
+				  StateChitComponent chit = (StateChitComponent) _j14it787.next();
 					if (chit.getGameObject().hasThisAttribute(Constants.BROOMSTICK)) {
 						possibleSecondaryTargets.add(chit.getGameObject());
-						ArrayList<SpellWrapper> spells = SpellUtility.getBewitchingSpells(chit.getGameObject());
+						ArrayList spells = SpellUtility.getBewitchingSpells(chit.getGameObject());
 						if (spells!=null && !spells.isEmpty()) {
 							gameObjects.add(chit.getGameObject());
 						}
 					}
 				}
 			} else if (participant.isMonster() || participant.isNative()) {				
-				for (GameObject held : participant.getHold()) {
+				for (java.util.Iterator _j14it788 = (participant.getHold()).iterator(); _j14it788.hasNext(); ) {
+				  GameObject held = (GameObject) _j14it788.next();
 					if (held.hasThisAttribute(Constants.MONSTER_WEAPON)
 							|| held.hasThisAttribute(Constants.SHIELD)
 							|| held.hasThisAttribute(Constants.GIANT_CLUB)
 							|| held.hasThisAttribute(Constants.GIANT_AXE)) {
 						possibleSecondaryTargets.add(held);
-						ArrayList<SpellWrapper> spells = SpellUtility.getBewitchingSpells(held);
+						ArrayList spells = SpellUtility.getBewitchingSpells(held);
 						if (spells!=null && !spells.isEmpty()) {
 							gameObjects.add(held);
 						}
@@ -83,15 +87,17 @@ public class SpellTargetingBewitched extends SpellTargetingSingle {
 	}
 	
 	public void updateSecondaryTargetsAfterSelection(TileLocation battleLocation, RealmComponent theTarget) {
-		ArrayList<SpellWrapper> bewitchingSpells = SpellUtility.getBewitchingSpells(theTarget.getGameObject());
+		ArrayList bewitchingSpells = SpellUtility.getBewitchingSpells(theTarget.getGameObject());
 		RealmComponentOptionChooser spellChooser = new RealmComponentOptionChooser(combatFrame,"Select a spell for "+spell.getName()+":",false);
-		for (SpellWrapper spell : bewitchingSpells) {
+		for (java.util.Iterator _j14it789 = (bewitchingSpells).iterator(); _j14it789.hasNext(); ) {
+		  SpellWrapper spell = (SpellWrapper) _j14it789.next();
 			if (!spell.isCurse() && !spell.isMesmerize()) {
 				spellChooser.addRealmComponent(RealmComponent.getRealmComponent(spell.getGameObject()));
 			}
 		}
 		CharacterWrapper character = new CharacterWrapper(theTarget.getGameObject());
-		for (GameObject go:character.getInventory()) {
+		for (java.util.Iterator _j14it790 = (character.getInventory()).iterator(); _j14it790.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it790.next();
 			if (go.hasThisAttribute(Constants.PHASE_CHIT)) {
 				GameObject spellGo = theTarget.getGameObject().getGameData().getGameObject(Long.valueOf(go.getThisAttribute(Constants.SPELL_ID)));
 				spellChooser.addRealmComponent(RealmComponent.getRealmComponent(spellGo));
@@ -116,7 +122,8 @@ public class SpellTargetingBewitched extends SpellTargetingSingle {
 		RealmComponentOptionChooser secondaryTargetChooser = new RealmComponentOptionChooser(combatFrame,"Select secondary target for "+spell.getName()+":",false);
 		
 		if (selectedSpellWrapper.isAbsorbEssence() || SpellTargeting.targetingCharacterOrTile(selectedSpellWrapper.getGameObject().getThisAttribute("target"))) {
-			for (GameObject go : possibleSecondaryTargets) {
+			for (java.util.Iterator _j14it791 = (possibleSecondaryTargets).iterator(); _j14it791.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it791.next();
 				if (RealmComponent.getRealmComponent(go).isCharacter()) {
 					secondaryTargetChooser.addRealmComponent(RealmComponent.getRealmComponent(go));
 				}
@@ -150,7 +157,8 @@ public class SpellTargetingBewitched extends SpellTargetingSingle {
 				JOptionPane.showMessageDialog(combatFrame,"No secondary target.",spell.getName()+" : No secondary target available.",JOptionPane.INFORMATION_MESSAGE);
 			}
 			spellTargeting.populate(battleModel, selectedSpell);
-			for (GameObject go : possibleSecondaryTargets) {
+			for (java.util.Iterator _j14it792 = (possibleSecondaryTargets).iterator(); _j14it792.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it792.next();
 				if (spellTargeting.getPossibleTargets().contains(go)) {
 					secondaryTargetChooser.addRealmComponent(RealmComponent.getRealmComponent(go));
 				}

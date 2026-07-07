@@ -6,7 +6,6 @@ import com.robin.magic_realm.components.utility.RealmLogging;
 
 public class AlterObjectEffect implements ISpellEffect {
 	
-	@Override
 	public void apply(SpellEffectContext context) {
 		if (context.Target.getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON)) {
 			context.Spell.cancelSpell();
@@ -20,7 +19,6 @@ public class AlterObjectEffect implements ISpellEffect {
 		}
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		if(context.Target.getGameObject().hasThisAttribute(Constants.ALTER_WEIGHT)){
 			context.Target.getGameObject().removeThisAttribute(Constants.ALTER_WEIGHT);

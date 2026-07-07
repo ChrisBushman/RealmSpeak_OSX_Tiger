@@ -34,7 +34,7 @@ public class ChitEditDialog extends AggressiveDialog {
 	
 	private JButton doneButton;
 	
-	private ArrayList<String> reservedChitNames;
+	private ArrayList reservedChitNames;
 	
 	private SpecialSelect[] specialSelect;
 	private static final String[][] SPECIAL_SELECT = {
@@ -58,7 +58,7 @@ public class ChitEditDialog extends AggressiveDialog {
 	}
 	private void init(CharacterActionChitComponent chit) {
 		this.chit = chit;
-		reservedChitNames = new ArrayList<String>();
+		reservedChitNames = new ArrayList();
 		reservedChitNames.add("MOVE");
 		reservedChitNames.add("FIGHT");
 		reservedChitNames.add("MAGIC");

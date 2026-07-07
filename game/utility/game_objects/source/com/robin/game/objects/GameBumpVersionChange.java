@@ -12,7 +12,7 @@ public class GameBumpVersionChange extends GameObjectChange {
 		go.bumpVersion();
 	}
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append(super.toString());
 		sb.append(": Bump data version to force redraw");
 		return sb.toString();

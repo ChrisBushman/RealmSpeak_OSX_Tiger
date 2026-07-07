@@ -24,9 +24,9 @@ public class CombatTallyView {
 	private static int GOLD_COL = 250;
 	private static int KILL_COL = 320;
 	
-	private ArrayList<Integer> rounds;
-	private ArrayList<GameObject> kills;
-	private ArrayList<Spoils> spoils;
+	private ArrayList rounds;
+	private ArrayList kills;
+	private ArrayList spoils;
 	
 	private int width;
 	private int height;
@@ -39,7 +39,7 @@ public class CombatTallyView {
 			spoils = combat.getAllSpoils();
 		}
 	}
-	public CombatTallyView(ArrayList<Integer> rounds,ArrayList<GameObject> kills,ArrayList<Spoils> spoils) {
+	public CombatTallyView(ArrayList rounds,ArrayList kills,ArrayList spoils) {
 		this.rounds = rounds;
 		this.kills = kills;
 		this.spoils = spoils;
@@ -87,7 +87,7 @@ public class CombatTallyView {
 		double runningGold = 0;
 		for (int i=0;i<rounds.size();i++) {
 			y += ROW_HEIGHT;
-			int round = rounds.get(i);
+			int round = ((Integer) rounds.get(i)).intValue();
 			if (round!=lastRound) {
 				if (lastRound!=-1) {
 					g.setColor(Color.lightGray);
@@ -98,7 +98,7 @@ public class CombatTallyView {
 				lastRound = round;
 			}
 			
-			Spoils s = spoils.get(i);
+			Spoils s = (Spoils) spoils.get(i);
 			int m = s.getMultiplier();
 			s.setMultiplier(1);
 			
@@ -114,7 +114,7 @@ public class CombatTallyView {
 			g.drawString(formatter.format(s.getGoldBounty()+s.getGoldRecord()),r.x+GOLD_COL,r.y+y);
 			g.drawString("+= "+formatter.format(runningGold),r.x+GOLD_COL+(SPACER>>1),r.y+y);
 			
-			GameObject kill = kills.get(i);
+			GameObject kill = (GameObject) kills.get(i);
 			g.drawString(kill.getName(),r.x+KILL_COL,r.y+y);
 		}
 	}

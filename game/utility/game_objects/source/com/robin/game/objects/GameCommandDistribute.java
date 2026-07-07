@@ -12,7 +12,7 @@ public class GameCommandDistribute extends GameCommand {
 	public String getTypeName() {
 		return NAME;
 	}
-	protected String process(ArrayList<GameObject> allGameObjects) {
+	protected String process(ArrayList allGameObjects) {
 		GamePool fromPool = parent.getPool(from);
 		GamePool toPool = parent.getPool(to);
 		return distribute(fromPool,toPool);

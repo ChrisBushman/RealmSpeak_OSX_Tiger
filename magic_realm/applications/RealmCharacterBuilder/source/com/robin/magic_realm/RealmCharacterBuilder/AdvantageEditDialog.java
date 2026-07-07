@@ -21,9 +21,9 @@ public class AdvantageEditDialog extends AggressiveDialog {
 	
 	private static int badgePicId = 0;
 	
-	private ArrayList<String> saveAttributes;
+	private ArrayList saveAttributes;
 	private AdvantageEditPanel defaultEditPanel;
-	private ArrayList<AdvantageEditPanel> panelList;
+	private ArrayList panelList;
 	private RealmCharacterBuilderModel model;
 	private FileManager graphicsManager;
 	private String levelKey;
@@ -56,7 +56,7 @@ public class AdvantageEditDialog extends AggressiveDialog {
 			this.advantage = createAdvantage();
 		}
 		this.magicRealmData = magicRealmData;
-		saveAttributes = new ArrayList<String>(Arrays.asList(CharacterWrapper.DONT_COPY_ATTRIBUTES));
+		saveAttributes = new ArrayList(Arrays.asList(CharacterWrapper.DONT_COPY_ATTRIBUTES));
 		saveAttributes.remove("badge_icon");
 		initComponents();
 		setLocationRelativeTo(frame);
@@ -229,8 +229,9 @@ public class AdvantageEditDialog extends AggressiveDialog {
 	private void clearLevelAdvantages() {
 		// Clears out all current advantages
 		OrderedHashtable attributeBlock = model.getCharacter().getGameObject().getAttributeBlock(levelKey);
-		ArrayList<String> keys = new ArrayList<String>(attributeBlock.keySet());
-		for (String key : keys) {
+		ArrayList keys = new ArrayList(attributeBlock.keySet());
+		for (java.util.Iterator _j14it900 = (keys).iterator(); _j14it900.hasNext(); ) {
+		  String key = (String) _j14it900.next();
 			if (!saveAttributes.contains(key)) {
 				model.getCharacter().getGameObject().removeAttribute(levelKey,key);
 			}
@@ -259,7 +260,7 @@ public class AdvantageEditDialog extends AggressiveDialog {
 		clearButton.setEnabled(advantage!=null);
 	}
 	public Advantage createAdvantage() {
-		int n = Integer.valueOf(levelKey.split("_")[1]);
+		int n = Integer.parseInt(levelKey.split("_")[1]);
 		String name = null;
 		switch(n) {
 			case 1:		name = "one"; break;
@@ -271,7 +272,7 @@ public class AdvantageEditDialog extends AggressiveDialog {
 	}
 	private AdvantageEditPanel getCurrentAdvantageEditPanel() {
 		for (int i=0;i<panelList.size();i++) {
-			AdvantageEditPanel panel = panelList.get(i);
+			AdvantageEditPanel panel = (AdvantageEditPanel) panelList.get(i);
 			if (panel.isCurrent()) {
 				return panel;
 			}
@@ -282,7 +283,7 @@ public class AdvantageEditDialog extends AggressiveDialog {
 		detailPanel = new JPanel(new BorderLayout());
 		detailPanel.setBorder(BorderFactory.createTitledBorder("Details"));
 		
-		panelList = new ArrayList<AdvantageEditPanel>();
+		panelList = new ArrayList();
 		panelList.add(defaultEditPanel = new BlankEditPanel(model.getCharacter(),levelKey));
 		panelList.add(new ColorSourceEditPanel(model.getCharacter(),levelKey));
 		panelList.add(new ColorBlockingEditPanel(model.getCharacter(),levelKey));

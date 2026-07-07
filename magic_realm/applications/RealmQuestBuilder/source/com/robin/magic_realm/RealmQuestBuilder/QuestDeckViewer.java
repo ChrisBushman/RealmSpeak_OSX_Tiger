@@ -14,11 +14,11 @@ import com.robin.magic_realm.components.utility.Constants;
 public class QuestDeckViewer extends AggressiveDialog {	
 	JTable table;
 	private Constants.QuestDeckMode mode;
-	private ArrayList<Quest> quests;
+	private ArrayList quests;
 	private int totalVPs=0;
 	private int deckCards=0;
 	private Quest selectedQuest;
-	public QuestDeckViewer(JFrame frame, ArrayList<Quest> input, Constants.QuestDeckMode mode) {
+	public QuestDeckViewer(JFrame frame, ArrayList input, Constants.QuestDeckMode mode) {
 		super(frame, "Quest Deck", true);
 		this.quests = input;
 		this.mode = mode;
@@ -29,31 +29,29 @@ public class QuestDeckViewer extends AggressiveDialog {
 		int eventCount = 0;
 		totalVPs=0;
 		deckCards=0;
-		switch (mode) {
-			case QtR:
-			case SR:
-			case GQ:
-				for(Quest quest:quests) {
-					int count = quest.getInt(QuestConstants.CARD_COUNT);
-					if (quest.isAllPlay()) {
-						allPlayCount += count;
-					}
-					else {
-						deckCards += count;
-					}
-					totalVPs += (quest.getInt(QuestConstants.VP_REWARD)*count);
+		Constants.QuestDeckMode _qdm = mode;
+		if (_qdm == Constants.QuestDeckMode.QtR || _qdm == Constants.QuestDeckMode.SR || _qdm == Constants.QuestDeckMode.GQ) {
+			for (java.util.Iterator _j14it302 = (quests).iterator(); _j14it302.hasNext(); ) {
+			  Quest quest = (Quest) _j14it302.next();
+				int count = quest.getInt(QuestConstants.CARD_COUNT);
+				if (quest.isAllPlay()) {
+					allPlayCount += count;
 				}
-				break;
-			case BoQ:
-				for(Quest quest:quests) {
-					if (quest.isEvent()) {
-						eventCount ++;
-					}
-					else {
-						deckCards ++;
-					}
+				else {
+					deckCards += count;
 				}
-				break;
+				totalVPs += (quest.getInt(QuestConstants.VP_REWARD)*count);
+			}
+		} else if (_qdm == Constants.QuestDeckMode.BoQ) {
+			for (java.util.Iterator _j14it303 = (quests).iterator(); _j14it303.hasNext(); ) {
+			  Quest quest = (Quest) _j14it303.next();
+				if (quest.isEvent()) {
+					eventCount ++;
+				}
+				else {
+					deckCards ++;
+				}
+			}
 		}
 
 		table = new JTable(new DeckTableModel());
@@ -64,7 +62,8 @@ public class QuestDeckViewer extends AggressiveDialog {
 				int lastColumn = table.getColumnCount()-1;
 				String filePath= (String) table.getValueAt(row, lastColumn);
 				
-				for (Quest quest : quests) {
+				for (java.util.Iterator _j14it304 = (quests).iterator(); _j14it304.hasNext(); ) {
+				  Quest quest = (Quest) _j14it304.next();
 					if (quest.filepath == filePath) {
 						selectedQuest = quest;
 						break;
@@ -92,20 +91,17 @@ public class QuestDeckViewer extends AggressiveDialog {
 		box.add(Box.createHorizontalGlue());
 		box.add(new JLabel("Deck Cards: "+deckCards));
 		box.add(Box.createHorizontalGlue());
-		switch (mode) {
-			case QtR:
-			case SR:
+		{
+			Constants.QuestDeckMode _qdm2 = mode;
+			if (_qdm2 == Constants.QuestDeckMode.QtR || _qdm2 == Constants.QuestDeckMode.SR) {
 				box.add(new JLabel("All Play Cards: "+allPlayCount));
 				box.add(Box.createHorizontalGlue());
 				box.add(new JLabel("Total VPs: "+totalVPs));
 				box.add(Box.createHorizontalGlue());
-				break;
-			case BoQ:
+			} else if (_qdm2 == Constants.QuestDeckMode.BoQ) {
 				box.add(new JLabel("Events: "+eventCount));
 				box.add(Box.createHorizontalGlue());
-				break;
-			case GQ:
-				break;
+			}
 		}
 		JButton close = new JButton("Close");
 		close.addActionListener(new ActionListener() {
@@ -163,14 +159,11 @@ public class QuestDeckViewer extends AggressiveDialog {
 		}
 
 		public int getColumnCount() {
-			switch (mode) {
-				default:
-				case QtR:
-					return HEADER_QtR.length;
-				case GQ:
-				case BoQ:
-					return HEADER_BoQ.length;
+			Constants.QuestDeckMode _qdm3 = mode;
+			if (_qdm3 == Constants.QuestDeckMode.GQ || _qdm3 == Constants.QuestDeckMode.BoQ) {
+				return HEADER_BoQ.length;
 			}
+			return HEADER_QtR.length;
 		}
 		
 		public Class getColumnClass(int col) {
@@ -178,14 +171,11 @@ public class QuestDeckViewer extends AggressiveDialog {
 		}
 		
 		public String getColumnName(int col) {
-			switch (mode) {
-				default:
-				case QtR:
-					return HEADER_QtR[col];
-				case GQ:
-				case BoQ:
-					return HEADER_BoQ[col];
-				}
+			Constants.QuestDeckMode _qdm4 = mode;
+			if (_qdm4 == Constants.QuestDeckMode.GQ || _qdm4 == Constants.QuestDeckMode.BoQ) {
+				return HEADER_BoQ[col];
+			}
+			return HEADER_QtR[col];
 		}
 
 		public int getRowCount() {
@@ -194,34 +184,35 @@ public class QuestDeckViewer extends AggressiveDialog {
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			if (rowIndex<getRowCount()) {
-				Quest quest = quests.get(rowIndex);
+				Quest quest = (Quest) quests.get(rowIndex);
 				switch(columnIndex) {
 					case 0:			return quest.isTesting()?test:null;
 					case 1:			return quest.isBroken()?cross:null;
-					case 2:			
-						switch (mode) {
-							case QtR:
-								return quest.isAllPlay()?check:null;
-							case GQ:
-							case BoQ:
-								return quest.isEvent()?check:null;
-							default:
-								return null;
+					case 2:			{
+						Constants.QuestDeckMode _qdm5 = mode;
+						if (_qdm5 == Constants.QuestDeckMode.QtR) {
+							return quest.isAllPlay()?check:null;
+						} else if (_qdm5 == Constants.QuestDeckMode.GQ || _qdm5 == Constants.QuestDeckMode.BoQ) {
+							return quest.isEvent()?check:null;
+						} else {
+							return null;
 						}
+					}
 					case 3:			return quest.isActivateable()?plus:null;
 					case 4:			return quest.getName();
 					case 5:			return getMinorCharacters(quest);
-					case 6:			return quest.getInt(QuestConstants.CARD_COUNT);
-					case 7:			return quest.getInt(QuestConstants.VP_REWARD);
-					case 8:			return (int)Math.round(quest.getInt(QuestConstants.CARD_COUNT)*100.0/deckCards);
+					case 6:			return new Integer(quest.getInt(QuestConstants.CARD_COUNT));
+					case 7:			return new Integer(quest.getInt(QuestConstants.VP_REWARD));
+					case 8:			return new Integer((int)Math.round(quest.getInt(QuestConstants.CARD_COUNT)*100.0/deckCards));
 					case 9:			return quest.filepath;
 				}
 			}
 			return null;
 		}
 		private String getMinorCharacters(Quest quest) {
-			StringBuilder sb = new StringBuilder();
-			for(QuestMinorCharacter mc:quest.getMinorCharacters()) {
+			StringBuffer sb = new StringBuffer();
+			for (java.util.Iterator _j14it305 = (quest.getMinorCharacters()).iterator(); _j14it305.hasNext(); ) {
+			  QuestMinorCharacter mc = (QuestMinorCharacter) _j14it305.next();
 				if (sb.length()>0) sb.append(',');
 				sb.append(mc.getName());
 			}

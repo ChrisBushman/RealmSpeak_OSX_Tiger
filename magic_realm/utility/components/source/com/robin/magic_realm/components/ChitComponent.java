@@ -118,7 +118,7 @@ public abstract class ChitComponent extends RealmComponent {
 	}
 	public int getFaceAttributeInt(String val) {
 		Integer n = getFaceAttributeInteger(val);
-		return n==null ? 0 : n;
+		return n==null ? 0 : n.intValue();
 	}
 	public Integer getFaceAttributeInteger(String val) {
 	    String ret = getFaceAttributeString(val);
@@ -292,9 +292,10 @@ public abstract class ChitComponent extends RealmComponent {
 		Graphics2D g = (Graphics2D)g1;
 		if (CombatWrapper.hasCombatInfo(getGameObject())) {
 			int offset = (getChitSize()-32)>>1;
-			Collection<GameObject> attackers = (new CombatWrapper(getGameObject())).getAttackers();
+			Collection attackers = (new CombatWrapper(getGameObject())).getAttackers();
 			if (!attackers.isEmpty()) {
-				for (GameObject go : attackers) {
+				for (java.util.Iterator _j14it1341 = (attackers).iterator(); _j14it1341.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it1341.next();
 					RealmComponent rc = RealmComponent.getRealmComponent(go);
 					if (rc.isCharacter()) { // only show character markers (everything else is based on position on sheets)
 						CharacterWrapper character = new CharacterWrapper(go);

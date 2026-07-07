@@ -8,17 +8,34 @@ import java.util.StringTokenizer;
 
 public class TextType {
 	
-	public enum Alignment {
-		Left,   // used to be "false"
-		Center, // used to be "true"
-		Right
+	public static final class Alignment {
+		private final String _name;
+		private final int _ordinal;
+		private Alignment(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final Alignment Left = new Alignment("Left", 0);
+		public static final Alignment Center = new Alignment("Center", 1);
+		public static final Alignment Right = new Alignment("Right", 2);
+
+		private static final Alignment[] _VALUES = { Left, Center, Right };
+		public static Alignment[] values() { Alignment[] r = new Alignment[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static Alignment valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	protected static final Font defaultFont = new Font("Dialog",Font.PLAIN,11);
 	protected static final Color defaultColor = Color.black;
 
-	protected static Hashtable<String, Font> typeFonts = null;
-	protected static Hashtable<String, Color> typeColors = null;
+	protected static Hashtable typeFonts = null;
+	protected static Hashtable typeColors = null;
 	
 	/**
 	 * Adds a type to the TextType palette
@@ -26,13 +43,13 @@ public class TextType {
 	public static void addType(String typeName,Font font,Color color) {
 		if (font!=null) {
 			if (typeFonts==null) {
-				typeFonts = new Hashtable<String, Font>();
+				typeFonts = new Hashtable();
 			}
 			typeFonts.put(typeName,font);
 		}
 		if (color!=null) {
 			if (typeColors==null) {
-				typeColors = new Hashtable<String, Color>();
+				typeColors = new Hashtable();
 			}
 			typeColors.put(typeName,color);
 		}
@@ -59,7 +76,7 @@ public class TextType {
 	public Font getFont() {
 		Font font = null;
 		if (typeFonts!=null) {
-			font = typeFonts.get(type);
+			font = (Font) typeFonts.get(type);
 		}
 		if (font==null) {
 			font = defaultFont;
@@ -74,7 +91,7 @@ public class TextType {
 	public Color getColor() {
 		Color color = null;
 		if (typeColors!=null) {
-			color = typeColors.get(type);
+			color = (Color) typeColors.get(type);
 		}
 		if (color==null) {
 			color = defaultColor;
@@ -113,7 +130,7 @@ public class TextType {
 			// Build lines
 			int currentWidth = 0;
 			StringBuffer sb = new StringBuffer();
-			ArrayList<String> lines = new ArrayList<String>();
+			ArrayList lines = new ArrayList();
 			for (int i=0;i<word.length;i++) {
 				int newWidth = currentWidth+wordWidth[i];
 				
@@ -134,7 +151,7 @@ public class TextType {
 				lines.add(sb.toString());
 			}
 			
-			line = lines.toArray(new String[lines.size()]);
+			line = (String[]) lines.toArray(new String[lines.size()]);
 		}
 	}
 	
@@ -189,15 +206,11 @@ public class TextType {
 			g.setTransform(rotated);
 		}
 		int offset = 0;
-		switch(alignment) {
-			case Center:
-				offset = (width - screen.getFontMetrics().stringWidth(text))>>1;
-				break;
-			case Right:
-				offset = width - screen.getFontMetrics().stringWidth(text);
-				break;
-			default:
-				break;
+		if (alignment == Alignment.Center) {
+			offset = (width - screen.getFontMetrics().stringWidth(text))>>1;
+		}
+		else if (alignment == Alignment.Right) {
+			offset = width - screen.getFontMetrics().stringWidth(text);
 		}
 		g.drawString(text,x+offset,y);
 		if (orig!=null) {

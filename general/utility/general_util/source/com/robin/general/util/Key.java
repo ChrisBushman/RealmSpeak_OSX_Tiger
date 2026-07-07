@@ -10,7 +10,6 @@ public class Key {
         this.y = y;
     }
 
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Key)) return false;
@@ -18,7 +17,6 @@ public class Key {
         return x == key.x && y == key.y;
     }
 
-    @Override
     public int hashCode() {
         int result = x;
         result = 31 * result + y;

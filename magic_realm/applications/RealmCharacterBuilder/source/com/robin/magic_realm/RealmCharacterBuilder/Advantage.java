@@ -65,14 +65,14 @@ public class Advantage {
 	
 	public static Advantage createFromCharacter(GameObject character,String levelKey) {
 		String first = null;
-		ArrayList<String> list = character.getAttributeList(levelKey,"advantages");
+		ArrayList list = character.getAttributeList(levelKey,"advantages");
 		if (list!=null && !list.isEmpty()) {
-			first = list.get(0); // For new characters, only ONE advantage per level is allowed
+			first = (String) list.get(0); // For new characters, only ONE advantage per level is allowed
 		}
 		if (first==null) {
 			list = character.getAttributeList(levelKey,"optional");
 			if (list!=null && !list.isEmpty()) {
-				first = list.get(0); // For new characters, only ONE advantage per level is allowed
+				first = (String) list.get(0); // For new characters, only ONE advantage per level is allowed
 			}
 		}
 		if (first!=null) {

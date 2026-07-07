@@ -153,14 +153,16 @@ public class ActionRow {
 					negate = true;
 					message = character.getGameObject().getName() + " negates result of "+realmTable.getTableName(false);
 					// revert stats
-					ArrayList<String> phaseChitIds = new ArrayList<String>();
+					ArrayList phaseChitIds = new ArrayList();
 					if (character.getGameObject().hasThisAttribute(CharacterWrapper.PHASE_CHITS)) {
-						for (String id : character.getGameObject().getThisAttributeList(CharacterWrapper.PHASE_CHITS)) {
+						for (java.util.Iterator _j14it1164 = (character.getGameObject().getThisAttributeList(CharacterWrapper.PHASE_CHITS)).iterator(); _j14it1164.hasNext(); ) {
+						  String id = (String) _j14it1164.next();
 							phaseChitIds.add(id);
 						}
 						if (!phaseChitIds.isEmpty()) {
 							GameData gameData = character.getGameObject().getGameData();
-							for (String id : phaseChitIds) {
+							for (java.util.Iterator _j14it1165 = (phaseChitIds).iterator(); _j14it1165.hasNext(); ) {
+							  String id = (String) _j14it1165.next();
 								GameObject chitGo = gameData.getGameObject(id);
 								RealmComponent chitRc = RealmComponent.getRealmComponent(chitGo);
 								chitRc.setActivated(false);
@@ -175,7 +177,8 @@ public class ActionRow {
 						}
 					}
 					if (character.getGameObject().hasThisAttribute(Constants.FORESIGHT_SAVED_STATS)) {
-						for (String stat : character.getGameObject().getThisAttributeList(Constants.FORESIGHT_SAVED_STATS)) {
+						for (java.util.Iterator _j14it1166 = (character.getGameObject().getThisAttributeList(Constants.FORESIGHT_SAVED_STATS)).iterator(); _j14it1166.hasNext(); ) {
+						  String stat = (String) _j14it1166.next();
 							if (stat.startsWith(Constants.FORESIGHT_SAVED_STATS_WISHED_STRENGTH)) {
 								stat.replace(Constants.FORESIGHT_SAVED_STATS_WISHED_STRENGTH,"");
 								character.setWishStrength(new Strength(stat));
@@ -184,9 +187,10 @@ public class ActionRow {
 								StringTokenizer tokens = new StringTokenizer(stat,"_");
 								String id = tokens.nextToken();
 								String statusId = tokens.nextToken();
-								for (CharacterActionChitComponent chit : character.getAllChits()) {
+								for (java.util.Iterator _j14it1167 = (character.getAllChits()).iterator(); _j14it1167.hasNext(); ) {
+								  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it1167.next();
 									if (chit.getGameObject().getStringId().matches(id)) {
-										chit.setStateById(new Integer(statusId));
+										chit.setStateById(Integer.parseInt(statusId));
 										break;
 									}
 								}
@@ -314,12 +318,11 @@ public class ActionRow {
 	}
 	
 	public ImageIcon getStatusIcon() {
-		switch(getActionState()) {
-			case Pending:	return PENDING_ICON;
-			case Invalid:	return INVALID_ICON;
-			case Completed:	return COMPLETED_ICON;
-			case Cancelled:	return CANCELLED_ICON;
-		}
+		ActionState s = getActionState();
+		if (s == ActionState.Pending) return PENDING_ICON;
+		if (s == ActionState.Invalid) return INVALID_ICON;
+		if (s == ActionState.Completed) return COMPLETED_ICON;
+		if (s == ActionState.Cancelled) return CANCELLED_ICON;
 		throw new IllegalStateException("Unknown status");
 	}
 	private ActionState getActionState() {
@@ -341,20 +344,14 @@ public class ActionRow {
 		completed = false;
 		cancelled = false;
 		invalid = false;
-		switch(state) {
-			case Pending:
-				break;
-			case Invalid:
-				completed = true;
-				invalid = true;
-				break;
-			case Completed:
-				completed = true;
-				break;
-			case Cancelled:
-				completed = true;
-				cancelled = true;
-				break;
+		if (state == ActionState.Invalid) {
+			completed = true;
+			invalid = true;
+		} else if (state == ActionState.Completed) {
+			completed = true;
+		} else if (state == ActionState.Cancelled) {
+			completed = true;
+			cancelled = true;
 		}
 	}
 
@@ -427,18 +424,20 @@ public class ActionRow {
 			int actionsTaken = character.getNumberOfPerformedActionsToday();
 			boolean interruptionAlreadyOccured = character.getColorChitInterruptionActionCountPhaseBeginning() == actionsTaken;
 			character.setColorChitInterruptionActionCountPhaseBeginning(actionsTaken);
-			for (GameObject livingCharacter : RealmUtility.getLivingCharacters(gameHandler.getClient().getGameData())) {
+			for (java.util.Iterator _j14it1168 = (RealmUtility.getLivingCharacters(gameHandler.getClient().getGameData())).iterator(); _j14it1168.hasNext(); ) {
+			  GameObject livingCharacter = (GameObject) _j14it1168.next();
 				if (!interruptionAlreadyOccured) new CharacterWrapper(livingCharacter).removeAllColorChitInterruptPhaseBeginningDecisions();
 			}
 			if (current.isInClearing()) {
-				for (RealmComponent rc :current.clearing.getClearingComponents()) {
+				for (java.util.Iterator _j14it1169 = (current.clearing.getClearingComponents()).iterator(); _j14it1169.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it1169.next();
 					if (rc.isPlayerControlledLeader()) {
 						new CharacterWrapper(rc.getGameObject()).checkForColorChitInterruptionState(current,true,false);
 					}
 				}
 			}
 			gameHandler.updateCharacterFramesWithoutMap();
-			ArrayList<RealmComponent> interrupters = character.getPossibleColorChitInterrupters(current,true,false);
+			ArrayList interrupters = character.getPossibleColorChitInterrupters(current,true,false);
 			if (interrupters!=null && !interrupters.isEmpty()) {
 				return;
 			}
@@ -453,7 +452,8 @@ public class ActionRow {
 				if (wishStrength!=null) {
 					character.getGameObject().addThisAttributeListItem(Constants.FORESIGHT_SAVED_STATS,Constants.FORESIGHT_SAVED_STATS_WISHED_STRENGTH+wishStrength.getChitString());
 				}
-				for (CharacterActionChitComponent chit : character.getAllChits()) {
+				for (java.util.Iterator _j14it1170 = (character.getAllChits()).iterator(); _j14it1170.hasNext(); ) {
+				  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it1170.next();
 					character.getGameObject().addThisAttributeListItem(Constants.FORESIGHT_SAVED_STATS,chit.getGameObject().getStringId()+"_"+chit.getStateId());
 				}
 			}
@@ -543,7 +543,8 @@ public class ActionRow {
 		GameObject noHideItem = ClearingUtility.getItemInClearingWithKey(location,Constants.NO_HIDE);
 		if (noHideItem!=null) {
 			character.setHidden(false);
-			for (RealmComponent rc:location.clearing.getClearingComponents()) {
+			for (java.util.Iterator _j14it1171 = (location.clearing.getClearingComponents()).iterator(); _j14it1171.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it1171.next();
 				if (rc.isCharacter()) {
 					(new CharacterWrapper(rc.getGameObject())).setHidden(false);
 				}
@@ -556,7 +557,8 @@ public class ActionRow {
 		if (character.getGameObject().hasThisAttribute(Constants.MEDITATE_DISCOVER_SITES)) {
 			TileLocation current = character.getCurrentLocation();
 			if (current.isInClearing()) {
-				for (RealmComponent rc : current.clearing.getClearingComponents(false)) {
+				for (java.util.Iterator _j14it1172 = (current.clearing.getClearingComponents(false)).iterator(); _j14it1172.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it1172.next();
 					if (rc.isTreasureLocation()) {
 						character.addTreasureLocationDiscovery(rc.getGameObject().getName());
 					}
@@ -584,30 +586,34 @@ public class ActionRow {
 				int actionsTaken = character.getNumberOfPerformedActionsToday();
 				boolean interruptionAlreadyOccured = character.getColorChitInterruptionActionCountPhaseEnd() == actionsTaken;
 				character.setColorChitInterruptionActionCountPhaseEnd(actionsTaken);
-				ArrayList<GameObject> livingCharacters = RealmUtility.getLivingCharacters(gameHandler.getClient().getGameData());
-				for (GameObject livingCharacter : livingCharacters) {
+				ArrayList livingCharacters = RealmUtility.getLivingCharacters(gameHandler.getClient().getGameData());
+				for (java.util.Iterator _j14it1173 = (livingCharacters).iterator(); _j14it1173.hasNext(); ) {
+				  GameObject livingCharacter = (GameObject) _j14it1173.next();
 					if (!interruptionAlreadyOccured) new CharacterWrapper(livingCharacter).removeAllColorChitInterruptPhaseEndDecisions();
 				}
 				if (current.isInClearing()) {
-					for (RealmComponent rc :current.clearing.getClearingComponents()) {
+					for (java.util.Iterator _j14it1174 = (current.clearing.getClearingComponents()).iterator(); _j14it1174.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it1174.next();
 						if (rc.isPlayerControlledLeader()) {
 							new CharacterWrapper(rc.getGameObject()).checkForColorChitInterruptionState(current,false,true);
 						}
 					}
 				}
 				gameHandler.updateCharacterFramesWithoutMap();
-				ArrayList<RealmComponent> interrupters = character.getPossibleColorChitInterrupters(current,false,true);
+				ArrayList interrupters = character.getPossibleColorChitInterrupters(current,false,true);
 				if (interrupters!=null && !interrupters.isEmpty()) {
 					character.setNeedsBlockEvaluation(true);
 					blockEvaluation = false;
-					for (GameObject livingCharacter : livingCharacters) {
+					for (java.util.Iterator _j14it1175 = (livingCharacters).iterator(); _j14it1175.hasNext(); ) {
+					  GameObject livingCharacter = (GameObject) _j14it1175.next();
 						new CharacterWrapper(livingCharacter).setNeedsBlockDecision(false);
 					}
 				}
 			}
 			
 			if (blockEvaluation) {
-				for (GameObject livingCharacter : RealmUtility.getLivingCharacters(gameHandler.getClient().getGameData())) {
+				for (java.util.Iterator _j14it1176 = (RealmUtility.getLivingCharacters(gameHandler.getClient().getGameData())).iterator(); _j14it1176.hasNext(); ) {
+				  GameObject livingCharacter = (GameObject) _j14it1176.next();
 					if (hostPrefs.hasPref(Constants.OPT_BLOCKING_PHASES)) {
 						new CharacterWrapper(livingCharacter).removeAllBlockDecisions();
 					}
@@ -622,12 +628,13 @@ public class ActionRow {
 			character.setBlocked(true);
 		}
 		if (hostPrefs.hasPref(Constants.SR_NATIVE_BLOCKING) && !character.isBlocked()) {
-			ArrayList<RealmComponent> natives = RealmUtility.willBeBlockedByNatives(character,isFollowing);
+			ArrayList natives = RealmUtility.willBeBlockedByNatives(character,isFollowing);
 			
-			HashMap<String,Integer> groups = new HashMap<String,Integer>();
-			HashMap<String,RealmComponent> groupLeaders = new HashMap<String,RealmComponent>();
+			HashMap groups = new HashMap();
+			HashMap groupLeaders = new HashMap();
 			if (natives!=null && !natives.isEmpty()) {
-				for (RealmComponent denizen : natives) {
+				for (java.util.Iterator _j14it1177 = (natives).iterator(); _j14it1177.hasNext(); ) {
+				  RealmComponent denizen = (RealmComponent) _j14it1177.next();
 					String group = RealmUtility.getRelationshipGroupName(denizen.getGameObject());
 					boolean unfriendlyOrEnemy = false;
 					boolean rovingNative = denizen.getGameObject().hasThisAttribute(Constants.ROVING_NATIVE);
@@ -636,17 +643,17 @@ public class ActionRow {
 						unfriendlyOrEnemy = true;
 					}
 					if (!groups.containsKey(group) && unfriendlyOrEnemy) {
-						groups.put(group, relationship);
+						groups.put(group, new Integer(relationship));
 					}
 					if (unfriendlyOrEnemy) {
 						if (!groupLeaders.containsKey(group)) {
 							groupLeaders.put(group, denizen);
 						}
 						else {
-							String rankStringLeader = (groupLeaders.get(group)).getGameObject().getThisAttribute("rank");
-							int rankLeader = "HQ".equals(rankStringLeader)?Integer.valueOf(0):Integer.parseInt(rankStringLeader);
+							String rankStringLeader = ((RealmComponent) groupLeaders.get(group)).getGameObject().getThisAttribute("rank");
+							int rankLeader = "HQ".equals(rankStringLeader)?0:Integer.parseInt(rankStringLeader);
 							String rankStringDenizen = denizen.getGameObject().getThisAttribute("rank");
-							int rankDenizen = "HQ".equals(rankStringDenizen)?Integer.valueOf(0):Integer.parseInt(rankStringDenizen);					
+							int rankDenizen = "HQ".equals(rankStringDenizen)?0:Integer.parseInt(rankStringDenizen);					
 							if (rankDenizen < rankLeader) {
 								groupLeaders.put(group, denizen);						
 							}
@@ -656,15 +663,16 @@ public class ActionRow {
 			}
 			
 			if (!groups.isEmpty()) {
-				for (String group : groups.keySet()) {
+				for (java.util.Iterator _j14it1178 = (groups.keySet()).iterator(); _j14it1178.hasNext(); ) {
+				  String group = (String) _j14it1178.next();
 					ActionRow newAction = new ActionRow(turnPanel,character,Meeting.createMeetingTable(
 							gameHandler.getMainFrame(),
 							character,
 							character.getCurrentLocation(),
-							groupLeaders.get(group),
+							(RealmComponent) groupLeaders.get(group),
 							null,
 							null,
-							groups.get(group)),isFollowing);
+							((Integer) groups.get(group)).intValue()),isFollowing);
 					newAction.handleTable(false);
 				}
 			}
@@ -749,7 +757,8 @@ public class ActionRow {
 		// Find other characters in the clearing, and put them to sleep too
 		TileLocation tl = character.getCurrentLocation();
 		if (tl!=null && tl.isInClearing()) {
-			for (CharacterWrapper testCharacter:ClearingUtility.getCharactersInClearing(tl)) {
+			for (java.util.Iterator _j14it1179 = (ClearingUtility.getCharactersInClearing(tl)).iterator(); _j14it1179.hasNext(); ) {
+			  CharacterWrapper testCharacter = (CharacterWrapper) _j14it1179.next();
 				checkSleep(testCharacter);
 			}
 		}
@@ -828,7 +837,8 @@ public class ActionRow {
 					if (roller.getHighDieResult() < 6) {
 						result = "Succeeded";
 						character.setHidden(true);
-						for (CharacterWrapper follower : character.getActionFollowers()) {
+						for (java.util.Iterator _j14it1180 = (character.getActionFollowers()).iterator(); _j14it1180.hasNext(); ) {
+						  CharacterWrapper follower = (CharacterWrapper) _j14it1180.next();
 							if (!follower.hasCurse(Constants.SQUEAK)) {
 								follower.setHidden(true);
 							}
@@ -968,8 +978,9 @@ public class ActionRow {
 			int c = roller.getTotal();
 			
 			// Find all clearings that match the number
-			ArrayList<ClearingDetail> clearings = new ArrayList<ClearingDetail>();
-			for (PathDetail path : current.clearing.getConnectedPaths()) {
+			ArrayList clearings = new ArrayList();
+			for (java.util.Iterator _j14it1181 = (current.clearing.getConnectedPaths()).iterator(); _j14it1181.hasNext(); ) {
+			  PathDetail path = (PathDetail) _j14it1181.next();
 				ClearingDetail clearing = path.findConnection(current.clearing);
 				if (clearing!=null) {
 					if (clearing.getNum()==c) {
@@ -991,7 +1002,7 @@ public class ActionRow {
 			
 			if (clearings.size()==1) {
 				// If one, do move action
-				location = new TileLocation(clearings.get(0));
+				location = new TileLocation((ClearingDetail) clearings.get(0));
 			}
 			else {
 				// If more than one, let player choose
@@ -1032,7 +1043,7 @@ public class ActionRow {
 				}
 				
 				if (character.canWalkWoods(current.tile,current.clearing,location.clearing) || (current.isTileOnly() && !current.isFlying())) {
-					ArrayList<ClearingDetail> validClearings = new ArrayList<ClearingDetail>();
+					ArrayList validClearings = new ArrayList();
 					if (current.clearing!=null) {
 						validClearings.addAll(current.clearing.getParent().getClearings());
 					}
@@ -1074,7 +1085,8 @@ public class ActionRow {
 						return;
 					}
 					if (location.clearing.moveCost(character,current)>1 || offroadTravel) {
-						for (GameObject livingCharacter : RealmUtility.getLivingCharacters(gameHandler.getClient().getGameData())) {
+						for (java.util.Iterator _j14it1182 = (RealmUtility.getLivingCharacters(gameHandler.getClient().getGameData())).iterator(); _j14it1182.hasNext(); ) {
+						  GameObject livingCharacter = (GameObject) _j14it1182.next();
 							new CharacterWrapper(livingCharacter).checkForBlockingState(true,current);
 						}
 						gameHandler.updateCharacterFramesWithoutMap();
@@ -1086,12 +1098,13 @@ public class ActionRow {
 					}
 					
 					// Move followers - FIXME Not totally right... but close!
-					ArrayList<CharacterWrapper> actionFollowers = character.getActionFollowers();
+					ArrayList actionFollowers = character.getActionFollowers();
 					
 					if (actionFollowers.size()>0) {
-						ArrayList<CharacterWrapper> canLeaveBehind = new ArrayList<CharacterWrapper>();
-						ArrayList<CharacterWrapper> encumberedFollowers = new ArrayList<CharacterWrapper>();
-						for (CharacterWrapper follower : actionFollowers) {
+						ArrayList canLeaveBehind = new ArrayList();
+						ArrayList encumberedFollowers = new ArrayList();
+						for (java.util.Iterator _j14it1183 = (actionFollowers).iterator(); _j14it1183.hasNext(); ) {
+						  CharacterWrapper follower = (CharacterWrapper) _j14it1183.next();
 							if (!follower.foundHiddenEnemy(character.getGameObject())) {
 								canLeaveBehind.add(follower);
 							}
@@ -1101,8 +1114,8 @@ public class ActionRow {
 						}
 						if (!encumberedFollowers.isEmpty()) {
 							StringBuffer message = new StringBuffer();
-							for (Iterator<CharacterWrapper> i=encumberedFollowers.iterator();i.hasNext();) {
-								CharacterWrapper follower = i.next();
+							for (Iterator i=encumberedFollowers.iterator();i.hasNext();) {
+								CharacterWrapper follower = (CharacterWrapper) i.next();
 								if (message.length()>0) {
 									if (i.hasNext()) {
 										message.append(", ");
@@ -1174,10 +1187,11 @@ public class ActionRow {
 					}
 					
 					if (character.isMistLike()) {
-						ArrayList<RealmComponent> followingHirelings = character.getFollowingHirelings();
+						ArrayList followingHirelings = character.getFollowingHirelings();
 						if (!followingHirelings.isEmpty()) {
 							// Drop following hirelings in the clearing
-							for (RealmComponent fh:followingHirelings) {
+							for (java.util.Iterator _j14it1184 = (followingHirelings).iterator(); _j14it1184.hasNext(); ) {
+							  RealmComponent fh = (RealmComponent) _j14it1184.next();
 								if (!fh.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE)) {
 									ClearingUtility.moveToLocation(fh.getGameObject(),current);
 								}
@@ -1186,20 +1200,27 @@ public class ActionRow {
 					}
 					
 					if (hostPrefs.hasPref(Constants.SR_NO_HORSES_IN_CAVES) && location.hasClearing() && location.clearing.isCave()) {
-						for (GameObject item : character.getInventory()) {
+						for (java.util.Iterator _j14it1185 = (character.getInventory()).iterator(); _j14it1185.hasNext(); ) {
+						  GameObject item = (GameObject) _j14it1185.next();
 							abandonHorse(item,character);
 						}
-						for (RealmComponent hireling : character.getFollowingHirelings()) {
-							for (GameObject item : hireling.getHold()) {
+						for (java.util.Iterator _j14it1186 = (character.getFollowingHirelings()).iterator(); _j14it1186.hasNext(); ) {
+						  RealmComponent hireling = (RealmComponent) _j14it1186.next();
+							for (java.util.Iterator _j14it1187 = (hireling.getHold()).iterator(); _j14it1187.hasNext(); ) {
+							  GameObject item = (GameObject) _j14it1187.next();
 								abandonHorse(item,hireling);
 							}
 						}
-						for (CharacterWrapper follower : character.getActionFollowers()) {
-							for (GameObject item : follower.getInventory()) {
+						for (java.util.Iterator _j14it1188 = (character.getActionFollowers()).iterator(); _j14it1188.hasNext(); ) {
+						  CharacterWrapper follower = (CharacterWrapper) _j14it1188.next();
+							for (java.util.Iterator _j14it1189 = (follower.getInventory()).iterator(); _j14it1189.hasNext(); ) {
+							  GameObject item = (GameObject) _j14it1189.next();
 								abandonHorse(item,follower);
 							}
-							for (RealmComponent hireling : follower.getFollowingHirelings()) {
-								for (GameObject item : hireling.getHold()) {
+							for (java.util.Iterator _j14it1190 = (follower.getFollowingHirelings()).iterator(); _j14it1190.hasNext(); ) {
+							  RealmComponent hireling = (RealmComponent) _j14it1190.next();
+								for (java.util.Iterator _j14it1191 = (hireling.getHold()).iterator(); _j14it1191.hasNext(); ) {
+								  GameObject item = (GameObject) _j14it1191.next();
 									abandonHorse(item,hireling);
 								}
 							}
@@ -1209,7 +1230,8 @@ public class ActionRow {
 					if (hostPrefs.hasPref(Constants.SR_ADV_GROUNDED_MISSIONS_AND_TASKS)) {
 						if (!character.moveRandomly() && !magicPath && !gates && !pathfinder && (!current.isTileOnly() || current.isFlying()) &&
 								(path==null || character.usesWalkingTheWoods(path)) && character.canWalkWoods(current.tile,current.clearing,location.clearing)) {
-							for (GameObject item:character.getInventory()) {
+							for (java.util.Iterator _j14it1192 = (character.getInventory()).iterator(); _j14it1192.hasNext(); ) {
+							  GameObject item = (GameObject) _j14it1192.next();
 								if (RealmComponent.getRealmComponent(item).isGoldSpecial()) {
 									GoldSpecialChitComponent gs = (GoldSpecialChitComponent)RealmComponent.getRealmComponent(item);
 									if (gs.isMission() || gs.isTask()) {
@@ -1250,7 +1272,8 @@ public class ActionRow {
 					}
 					
 					if ((hostPrefs.hasPref(Constants.FE_KILLER_CAVES)) && location.hasClearing() && location.clearing.isCave()) {
-						for (GameObject item : character.getInventory()) {
+						for (java.util.Iterator _j14it1193 = (character.getInventory()).iterator(); _j14it1193.hasNext(); ) {
+						  GameObject item = (GameObject) _j14it1193.next();
 							if (RealmComponent.getRealmComponent(item).isHorse() && !item.hasThisAttribute(Constants.STEED_IN_CAVES_AND_WATER)) {
 								TreasureUtility.doDeactivate(gameHandler.getMainFrame(), character, item);
 								if (!item.hasThisAttribute(Constants.STEED_SURVIVES_CAVES)) {
@@ -1260,7 +1283,8 @@ public class ActionRow {
 								}
 								if (item.hasThisAttribute(Constants.BREAK_CONTROL_WHEN_INACTIVE)) {
 									SpellMasterWrapper spellmaster = SpellMasterWrapper.getSpellMaster(gameHandler.getClient().getGameData());
-									for (SpellWrapper spell : spellmaster.getAffectingSpells(item)) {
+									for (java.util.Iterator _j14it1194 = (spellmaster.getAffectingSpells(item)).iterator(); _j14it1194.hasNext(); ) {
+									  SpellWrapper spell = (SpellWrapper) _j14it1194.next();
 										if (spell.isControlHorseSpell()) spell.expireSpell();
 									}
 								}
@@ -1275,7 +1299,8 @@ public class ActionRow {
 						}
 					}
 					
-					for (CharacterWrapper follower :  actionFollowers) {
+					for (java.util.Iterator _j14it1195 = (actionFollowers).iterator(); _j14it1195.hasNext(); ) {
+					  CharacterWrapper follower = (CharacterWrapper) _j14it1195.next();
 						if ((!overridePath && !offroadTravel) || path!=null) {
 							if (follower.canFollow()) {
 								follower.moveToLocation(gameHandler.getMainFrame(),location);
@@ -1320,7 +1345,8 @@ public class ActionRow {
 						// Other characters in the same clearing who have found hidden enemies
 						// for the day should gain a discovery when this move occurs (on either end of the path!)
 						if (current.hasClearing() && !hostPrefs.hasPref(Constants.SR_NO_SPYING)) {
-							for (RealmComponent rc:current.clearing.getClearingComponents()) {
+							for (java.util.Iterator _j14it1196 = (current.clearing.getClearingComponents()).iterator(); _j14it1196.hasNext(); ) {
+							  RealmComponent rc = (RealmComponent) _j14it1196.next();
 								if (rc.canSpy() && !rc.getGameObject().equals(character.getGameObject())) {
 									CharacterWrapper spy = new CharacterWrapper(rc.getGameObject());
 									if (!character.isHidden() || spy.foundHiddenEnemy(character.getGameObject())) {
@@ -1328,7 +1354,8 @@ public class ActionRow {
 									}
 								}
 							}
-							for (RealmComponent rc:location.clearing.getClearingComponents()) {
+							for (java.util.Iterator _j14it1197 = (location.clearing.getClearingComponents()).iterator(); _j14it1197.hasNext(); ) {
+							  RealmComponent rc = (RealmComponent) _j14it1197.next();
 								if (rc.canSpy() && !rc.getGameObject().equals(character.getGameObject())) {
 									CharacterWrapper spy = new CharacterWrapper(rc.getGameObject());
 									if (!character.isHidden() || spy.foundHiddenEnemy(character.getGameObject())) {
@@ -1343,7 +1370,8 @@ public class ActionRow {
 								}
 							}
 						}
-						for (CharacterWrapper follower : character.getActionFollowers()) {
+						for (java.util.Iterator _j14it1198 = (character.getActionFollowers()).iterator(); _j14it1198.hasNext(); ) {
+						  CharacterWrapper follower = (CharacterWrapper) _j14it1198.next();
 							follower.updatePathKnowledge(path);
 							follower.updatePathKnowledge(reverse);
 						}
@@ -1375,7 +1403,8 @@ public class ActionRow {
 			}
 			if (item.hasThisAttribute(Constants.BREAK_CONTROL_WHEN_INACTIVE)) {
 				SpellMasterWrapper spellmaster = SpellMasterWrapper.getSpellMaster(gameHandler.getClient().getGameData());
-				for (SpellWrapper spell : spellmaster.getAffectingSpells(item)) {
+				for (java.util.Iterator _j14it1199 = (spellmaster.getAffectingSpells(item)).iterator(); _j14it1199.hasNext(); ) {
+				  SpellWrapper spell = (SpellWrapper) _j14it1199.next();
 					if (spell.isControlHorseSpell()) {
 						spell.expireSpell();
 					}
@@ -1391,7 +1420,8 @@ public class ActionRow {
 			}
 			if (item.hasThisAttribute(Constants.BREAK_CONTROL_WHEN_INACTIVE)) {
 				SpellMasterWrapper spellmaster = SpellMasterWrapper.getSpellMaster(gameHandler.getClient().getGameData());
-				for (SpellWrapper spell : spellmaster.getAffectingSpells(item)) {
+				for (java.util.Iterator _j14it1200 = (spellmaster.getAffectingSpells(item)).iterator(); _j14it1200.hasNext(); ) {
+				  SpellWrapper spell = (SpellWrapper) _j14it1200.next();
 					if (spell.isControlHorseSpell()) {
 						spell.expireSpell();
 					}
@@ -1467,7 +1497,8 @@ public class ActionRow {
 			}
 		}
 		
-		for (RealmComponent rc:current.clearing.getClearingComponents()) {
+		for (java.util.Iterator _j14it1201 = (current.clearing.getClearingComponents()).iterator(); _j14it1201.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1201.next();
 			// Loot is a special case, as it requires a TL
 			if (rc.getGameObject().hasThisAttribute(RealmComponent.TREASURE_LOCATION)) {
 				if (/*!rc.getGameObject().hasThisAttribute("discovery") ||*/ // Why did I have this?
@@ -1495,12 +1526,13 @@ public class ActionRow {
 			}
 		}
 		
-		ArrayList<GameObject> openableSites = character.getAllOpenableSites();
+		ArrayList openableSites = character.getAllOpenableSites();
 		if (!openableSites.isEmpty()) {
 			String message = "Open";
 			chooseSearch.addSelectionObject(message);
 			IconGroup group = new IconGroup(IconGroup.HORIZONTAL,2);
-			for (GameObject go:openableSites) {
+			for (java.util.Iterator _j14it1202 = (openableSites).iterator(); _j14it1202.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it1202.next();
 				group.addIcon(RealmComponent.getRealmComponent(go).getIcon());
 			}
 			chooseSearch.setSelectionObjectIcon(message,group);
@@ -1513,7 +1545,8 @@ public class ActionRow {
 		
 		// check player inventory
 		if ((!mustUseMagicSight || canUseMagicSight)) {
-			for (GameObject item:character.getEnhancingItems()) {
+			for (java.util.Iterator _j14it1203 = (character.getEnhancingItems()).iterator(); _j14it1203.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it1203.next();
 				if (!item.hasThisAttribute(RealmComponent.TREASURE_WITHIN_TREASURE) && SpellUtility.getSpellCount(item,null,true)>0) {
 					addTableToChooser(chooseSearch,RealmTable.readRunes(gameHandler.getMainFrame(),item));
 				}
@@ -1571,12 +1604,13 @@ public class ActionRow {
 		// Player chooses from all native leaders in the clearing
 		// Player then chooses from items for sale
 		TileLocation tl = character.getCurrentLocation();
-		ArrayList<RealmComponent> traders = ClearingUtility.getAllTraders(character,tl.clearing);
+		ArrayList traders = ClearingUtility.getAllTraders(character,tl.clearing);
 		if (!traders.isEmpty()) { // need traders to trade!
 			// Select a trader
 			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(gameHandler.getMainFrame(),"Select trade action:",true);
 			int keyN = 0;
-			for (RealmComponent rc:traders) {
+			for (java.util.Iterator _j14it1204 = (traders).iterator(); _j14it1204.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it1204.next();
 				if (rc.isTraveler()) {
 					chooser.addRealmComponent(rc,rc.getGameObject().getName());
 				}
@@ -1705,27 +1739,30 @@ public class ActionRow {
 				if (!negate && completed && trader.isNative()) {
 					String nativeName = trader.getGameObject().getThisAttribute(RealmComponent.NATIVE);
 					GamePool pool = new GamePool(character.getGameData().getGameObjects());
-					ArrayList<GameObject> boxes = pool.find("summon_n="+nativeName.toLowerCase());
-					for (GameObject box : boxes) {
+					ArrayList boxes = pool.find("summon_n="+nativeName.toLowerCase());
+					for (java.util.Iterator _j14it1205 = (boxes).iterator(); _j14it1205.hasNext(); ) {
+					  GameObject box = (GameObject) _j14it1205.next();
 						ClearingUtility.dumpTravelersToTile(tl.tile.getGameObject(),box,tl.clearing.getNum());
 					}
 				}
 				
 				if (!negate && completed && hostPrefs.hasPref(Constants.QST_SR_QUESTS) && !character.isBlocked() && (trader.isNative() || trader.isVisitor() || trader.isTraveler())) {
 					boolean tradedQuests = false;
-					ArrayList<QuestCardComponent> unfinishedQuests = character.getUnfinishedNotAllPlayQuests();
-					ArrayList<QuestCardComponent> characterQuests = new ArrayList<QuestCardComponent>();
-					for (QuestCardComponent quest : unfinishedQuests) {
+					ArrayList unfinishedQuests = character.getUnfinishedNotAllPlayQuests();
+					ArrayList characterQuests = new ArrayList();
+					for (java.util.Iterator _j14it1206 = (unfinishedQuests).iterator(); _j14it1206.hasNext(); ) {
+					  QuestCardComponent quest = (QuestCardComponent) _j14it1206.next();
 						if (!(new Quest(quest.getGameObject()).isSticky())) {
 							characterQuests.add(quest);
 						}
 					}
-					ArrayList<QuestCardComponent> traderQuests = new ArrayList<QuestCardComponent>();
-					ArrayList<GameObject> questsToNote = new ArrayList<GameObject>();
+					ArrayList traderQuests = new ArrayList();
+					ArrayList questsToNote = new ArrayList();
 					GameObject holder = null;
 					if (trader.isNative()) {
 						holder = SetupCardUtility.getDenizenHolder(trader.getGameObject());
-						for(GameObject item:holder.getHold()) {
+						for (java.util.Iterator _j14it1207 = (holder.getHold()).iterator(); _j14it1207.hasNext(); ) {
+						  GameObject item = (GameObject) _j14it1207.next();
 							if ((RealmComponent.getRealmComponent(item)).isQuest()) {
 								traderQuests.add((QuestCardComponent) RealmComponent.getRealmComponent(item));
 								questsToNote.add(item);
@@ -1733,7 +1770,8 @@ public class ActionRow {
 						}
 					}
 					else {
-						for (GameObject item : trader.getHold()) {
+						for (java.util.Iterator _j14it1208 = (trader.getHold()).iterator(); _j14it1208.hasNext(); ) {
+						  GameObject item = (GameObject) _j14it1208.next();
 							if ((RealmComponent.getRealmComponent(item)).isQuest()) {
 								traderQuests.add((QuestCardComponent) RealmComponent.getRealmComponent(item));
 								questsToNote.add(item);	
@@ -1743,7 +1781,8 @@ public class ActionRow {
 					
 					if (!characterQuests.isEmpty() && traderQuests!=null && !traderQuests.isEmpty()) {
 						RealmComponentOptionChooser traderQuestChooser = new RealmComponentOptionChooser(gameHandler.getMainFrame(),"Select quest to trade:",true);
-						for (RealmComponent quest:traderQuests) {
+						for (java.util.Iterator _j14it1209 = (traderQuests).iterator(); _j14it1209.hasNext(); ) {
+						  RealmComponent quest = (RealmComponent) _j14it1209.next();
 							traderQuestChooser.addRealmComponent(quest,quest.getGameObject().getName());
 						}
 						traderQuestChooser.addOption("none","No Trade");
@@ -1751,7 +1790,8 @@ public class ActionRow {
 						String selectedTraderQuest = traderQuestChooser.getSelectedText();
 						if (selectedTraderQuest!=null && selectedTraderQuest!="No Trade") {
 							RealmComponentOptionChooser characterQuestChooser = new RealmComponentOptionChooser(gameHandler.getMainFrame(),"Select quest to trade:",true);
-							for (RealmComponent quest:characterQuests) {
+							for (java.util.Iterator _j14it1210 = (characterQuests).iterator(); _j14it1210.hasNext(); ) {
+							  RealmComponent quest = (RealmComponent) _j14it1210.next();
 								characterQuestChooser.addRealmComponent(quest,quest.getGameObject().getName());
 							}
 							characterQuestChooser.addOption("none","No Trade");
@@ -1794,18 +1834,19 @@ public class ActionRow {
 		}
 	}
 	private void processTrade(RealmComponent trader,String tradeAction,HostPrefWrapper hostPrefs) {
-		ArrayList<GameObject> hold = null;
-		ArrayList<GameObject> holdToNote = null;
+		ArrayList hold = null;
+		ArrayList holdToNote = null;
 		String traderName = trader.isNative()?trader.getGameObject().getThisAttribute("native"):trader.getGameObject().getName();
 		String relName = RealmUtility.getRelationshipNameFor(character,trader);
 		String traderRel = traderName+" ("+relName+")";
 		if (TRADE_BUY.equals(tradeAction)) {
-			hold = new ArrayList<GameObject>();
-			holdToNote = new ArrayList<GameObject>();
+			hold = new ArrayList();
+			holdToNote = new ArrayList();
 			if (trader.isNative()) {
 				// Native Leader - trade with their dwelling's hold
 				GameObject holder = SetupCardUtility.getDenizenHolder(trader.getGameObject());
-				for(GameObject go:holder.getHold()) {
+				for (java.util.Iterator _j14it1211 = (holder.getHold()).iterator(); _j14it1211.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it1211.next();
 					holdToNote.add(go);
 					if (!go.hasThisAttribute(Constants.VALUABLE) && !(RealmComponent.getRealmComponent(go)).isQuest()) {
 						hold.add(go);
@@ -1814,7 +1855,8 @@ public class ActionRow {
 			}
 			else {
 				// Visitor or Guild - trade directly with their hold
-				for(GameObject go:trader.getGameObject().getHold()) {
+				for (java.util.Iterator _j14it1212 = (trader.getGameObject().getHold()).iterator(); _j14it1212.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it1212.next();
 					holdToNote.add(go);
 					RealmComponent rc = RealmComponent.getRealmComponent(go);
 					if (!go.hasThisAttribute(Constants.VALUABLE) && !rc.isQuest() &&(!rc.isSpell() || character.canLearn(go))) {
@@ -1845,7 +1887,8 @@ public class ActionRow {
 			
 			boolean unhide = false;
 			// First, make sure all treasures are marked as "seen"
-			for (GameObject item : hold) {
+			for (java.util.Iterator _j14it1213 = (hold).iterator(); _j14it1213.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it1213.next();
 				if (!item.hasThisAttribute(Constants.TREASURE_SEEN)) {
 					item.setThisAttribute(Constants.TREASURE_SEEN);
 					if (item.hasThisAttribute(Constants.NO_HIDE)) {
@@ -1857,7 +1900,8 @@ public class ActionRow {
 				TileLocation current = character.getCurrentLocation();
 				character.setHidden(false);
 				if (current!=null && current.hasClearing()) {
-					for (RealmComponent rc:current.clearing.getClearingComponents()) {
+					for (java.util.Iterator _j14it1214 = (current.clearing.getClearingComponents()).iterator(); _j14it1214.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it1214.next();
 						if (rc.isCharacter()) {
 							(new CharacterWrapper(rc.getGameObject())).setHidden(false);
 						}
@@ -1879,7 +1923,8 @@ public class ActionRow {
 				
 				// Log what is being offered up
 				StringBufferedList sb = new StringBufferedList();
-				for(GameObject go:hold) {
+				for (java.util.Iterator _j14it1215 = (hold).iterator(); _j14it1215.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it1215.next();
 					RealmComponent rc = RealmComponent.getRealmComponent(go);
 					if (go.hasThisAttribute(RealmComponent.TREASURE) && !hostPrefs.hasPref(Constants.HOUSE1_NO_SECRETS)) {
 						sb.append("Treasure");
@@ -1918,7 +1963,7 @@ public class ActionRow {
 			tradeDialog.setTradeObjects(hold);
 			tradeDialog.setVisible(true);
 			
-			Collection<RealmComponent> selComponents = tradeDialog.getSelectedRealmComponents();
+			Collection selComponents = tradeDialog.getSelectedRealmComponents();
 			// Cancel when buying ends action
 			if (selComponents == null && TRADE_BUY.equals(tradeAction)) {
 				completed = false;
@@ -1934,7 +1979,7 @@ public class ActionRow {
 				if (TRADE_BUY.equals(tradeAction) || repair) { // TRADE_BUY or TRADE_REPAIR
 					
 					// Can only be one item purchased
-					RealmComponent merchandise = selComponents.iterator().next();
+					RealmComponent merchandise = (RealmComponent) selComponents.iterator().next();
 					
 					// Let's make sure this item CAN be bought
 					if (!repair) {
@@ -2006,7 +2051,8 @@ public class ActionRow {
 				else {
 					// Log what is being sold
 					StringBufferedList sb = new StringBufferedList();
-					for(RealmComponent rc : selComponents) {
+					for (java.util.Iterator _j14it1216 = (selComponents).iterator(); _j14it1216.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it1216.next();
 						sb.append(rc.getGameObject().getName());
 					}
 					sb.countIdenticalItems();
@@ -2046,16 +2092,18 @@ public class ActionRow {
 		RealmComponent rc = RealmComponent.getRealmComponent(character.getGameObject());
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(gameHandler.getMainFrame(),"Cancel which Curse, Mesmerize or Spell?",true);
 		boolean clericServiceNeeded = false;
-		for (String curse:character.getAllCurses()) {
+		for (java.util.Iterator _j14it1217 = (character.getAllCurses()).iterator(); _j14it1217.hasNext(); ) {
+		  String curse = (String) _j14it1217.next();
 			chooser.addOption(curse,"Remove "+curse+" Curse (5 gold)");
 			chooser.addRealmComponentToOption(curse,rc);
 			clericServiceNeeded = true;
 		}
 		SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(character.getGameData());
-		Collection<SpellWrapper> spells = sm.getAffectingSpells(character.getGameObject());
+		Collection spells = sm.getAffectingSpells(character.getGameObject());
 		if (!spells.isEmpty()) {
 			clericServiceNeeded = true;
-			for (SpellWrapper spell : spells) {
+			for (java.util.Iterator _j14it1218 = (spells).iterator(); _j14it1218.hasNext(); ) {
+			  SpellWrapper spell = (SpellWrapper) _j14it1218.next();
 				chooser.addRealmComponentToOption(spell.getName(),RealmComponent.getRealmComponent(spell.getGameObject()));
 			}
 		}
@@ -2104,7 +2152,7 @@ public class ActionRow {
 	}
 	private void doStealAction() {
 		TileLocation tl = character.getCurrentLocation();
-		ArrayList<RealmComponent> victims = ClearingUtility.getAllVictimsForStealing(character,tl.clearing);
+		ArrayList victims = ClearingUtility.getAllVictimsForStealing(character,tl.clearing);
 		
 		if (victims.isEmpty()) {
 			result = "Nobody to steal from.";
@@ -2112,7 +2160,8 @@ public class ActionRow {
 			return;
 		}	
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(gameHandler.getMainFrame(),"Select victim to steal from:",false);
-		for (RealmComponent rc:victims) {
+		for (java.util.Iterator _j14it1219 = (victims).iterator(); _j14it1219.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1219.next();
 			chooser.addRealmComponent(rc,rc.getGameObject().getName());
 		}
 		chooser.setVisible(true);
@@ -2149,7 +2198,7 @@ public class ActionRow {
 			result = "Cannot REST while transmorphed.";
 		}
 		else {
-			ArrayList<CharacterActionChitComponent> restChoices = character.getRestableChits();
+			ArrayList restChoices = character.getRestableChits();
 			if (!restChoices.isEmpty()) { // has to be chits to rest!
 				boolean blockRestAction = false;
 				if (RealmUtility.willBeBlocked(character,isFollowing,false)) {
@@ -2159,7 +2208,8 @@ public class ActionRow {
 					TileLocation current = character.getCurrentLocation();
 					HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(gameHandler.getClient().getGameData());
 					boolean blockingPhases = hostPrefs.hasPref(Constants.OPT_BLOCKING_PHASES);
-					for (GameObject livingCharacter : RealmUtility.getLivingCharacters(gameHandler.getClient().getGameData())) {
+					for (java.util.Iterator _j14it1220 = (RealmUtility.getLivingCharacters(gameHandler.getClient().getGameData())).iterator(); _j14it1220.hasNext(); ) {
+					  GameObject livingCharacter = (GameObject) _j14it1220.next();
 						if (blockingPhases) {
 							new CharacterWrapper(livingCharacter).removeAllBlockDecisions();
 						}
@@ -2210,7 +2260,8 @@ public class ActionRow {
 			}
 		}
 		// Make sure followers get a rest too!
-		for (CharacterWrapper follower : character.getActionFollowers()) {
+		for (java.util.Iterator _j14it1221 = (character.getActionFollowers()).iterator(); _j14it1221.hasNext(); ) {
+		  CharacterWrapper follower = (CharacterWrapper) _j14it1221.next();
 			if (!follower.hasCurse(Constants.ILL_HEALTH)
 					&& !follower.isTransmorphed()
 					&& !follower.getRestableChits().isEmpty()) {
@@ -2221,8 +2272,9 @@ public class ActionRow {
 	private void doHealAction() {
 		// Select a character in the same clearing that has wounds/fatigue, and does not have ILL_HEALTH, or is transmorphed
 		TileLocation current = character.getCurrentLocation();
-		ArrayList<RealmComponent> canBeHealed = new ArrayList<RealmComponent>();
-		for (RealmComponent rc:current.clearing.getClearingComponents()) {
+		ArrayList canBeHealed = new ArrayList();
+		for (java.util.Iterator _j14it1222 = (current.clearing.getClearingComponents()).iterator(); _j14it1222.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1222.next();
 			if (rc.isCharacter()) {
 				if (!rc.getGameObject().equals(character.getGameObject())) { // can't be you!
 					CharacterWrapper aCharacter = new CharacterWrapper(rc.getGameObject());
@@ -2264,17 +2316,19 @@ public class ActionRow {
 	public static RealmComponentOptionChooser alertChooser(CharacterWrapper character, RealmGameHandler gameHandler) {
 		RealmComponentOptionChooser chooser = null;
 		// Player chooses from all inactive weapons and spell chits
-		ArrayList<ChitComponent> alertChoices = new ArrayList<ChitComponent>();
-		Collection<CharacterActionChitComponent> c = character.getActiveChits();
-		for (CharacterActionChitComponent chit : c) {
+		ArrayList alertChoices = new ArrayList();
+		Collection c = character.getActiveChits();
+		for (java.util.Iterator _j14it1223 = (c).iterator(); _j14it1223.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it1223.next();
 			if (chit.isMagic() || chit.isFightAlert()) {
 				alertChoices.add(chit);
 			}
 		}
-		ArrayList<WeaponChitComponent> weapons = character.getActiveWeapons();
+		ArrayList weapons = character.getActiveWeapons();
 		if (weapons!=null && !weapons.isEmpty()) {
 			if (character.affectedByKey(Constants.DUAL_WIELDING_ALERT)) {
-				for (WeaponChitComponent weapon : weapons) {
+				for (java.util.Iterator _j14it1224 = (weapons).iterator(); _j14it1224.hasNext(); ) {
+				  WeaponChitComponent weapon = (WeaponChitComponent) _j14it1224.next();
 					alertChoices.add(weapon);
 				}
 			}
@@ -2288,7 +2342,8 @@ public class ActionRow {
 		
 		chooser = new RealmComponentOptionChooser(gameHandler.getMainFrame(),"Alert which?",true);
 		int keyN = 0;
-		for (RealmComponent rc : alertChoices) {
+		for (java.util.Iterator _j14it1225 = (alertChoices).iterator(); _j14it1225.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1225.next();
 			if (rc.isWeapon()) {
 				// Add both sides of weapon, if any
 				WeaponChitComponent weapon = (WeaponChitComponent)rc;
@@ -2331,13 +2386,15 @@ public class ActionRow {
 		// Make sure followers get an alert too!
 		if (hostPrefs.hasPref(Constants.OPT_FOLLOWERS_ACTIONS_DURING_GUIDES_PHASE)) {
 			// Make sure followers get a alert too!
-			for (CharacterWrapper follower : character.getActionFollowers()) {
+			for (java.util.Iterator _j14it1226 = (character.getActionFollowers()).iterator(); _j14it1226.hasNext(); ) {
+			  CharacterWrapper follower = (CharacterWrapper) _j14it1226.next();
 				if (!follower.hasMesmerizeEffect(Constants.TIRED)) {
 					follower.setFollowAlerts(follower.getFollowAlerts()+1);
 				}
 			}
 		} else {
-			for (CharacterWrapper follower : character.getActionFollowers()) {
+			for (java.util.Iterator _j14it1227 = (character.getActionFollowers()).iterator(); _j14it1227.hasNext(); ) {
+			  CharacterWrapper follower = (CharacterWrapper) _j14it1227.next();
 				follower.addCurrentAction(DayAction.ALERT_ACTION.getCode());
 				follower.addCurrentActionTypeCode(actionTypeCode);
 				follower.addCurrentActionValid(true);
@@ -2387,8 +2444,9 @@ public class ActionRow {
 		}
 	}
 	private void doRepairAction() {
-		ArrayList<ArmorChitComponent> damagedArmor = new ArrayList<ArmorChitComponent>();
-		for(GameObject go:character.getInventory()) {
+		ArrayList damagedArmor = new ArrayList();
+		for (java.util.Iterator _j14it1228 = (character.getInventory()).iterator(); _j14it1228.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1228.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc.isArmor()) {
 				ArmorChitComponent armor = (ArmorChitComponent)rc;
@@ -2424,26 +2482,29 @@ public class ActionRow {
 		// HIRE same as TRADE, only the merchandise is the natives themselves
 		// Term of hire is fourteen days, or until the character is killed
 		TileLocation tl = character.getCurrentLocation();
-		ArrayList<RealmComponent> hireables = ClearingUtility.getAllHireables(character,tl.clearing);
-		HashLists<String, RealmComponent> hash = RealmUtility.hashNativesByGroupName(hireables);
+		ArrayList hireables = ClearingUtility.getAllHireables(character,tl.clearing);
+		HashLists hash = RealmUtility.hashNativesByGroupName(hireables);
 		if (hash.size()>0) {
 			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(gameHandler.getMainFrame(),"Hire which?",true);
 			chooser.setButtonTextPosition(SwingConstants.CENTER,SwingConstants.BOTTOM);
 			//chooser.setForceColumns(1);
 			chooser.setFillByRow(false);
 			chooser.setSortBiggestFirst(true);
-			for (String groupName : hash.keySet()) {
-				ArrayList<RealmComponent> list = hash.getList(groupName);
-				Collections.sort(list,new Comparator<RealmComponent>() {
-					public int compare(RealmComponent o1,RealmComponent o2) {
+			for (java.util.Iterator _j14it1229 = (hash.keySet()).iterator(); _j14it1229.hasNext(); ) {
+			  String groupName = (String) _j14it1229.next();
+				ArrayList list = hash.getList(groupName);
+				Collections.sort(list,new Comparator() {
+					public int compare(Object obj1,Object obj2) {
+						RealmComponent o1 = (RealmComponent) obj1;
+						RealmComponent o2 = (RealmComponent) obj2;
 						String rs1 = o1.getGameObject().getThisAttribute("rank");
 						if (rs1==null) rs1 = "0";
-						Integer rank1 = "HQ".equals(rs1)?Integer.valueOf(0):Integer.parseInt(rs1);
-						
+						Integer rank1 = "HQ".equals(rs1)?new Integer(0):new Integer(Integer.parseInt(rs1));
+
 						String rs2 = o2.getGameObject().getThisAttribute("rank");
 						if (rs2==null) rs2 = "0";
-						Integer rank2 = "HQ".equals(rs2)?Integer.valueOf(0):Integer.parseInt(rs2);
-						
+						Integer rank2 = "HQ".equals(rs2)?new Integer(0):new Integer(Integer.parseInt(rs2));
+
 						return rank1.compareTo(rank2);
 					}
 				});
@@ -2455,7 +2516,8 @@ public class ActionRow {
 					basePrice = 0;
 					int rehire = 0;
 					int newhire = 0;
-					for (RealmComponent rc : list) {
+					for (java.util.Iterator _j14it1230 = (list).iterator(); _j14it1230.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it1230.next();
 						if (rc.getOwnerId()==null) newhire++; else rehire++;
 						chooser.addRealmComponentToOption(option,rc);
 						basePrice += rc.getGameObject().getThisInt("base_price");
@@ -2482,7 +2544,8 @@ public class ActionRow {
 					// Add only the last unhired member of the group
 					// Add all the hired natives (one at a time)
 					last = null;
-					for (RealmComponent rc : list) {
+					for (java.util.Iterator _j14it1231 = (list).iterator(); _j14it1231.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it1231.next();
 						if (rc.getOwnerId()==null) {
 							last = (ChitComponent)rc;
 						}
@@ -2522,7 +2585,7 @@ public class ActionRow {
 					result = "Cancelled Hire";
 					return;
 				}
-				ArrayList<RealmComponent> list = new ArrayList<RealmComponent>(chooser.getSelectedComponents());
+				ArrayList list = new ArrayList(chooser.getSelectedComponents());
 				ChitComponent last = (ChitComponent)list.get(list.size()-1);
 				
 				boolean credit = false;
@@ -2564,7 +2627,8 @@ public class ActionRow {
 					QuestRequirementParams params = new QuestRequirementParams();
 					params.actionType = CharacterActionType.Hire;
 					if (realmTable!=null && ((Meeting)realmTable).getSucessfullyHiredGroup()!=null) {
-						for (RealmComponent hired : ((Meeting)realmTable).getSucessfullyHiredGroup()) {
+						for (java.util.Iterator _j14it1232 = (((Meeting)realmTable).getSucessfullyHiredGroup()).iterator(); _j14it1232.hasNext(); ) {
+						  RealmComponent hired = (RealmComponent) _j14it1232.next();
 							params.objectList.add(hired.getGameObject());
 						}
 					}
@@ -2602,13 +2666,15 @@ public class ActionRow {
 		if (hostPrefs.hasPref(Constants.SR_FOLLOWERS_ENCHANTING_ACTION)) {
 			if (hostPrefs.hasPref(Constants.OPT_FOLLOWERS_ACTIONS_DURING_GUIDES_PHASE)) {
 				// Make sure followers get a alert too!
-				for (CharacterWrapper follower : character.getActionFollowers()) {
+				for (java.util.Iterator _j14it1233 = (character.getActionFollowers()).iterator(); _j14it1233.hasNext(); ) {
+				  CharacterWrapper follower = (CharacterWrapper) _j14it1233.next();
 					if (!character.hasMesmerizeEffect(Constants.SAPPED)) {
 						follower.setFollowSpellActions(follower.getFollowSpellActions()+1);
 					}
 				}
 			} else {
-				for (CharacterWrapper follower : character.getActionFollowers()) {
+				for (java.util.Iterator _j14it1234 = (character.getActionFollowers()).iterator(); _j14it1234.hasNext(); ) {
+				  CharacterWrapper follower = (CharacterWrapper) _j14it1234.next();
 					follower.addCurrentAction(DayAction.SPELL_ACTION.getCode());
 					follower.addCurrentActionTypeCode(actionTypeCode);
 					follower.addCurrentActionValid(true);
@@ -2623,20 +2689,21 @@ public class ActionRow {
 		TileLocation targetClearing = getTargetClearingForSpellAction(character, gameHandler);
 		doSpellAction(character.getInfiniteColorSources(),targetClearing);
 	}
-	public static RealmComponentOptionChooser enchantChooser(CharacterWrapper character, RealmGameHandler gameHandler, TileLocation targetClearing, Collection<ColorMagic> colorMagicSources) {
+	public static RealmComponentOptionChooser enchantChooser(CharacterWrapper character, RealmGameHandler gameHandler, TileLocation targetClearing, Collection colorMagicSources) {
 		// SPX actions are ignored.  Need to ask player if they want to enchant a chit, or a tile.
 		// The tile option would only be available if the conditions are right (right color/invocation combination available)		
-		ArrayList<MagicChit> enchantable = new ArrayList<MagicChit>();
+		ArrayList enchantable = new ArrayList();
 		
 		// Chits
-		ArrayList<CharacterActionChitComponent> enchantableChits = character.getEnchantableChits();
+		ArrayList enchantableChits = character.getEnchantableChits();
 		Collections.sort(enchantableChits);
 		enchantable.addAll(enchantableChits);
 		
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(gameHandler.getClient().getGameData());
 		if (hostPrefs.hasPref(Constants.OPT_ENHANCED_ARTIFACTS) || character.affectedByKey(Constants.ENHANCED_ARTIFACTS)) {
 			// Enchantable Artifacts and Books
-			for(GameObject item:character.getActiveInventory()) {
+			for (java.util.Iterator _j14it1235 = (character.getActiveInventory()).iterator(); _j14it1235.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it1235.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(item);
 				if (rc.isMagicChit()) {
 					MagicChit mc = (MagicChit)rc;
@@ -2647,10 +2714,12 @@ public class ActionRow {
 			}
 		}
 	
-		ArrayList<RealmComponent[]> tileEnchantableSets = new ArrayList<RealmComponent[]>(); // CharacterChitActionComponent[] set
+		ArrayList tileEnchantableSets = new ArrayList(); // CharacterChitActionComponent[] set
 		// Determine if any of the color magic (infinite sources first) are available to enchant the tile
-		for (MagicChit chit:enchantable) {
-			for (ColorMagic infiniteSource : colorMagicSources) {
+		for (java.util.Iterator _j14it1236 = (enchantable).iterator(); _j14it1236.hasNext(); ) {
+		  MagicChit chit = (MagicChit) _j14it1236.next();
+			for (java.util.Iterator _j14it1237 = (colorMagicSources).iterator(); _j14it1237.hasNext(); ) {
+			  ColorMagic infiniteSource = (ColorMagic) _j14it1237.next();
 				if (chit.compatibleWith(infiniteSource)) {
 					// Create a set of one (no need to use up your own color magic when there is an infinite source!)
 					RealmComponent[] set = new RealmComponent[2];
@@ -2662,13 +2731,14 @@ public class ActionRow {
 			}
 		}
 		// check own color chits (player may not want to use infinite source if it uses the wrong chit!)
-		ArrayList<MagicChit> colorMagicChits = new ArrayList<MagicChit>();
+		ArrayList colorMagicChits = new ArrayList();
 		if ((!hostPrefs.hasPref(Constants.FE_STEEL_AGAINST_MAGIC) && !character.affectedByKey(Constants.STAFF_RESTRICTED_SPELLCASTING)) || character.hasOnlyStaffAsActivatedWeapon()) {
 			colorMagicChits.addAll(character.getColorChits());
 		}
 		if (hostPrefs.hasPref(Constants.OPT_ENHANCED_ARTIFACTS)) {
 			// Artifacts and Books enchanted into color
-			for(GameObject item:character.getActiveInventory()) {
+			for (java.util.Iterator _j14it1238 = (character.getActiveInventory()).iterator(); _j14it1238.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it1238.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(item);
 				if (rc.isMagicChit()) {
 					MagicChit mc = (MagicChit)rc;
@@ -2678,8 +2748,10 @@ public class ActionRow {
 				}
 			}
 		}
-		for (MagicChit chit:enchantable) {
-			for (MagicChit colorChit:colorMagicChits) {
+		for (java.util.Iterator _j14it1239 = (enchantable).iterator(); _j14it1239.hasNext(); ) {
+		  MagicChit chit = (MagicChit) _j14it1239.next();
+			for (java.util.Iterator _j14it1240 = (colorMagicChits).iterator(); _j14it1240.hasNext(); ) {
+			  MagicChit colorChit = (MagicChit) _j14it1240.next();
 				ColorMagic consumableSource = colorChit.getColorMagic();
 				if (chit.compatibleWith(consumableSource)) {
 					// Create a set of one (no need to use up your own color magic when there is an infinite source!)
@@ -2692,14 +2764,16 @@ public class ActionRow {
 				}
 			}
 		}		
-		for (GameObject treasure:character.getActiveInventory()) {
+		for (java.util.Iterator _j14it1241 = (character.getActiveInventory()).iterator(); _j14it1241.hasNext(); ) {
+		  GameObject treasure = (GameObject) _j14it1241.next();
 			if (treasure.hasThisAttribute(Constants.RING) && !treasure.hasThisAttribute(Constants.RING_USED)) {
 				if (treasure.hasThisAttribute(SpellWrapper.INCANTATION_TIE)) {
 					continue; // tied up treasures cannot be used again
 				}
 				MagicChit treasureChit = (MagicChit)RealmComponent.getRealmComponent(treasure);
 				if (!treasureChit.isColor()) {
-					for (ColorMagic infiniteSource : colorMagicSources) {
+					for (java.util.Iterator _j14it1242 = (colorMagicSources).iterator(); _j14it1242.hasNext(); ) {
+					  ColorMagic infiniteSource = (ColorMagic) _j14it1242.next();
 						if (treasureChit.compatibleWith(infiniteSource)) {
 							// Create a set of one (no need to use up your own color magic when there is an infinite source!)
 							RealmComponent[] set = new RealmComponent[2];
@@ -2709,7 +2783,8 @@ public class ActionRow {
 							break; // no need to keep searching infinite sources!  Any one is good enough.
 						}
 					}
-					for (MagicChit colorChit:colorMagicChits) {
+					for (java.util.Iterator _j14it1243 = (colorMagicChits).iterator(); _j14it1243.hasNext(); ) {
+					  MagicChit colorChit = (MagicChit) _j14it1243.next();
 						ColorMagic consumableSource = colorChit.getColorMagic();
 						if (treasureChit.compatibleWith(consumableSource)) {
 							RealmComponent[] set = new RealmComponent[3];
@@ -2725,7 +2800,8 @@ public class ActionRow {
 			
 		RealmComponentOptionChooser compChooser = new RealmComponentOptionChooser(gameHandler.getMainFrame(),"Enchant which?",true);
 		int keyN = 0;
-		for (MagicChit magicChit : enchantable) {
+		for (java.util.Iterator _j14it1244 = (enchantable).iterator(); _j14it1244.hasNext(); ) {
+		  MagicChit magicChit = (MagicChit) _j14it1244.next();
 			RealmComponent chit = (RealmComponent)magicChit;
 			String key = "k"+(keyN++);
 			if (chit.isActionChit()) {
@@ -2736,7 +2812,8 @@ public class ActionRow {
 			}
 			compChooser.addRealmComponentToOption(key,chit);
 		}
-		for (RealmComponent[] chit : tileEnchantableSets) {
+		for (java.util.Iterator _j14it1245 = (tileEnchantableSets).iterator(); _j14it1245.hasNext(); ) {
+		  RealmComponent[] chit = (RealmComponent[]) _j14it1245.next();
 			String key = "k"+(keyN++);
 			compChooser.addOption(key,"Tile");
 			for (int n=0;n<chit.length;n++) {
@@ -2753,8 +2830,9 @@ public class ActionRow {
 			tile.flip();
 			result = "enchanted "+tile.getTileName();
 			// fatigue the chit(s) used to do it
-			Collection<RealmComponent> chits = compChooser.getSelectedComponents();
-			for (RealmComponent rc : chits) {
+			Collection chits = compChooser.getSelectedComponents();
+			for (java.util.Iterator _j14it1246 = (chits).iterator(); _j14it1246.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it1246.next();
 				if (rc.isMagicChit() && !character.affectedByKey(Constants.TALISMAN)) {
 					MagicChit chit = (MagicChit)rc;
 					if (chit.isColor()) { // Only fatigue the color chit - not the incantation
@@ -2792,7 +2870,7 @@ public class ActionRow {
 		}
 		return result;
 	}
-	private void doSpellAction(Collection<ColorMagic> colorMagicSources,TileLocation targetClearing) {
+	private void doSpellAction(Collection colorMagicSources,TileLocation targetClearing) {
 		RealmComponentOptionChooser compChooser = enchantChooser(character, gameHandler, targetClearing, colorMagicSources);
 		if (compChooser.hasOptions()) {
 			compChooser.setVisible(true);
@@ -2854,7 +2932,7 @@ public class ActionRow {
 		}
 		
 		// First, make sure Flying is a possibility - otherwise BLOCK character..? See Rule 47.2
-		ArrayList<StrengthChit> flyStrengthChits = character.getFlyStrengthChits(true);
+		ArrayList flyStrengthChits = character.getFlyStrengthChits(true);
 		boolean startedBetweenTiles = current.isBetweenTiles();
 		if (current.isFlying() && (startedBetweenTiles || current.isTileOnly())) {
 			// Must be able to fly
@@ -2868,8 +2946,9 @@ public class ActionRow {
 		
 		// Strip out any chits that aren't strong enough to support character
 		Strength vul = character.getVulnerability();
-		ArrayList<StrengthChit> strongEnough = new ArrayList<StrengthChit>();
-		for (StrengthChit sc:flyStrengthChits) {
+		ArrayList strongEnough = new ArrayList();
+		for (java.util.Iterator _j14it1247 = (flyStrengthChits).iterator(); _j14it1247.hasNext(); ) {
+		  StrengthChit sc = (StrengthChit) _j14it1247.next();
 			if (sc.getStrength().strongerOrEqualTo(vul)) {
 				strongEnough.add(sc);
 			}
@@ -2885,7 +2964,7 @@ public class ActionRow {
 		flyStrengthChits = strongEnough;
 		
 		// Make sure intended target tile for flying is possible (might not be if a previously recorded move is invalid!)
-		ArrayList<TileComponent> allAvailableTiles = new ArrayList<TileComponent>(current.tile.getAllAdjacentTiles());
+		ArrayList allAvailableTiles = new ArrayList(current.tile.getAllAdjacentTiles());
 		allAvailableTiles.add(current.tile);
 		if (!allAvailableTiles.contains(location.tile)) {
 			result = "Target tile too far away.";
@@ -2896,7 +2975,8 @@ public class ActionRow {
 		// Choose a fly chit (if necessary)
 		StrengthChit flyStrengthChit = null;
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(gameHandler.getMainFrame(),"Choose a FLY chit:",true);
-		for (StrengthChit sc:flyStrengthChits) {
+		for (java.util.Iterator _j14it1248 = (flyStrengthChits).iterator(); _j14it1248.hasNext(); ) {
+		  StrengthChit sc = (StrengthChit) _j14it1248.next();
 			if (sc.getGameObject()==null) {
 				flyStrengthChit = sc;
 				break;
@@ -2920,19 +3000,21 @@ public class ActionRow {
 		
 		// Next, drop all items heavier than the fly chit, AND any horses, regardless of weight
 		if (!current.isBetweenTiles()) {
-			ArrayList<GameObject> toDrop = RealmUtility.dropNonFlyableStuff(gameHandler.getMainFrame(),character,fly,current);
+			ArrayList toDrop = RealmUtility.dropNonFlyableStuff(gameHandler.getMainFrame(),character,fly,current);
 			if (toDrop==null) {
 				completed = false;
 				return;
 			}
-			for (GameObject item:toDrop) {
+			for (java.util.Iterator _j14it1249 = (toDrop).iterator(); _j14it1249.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it1249.next();
 				gameHandler.broadcast(character.getGameObject().getName(),item.getName()+" was left behind!");
 			}
 		}
 		
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameObject().getGameData());
 		if (hostPrefs.hasPref(Constants.SR_ADV_GROUNDED_MISSIONS_AND_TASKS)) {
-			for (GameObject item:character.getInventory()) {
+			for (java.util.Iterator _j14it1250 = (character.getInventory()).iterator(); _j14it1250.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it1250.next();
 				if (RealmComponent.getRealmComponent(item).isGoldSpecial()) {
 					GoldSpecialChitComponent gs = (GoldSpecialChitComponent)RealmComponent.getRealmComponent(item);
 					if (gs.isMission() || gs.isTask()) {
@@ -2983,7 +3065,8 @@ public class ActionRow {
 			}
 			
 			// Followers shouldn't follow here, unless they can fly, or they are a familiar
-			for (CharacterWrapper follower : character.getActionFollowers()) {
+			for (java.util.Iterator _j14it1251 = (character.getActionFollowers()).iterator(); _j14it1251.hasNext(); ) {
+			  CharacterWrapper follower = (CharacterWrapper) _j14it1251.next();
 				if (follower.mustFly() || follower.isFamiliar()) {
 					follower.moveToLocation(gameHandler.getMainFrame(),location);
 					if (follower.isHidden()) {
@@ -3001,7 +3084,7 @@ public class ActionRow {
 		}
 	}
 	private void doRemoteSpellAction() {
-		Collection<ColorMagic> colorSources = character.getInfiniteColorSources();
+		Collection colorSources = character.getInfiniteColorSources();
 		colorSources.addAll(location.clearing.getAllSourcesOfColor(true));
 		doSpellAction(colorSources,location);
 	}
@@ -3014,7 +3097,8 @@ public class ActionRow {
 			chooser.generateOption("New CACHE");
 			
 			// Add all existing caches in clearing
-			for (RealmComponent rc : tl.clearing.getClearingComponents()) {
+			for (java.util.Iterator _j14it1252 = (tl.clearing.getClearingComponents()).iterator(); _j14it1252.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it1252.next();
 				if (rc.isCacheChit()) {
 					if (rc.getOwner()==charRc) { // Only the individual that created the cache can open it!
 						String key = chooser.generateOption("Open");

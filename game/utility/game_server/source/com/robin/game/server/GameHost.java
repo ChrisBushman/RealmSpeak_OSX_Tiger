@@ -30,9 +30,9 @@ public class GameHost {
 	
 	protected GameConnector connector;
 	
-	protected ArrayList<GameServer> servers;
+	protected ArrayList servers;
 	
-	protected ArrayList<GameHostListener> gameHostListeners;
+	protected ArrayList gameHostListeners;
 
 	public GameHost(String dataPath,String gameTitle,String password) {
 		mostRecentHost = this;
@@ -52,7 +52,8 @@ public class GameHost {
 		init(gameTitle,password);
 	}
 	public boolean isNameUnique(GameServer ignoreServer,String name) {
-		for (GameServer server:servers) {
+		for (java.util.Iterator _j14it168 = (servers).iterator(); _j14it168.hasNext(); ) {
+		  GameServer server = (GameServer) _j14it168.next();
 			String clientName = server.getClientName();
 			if (!server.equals(ignoreServer) && clientName!=null && clientName.equals(name)) {
 				return false;
@@ -64,7 +65,7 @@ public class GameHost {
 		this.connector = null;
 		this.gameTitle = title;
 		this.password = pass;
-		servers = new ArrayList<GameServer>();
+		servers = new ArrayList();
 	}
 	public String getGameTitle() {
 		return gameTitle;
@@ -74,7 +75,7 @@ public class GameHost {
 	}
 	public void addGameHostListener(GameHostListener listener) {
 		if (gameHostListeners == null) {
-			gameHostListeners = new ArrayList<GameHostListener>();
+			gameHostListeners = new ArrayList();
 		}
 		gameHostListeners.add(listener);
 	}
@@ -90,7 +91,8 @@ public class GameHost {
 	}
 	public void fireHostOnly(InfoObject io) {
 		if (gameHostListeners!=null) {
-			for (GameHostListener listener : gameHostListeners) {
+			for (java.util.Iterator _j14it169 = (gameHostListeners).iterator(); _j14it169.hasNext(); ) {
+			  GameHostListener listener = (GameHostListener) _j14it169.next();
 				listener.handleHostOnlyInfo(io);
 			}
 		}
@@ -102,7 +104,8 @@ public class GameHost {
 	}
 	public void fireHostModified(GameHostEvent event) {
 		if (gameHostListeners!=null) {
-			for (GameHostListener listener : gameHostListeners) {
+			for (java.util.Iterator _j14it170 = (gameHostListeners).iterator(); _j14it170.hasNext(); ) {
+			  GameHostListener listener = (GameHostListener) _j14it170.next();
 				listener.hostModified(event);
 			}
 		}
@@ -110,7 +113,8 @@ public class GameHost {
 	public void fireServerLost(GameServer server) {
 		if (gameHostListeners!=null) {
 			GameHostEvent event = new GameHostEvent(this,server,GameHostEvent.NOTICE_LOST_CONNECTION);
-			for (GameHostListener listener : gameHostListeners) {
+			for (java.util.Iterator _j14it171 = (gameHostListeners).iterator(); _j14it171.hasNext(); ) {
+			  GameHostListener listener = (GameHostListener) _j14it171.next();
 				listener.serverLost(event);
 			}
 		}
@@ -169,7 +173,7 @@ public class GameHost {
 	}
 	public void killAllOutsideConnections() {
 		// Assume that the first connection is the host's player, and shut down all the rest.
-		ArrayList<GameServer> list = new ArrayList<GameServer>();
+		ArrayList list = new ArrayList();
 		list.add(servers.remove(0));
 		shutdown();
 		servers = list;
@@ -179,12 +183,13 @@ public class GameHost {
 		servers.remove(server);
 	}
 	public void shutdown() {
-		for (GameServer server:servers) {
+		for (java.util.Iterator _j14it172 = (servers).iterator(); _j14it172.hasNext(); ) {
+		  GameServer server = (GameServer) _j14it172.next();
 			server.kill();
 		}
 		servers.clear();
 	}
-	public ArrayList<GameServer> getServers() {
+	public ArrayList getServers() {
 		return servers;
 	}
 	
@@ -195,10 +200,10 @@ public class GameHost {
 		return gameData.getGameObject(id);
 	}
 	
-	public boolean applyChanges(GameServer activeServer,ArrayList<GameObjectChange> changes) {
+	public boolean applyChanges(GameServer activeServer,ArrayList changes) {
 		return applyChanges(activeServer,changes,true);
 	}
-	public boolean applyChanges(GameServer activeServer,ArrayList<GameObjectChange> changes,boolean fireChange) {
+	public boolean applyChanges(GameServer activeServer,ArrayList changes,boolean fireChange) {
 		// Apply changes and distribute to peer servers while holding the GameHost lock,
 		// then release the lock before calling fireHostModified().
 		// Releasing the lock before fireHostModified() means concurrent applyChanges() calls
@@ -215,7 +220,8 @@ public class GameHost {
 //					}
 //				}
 				logger.fine("Host apply changes: "+changes.size()+" changes.");
-				for (GameObjectChange action : changes) {
+				for (java.util.Iterator _j14it173 = (changes).iterator(); _j14it173.hasNext(); ) {
+				  GameObjectChange action = (GameObjectChange) _j14it173.next();
 					logger.finer("--> "+action);
 					action.applyChange(gameData);
 				}
@@ -223,9 +229,10 @@ public class GameHost {
 				logger.fine("Host apply changes: DONE.");
 
 				// Update all servers (except the originating server) with the changes
-				ArrayList<GameServer> serversToUpdate = new ArrayList<GameServer>();
+				ArrayList serversToUpdate = new ArrayList();
 				serversToUpdate.addAll(servers);
-				for (GameServer server:serversToUpdate) {
+				for (java.util.Iterator _j14it174 = (serversToUpdate).iterator(); _j14it174.hasNext(); ) {
+				  GameServer server = (GameServer) _j14it174.next();
 					logger.fine("activeServer="+activeServer);
 					logger.fine("server="+server);
 					if (activeServer==null || !server.equals(activeServer)) {
@@ -247,7 +254,8 @@ public class GameHost {
 		return true;
 	}
 	public void broadcast(String key,String message) {
-		for (GameServer server:servers) {
+		for (java.util.Iterator _j14it175 = (servers).iterator(); _j14it175.hasNext(); ) {
+		  GameServer server = (GameServer) _j14it175.next();
 			server.broadcast(key,message);
 		}
 	}
@@ -256,7 +264,8 @@ public class GameHost {
 			fireHostOnly(io);
 		}
 		else {
-			for (GameServer server:servers) {
+			for (java.util.Iterator _j14it176 = (servers).iterator(); _j14it176.hasNext(); ) {
+			  GameServer server = (GameServer) _j14it176.next();
 				if (server==null) continue; // would this EVER happen?
 				String serverClientName = server.getClientName()==null?"":server.getClientName();
 				String ioClientName = io.getDestClientName()==null?null:io.getDestClientName();
@@ -292,13 +301,14 @@ public class GameHost {
 			}
 		}
 	}
-	public synchronized ArrayList<GameObjectChange> getMasterToGameChanges() {
+	public synchronized ArrayList getMasterToGameChanges() {
 		return masterData.buildChanges(gameData);
 	}
 	public void _testBuildChanges() {
-		ArrayList<GameObjectChange> changes = getMasterToGameChanges();
+		ArrayList changes = getMasterToGameChanges();
 		System.out.println("changes="+changes.size());
-		for (GameObjectChange change : changes) {
+		for (java.util.Iterator _j14it177 = (changes).iterator(); _j14it177.hasNext(); ) {
+		  GameObjectChange change = (GameObjectChange) _j14it177.next();
 			System.out.println(change);
 		}
 		changes.clear();

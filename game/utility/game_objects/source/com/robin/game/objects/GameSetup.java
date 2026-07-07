@@ -16,11 +16,11 @@ public class GameSetup extends ModifyableObject implements Serializable {
 	public static final String ALL = "ALL";
 
 	protected String name="Untitled Setup";
-	protected ArrayList<GameCommand> gameCommands;
+	protected ArrayList gameCommands;
 	
 	protected GameData parent;
 	
-	protected Hashtable<String, GamePool> pools;
+	protected Hashtable pools;
 	
 	public GameSetup(GameData parentData) {
 		parent = parentData;
@@ -29,7 +29,7 @@ public class GameSetup extends ModifyableObject implements Serializable {
 				parent.setModified(true);
 			}
 		});
-		gameCommands = new ArrayList<GameCommand>();
+		gameCommands = new ArrayList();
 		reset();
 		setModified(true);
 	}
@@ -56,7 +56,8 @@ public class GameSetup extends ModifyableObject implements Serializable {
 		element.setAttribute(new Attribute("name",name));
 		
 		// Add all commands
-		for (GameCommand command:gameCommands) {
+		for (java.util.Iterator _j14it127 = (gameCommands).iterator(); _j14it127.hasNext(); ) {
+		  GameCommand command = (GameCommand) _j14it127.next();
 			element.addContent(command.getXML());
 		}
 		
@@ -71,9 +72,10 @@ public class GameSetup extends ModifyableObject implements Serializable {
 		}
 		
 		// Read all commands
-		Collection<Element> commands = element.getChildren();
+		Collection commands = element.getChildren();
 		gameCommands.clear();
-		for (Element command : commands) {
+		for (java.util.Iterator _j14it128 = (commands).iterator(); _j14it128.hasNext(); ) {
+		  Element command = (Element) _j14it128.next();
 			GameCommand newCommand = GameCommand.createFromXML(this,command);
 //			GameCommand newCommand = new GameCommand(this);
 //			newCommand.setXML(command);
@@ -85,7 +87,7 @@ public class GameSetup extends ModifyableObject implements Serializable {
 	public String toString() {
 		return name;
 	}
-	public ArrayList<GameCommand> getGameCommands() {
+	public ArrayList getGameCommands() {
 		return gameCommands;
 	}
 	public int getCommandCount() {
@@ -120,28 +122,31 @@ public class GameSetup extends ModifyableObject implements Serializable {
 		return command;
 	}
 	public void copyCommandsFrom(GameSetup setup) {
-		ArrayList<GameCommand> commands = setup.getGameCommands();
-		for (GameCommand command : commands) {
+		ArrayList commands = setup.getGameCommands();
+		for (java.util.Iterator _j14it129 = (commands).iterator(); _j14it129.hasNext(); ) {
+		  GameCommand command = (GameCommand) _j14it129.next();
 			GameCommand newCommand = GameCommand.getCommandForName(this,command.getTypeName());
 			gameCommands.add(newCommand);
 			newCommand.copyFrom(command);
 		}
 		setModified(true);
 	}
-	public ArrayList<GameObject> processSetup(StringBuffer result,ArrayList<GameObject> gameObjects) {
+	public ArrayList processSetup(StringBuffer result,ArrayList gameObjects) {
 		pools = new Hashtable();
 		pools.put(ALL,new GamePool(gameObjects));
 		result.append("Pool ALL was created: "+gameObjects.size()+"\n");
-		for (GameCommand command:gameCommands) {
+		for (java.util.Iterator _j14it130 = (gameCommands).iterator(); _j14it130.hasNext(); ) {
+		  GameCommand command = (GameCommand) _j14it130.next();
 			result.append(command.doCommand(gameObjects));
 		}
 		result.append("\n");
 		result.append("---DONE---");
 		result.append("\n");
-		ArrayList<String> keys = new ArrayList<String>(pools.keySet());
+		ArrayList keys = new ArrayList(pools.keySet());
 		Collections.sort(keys);
-		for (String key : keys) {
-			GamePool pool = pools.get(key);
+		for (java.util.Iterator _j14it131 = (keys).iterator(); _j14it131.hasNext(); ) {
+		  String key = (String) _j14it131.next();
+			GamePool pool = (GamePool) pools.get(key);
 			result.append(key+": "+pool.size()+" left\n");
 		}
 		return gameObjects;
@@ -152,21 +157,22 @@ public class GameSetup extends ModifyableObject implements Serializable {
 		}
 	}
 	public GamePool getPool(String poolName) {
-		return pools.get(poolName);
+		return (GamePool) pools.get(poolName);
 	}
-	public void moveObjectsBefore(ArrayList<GameCommand> objects,GameCommand indexObject) {
+	public void moveObjectsBefore(ArrayList objects,GameCommand indexObject) {
 		moveObjects(objects,indexObject,true);
 	}
-	public void moveObjectsAfter(ArrayList<GameCommand> objects,GameCommand indexObject) {
+	public void moveObjectsAfter(ArrayList objects,GameCommand indexObject) {
 		moveObjects(objects,indexObject,false);
 	}
 	/**
 	 * Moves the objects to the position BEFORE the GameCommand with an id==idPosition
 	 */
-	private void moveObjects(ArrayList<GameCommand> objects,GameCommand indexObject,boolean before) {
+	private void moveObjects(ArrayList objects,GameCommand indexObject,boolean before) {
 		// First, verify ALL objects are in the list, and that the list is uniqued
-		ArrayList<GameCommand> validCommands = new ArrayList<GameCommand>();
-		for (GameCommand command : objects) {
+		ArrayList validCommands = new ArrayList();
+		for (java.util.Iterator _j14it132 = (objects).iterator(); _j14it132.hasNext(); ) {
+		  GameCommand command = (GameCommand) _j14it132.next();
 			if (command.parent==this && gameCommands.contains(command) && !validCommands.contains(command)) {
 				validCommands.add(command);
 			}
@@ -197,19 +203,21 @@ public class GameSetup extends ModifyableObject implements Serializable {
 		in.defaultReadObject();
 	}
 	
-	public void expandSetup(ArrayList<String> nameAppends) {
-		expandSetup(nameAppends,new ArrayList<String>(),null);
+	public void expandSetup(ArrayList nameAppends) {
+		expandSetup(nameAppends,new ArrayList(),null);
 	}
-	public void expandSetup(ArrayList<String> nameAppends,ArrayList<String> tiedPools,String tiedKey) { // Hey!  Tide Pools!
+	public void expandSetup(ArrayList nameAppends,ArrayList tiedPools,String tiedKey) { // Hey!  Tide Pools!
 		if (tiedPools==null || (!tiedPools.isEmpty() && tiedKey==null)) {
 			throw new IllegalArgumentException("Invalid use of expandSetup: "+tiedPools+","+tiedKey);
 		}
-		ArrayList<GameCommand> expanded = new ArrayList<GameCommand>();
-		for (GameCommand command:gameCommands) {
+		ArrayList expanded = new ArrayList();
+		for (java.util.Iterator _j14it133 = (gameCommands).iterator(); _j14it133.hasNext(); ) {
+		  GameCommand command = (GameCommand) _j14it133.next();
 			expanded.add(command);
 			if (command.usesTargetObject()) {
 				// Duplicate for each append, but locate a new targetObject using nameAppend
-				for (String nameAppend:nameAppends) {
+				for (java.util.Iterator _j14it134 = (nameAppends).iterator(); _j14it134.hasNext(); ) {
+				  String nameAppend = (String) _j14it134.next();
 					GameCommand dupCommand = GameCommand.getCommandForName(this,command.getTypeName());
 					dupCommand.copyFrom(command);
 					GameObject targObj = command.getTargetObject();
@@ -222,7 +230,8 @@ public class GameSetup extends ModifyableObject implements Serializable {
 				}
 			}
 			else if (command.isCreate() && tiedPools.contains(command.getNewPool())) {
-				for (String nameAppend:nameAppends) {
+				for (java.util.Iterator _j14it135 = (nameAppends).iterator(); _j14it135.hasNext(); ) {
+				  String nameAppend = (String) _j14it135.next();
 					GameCommand dupCommand = GameCommand.getCommandForName(this,command.getTypeName());
 					dupCommand.copyFrom(command);
 					dupCommand.setNewPool(command.getNewPool()+nameAppend);
@@ -230,7 +239,8 @@ public class GameSetup extends ModifyableObject implements Serializable {
 				}
 			}
 			else if (command.isExtract() && tiedPools.contains(command.getTo())) {
-				for (String nameAppend:nameAppends) {
+				for (java.util.Iterator _j14it136 = (nameAppends).iterator(); _j14it136.hasNext(); ) {
+				  String nameAppend = (String) _j14it136.next();
 					GameCommand dupCommand = GameCommand.getCommandForName(this,command.getTypeName());
 					dupCommand.copyFrom(command);
 					dupCommand.setTo(command.getTo()+nameAppend);

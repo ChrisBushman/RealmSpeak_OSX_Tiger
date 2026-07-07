@@ -13,7 +13,7 @@ public class ButtonPanel extends JPanel implements ActionListener {
 	
 	private ForceTextToggle[] choiceButton;
 	
-	private ArrayList<ActionListener> listeners;
+	private ArrayList listeners;
 	
 	public ButtonPanel(String[] choices) {
 		this(choices,choices[0]);
@@ -54,7 +54,7 @@ public class ButtonPanel extends JPanel implements ActionListener {
 	}
 	public void addActionListener(ActionListener listener) {
 		if (listeners==null) {
-			listeners = new ArrayList<ActionListener>();
+			listeners = new ArrayList();
 		}
 		if (!listeners.contains(listener)) {
 			listeners.add(listener);
@@ -64,7 +64,8 @@ public class ButtonPanel extends JPanel implements ActionListener {
 		if (listeners!=null) {
 			ForceTextToggle button = (ForceTextToggle)ev.getSource();
 			ActionEvent nev = new ActionEvent(this,0,button.getRealText());
-			for (ActionListener listener:listeners) {
+			for (java.util.Iterator _j14it11 = (listeners).iterator(); _j14it11.hasNext(); ) {
+			  ActionListener listener = (ActionListener) _j14it11.next();
 				listener.actionPerformed(nev);
 			}
 		}

@@ -6,14 +6,14 @@ import java.util.Collection;
 public class StringBufferedList {
 	private String comma;
 	private String and;
-	private ArrayList<String> list;
+	private ArrayList list;
 	public StringBufferedList() {
 		this(", ","and ");
 	}
 	public StringBufferedList(String comma,String and) {
 		this.comma = comma;
 		this.and = and;
-		list = new ArrayList<String>();
+		list = new ArrayList();
 	}
 	public int size() {
 		return list.size();
@@ -21,23 +21,26 @@ public class StringBufferedList {
 	public void append(String val) {
 		list.add(val);
 	}
-	public void appendAll(Collection<String> list) {
-		for (String val:list) {
+	public void appendAll(Collection list) {
+		for (java.util.Iterator _j14it46 = (list).iterator(); _j14it46.hasNext(); ) {
+		  String val = (String) _j14it46.next();
 			append(val);
 		}
 	}
 	public void countIdenticalItems() {
-		HashLists<String,String> hash = new HashLists<String,String>();
-		ArrayList<String> keys = new ArrayList<String>();
+		HashLists hash = new HashLists();
+		ArrayList keys = new ArrayList();
 		int n=0;
-		for (String string:list) {
+		for (java.util.Iterator _j14it47 = (list).iterator(); _j14it47.hasNext(); ) {
+		  String string = (String) _j14it47.next();
 			hash.put(string,"n"+(n++));
 			if (!keys.contains(string)) {
 				keys.add(string);
 			}
 		}
 		list.clear();
-		for (String string:keys) {
+		for (java.util.Iterator _j14it48 = (keys).iterator(); _j14it48.hasNext(); ) {
+		  String string = (String) _j14it48.next();
 			int count = hash.getList(string).size();
 			if (count==1) {
 				list.add(string);
@@ -50,7 +53,7 @@ public class StringBufferedList {
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		for (int i=0;i<list.size();i++) {
-			String val = list.get(i);
+			String val = (String) list.get(i);
 			if (sb.length()>0) {
 				sb.append(comma);
 				if (i==(list.size()-1)) {

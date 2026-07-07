@@ -43,10 +43,11 @@ public class CharacterSpyPanel extends JPanel {
 		box.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
 		
 		// Attributes
-		ArrayList<String> specialAdvantagesText = character.getGameObject().getThisAttributeList("advantages");
+		ArrayList specialAdvantagesText = character.getGameObject().getThisAttributeList("advantages");
 		box.add(getTitle("Special Advantages:"));
 		if (specialAdvantagesText!=null) {
-			for (String sa : specialAdvantagesText) {
+			for (java.util.Iterator _j14it1256 = (specialAdvantagesText).iterator(); _j14it1256.hasNext(); ) {
+			  String sa = (String) _j14it1256.next();
 				box.add(getTextLine("    "+sa));
 			}
 		}
@@ -55,10 +56,11 @@ public class CharacterSpyPanel extends JPanel {
 		}
 		
 		// Attributes
-		ArrayList<String> optionalAdvantagesText = character.getGameObject().getAttributeList("optional","advantages");
+		ArrayList optionalAdvantagesText = character.getGameObject().getAttributeList("optional","advantages");
 		box.add(getTitle("Optional Advantages:"));
 		if (optionalAdvantagesText!=null) {
-			for (String sa : optionalAdvantagesText) {
+			for (java.util.Iterator _j14it1257 = (optionalAdvantagesText).iterator(); _j14it1257.hasNext(); ) {
+			  String sa = (String) _j14it1257.next();
 				box.add(getTextLine("    "+sa));
 			}
 		}
@@ -96,7 +98,8 @@ public class CharacterSpyPanel extends JPanel {
 			}
 			else {
 				StringBuffer sb = new StringBuffer();
-				for (String he:character.getFoundEnemies()) {
+				for (java.util.Iterator _j14it1258 = (character.getFoundEnemies()).iterator(); _j14it1258.hasNext(); ) {
+				  String he = (String) _j14it1258.next();
 					if (sb.length()==0) {
 						sb.append("Found Hidden Enemies: ");
 					}
@@ -133,7 +136,8 @@ public class CharacterSpyPanel extends JPanel {
 		
 		// Active Inventory
 		JPanel activeInventoryPanel = new JPanel(new FlowLayout());
-		for (GameObject go:character.getActiveInventory()) {
+		for (java.util.Iterator _j14it1259 = (character.getActiveInventory()).iterator(); _j14it1259.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1259.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			activeInventoryPanel.add(new JLabel(rc.getIcon())); // add the icon so that objects aren't removed from the interface elsewhere
 		}
@@ -158,7 +162,8 @@ public class CharacterSpyPanel extends JPanel {
 			JPanel finishedQuestsPanel = new JPanel(new FlowLayout());
 			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
 			int slots = character.getQuestSlotCount(hostPrefs);
-			for (Quest quest:character.getAllQuests()) {
+			for (java.util.Iterator _j14it1260 = (character.getAllQuests()).iterator(); _j14it1260.hasNext(); ) {
+			  Quest quest = (Quest) _j14it1260.next();
 				QuestCardComponent card = (QuestCardComponent)RealmComponent.getRealmComponent(quest.getGameObject());
 				
 				QuestState state = quest.getState();

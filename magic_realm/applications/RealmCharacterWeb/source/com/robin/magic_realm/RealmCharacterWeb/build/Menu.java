@@ -68,7 +68,7 @@ public class Menu extends Builder {
 		"</div></div>",
 	};
 
-	private HashLists<String,Page> hash = new HashLists<String,Page>();
+	private HashLists hash = new HashLists();
 	
 	public Menu() {
 	}
@@ -86,9 +86,10 @@ public class Menu extends Builder {
 			sb.append(HTML_HEAD[i]);
 			sb.append("\n");
 		}
-		ArrayList<String> folders = new ArrayList<String>(hash.keySet());
+		ArrayList folders = new ArrayList(hash.keySet());
 		Collections.sort(folders);
-		for (String folder : folders) {
+		for (java.util.Iterator _j14it896 = (folders).iterator(); _j14it896.hasNext(); ) {
+		  String folder = (String) _j14it896.next();
 			String personKey = createPersonKey(folder);
 			String iconKey = personKey+"icon";
 			for (int p=0;p<HTML_PERSON.length;p++) {
@@ -103,8 +104,9 @@ public class Menu extends Builder {
 					append = folder;
 				}
 				else if (ENTRIES.equals(HTML_PERSON[p])) {
-					ArrayList<Page> list = hash.getList(folder);
-					for (Page page : list) {
+					ArrayList list = hash.getList(folder);
+					for (java.util.Iterator _j14it897 = (list).iterator(); _j14it897.hasNext(); ) {
+					  Page page = (Page) _j14it897.next();
 						String html = FileUtilities.getFilename(page.getHtml(),true);
 						String href = "images/"+folder+"/"+html;
 						sb.append("<b><font size=-1><a href=\"");

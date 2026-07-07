@@ -18,19 +18,19 @@ public class EndCombatFrame extends JFrame {
 	private long id;
 	
 	private CombatFrame parent;
-	private ArrayList<String> playersToRespond;
+	private ArrayList playersToRespond;
 	
 	private JTextArea responseArea;
-	private Hashtable<String, String> responseHash;
+	private Hashtable responseHash;
 	
 	private JButton closeButton;
 	private JButton cancelEndButton;
 	
-	public EndCombatFrame(CombatFrame parent,ArrayList<String> playersToRespond) {
+	public EndCombatFrame(CombatFrame parent,ArrayList playersToRespond) {
 		this.id = cum_id++;
 		this.parent = parent;
 		this.playersToRespond = playersToRespond;
-		responseHash = new Hashtable<String, String>();
+		responseHash = new Hashtable();
 		initComponents();
 	}
 	public long getId() {
@@ -103,14 +103,15 @@ public class EndCombatFrame extends JFrame {
 		}
 	}
 	private String getUnanimousResponse() {
-		ArrayList<String> all = new ArrayList<String>();
-		for (String response : responseHash.values()) {
+		ArrayList all = new ArrayList();
+		for (java.util.Iterator _j14it760 = (responseHash.values()).iterator(); _j14it760.hasNext(); ) {
+		  String response = (String) _j14it760.next();
 			if (!all.contains(response)) {
 				all.add(response);
 			}
 		}
 		if (all.size()==1) { // unanimous response
-			return all.get(0);
+			return (String) all.get(0);
 		}
 		return null;
 	}

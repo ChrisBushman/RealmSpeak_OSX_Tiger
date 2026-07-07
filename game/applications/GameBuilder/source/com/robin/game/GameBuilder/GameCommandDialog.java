@@ -38,7 +38,7 @@ public class GameCommandDialog extends JDialog {
 	protected Box transferTypeBox;
 	protected Box keyValsBox;
 	
-	public GameCommandDialog(ArrayList<GameCommand> allCommands,GameCommand originalCommand) {
+	public GameCommandDialog(ArrayList allCommands,GameCommand originalCommand) {
 		this.originalCommand = originalCommand;
 		modelCommand = GameCommand.getCommandForName(originalCommand.getGameSetup(),originalCommand.getTypeName());
 		modelCommand.copyFrom(originalCommand);
@@ -64,10 +64,11 @@ public class GameCommandDialog extends JDialog {
 		getContentPane().validate();
 		getContentPane().repaint();
 	}
-	private ArrayList<String> findAvailablePoolNames(ArrayList<GameCommand> allCommands) {
-		ArrayList<String> previousPoolNames = new ArrayList<String>();
+	private ArrayList findAvailablePoolNames(ArrayList allCommands) {
+		ArrayList previousPoolNames = new ArrayList();
 		previousPoolNames.add("ALL");
-		for (GameCommand prev : allCommands) {
+		for (java.util.Iterator _j14it55 = (allCommands).iterator(); _j14it55.hasNext(); ) {
+		  GameCommand prev = (GameCommand) _j14it55.next();
 			if (prev==originalCommand) {
 				// no longer previous!
 				break;
@@ -78,7 +79,7 @@ public class GameCommandDialog extends JDialog {
 		}
 		return previousPoolNames;
 	}
-	private void initComponents(ArrayList<String> poolNames) {
+	private void initComponents(ArrayList poolNames) {
 		Box line;
 		UniformLabelGroup group = new UniformLabelGroup();
 		setSize(310,210);
@@ -136,9 +137,9 @@ public class GameCommandDialog extends JDialog {
 							GameObjectChooser chooser = new GameObjectChooser(GameCommandDialog.this,null,modelCommand.getGameSetup().getGameData());
 							chooser.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 							chooser.setVisible(true);
-							ArrayList<GameObject> chosenObjects = chooser.getChosenObjects();
+							ArrayList chosenObjects = chooser.getChosenObjects();
 							if (chosenObjects!=null && chosenObjects.size()==1) {
-								GameObject go = chosenObjects.iterator().next();
+								GameObject go = (GameObject) chosenObjects.iterator().next();
 								modelCommand.setTargetObject(go);
 								targetObject.setText(go.toString());
 							}

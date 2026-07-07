@@ -14,11 +14,9 @@ public class EventSpellCardComponent extends SpellCardComponent implements Battl
 		super(obj);
 	}
 
-	@Override
 	public void changeWeaponState(HostPrefWrapper hostPrefs) {		
 	}
 
-	@Override
 	public Integer getLength() {
 		if (getGameObject().hasThisAttribute("length")) {
 			int len = getGameObject().getThisInt("length");
@@ -27,17 +25,14 @@ public class EventSpellCardComponent extends SpellCardComponent implements Battl
 		return null;
 	}
 
-	@Override
 	public Speed getMoveSpeed() {
 		return null;
 	}
 
-	@Override
 	public Speed getFlySpeed() {
 		return null;
 	}
 
-	@Override
 	public Speed getAttackSpeed() {
 		Speed speed = new Speed();
 		if (getGameObject().hasThisAttribute("attack_speed")) {
@@ -46,56 +41,46 @@ public class EventSpellCardComponent extends SpellCardComponent implements Battl
 		return speed;
 	}
 
-	@Override
 	public Harm getHarm() {
 		Strength strength = new Strength(getGameObject().getThisAttribute("strength"));
 		int sharpness = getGameObject().getThisInt("sharpness");
 		return new Harm(strength,sharpness);
 	}
 
-	@Override
 	public String getMagicType() {
 		return getGameObject().getThisAttribute("magic_type");
 	}
 
-	@Override
 	public String getAttackSpell() {
 		return null;
 	}
 
-	@Override
 	public int getManeuverCombatBox() {
 		CombatWrapper combat = new CombatWrapper(getGameObject());
 		return combat.getCombatBoxDefense();
 	}
 
-	@Override
 	public int getAttackCombatBox() {
 		CombatWrapper combat = new CombatWrapper(getGameObject());
 		return combat.getCombatBoxAttack();
 	}
 
-	@Override
 	public boolean isMissile() {
 		return getGameObject().hasThisAttribute("missile");
 	}
 
-	@Override
 	public String getMissileType() {
 		return getGameObject().getThisAttribute("missile");
 	}
 
-	@Override
 	public boolean hitsOnTie() {
 		return false;
 	}
 
-	@Override
 	public boolean hasAnAttack() {
 		return getAttackCombatBox()>0;
 	}
 
-	@Override
 	public boolean applyHit(GameWrapper game, HostPrefWrapper hostPrefs, BattleChit attacker, int box,Harm attackerHarm, int attackOrderPos) {
 		return false;
 	}	

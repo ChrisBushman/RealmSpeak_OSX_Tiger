@@ -7,14 +7,14 @@ import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class CancelEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		if (context.Target.isCharacter() && !context.Target.getGameObject().hasThisAttribute(Constants.MAGIC_PROTECTION_EXTENDED)) {
 			String curse = context.Spell.getExtraIdentifier();
 			context.getCharacterTarget().removeCurse(curse);
 		}
 		else if (context.Target.isTreasureLocation()) {
-			for (GameObject held : context.Target.getHold()) {
+			for (java.util.Iterator _j14it2066 = (context.Target.getHold()).iterator(); _j14it2066.hasNext(); ) {
+			  GameObject held = (GameObject) _j14it2066.next();
 				if (held.hasThisAttribute(RealmComponent.SPELL)) {
 					SpellWrapper spellWrapper = new SpellWrapper(held);
 					if (spellWrapper.isAlive() && spellWrapper.getGameObject().hasThisAttribute(Constants.FREED_SPELL)) {
@@ -32,7 +32,6 @@ public class CancelEffect implements ISpellEffect {
 		}
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 	}
 

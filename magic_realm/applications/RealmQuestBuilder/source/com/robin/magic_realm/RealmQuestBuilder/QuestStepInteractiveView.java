@@ -29,7 +29,7 @@ public class QuestStepInteractiveView extends QuestStepView {
 	}
 	
 	public void fulfillRequirementsForQuestStep(Quest quest, QuestStep questStep, CharacterWrapper character) {
-		ArrayList<QuestStep> questSteps = quest.getSteps();
+		ArrayList questSteps = quest.getSteps();
 		String dayKey = character.getCurrentDayKey();
 		questStep.preemptSteps(questSteps, dayKey);
 		questStep.setState(QuestStepState.Finished, dayKey);
@@ -42,7 +42,7 @@ public class QuestStepInteractiveView extends QuestStepView {
 	}
 	
 	public static void failRequirementsForQuestStep(Quest quest, QuestStep questStep, CharacterWrapper character) {
-		ArrayList<QuestStep> questSteps = quest.getSteps();
+		ArrayList questSteps = quest.getSteps();
 		String dayKey = character.getCurrentDayKey();
 		questStep.preemptSteps(questSteps, dayKey);
 		questStep.setState(QuestStepState.Failed, dayKey);
@@ -50,7 +50,7 @@ public class QuestStepInteractiveView extends QuestStepView {
 	}
 	
 	public static void readyQuestStep(Quest quest, QuestStep questStep, CharacterWrapper character) {
-		ArrayList<QuestStep> questSteps = quest.getSteps();
+		ArrayList questSteps = quest.getSteps();
 		String dayKey = character.getCurrentDayKey();
 		questStep.preemptSteps(questSteps, dayKey);
 		questStep.setState(QuestStepState.Ready, dayKey);
@@ -58,7 +58,7 @@ public class QuestStepInteractiveView extends QuestStepView {
 	}
 	
 	public static void pendQuestStep(Quest quest, QuestStep questStep, CharacterWrapper character) {
-		ArrayList<QuestStep> questSteps = quest.getSteps();
+		ArrayList questSteps = quest.getSteps();
 		String dayKey = character.getCurrentDayKey();
 		questStep.preemptSteps(questSteps, dayKey);
 		questStep.setState(QuestStepState.Pending, dayKey);

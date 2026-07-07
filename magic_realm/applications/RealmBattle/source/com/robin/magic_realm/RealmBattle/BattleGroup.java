@@ -17,7 +17,7 @@ public class BattleGroup implements Comparable {
 	
 	private BattleModel model;
 	private RealmComponent owningCharacter;
-	private ArrayList<RealmComponent> battleParticipants;
+	private ArrayList battleParticipants;
 	
 	public int size() {
 		return battleParticipants.size();
@@ -28,7 +28,7 @@ public class BattleGroup implements Comparable {
 	 */
 	public BattleGroup(RealmComponent owningCharacter) {
 		this.owningCharacter = owningCharacter;
-		this.battleParticipants = new ArrayList<RealmComponent>();
+		this.battleParticipants = new ArrayList();
 	}
 	public String toString() {
 		return "BattleGroup:"+owningCharacter+":"+battleParticipants.size();
@@ -47,15 +47,15 @@ public class BattleGroup implements Comparable {
 			throw new IllegalArgumentException("RealmComponent does not match group type");
 		}
 	}
-	public ArrayList<RealmComponent> getHirelings() {
-		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
+	public ArrayList getHirelings() {
+		ArrayList ret = new ArrayList();
 		ret.addAll(battleParticipants);
 		if (owningCharacter!=null) {
 			ret.remove(owningCharacter);
 		}
 		return ret;
 	}
-	public ArrayList<RealmComponent> getBattleParticipants() {
+	public ArrayList getBattleParticipants() {
 		return battleParticipants;
 	}
 	public boolean contains(RealmComponent rc) {
@@ -65,7 +65,8 @@ public class BattleGroup implements Comparable {
 	 * @return	The Character if present in the battle group, or null
 	 */
 	public CharacterChitComponent getCharacterInBattle() {
-		for (RealmComponent bp:battleParticipants) {
+		for (java.util.Iterator _j14it761 = (battleParticipants).iterator(); _j14it761.hasNext(); ) {
+		  RealmComponent bp = (RealmComponent) _j14it761.next();
 			if (bp.isCharacter()) { // only one character per BattleGroup (by definition)
 				return (CharacterChitComponent)bp;
 			}
@@ -100,7 +101,8 @@ public class BattleGroup implements Comparable {
 		allHorsesFlip(HORSE_FLIP);
 	}
 	private void allHorsesFlip(int type) {
-		for (RealmComponent bp:battleParticipants) {
+		for (java.util.Iterator _j14it762 = (battleParticipants).iterator(); _j14it762.hasNext(); ) {
+		  RealmComponent bp = (RealmComponent) _j14it762.next();
 			if (bp.hasHorse()) {
 				switch(type) {
 					case HORSE_FLIP: // This only affects hirelings
@@ -135,7 +137,8 @@ public class BattleGroup implements Comparable {
 			return false;
 		}
 		
-		for (RealmComponent bp:battleParticipants) {
+		for (java.util.Iterator _j14it763 = (battleParticipants).iterator(); _j14it763.hasNext(); ) {
+		  RealmComponent bp = (RealmComponent) _j14it763.next();
 			if (!bp.isHidden()
 					&& (!bp.isMistLike() || attacker.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE) || (attacker.isCharacter() && new CharacterWrapper(attacker.getGameObject()).affectedByKey(Constants.IGNORE_MIST_LIKE)))
 					&& !bp.isImmuneTo(attacker)
@@ -147,8 +150,9 @@ public class BattleGroup implements Comparable {
 		return false;
 	}
 	private boolean hasPinningAttacker(RealmComponent bp) {
-		ArrayList<RealmComponent> attackers = model.getAttackersFor(bp);
-		for (RealmComponent attacker:attackers) {
+		ArrayList attackers = model.getAttackersFor(bp);
+		for (java.util.Iterator _j14it764 = (attackers).iterator(); _j14it764.hasNext(); ) {
+		  RealmComponent attacker = (RealmComponent) _j14it764.next();
 			if (attacker.isMonster()) {
 				MonsterChitComponent monster = (MonsterChitComponent)attacker;
 				if (monster.isPinningOpponent()) {
@@ -167,7 +171,8 @@ public class BattleGroup implements Comparable {
 		if (cc!=null && !cc.isHidden() && (!cc.isMistLike() || attackerIgnoresMistLike) && !cc.isImmuneTo(attacker)) {
 			return true;
 		}
-		for (RealmComponent bp:getBattleParticipants()) {
+		for (java.util.Iterator _j14it765 = (getBattleParticipants()).iterator(); _j14it765.hasNext(); ) {
+		  RealmComponent bp = (RealmComponent) _j14it765.next();
 			if (!bp.isCharacter() && !bp.isHidden() && (!bp.isMistLike() || attackerIgnoresMistLike)) {
 				return true;
 			}
@@ -186,8 +191,9 @@ public class BattleGroup implements Comparable {
 		}
 		
 		// Character not found/unhidden?  Find all unhidden hirelings, and query character
-		ArrayList<RealmComponent> unhiddenHirelings = new ArrayList<RealmComponent>();
-		for (RealmComponent bp : getBattleParticipants()) {
+		ArrayList unhiddenHirelings = new ArrayList();
+		for (java.util.Iterator _j14it766 = (getBattleParticipants()).iterator(); _j14it766.hasNext(); ) {
+		  RealmComponent bp = (RealmComponent) _j14it766.next();
 			if (!bp.isCharacter() && !bp.isHidden()) {
 				// Make sure the hireling isn't already fighting a RED-side-up monster
 				if (!hasPinningAttacker(bp)) {
@@ -200,7 +206,7 @@ public class BattleGroup implements Comparable {
 			return attacker;
 		}
 		else if (unhiddenHirelings.size()==1) { // its obvious if only one hireling
-			return unhiddenHirelings.get(0);
+			return (RealmComponent) unhiddenHirelings.get(0);
 		}
 		
 		return null;  // This indicates that the character must pick an unhidden hireling

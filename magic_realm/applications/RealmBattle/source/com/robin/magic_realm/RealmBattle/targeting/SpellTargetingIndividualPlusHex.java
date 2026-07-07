@@ -21,8 +21,9 @@ public class SpellTargetingIndividualPlusHex extends SpellTargetingIndividual {
 		secondaryTargetChoiceString = "Select a tile to FLY the target to:";
 		TileLocation here = battleModel.getBattleLocation();
 		
-		ArrayList<GameObject> adjTiles = new ArrayList<GameObject>();
-		for (TileComponent tile : here.tile.getAllAdjacentTiles()) {
+		ArrayList adjTiles = new ArrayList();
+		for (java.util.Iterator _j14it822 = (here.tile.getAllAdjacentTiles()).iterator(); _j14it822.hasNext(); ) {
+		  TileComponent tile = (TileComponent) _j14it822.next();
 			adjTiles.add(tile.getGameObject());
 		}
 		
@@ -31,7 +32,8 @@ public class SpellTargetingIndividualPlusHex extends SpellTargetingIndividual {
 			adjTiles.addAll(rom.getTileObjects());
 		}
 		
-		for (GameObject go : gameObjects) {
+		for (java.util.Iterator _j14it823 = (gameObjects).iterator(); _j14it823.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it823.next();
 			if (!RealmComponent.getRealmComponent(go).hasMagicProtection() && !RealmComponent.getRealmComponent(go).hasMagicColorImmunity(spell)) {
 				identifiers.add(go.getName());
 				secondaryTargets.put(go.getName(),adjTiles);

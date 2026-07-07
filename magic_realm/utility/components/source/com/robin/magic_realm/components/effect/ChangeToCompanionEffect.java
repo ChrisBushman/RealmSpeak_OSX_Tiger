@@ -9,7 +9,6 @@ import com.robin.magic_realm.components.utility.SpellUtility;
 
 public class ChangeToCompanionEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		GameObject go = context.Spell.getGameObject();
 		
@@ -50,10 +49,10 @@ public class ChangeToCompanionEffect implements ISpellEffect {
 		}
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		boolean companionDied = false;
-		for (GameObject go:SpellUtility.getCreatedCompanions(context.Spell)) {
+		for (java.util.Iterator _j14it2067 = (SpellUtility.getCreatedCompanions(context.Spell)).iterator(); _j14it2067.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2067.next();
 			if (go.hasThisAttribute(Constants.DEAD)) {
 				companionDied = true;
 				break;

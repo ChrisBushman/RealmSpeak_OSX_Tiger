@@ -21,7 +21,7 @@ public class WindowLayoutManager {
 	private JMenuItem clearCustomLayoutsItem;
 	private JMenu setterSubMenu;
 	private JMenu getterSubMenu;
-	private Hashtable<Integer,LayoutMenuItem> getters; 
+	private Hashtable getters; 
 	private PreferenceManager preferenceManager;
 	
 	public WindowLayoutManager(RealmSpeakFrame mainFrame,JDesktopPane desktop) {
@@ -41,7 +41,7 @@ public class WindowLayoutManager {
 	// Key pattern:   <Layout#>_<Window><mod>
 	// Value will be:   <x>_<y>_<width>_<height>
 	private static String getKeyFor(int layoutNumber,String windowName,int modifier) {
-		StringBuilder key = new StringBuilder();
+		StringBuffer key = new StringBuffer();
 		key.append(layoutNumber);
 		key.append("_");
 		key.append(windowName);
@@ -56,7 +56,7 @@ public class WindowLayoutManager {
 	}
 	private void setLayout(int layoutNumber,String windowName,int modifier,Rectangle location) {
 		String key = getKeyFor(layoutNumber,windowName,modifier);
-		StringBuilder value = new StringBuilder();
+		StringBuffer value = new StringBuffer();
 		value.append(location.x);
 		value.append("_");
 		value.append(location.y);
@@ -105,7 +105,7 @@ public class WindowLayoutManager {
 		return preferenceManager.getInt(LAST_LAYOUT); // returns 0 if none found
 	}
 	private void generateMenus() {
-		getters = new Hashtable<Integer,LayoutMenuItem>();
+		getters = new Hashtable();
 		clearCustomLayoutsItem = new JMenuItem("Clear All Custom Layouts");
 		clearCustomLayoutsItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
@@ -117,11 +117,12 @@ public class WindowLayoutManager {
 		});
 		setterSubMenu = new JMenu("Save Custom Layout");
 		getterSubMenu = new JMenu("Load Custom Layout");
-		for (int key:keys) {
+		for (int _j14i1097 = 0; _j14i1097 < keys.length; _j14i1097++) {
+		  int key = keys[_j14i1097];
 			setterSubMenu.add(createSetterMenuItem(key));
 			LayoutMenuItem getter = createGetterMenuItem(key);
 			getterSubMenu.add(getter);
-			getters.put(key,getter);
+			getters.put(new Integer(key),getter);
 		}
 		updateControls();
 	}
@@ -146,23 +147,25 @@ public class WindowLayoutManager {
 	}
 	private boolean applyLayout(int layoutNumber) {
 		int windowsRestored = 0;
-		Hashtable<String,Integer> instanceCount = new Hashtable<String,Integer>();
+		Hashtable instanceCount = new Hashtable();
 		Rectangle mr = getLayout(layoutNumber,MAIN_WINDOW,0);
 		if (mr!=null) {
 			mainFrame.setLocation(mr.x,mr.y);
 			mainFrame.setSize(mr.width,mr.height);
 		}
-		for (Component component:desktop.getComponents()) {
+		Component[] _j14arr1098 = desktop.getComponents();
+		for (int _j14i1098 = 0; _j14i1098 < _j14arr1098.length; _j14i1098++) {
+		  Component component = _j14arr1098[_j14i1098];
 			if (!(component instanceof RealmSpeakInternalFrame)) continue;
 			RealmSpeakInternalFrame frame = (RealmSpeakInternalFrame)component;
 			boolean singular = frame.onlyOneInstancePerGame();
 			String name = frame.getFrameTypeName();
 			int modifier = 0;
 			if (!singular && instanceCount.containsKey(name)) {
-				modifier = instanceCount.get(name);
+				modifier = ((Integer)instanceCount.get(name)).intValue();
 				modifier++;
 			}
-			instanceCount.put(name,modifier);
+			instanceCount.put(name,new Integer(modifier));
 			Rectangle rect = getLayout(layoutNumber,name,modifier);
 			if (rect==null && modifier>0) {
 				rect = getLayout(layoutNumber,name,0); // default to the location of the first one (but only if this isn't already the first one!)
@@ -177,18 +180,20 @@ public class WindowLayoutManager {
 	}
 	private boolean captureCurrentLayout(int layoutNumber,String layoutName) {
 		int windowsCaptured = 0;
-		Hashtable<String,Integer> instanceCount = new Hashtable<String,Integer>();
-		for (Component component:desktop.getComponents()) {
+		Hashtable instanceCount = new Hashtable();
+		Component[] _j14arr1099 = desktop.getComponents();
+		for (int _j14i1099 = 0; _j14i1099 < _j14arr1099.length; _j14i1099++) {
+		  Component component = _j14arr1099[_j14i1099];
 			if (!(component instanceof RealmSpeakInternalFrame)) continue;
 			RealmSpeakInternalFrame frame = (RealmSpeakInternalFrame)component;
 			boolean singular = frame.onlyOneInstancePerGame();
 			String name = frame.getFrameTypeName();
 			int modifier = 0;
 			if (!singular && instanceCount.containsKey(name)) {
-				modifier = instanceCount.get(name);
+				modifier = ((Integer)instanceCount.get(name)).intValue();
 				modifier++;
 			}
-			instanceCount.put(name,modifier);
+			instanceCount.put(name,new Integer(modifier));
 			Point p = frame.getLocation();
 			Dimension s = frame.getSize();
 			Rectangle rect = new Rectangle(p.x,p.y,s.width,s.height);
@@ -229,8 +234,9 @@ public class WindowLayoutManager {
 	}
 	public void updateControls() {
 		int current = getLastLayout();
-		for (int key:keys) {
-			LayoutMenuItem item = getters.get(key);
+		for (int _j14i1100 = 0; _j14i1100 < keys.length; _j14i1100++) {
+		  int key = keys[_j14i1100];
+			LayoutMenuItem item = (LayoutMenuItem) getters.get(new Integer(key));
 			String layoutName = getLayoutName(key);
 			if (layoutName!=null) {
 				item.setEnabled(true);
@@ -248,7 +254,7 @@ public class WindowLayoutManager {
 			this.layoutNumber = layoutNumber;
 		}
 		public void setLayoutName(String name,boolean current) {
-			StringBuilder sb = new StringBuilder();
+			StringBuffer sb = new StringBuffer();
 			sb.append("[");
 			sb.append(layoutNumber);
 			sb.append("]");

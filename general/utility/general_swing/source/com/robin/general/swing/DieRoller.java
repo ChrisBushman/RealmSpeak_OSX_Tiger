@@ -31,8 +31,8 @@ public class DieRoller extends JComponent {
 	
 	private static final Font font = new Font(MODIFIER_FONT_NAME,Font.BOLD,12);
 	
-	protected ArrayList<Die> dice = new ArrayList<Die>();
-	protected Collection<ActionListener> actionListeners;
+	protected ArrayList dice = new ArrayList();
+	protected Collection actionListeners;
 	protected boolean hasRolled = false;
 	
 	protected boolean showPane = false;
@@ -84,7 +84,8 @@ public class DieRoller extends JComponent {
 	}
 	public String getDescription(boolean showDieName) {
 		StringBuffer sb = new StringBuffer();
-		for (Die die:dice) {
+		for (java.util.Iterator _j14it27 = (dice).iterator(); _j14it27.hasNext(); ) {
+		  Die die = (Die) _j14it27.next();
 			if (sb.length()>0) {
 				sb.append(" and ");
 			}
@@ -115,7 +116,8 @@ public class DieRoller extends JComponent {
 	}
 	public String getStringResult() {
 		StringBuffer sb = new StringBuffer();
-		for (Die die:dice) {
+		for (java.util.Iterator _j14it28 = (dice).iterator(); _j14it28.hasNext(); ) {
+		  Die die = (Die) _j14it28.next();
 			if (sb.length()>0) {
 				sb.append(":");
 			}
@@ -138,7 +140,7 @@ public class DieRoller extends JComponent {
 	}
 	public void addActionListener(ActionListener listener) {
 		if (actionListeners==null) {
-			actionListeners = new ArrayList<ActionListener>();
+			actionListeners = new ArrayList();
 		}
 		actionListeners.add(listener);
 	}
@@ -153,7 +155,8 @@ public class DieRoller extends JComponent {
 	private void fireActionPerformed() {
 		if (actionListeners!=null) {
 			ActionEvent ev = new ActionEvent(this,0,"Dice Rolled");
-			for (ActionListener listener : actionListeners) {
+			for (java.util.Iterator _j14it29 = (actionListeners).iterator(); _j14it29.hasNext(); ) {
+			  ActionListener listener = (ActionListener) _j14it29.next();
 				listener.actionPerformed(ev);
 			}
 		}
@@ -167,7 +170,8 @@ public class DieRoller extends JComponent {
 	}
 	public void rollDice(String purpose) {
 		if (!hasRolled) {
-			for (Die die:dice) {
+			for (java.util.Iterator _j14it30 = (dice).iterator(); _j14it30.hasNext(); ) {
+			  Die die = (Die) _j14it30.next();
 				die.setFace(RandomNumber.getDieRoll());
 			}
 			hasRolled = true;
@@ -179,7 +183,8 @@ public class DieRoller extends JComponent {
 		}
 	}
 	public void setDice(int number) {
-		for (Die die:dice) {
+		for (java.util.Iterator _j14it31 = (dice).iterator(); _j14it31.hasNext(); ) {
+		  Die die = (Die) _j14it31.next();
 				die.setFace(number);
 		}
 		hasRolled = true;
@@ -214,7 +219,8 @@ public class DieRoller extends JComponent {
 	 */
 	public int getValue(int dienum) {
 		int count = 0;
-		for (Die die:dice) {
+		for (java.util.Iterator _j14it32 = (dice).iterator(); _j14it32.hasNext(); ) {
+		  Die die = (Die) _j14it32.next();
 			if (count==dienum) {
 				return die.getValue();
 			}
@@ -229,7 +235,8 @@ public class DieRoller extends JComponent {
 	public void setValue(int dienum,int val) {
 		hasRolled = true;
 		int count = 0;
-		for (Die die:dice) {
+		for (java.util.Iterator _j14it33 = (dice).iterator(); _j14it33.hasNext(); ) {
+		  Die die = (Die) _j14it33.next();
 			if (count==dienum) {
 				die.setFace(val);
 				return;
@@ -239,37 +246,41 @@ public class DieRoller extends JComponent {
 		throw new IllegalArgumentException("Invalid dienum: "+dienum+"  Only "+dice.size()+" dice.");
 	}
 	public void setRed(int dienum) {
-		Die die = dice.get(dienum);
+		Die die = (Die) dice.get(dienum);
 		die.setColor(Color.red,Color.white);
 		die.setName(Die.RED);
 	}
 	public void setWhite(int dienum) {
-		Die die = dice.get(dienum);
+		Die die = (Die) dice.get(dienum);
 		die.setColor(Color.white,Color.black);
 		die.setName(Die.WHITE);
 	}
 	public void setAllRed() {
-		for (Die die:dice) {
+		for (java.util.Iterator _j14it34 = (dice).iterator(); _j14it34.hasNext(); ) {
+		  Die die = (Die) _j14it34.next();
 			die.setColor(Color.red,Color.white);
 			die.setName(Die.RED);
 		}
 	}
 	public void setAllWhite() {
-		for (Die die:dice) {
+		for (java.util.Iterator _j14it35 = (dice).iterator(); _j14it35.hasNext(); ) {
+		  Die die = (Die) _j14it35.next();
 			die.setColor(Color.white,Color.black);
 			die.setName(Die.WHITE);
 		}
 	}
 	public int getTotal() {
 		int total = 0;
-		for (Die die:dice) {
+		for (java.util.Iterator _j14it36 = (dice).iterator(); _j14it36.hasNext(); ) {
+		  Die die = (Die) _j14it36.next();
 			total += die.getValue();
 		}
 		return total+modifier;
 	}
 	public int getDieResultCount(int result) {
 		int count = 0;
-		for (Die die:dice) {
+		for (java.util.Iterator _j14it37 = (dice).iterator(); _j14it37.hasNext(); ) {
+		  Die die = (Die) _j14it37.next();
 			if (die.getValue()==result) count++;
 		}
 		return count;
@@ -279,7 +290,8 @@ public class DieRoller extends JComponent {
 	 */
 	public int getHighDieResult() {
 		int max = 0;
-		for (Die die:dice) {
+		for (java.util.Iterator _j14it38 = (dice).iterator(); _j14it38.hasNext(); ) {
+		  Die die = (Die) _j14it38.next();
 			if (die.getValue()>max) {
 				max = die.getValue();
 			}
@@ -288,7 +300,8 @@ public class DieRoller extends JComponent {
 	}
 	public int getLowDieResult() {
 		int min = 12;
-		for (Die die:dice) {
+		for (java.util.Iterator _j14it39 = (dice).iterator(); _j14it39.hasNext(); ) {
+		  Die die = (Die) _j14it39.next();
 			if (die.getValue()<min) {
 				min = die.getValue();
 			}
@@ -342,7 +355,8 @@ public class DieRoller extends JComponent {
 			y += drawOffset.y;
 		}
 		
-		for (Die die:dice) {
+		for (java.util.Iterator _j14it40 = (dice).iterator(); _j14it40.hasNext(); ) {
+		  Die die = (Die) _j14it40.next();
 			die.paintIcon(this,g,x,y);
 			x += (dieSize+spacer);
 		}
@@ -410,8 +424,8 @@ public class DieRoller extends JComponent {
 		return getDescription(false);
 	}
 	
-	public static ArrayList<Serializable> breakOutRollers(String in,int dieSize,int dotSize) {
-		ArrayList<Serializable> list = new ArrayList<Serializable>();
+	public static ArrayList breakOutRollers(String in,int dieSize,int dotSize) {
+		ArrayList list = new ArrayList();
 		int n;
 		boolean addingString = true;
 		if (in.startsWith(LOG_ANNOTATION)) {
@@ -450,8 +464,9 @@ public class DieRoller extends JComponent {
 		sb.append(", but does that work?");
 		
 		System.out.println(sb.toString());
-		ArrayList<Serializable> list = DieRoller.breakOutRollers(sb.toString(),10,2);
-		for (Serializable i : list) {
+		ArrayList list = DieRoller.breakOutRollers(sb.toString(),10,2);
+		for (java.util.Iterator _j14it41 = (list).iterator(); _j14it41.hasNext(); ) {
+		  Serializable i = (Serializable) _j14it41.next();
 			System.out.println(i);
 		}
 	}

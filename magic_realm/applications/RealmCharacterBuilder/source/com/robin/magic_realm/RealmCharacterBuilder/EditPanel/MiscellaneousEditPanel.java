@@ -95,13 +95,13 @@ public class MiscellaneousEditPanel extends AdvantageEditPanel {
 		{"horse armored, +1 to horse speed, ",Constants.HORSE_ARMOR,""},
 	};
 	private ButtonGroup group;
-	private ArrayList<JRadioButton> buttonList;
+	private ArrayList buttonList;
 
 	public MiscellaneousEditPanel(CharacterWrapper pChar,String levelKey) {
 		super(pChar,levelKey);
 		
 		group = new ButtonGroup();
-		buttonList = new ArrayList<JRadioButton>();
+		buttonList = new ArrayList();
 		
 		setLayout(new GridLayout(1,2));
 		
@@ -131,7 +131,7 @@ public class MiscellaneousEditPanel extends AdvantageEditPanel {
 		box2.add(Box.createVerticalGlue());
 		add(box2);
 		if (advKey==null) {
-			buttonList.get(0).setSelected(true);
+			((JRadioButton) buttonList.get(0)).setSelected(true);
 		}
 	}
 	public String toString() {
@@ -175,28 +175,28 @@ public class MiscellaneousEditPanel extends AdvantageEditPanel {
 	}
 	protected void applyAdvantage() {
 		for (int i=0;i<MISC_ADVANTAGE_ACTION_RECORDING.length;i++) {
-			JRadioButton button = buttonList.get(i);
+			JRadioButton button = (JRadioButton) buttonList.get(i);
 			if (button.isSelected()) {
 				setAttribute(MISC_ADVANTAGE_ACTION_RECORDING[i][COL_KEY],MISC_ADVANTAGE_ACTION_RECORDING[i][COL_VAL]);
 				return;
 			}
 		}
 		for (int i=0;i<MISC_ADVANTAGE_DISCOVERIES.length;i++) {
-			JRadioButton button = buttonList.get(i+MISC_ADVANTAGE_ACTION_RECORDING.length);
+			JRadioButton button = (JRadioButton) buttonList.get(i+MISC_ADVANTAGE_ACTION_RECORDING.length);
 			if (button.isSelected()) {
 				setAttribute(MISC_ADVANTAGE_DISCOVERIES[i][COL_KEY],MISC_ADVANTAGE_DISCOVERIES[i][COL_VAL]);
 				return;
 			}
 		}
 		for (int i=0;i<MISC_ADVANTAGE_OTHER_ABILITIES.length;i++) {
-			JRadioButton button = buttonList.get(i+MISC_ADVANTAGE_ACTION_RECORDING.length+MISC_ADVANTAGE_DISCOVERIES.length);
+			JRadioButton button = (JRadioButton) buttonList.get(i+MISC_ADVANTAGE_ACTION_RECORDING.length+MISC_ADVANTAGE_DISCOVERIES.length);
 			if (button.isSelected()) {
 				setAttribute(MISC_ADVANTAGE_OTHER_ABILITIES[i][COL_KEY],MISC_ADVANTAGE_OTHER_ABILITIES[i][COL_VAL]);
 				return;
 			}
 		}
 		for (int i=0;i<MISC_ADVANTAGE_COMBAT_AND_SPELLCASTING.length;i++) {
-			JRadioButton button = buttonList.get(i+MISC_ADVANTAGE_ACTION_RECORDING.length+MISC_ADVANTAGE_DISCOVERIES.length+MISC_ADVANTAGE_OTHER_ABILITIES.length);
+			JRadioButton button = (JRadioButton) buttonList.get(i+MISC_ADVANTAGE_ACTION_RECORDING.length+MISC_ADVANTAGE_DISCOVERIES.length+MISC_ADVANTAGE_OTHER_ABILITIES.length);
 			if (button.isSelected()) {
 				setAttribute(MISC_ADVANTAGE_COMBAT_AND_SPELLCASTING[i][COL_KEY],MISC_ADVANTAGE_COMBAT_AND_SPELLCASTING[i][COL_VAL]);
 				return;
@@ -205,25 +205,25 @@ public class MiscellaneousEditPanel extends AdvantageEditPanel {
 	}
 	public String getSuggestedDescription() {
 		for (int i=0;i<MISC_ADVANTAGE_ACTION_RECORDING.length;i++) {
-			JRadioButton button = buttonList.get(i);
+			JRadioButton button = (JRadioButton) buttonList.get(i);
 			if (button.isSelected()) {
 				return button.getText();
 			}
 		}
 		for (int i=0;i<MISC_ADVANTAGE_DISCOVERIES.length;i++) {
-			JRadioButton button = buttonList.get(i+MISC_ADVANTAGE_ACTION_RECORDING.length);
+			JRadioButton button = (JRadioButton) buttonList.get(i+MISC_ADVANTAGE_ACTION_RECORDING.length);
 			if (button.isSelected()) {
 				return button.getText();
 			}
 		}
 		for (int i=0;i<MISC_ADVANTAGE_OTHER_ABILITIES.length;i++) {
-			JRadioButton button = buttonList.get(i+MISC_ADVANTAGE_ACTION_RECORDING.length+MISC_ADVANTAGE_DISCOVERIES.length);
+			JRadioButton button = (JRadioButton) buttonList.get(i+MISC_ADVANTAGE_ACTION_RECORDING.length+MISC_ADVANTAGE_DISCOVERIES.length);
 			if (button.isSelected()) {
 				return button.getText();
 			}
 		}
 		for (int i=0;i<MISC_ADVANTAGE_COMBAT_AND_SPELLCASTING.length;i++) {
-			JRadioButton button = buttonList.get(i+MISC_ADVANTAGE_ACTION_RECORDING.length+MISC_ADVANTAGE_DISCOVERIES.length+MISC_ADVANTAGE_OTHER_ABILITIES.length);
+			JRadioButton button = (JRadioButton) buttonList.get(i+MISC_ADVANTAGE_ACTION_RECORDING.length+MISC_ADVANTAGE_DISCOVERIES.length+MISC_ADVANTAGE_OTHER_ABILITIES.length);
 			if (button.isSelected()) {
 				return button.getText();
 			}

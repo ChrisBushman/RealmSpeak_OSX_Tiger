@@ -48,16 +48,16 @@ public class GameData extends ModifyableObject implements Serializable {
 	protected boolean scenarioRebuildQuestDeck;
 	protected boolean scenarioShuffleQuestDeck;
 	protected String filterString;
-	protected ArrayList<GameObject> excludeList;
-	protected ArrayList<GameObject> gameObjects;
-	protected HashMap<Long, GameObject> gameObjectIDHash;
-	protected HashLists<String,GameObject> gameObjectNameHash;
-	protected ArrayList<GameObject> filteredGameObjects;
+	protected ArrayList excludeList;
+	protected ArrayList gameObjects;
+	protected HashMap gameObjectIDHash;
+	protected HashLists gameObjectNameHash;
+	protected ArrayList filteredGameObjects;
 	
-	protected ArrayList<GameSetup> gameSetups;
+	protected ArrayList gameSetups;
 	
 	protected boolean tracksChanges = false;
-	private ArrayList<GameObjectChange> objectChanges;
+	private ArrayList objectChanges;
 	
 	private ChangeListener modifyListener = new ChangeListener() {
 		public void stateChanged(ChangeEvent ev) {
@@ -72,26 +72,29 @@ public class GameData extends ModifyableObject implements Serializable {
 		filterString = null;
 		excludeList = null;
 		gameName = name;
-		gameObjects = new ArrayList<GameObject>();
-		gameObjectIDHash = new HashMap<Long, GameObject>();
-		gameObjectNameHash = new HashLists<String,GameObject>();
-		filteredGameObjects = new ArrayList<GameObject>();
-		gameSetups = new ArrayList<GameSetup>();
+		gameObjects = new ArrayList();
+		gameObjectIDHash = new HashMap();
+		gameObjectNameHash = new HashLists();
+		filteredGameObjects = new ArrayList();
+		gameSetups = new ArrayList();
 		setModified(true);
 	}
 	public String getCheckSum() {
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
-			for (GameObject go : gameObjects) {
+			for (java.util.Iterator _j14it137 = (gameObjects).iterator(); _j14it137.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it137.next();
 				md.update(go.getName().getBytes());
-				OrderedHashtable<String, OrderedHashtable> hash = go.getAttributeBlocks();
-				ArrayList<String> blocks = new ArrayList<String>(hash.keySet());
+				OrderedHashtable hash = go.getAttributeBlocks();
+				ArrayList blocks = new ArrayList(hash.keySet());
 				Collections.sort(blocks);
-				for (String blockName : blocks) {
-					OrderedHashtable block = hash.get(blockName);
-					ArrayList<String> keys = new ArrayList(block.keySet());
+				for (java.util.Iterator _j14it138 = (blocks).iterator(); _j14it138.hasNext(); ) {
+				  String blockName = (String) _j14it138.next();
+					OrderedHashtable block = (OrderedHashtable) hash.get(blockName);
+					ArrayList keys = new ArrayList(block.keySet());
 					Collections.sort(keys);
-					for (String key : keys) {
+					for (java.util.Iterator _j14it139 = (keys).iterator(); _j14it139.hasNext(); ) {
+					  String key = (String) _j14it139.next();
 						Object val = block.get(key);
 						md.update(key.getBytes());
 						md.update(val.toString().getBytes());
@@ -120,11 +123,13 @@ public class GameData extends ModifyableObject implements Serializable {
 	}
 	public GameData copy() {
 		GameData data = new GameData(gameName);
-		for (GameObject go : getGameObjects()) {
+		for (java.util.Iterator _j14it140 = (getGameObjects()).iterator(); _j14it140.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it140.next();
 			GameObject goCopy = data.createNewObject(go);
 			goCopy.copyFrom(go);
 		}
-		for (GameObject go : data.getGameObjects()) {
+		for (java.util.Iterator _j14it141 = (data.getGameObjects()).iterator(); _j14it141.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it141.next();
 			go.resolveHold(data.getGameObjectIDHash());
 		}
 		return data;
@@ -189,33 +194,35 @@ public class GameData extends ModifyableObject implements Serializable {
 		return getGameObject(Long.valueOf(id));
 	}
 	public GameObject getGameObject(Long id) {
-		return gameObjectIDHash.get(id);
+		return (GameObject) gameObjectIDHash.get(id);
 	}
 	public GameObject getGameObject(Object obj){
 		String id = (String)obj;
 		return getGameObject(Long.valueOf(id));
 	}
 	
-	public ArrayList<GameObject> getGameObjects() {
+	public ArrayList getGameObjects() {
 		return gameObjects;
 	}
-	public HashMap<Long, GameObject> getGameObjectIDHash() {
+	public HashMap getGameObjectIDHash() {
 		return gameObjectIDHash;
 	}
-	public Set<String> getAllGameObjectNames() {
+	public Set getAllGameObjectNames() {
 		return gameObjectNameHash.keySet();
 	}
 	public GameObject getGameObjectByNameIgnoreCase(String name) {
-		for(String test:gameObjectNameHash.keySet()) {
+		for (java.util.Iterator _j14it142 = (gameObjectNameHash.keySet()).iterator(); _j14it142.hasNext(); ) {
+		  String test = (String) _j14it142.next();
 			if (test.equalsIgnoreCase(name)) {
-				return gameObjectNameHash.getList(test).get(0);
+				return (GameObject) gameObjectNameHash.getList(test).get(0);
 			}
 		}
 		return null;
 	}
-	public ArrayList<GameObject> getGameObjectsByNameIgnoreCase(String name) {
-		ArrayList<GameObject> ret = new ArrayList<GameObject>();
-		for(String test:gameObjectNameHash.keySet()) {
+	public ArrayList getGameObjectsByNameIgnoreCase(String name) {
+		ArrayList ret = new ArrayList();
+		for (java.util.Iterator _j14it143 = (gameObjectNameHash.keySet()).iterator(); _j14it143.hasNext(); ) {
+		  String test = (String) _j14it143.next();
 			if (test.equalsIgnoreCase(name)) {
 				ret.addAll(gameObjectNameHash.getList(test));
 			}
@@ -223,25 +230,26 @@ public class GameData extends ModifyableObject implements Serializable {
 		return ret;
 	}
 	public GameObject getGameObjectByName(String name) {
-		ArrayList<GameObject> list = getGameObjectsByName(name);
+		ArrayList list = getGameObjectsByName(name);
 		if (list.isEmpty()) {
 			return null;
 		}
-		return list.get(0);
+		return (GameObject) list.get(0);
 	}
-	public ArrayList<GameObject> getGameObjectsByName(String name) {
-		ArrayList<GameObject> ret = new ArrayList<GameObject>();
-		ArrayList<GameObject> val = gameObjectNameHash.getList(name);
+	public ArrayList getGameObjectsByName(String name) {
+		ArrayList ret = new ArrayList();
+		ArrayList val = gameObjectNameHash.getList(name);
 		if (val!=null) {
 			ret.addAll(val);
 		}
 		return ret;
 	}
-	public ArrayList<GameObject> getGameObjectsByNameRegex(String nameRegex) {
-		ArrayList<GameObject> ret = new ArrayList<GameObject>();
+	public ArrayList getGameObjectsByNameRegex(String nameRegex) {
+		ArrayList ret = new ArrayList();
 		String regex = nameRegex.trim()+".*";
 		Pattern pattern = Pattern.compile(regex);
-		for(String test:gameObjectNameHash.keySet()) {
+		for (java.util.Iterator _j14it144 = (gameObjectNameHash.keySet()).iterator(); _j14it144.hasNext(); ) {
+		  String test = (String) _j14it144.next();
 			if (pattern.matcher(test.trim()).find()) {
 				ret.addAll(gameObjectNameHash.getList(test));
 			}
@@ -249,26 +257,27 @@ public class GameData extends ModifyableObject implements Serializable {
 		return ret;
 	}
 	public void renumberObjectsByName() {
-		Collections.sort(gameObjects,new Comparator<GameObject>() {
-			public int compare(GameObject g1,GameObject g2) {
-				return g1.getName().compareTo(g2.getName());
+		Collections.sort(gameObjects,new Comparator() {
+			public int compare(Object o1,Object o2) {
+				return ((GameObject)o1).getName().compareTo(((GameObject)o2).getName());
 			}
 		});
 		renumberObjects();
 	}
-	public void moveObjectsBefore(ArrayList<GameObject> objects,GameObject indexObject) {
+	public void moveObjectsBefore(ArrayList objects,GameObject indexObject) {
 		moveObjects(objects,indexObject,true);
 	}
-	public void moveObjectsAfter(ArrayList<GameObject> objects,GameObject indexObject) {
+	public void moveObjectsAfter(ArrayList objects,GameObject indexObject) {
 		moveObjects(objects,indexObject,false);
 	}
 	/**
 	 * Moves the objects to the position BEFORE the GameObject with an id==idPosition
 	 */
-	private void moveObjects(ArrayList<GameObject> objects,GameObject indexObject,boolean before) {
+	private void moveObjects(ArrayList objects,GameObject indexObject,boolean before) {
 		// First, verify ALL objects are in the list, and that the list is uniqued
-		ArrayList<GameObject> validObjects = new ArrayList<GameObject>();
-		for (GameObject go : objects) {
+		ArrayList validObjects = new ArrayList();
+		for (java.util.Iterator _j14it145 = (objects).iterator(); _j14it145.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it145.next();
 			if (go.parent==this && gameObjects.contains(go) && !validObjects.contains(go)) {
 				validObjects.add(go);
 			}
@@ -300,7 +309,8 @@ public class GameData extends ModifyableObject implements Serializable {
 	private void renumberObjects() {
 		gameObjectIDHash.clear();
 		cumulative_id = 0;
-		for (GameObject go : gameObjects) {
+		for (java.util.Iterator _j14it146 = (gameObjects).iterator(); _j14it146.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it146.next();
 			go.setId(cumulative_id++);
 			gameObjectIDHash.put(Long.valueOf(go.getId()),go);
 		}
@@ -313,7 +323,8 @@ public class GameData extends ModifyableObject implements Serializable {
 	}
 	public long getMaxId() {
 		long max = 0;
-		for (Long key : gameObjectIDHash.keySet()) {
+		for (java.util.Iterator _j14it147 = (gameObjectIDHash.keySet()).iterator(); _j14it147.hasNext(); ) {
+		  Long key = (Long) _j14it147.next();
 			max = Math.max(key.longValue(),max);
 		}
 		return max;
@@ -321,7 +332,8 @@ public class GameData extends ModifyableObject implements Serializable {
 	public void renumberObjectsStartingWith(long startId) {
 		gameObjectIDHash.clear();
 		cumulative_id = startId;
-		for (GameObject go : gameObjects) {
+		for (java.util.Iterator _j14it148 = (gameObjects).iterator(); _j14it148.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it148.next();
 			go.setId(cumulative_id++);
 			gameObjectIDHash.put(Long.valueOf(go.getId()),go);
 		}
@@ -348,15 +360,15 @@ public class GameData extends ModifyableObject implements Serializable {
 		rebuildFilteredGameObjects();
 	}
 	public void setExcludeList(GameObject object) {
-		ArrayList<GameObject> exclude = new ArrayList<GameObject>();
+		ArrayList exclude = new ArrayList();
 		exclude.add(object);
 		setExcludeList(exclude);
 	}
-	public void setExcludeList(ArrayList<GameObject> exclude) {
+	public void setExcludeList(ArrayList exclude) {
 		excludeList = exclude;
 		rebuildFilteredGameObjects();
 	}
-	public ArrayList<GameObject> getExcludeList() {
+	public ArrayList getExcludeList() {
 		return excludeList;
 	}
 	public void rebuildFilteredGameObjects() {
@@ -369,13 +381,14 @@ public class GameData extends ModifyableObject implements Serializable {
 			}
 			else {
 				// Filter gameObjects
-				ArrayList<String> filterTerms = new ArrayList<String>();
+				ArrayList filterTerms = new ArrayList();
 				StringTokenizer tokens = new StringTokenizer(filterString,",");
 				while(tokens.hasMoreTokens()) {
 					filterTerms.add(tokens.nextToken());
 				}
 				
-				for (GameObject obj : gameObjects) {
+				for (java.util.Iterator _j14it149 = (gameObjects).iterator(); _j14it149.hasNext(); ) {
+				  GameObject obj = (GameObject) _j14it149.next();
 					if (obj.hasAllKeyVals(filterTerms)) {
 						// Conditions met - add it.
 						filteredGameObjects.add(obj);
@@ -388,15 +401,16 @@ public class GameData extends ModifyableObject implements Serializable {
 			}
 		}
 	}
-	public ArrayList<GameObject> getFilteredGameObjects() {
+	public ArrayList getFilteredGameObjects() {
 		return filter?filteredGameObjects:gameObjects;
 	}
-	public ArrayList<GameSetup> getGameSetups() {
+	public ArrayList getGameSetups() {
 		return gameSetups;
 	}
-	public void resetIdToMax(Collection<GameObject> c) {
+	public void resetIdToMax(Collection c) {
 		cumulative_id = 0;
-		for (GameObject obj : c) {
+		for (java.util.Iterator _j14it150 = (c).iterator(); _j14it150.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it150.next();
 			if (obj.getId()>cumulative_id) {
 				cumulative_id = obj.getId();
 			}
@@ -470,16 +484,17 @@ public class GameData extends ModifyableObject implements Serializable {
 			String rt = game.getAttributeValue("_rgtype");
 			RandomNumber.setRandomNumberGenerator(rt==null ? RandomNumberType.System : RandomNumberType.valueOf(rt));
 			String countString = game.getAttributeValue("_rcount");
-			RandomNumber.init(Long.valueOf(seedString),Long.valueOf(countString));
+			RandomNumber.init(Long.valueOf(seedString).longValue(),Long.valueOf(countString).longValue());
 		}
 		game.setAttribute(new Attribute("_rndSetup",String.valueOf(RandomNumber.getUseRandomNumberGeneratorForSetup())));
 		
 		// Read objects
-		Collection<Element> objects = game.getChild("objects").getChildren();
+		Collection objects = game.getChild("objects").getChildren();
 		gameObjects.clear();
 		gameObjectIDHash.clear();
 		gameObjectNameHash.clear();
-		for (Element obj : objects) {
+		for (java.util.Iterator _j14it151 = (objects).iterator(); _j14it151.hasNext(); ) {
+		  Element obj = (Element) _j14it151.next();
 			GameObject newObj = new GameObject(this);
 			newObj.setXML(obj);
 			gameObjects.add(newObj);
@@ -488,7 +503,8 @@ public class GameData extends ModifyableObject implements Serializable {
 		}
 		
 		// Resolve objects (holds can't be calculated until all are loaded!)
-		for (GameObject obj : gameObjects) {
+		for (java.util.Iterator _j14it152 = (gameObjects).iterator(); _j14it152.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it152.next();
 			obj.resolveHold(gameObjectIDHash);
 		}
 		
@@ -498,9 +514,10 @@ public class GameData extends ModifyableObject implements Serializable {
 		resetIdToMax(gameObjects);
 		
 		// Read setups
-		Collection<Element> setups = game.getChild("setups").getChildren();
+		Collection setups = game.getChild("setups").getChildren();
 		gameSetups.clear();
-		for (Element setup : setups) {
+		for (java.util.Iterator _j14it153 = (setups).iterator(); _j14it153.hasNext(); ) {
+		  Element setup = (Element) _j14it153.next();
 			GameSetup newSetup = new GameSetup(this);
 			newSetup.setXML(setup);
 			gameSetups.add(newSetup);
@@ -514,9 +531,9 @@ public class GameData extends ModifyableObject implements Serializable {
 		File tempFile = new File(path+ZIP_INTERNAL_FILENAME);
 		
 		if (saveToFile(tempFile)) {
-			ArrayList<File> files = new ArrayList<File>();
+			ArrayList files = new ArrayList();
 			files.add(tempFile);
-			ZipUtilities.zip(zipFile,files.toArray(new File[files.size()]));
+			ZipUtilities.zip(zipFile,(File[]) files.toArray(new File[files.size()]));
 			tempFile.delete();
 			return true;
 		}
@@ -581,14 +598,16 @@ public class GameData extends ModifyableObject implements Serializable {
 		
 		// Build objects
 		Element objects = new Element("objects");
-		for (GameObject obj : gameObjects) {
+		for (java.util.Iterator _j14it154 = (gameObjects).iterator(); _j14it154.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it154.next();
 			objects.addContent(obj.getXML());
 		}
 		game.addContent(objects);
 		
 		// Build setup
 		Element setups = new Element("setups");
-		for (GameSetup setup : gameSetups) {
+		for (java.util.Iterator _j14it155 = (gameSetups).iterator(); _j14it155.hasNext(); ) {
+		  GameSetup setup = (GameSetup) _j14it155.next();
 			setups.addContent(setup.getXML());
 		}
 		game.addContent(setups);
@@ -639,7 +658,7 @@ public class GameData extends ModifyableObject implements Serializable {
 		return createNewObject(cumulative_id);
 	}
 	public GameObject createNewObject(long anId) {
-		if (!gameObjectIDHash.containsKey(anId)) {
+		if (!gameObjectIDHash.containsKey(Long.valueOf(anId))) {
 			if (anId>=cumulative_id) {
 				cumulative_id = anId + 1;
 			}
@@ -696,23 +715,26 @@ public class GameData extends ModifyableObject implements Serializable {
 	/**
 	 * Provides an independant (deep) copy of the gameObjects collection
 	 */
-	private ArrayList<GameObject> getGameObjectsCopy() {
-		HashMap<Long, GameObject> map = new HashMap<Long, GameObject>();
-		ArrayList<GameObject> goCopy = new ArrayList<GameObject>();
-		for (GameObject obj : gameObjects) {
+	private ArrayList getGameObjectsCopy() {
+		HashMap map = new HashMap();
+		ArrayList goCopy = new ArrayList();
+		for (java.util.Iterator _j14it156 = (gameObjects).iterator(); _j14it156.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it156.next();
 			GameObject theCopy = new GameObject(this);
 			theCopy.copyFrom(obj);
 			goCopy.add(theCopy);
-			map.put(obj.getId(),theCopy);
+			map.put(Long.valueOf(obj.getId()),theCopy);
 		}
-		for (GameObject obj : goCopy) {
+		for (java.util.Iterator _j14it157 = (goCopy).iterator(); _j14it157.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it157.next();
 			obj.resolveHold(map);
 		}
 		return goCopy;
 	}
 	public GameSetup findSetup(String setupName) {
 		// Find setup
-		for (GameSetup setup : gameSetups) {
+		for (java.util.Iterator _j14it158 = (gameSetups).iterator(); _j14it158.hasNext(); ) {
+		  GameSetup setup = (GameSetup) _j14it158.next();
 			if (setup.getName().equals(setupName)) {
 				return setup;
 			}
@@ -722,7 +744,8 @@ public class GameData extends ModifyableObject implements Serializable {
 	public String[] getGameSetupNames() {
 		String[] names = new String[gameSetups.size()];
 		int n=0;
-		for (GameSetup setup : gameSetups) {
+		for (java.util.Iterator _j14it159 = (gameSetups).iterator(); _j14it159.hasNext(); ) {
+		  GameSetup setup = (GameSetup) _j14it159.next();
 			names[n++] = setup.getName();
 		}
 		return names;
@@ -732,15 +755,15 @@ public class GameData extends ModifyableObject implements Serializable {
 	 * Test setup - GameData itself is not modified - a copy of the objects is made
 	 * prior to setup
 	 */
-	public ArrayList<GameObject> doTestSetup(String setupName) {
+	public ArrayList doTestSetup(String setupName) {
 		return doTestSetup(new StringBuffer(),findSetup(setupName));
 	}
-	public ArrayList<GameObject> doTestSetup(StringBuffer result,String setupName) {
+	public ArrayList doTestSetup(StringBuffer result,String setupName) {
 		return doTestSetup(result,findSetup(setupName));
 	}
-	public ArrayList<GameObject> doTestSetup(StringBuffer result,GameSetup setup) {
+	public ArrayList doTestSetup(StringBuffer result,GameSetup setup) {
 		if (setup!=null) {
-			ArrayList<GameObject> aCopy = setup.processSetup(result,getGameObjectsCopy());
+			ArrayList aCopy = setup.processSetup(result,getGameObjectsCopy());
 			return aCopy;
 		}
 		return null;
@@ -748,16 +771,16 @@ public class GameData extends ModifyableObject implements Serializable {
 	/**
 	 * Process the game objects with a setup type
 	 */
-	public ArrayList<GameObject> doSetup(String setupName,ArrayList<String> keyVals) {
+	public ArrayList doSetup(String setupName,ArrayList keyVals) {
 		return doSetup(new StringBuffer(),findSetup(setupName),keyVals);
 	}
-	public ArrayList<GameObject> doSetup(StringBuffer result,String setupName,ArrayList<String> keyVals) {
+	public ArrayList doSetup(StringBuffer result,String setupName,ArrayList keyVals) {
 		return doSetup(result,findSetup(setupName),keyVals);
 	}
-	public ArrayList<GameObject> doSetup(StringBuffer result,GameSetup setup,ArrayList<String> keyVals) {
+	public ArrayList doSetup(StringBuffer result,GameSetup setup,ArrayList keyVals) {
 		if (setup!=null) {
 			GamePool pool = new GamePool(gameObjects);
-			ArrayList<GameObject> aCopy = setup.processSetup(result,pool.find(keyVals));
+			ArrayList aCopy = setup.processSetup(result,pool.find(keyVals));
 			return aCopy;
 		}
 		return null;
@@ -779,7 +802,7 @@ public class GameData extends ModifyableObject implements Serializable {
 	public void setTracksChanges(boolean tracksChanges) {
 		this.tracksChanges = tracksChanges;
 		if (tracksChanges) {
-			objectChanges = new ArrayList<GameObjectChange>();
+			objectChanges = new ArrayList();
 		}
 		else {
 			objectChanges.clear();
@@ -796,7 +819,7 @@ public class GameData extends ModifyableObject implements Serializable {
 		}
 		else throw new IllegalStateException("Cannot add a change to data when not tracking changes.");
 	}
-	public ArrayList<GameObjectChange> getObjectChanges() {
+	public ArrayList getObjectChanges() {
 		return objectChanges;
 	}
 	public int getChangeCount() {
@@ -811,15 +834,17 @@ public class GameData extends ModifyableObject implements Serializable {
 	 */
 	public void rebuildChanges() {
 		if (objectChanges!=null && !objectChanges.isEmpty()) {
-			ArrayList<GameObjectChange> rebuildObjectChanges = new ArrayList<GameObjectChange>(objectChanges);
+			ArrayList rebuildObjectChanges = new ArrayList(objectChanges);
 			
 			// First, go through all affected objects, and make sure that their uncommitted object is gone
-			for (GameObjectChange change:rebuildObjectChanges) {
+			for (java.util.Iterator _j14it160 = (rebuildObjectChanges).iterator(); _j14it160.hasNext(); ) {
+			  GameObjectChange change = (GameObjectChange) _j14it160.next();
 				change.getGameObject(this).stopUncommitted();
 			}
 			
 			objectChanges.clear(); // Since we are rebuilding, clear out the changes so they can be added back
-			for (GameObjectChange change:rebuildObjectChanges) {
+			for (java.util.Iterator _j14it161 = (rebuildObjectChanges).iterator(); _j14it161.hasNext(); ) {
+			  GameObjectChange change = (GameObjectChange) _j14it161.next();
 				change.rebuildChange(this);
 				// Note:  rebuildChange WILL cause feedback to GameData, and add a change to objectChanges
 				//		This is why I'm using a new ArrayList, so there won't be any concurrent mods.
@@ -829,12 +854,12 @@ public class GameData extends ModifyableObject implements Serializable {
 	/**
 	 * This pops changes off the objectChanges stack, and commits them immediately
 	 */
-	public synchronized ArrayList<GameObjectChange> popAndCommit() {
-		ArrayList<GameObjectChange> list = new ArrayList<GameObjectChange>();
+	public synchronized ArrayList popAndCommit() {
+		ArrayList list = new ArrayList();
 		int size = objectChanges.size();
 		if (size>0) {
 			for (int i=0;i<size;i++) {
-				GameObjectChange change = objectChanges.remove(0);
+				GameObjectChange change = (GameObjectChange) objectChanges.remove(0);
 				change.applyChange(this);
 				list.add(change);
 			}
@@ -843,7 +868,8 @@ public class GameData extends ModifyableObject implements Serializable {
 	}
 	public synchronized void commit() {
 		if (objectChanges!=null && !objectChanges.isEmpty()) {
-			for (GameObjectChange change:objectChanges) {
+			for (java.util.Iterator _j14it162 = (objectChanges).iterator(); _j14it162.hasNext(); ) {
+			  GameObjectChange change = (GameObjectChange) _j14it162.next();
 				change.applyChange(this);
 			}
 			objectChanges.clear();
@@ -851,8 +877,9 @@ public class GameData extends ModifyableObject implements Serializable {
 	}
 	public void rollback() {
 		if (objectChanges!=null && !objectChanges.isEmpty()) {
-			ArrayList<GameObject> objectsThatHaveChanged = new ArrayList<GameObject>();
-			for (GameObjectChange change:objectChanges) {
+			ArrayList objectsThatHaveChanged = new ArrayList();
+			for (java.util.Iterator _j14it163 = (objectChanges).iterator(); _j14it163.hasNext(); ) {
+			  GameObjectChange change = (GameObjectChange) _j14it163.next();
 				GameObject go = getGameObject(change.getId());
 				if (!objectsThatHaveChanged.contains(go)) {
 					objectsThatHaveChanged.add(go);
@@ -865,14 +892,15 @@ public class GameData extends ModifyableObject implements Serializable {
 	/**
 	 * @return			A list of GameObjectChange objects required to make this game data object look exactly like the other
 	 */
-	public ArrayList<GameObjectChange> buildChanges(GameData other) {
-		ArrayList<GameObjectChange> changes = new ArrayList<GameObjectChange>();
+	public ArrayList buildChanges(GameData other) {
+		ArrayList changes = new ArrayList();
 		
 //		long maxid = getMaxId();
 		
 		// Add new objects first (do separately from attribute builds in case they reference each other!)
-		ArrayList<GameObject> newObjects = new ArrayList<GameObject>();
-		for (GameObject otherGo : other.gameObjects) {
+		ArrayList newObjects = new ArrayList();
+		for (java.util.Iterator _j14it164 = (other.gameObjects).iterator(); _j14it164.hasNext(); ) {
+		  GameObject otherGo = (GameObject) _j14it164.next();
 			if (!gameObjectIDHash.containsKey(Long.valueOf(otherGo.getId()))) {
 //				if (otherGo.getId()<maxid) {
 //					throw new IllegalStateException("This is not good");
@@ -882,12 +910,14 @@ public class GameData extends ModifyableObject implements Serializable {
 			}
 		}
 		// Now we can get the builds
-		for (GameObject otherGo : newObjects) {
+		for (java.util.Iterator _j14it165 = (newObjects).iterator(); _j14it165.hasNext(); ) {
+		  GameObject otherGo = (GameObject) _j14it165.next();
 			changes.addAll(otherGo.buildChanges());
 		}
 		
 		// Finally
-		for (GameObject go : gameObjects) {
+		for (java.util.Iterator _j14it166 = (gameObjects).iterator(); _j14it166.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it166.next();
 			GameObject otherGo = other.getGameObject(go.getId());
 			if (otherGo!=null) {
 				changes.addAll(go.buildChanges(otherGo));
@@ -925,8 +955,9 @@ public class GameData extends ModifyableObject implements Serializable {
 	}
 	public int getRelativeSize() {
 		int count = 0;
-		ArrayList<GameObject> list = new ArrayList<GameObject>(gameObjects);
-		for (GameObject go : list) {
+		ArrayList list = new ArrayList(gameObjects);
+		for (java.util.Iterator _j14it167 = (list).iterator(); _j14it167.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it167.next();
 			count+=go.getRelativeSize();
 		}
 		return count;

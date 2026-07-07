@@ -135,16 +135,18 @@ public class HexMapPoint {
 		return "HexMapPoint("+x+","+y+")";
 	}
 	
-	public static ArrayList<String> getKeyCollection(Collection<HexMapPoint> hexMapPoints) {
-		ArrayList<String> keys = new ArrayList<String>();
-		for (HexMapPoint pos : hexMapPoints) {
+	public static ArrayList getKeyCollection(Collection hexMapPoints) {
+		ArrayList keys = new ArrayList();
+		for (java.util.Iterator _j14it203 = (hexMapPoints).iterator(); _j14it203.hasNext(); ) {
+		  HexMapPoint pos = (HexMapPoint) _j14it203.next();
 			keys.add(pos.getKey());
 		}
 		return keys;
 	}
-	public static Collection<HexMapPoint> getHexMapPoints(Collection<String> keys) {
-		ArrayList<HexMapPoint> hexMapPoints = new ArrayList<HexMapPoint>();
-		for (String key : keys) {
+	public static Collection getHexMapPoints(Collection keys) {
+		ArrayList hexMapPoints = new ArrayList();
+		for (java.util.Iterator _j14it204 = (keys).iterator(); _j14it204.hasNext(); ) {
+		  String key = (String) _j14it204.next();
 			hexMapPoints.add(readKey(key));
 		}
 		return hexMapPoints;

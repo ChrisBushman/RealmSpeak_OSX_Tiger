@@ -15,9 +15,10 @@ public class SpellTargetingBeast extends SpellTargetingSingle {
 	}
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
-		ArrayList<RealmComponent> potentialTargets = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
+		ArrayList potentialTargets = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
 		potentialTargets = CombatSheet.filterNativeFriendly(activeParticipant, potentialTargets);
-		for (RealmComponent rc : potentialTargets) {
+		for (java.util.Iterator _j14it819 = (potentialTargets).iterator(); _j14it819.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it819.next();
 			if (!rc.hasMagicProtection() && rc.getGameObject().hasThisAttribute("beast") && !rc.hasMagicColorImmunity(spell)) {
 				gameObjects.add(rc.getGameObject());
 			}

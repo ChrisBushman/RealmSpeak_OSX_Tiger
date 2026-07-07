@@ -16,19 +16,19 @@ public class TileEditComponent extends TileComponent {
 		setAlwaysPaint(true);
 	}
 	
-	public Collection<ClearingDetail> getClearingDetail() {
+	public Collection getClearingDetail() {
 		return clearings[getFacingIndex()];
 	}
-	public void setClearingDetail(Collection<ClearingDetail> c) {
-		clearings[getFacingIndex()] = new ArrayList<ClearingDetail>(c);
+	public void setClearingDetail(Collection c) {
+		clearings[getFacingIndex()] = new ArrayList(c);
 		changed = true;
 		repaint();
 	}
-	public Collection<PathDetail> getPathDetail() {
+	public Collection getPathDetail() {
 		return paths[getFacingIndex()];
 	}
-	public void setPathDetail(Collection<PathDetail> c) {
-		paths[getFacingIndex()] = new ArrayList<PathDetail>(c);
+	public void setPathDetail(Collection c) {
+		paths[getFacingIndex()] = new ArrayList(c);
 		changed = true;
 		repaint();
 	}
@@ -46,20 +46,22 @@ public class TileEditComponent extends TileComponent {
 		String blockName = isEnchanted()?"enchanted":"normal";
 		
 		// First, rip out all clearing/path keys from the side
-		OrderedHashtable<String, Object> hash = gameObject.getAttributeBlock(blockName);
-		ArrayList<String> keysToRemove = new ArrayList<String>();
-		for (Enumeration<String> e=hash.keys();e.hasMoreElements();) {
-			String key = e.nextElement();
+		OrderedHashtable hash = gameObject.getAttributeBlock(blockName);
+		ArrayList keysToRemove = new ArrayList();
+		for (Enumeration e=hash.keys();e.hasMoreElements();) {
+			String key = (String) e.nextElement();
 			if (key.startsWith("path") || key.startsWith("clearing")) {
 				keysToRemove.add(key);
 			}
 		}
-		for (String key : keysToRemove) {
+		for (java.util.Iterator _j14it1349 = (keysToRemove).iterator(); _j14it1349.hasNext(); ) {
+		  String key = (String) _j14it1349.next();
 			hash.remove(key);
 		}
 		
 		// Now add them back
-		for (ClearingDetail detail : clearings[getFacingIndex()]) {
+		for (java.util.Iterator _j14it1350 = (clearings[getFacingIndex()]).iterator(); _j14it1350.hasNext(); ) {
+		  ClearingDetail detail = (ClearingDetail) _j14it1350.next();
 			String baseKey = detail.toString();
 			gameObject.setAttribute(blockName,baseKey+"_type",detail.getType());
 			gameObject.setAttribute(blockName,baseKey+"_xy",encodePoint(detail.getPosition()));
@@ -76,7 +78,8 @@ public class TileEditComponent extends TileComponent {
 		}
 		
 		int n=1;
-		for (PathDetail detail : paths[getFacingIndex()]) {
+		for (java.util.Iterator _j14it1351 = (paths[getFacingIndex()]).iterator(); _j14it1351.hasNext(); ) {
+		  PathDetail detail = (PathDetail) _j14it1351.next();
 			String baseKey = "path_"+n;
 			gameObject.setAttribute(blockName,baseKey+"_from",detail.getFrom().toString());
 			gameObject.setAttribute(blockName,baseKey+"_to",detail.getTo().toString());

@@ -15,8 +15,8 @@ public class MRCharacter {
 		symbolPath = "";
 		symbolMeaning = "";
 		vulnerability = "";
-		specialAdvantages = new Vector<OutlineEntry>();
-		optionalAdvantages = new Vector<OutlineEntry>();
+		specialAdvantages = new Vector();
+		optionalAdvantages = new Vector();
 		devName = new String[4];
 		devAdd = new String[4];
 		for (int i = 0; i < 4; i++) {
@@ -98,14 +98,14 @@ public class MRCharacter {
 			printstream.println(vulnerability);
 			printstream.println(specialAdvantages.size());
 			for (int i = 0; i < specialAdvantages.size(); i++) {
-				OutlineEntry outlineentry = specialAdvantages.elementAt(i);
+				OutlineEntry outlineentry = (OutlineEntry) specialAdvantages.elementAt(i);
 				printstream.println(outlineentry.getHeader());
 				printstream.println(outlineentry.getContent());
 			}
 
 			printstream.println(optionalAdvantages.size());
 			for (int j = 0; j < optionalAdvantages.size(); j++) {
-				OutlineEntry outlineentry1 = optionalAdvantages.elementAt(j);
+				OutlineEntry outlineentry1 = (OutlineEntry) optionalAdvantages.elementAt(j);
 				printstream.println(outlineentry1.getHeader());
 				printstream.println(outlineentry1.getContent());
 			}
@@ -131,7 +131,7 @@ public class MRCharacter {
 
 	public int readInteger(String s) {
 		try {
-			Integer integer = Integer.parseInt(s);
+			Integer integer = new Integer(Integer.parseInt(s));
 			return integer.intValue();
 		}
 		catch (NumberFormatException _ex) {
@@ -217,7 +217,7 @@ public class MRCharacter {
 
 	public OutlineEntry getSpecialAdvantage(int i) {
 		if (specialAdvantages != null && i < specialAdvantages.size())
-			return specialAdvantages.elementAt(i);
+			return (OutlineEntry) specialAdvantages.elementAt(i);
 		return null;
 	}
 
@@ -233,7 +233,7 @@ public class MRCharacter {
 
 	public OutlineEntry getOptionalAdvantage(int i) {
 		if (optionalAdvantages != null && i < optionalAdvantages.size())
-			return optionalAdvantages.elementAt(i);
+			return (OutlineEntry) optionalAdvantages.elementAt(i);
 		return null;
 	}
 
@@ -297,11 +297,11 @@ public class MRCharacter {
 		vulnerability = s;
 	}
 
-	public void setSpecialAdvantages(Vector<OutlineEntry> vector) {
+	public void setSpecialAdvantages(Vector vector) {
 		specialAdvantages = vector;
 	}
 
-	public void setOptionalAdvantages(Vector<OutlineEntry> vector) {
+	public void setOptionalAdvantages(Vector vector) {
 		optionalAdvantages = vector;
 	}
 
@@ -343,8 +343,8 @@ public class MRCharacter {
 	private String symbolPath;
 	private String symbolMeaning;
 	private String vulnerability;
-	private Vector<OutlineEntry> specialAdvantages;
-	private Vector<OutlineEntry> optionalAdvantages;
+	private Vector specialAdvantages;
+	private Vector optionalAdvantages;
 	private String devName[];
 	private String devAdd[];
 	private Chit chit[];

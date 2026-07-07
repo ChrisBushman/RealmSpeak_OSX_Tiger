@@ -258,17 +258,17 @@ public class TileLocation {
 			query.append(",!");
 			query.append(Constants.BOARD_NUMBER);
 		}
-		ArrayList<GameObject> tiles = pool.find(query.toString());
+		ArrayList tiles = pool.find(query.toString());
 		if (tiles.isEmpty()) {
 			throw new IllegalStateException("Why no tile found for code: "+tileCode+", or query="+query.toString());
 		}
-		GameObject tile = tiles.get(0);
+		GameObject tile = (GameObject) tiles.get(0);
 		return (TileComponent)RealmComponent.getRealmComponent(tile);
 	}
 	public void setRandomClearing() {
-			ArrayList<ClearingDetail> clearings = tile.getClearings();
+			ArrayList clearings = tile.getClearings();
 			int random = RandomNumber.getRandom(clearings.size());
-			clearing = clearings.get(random);
+			clearing = (ClearingDetail) clearings.get(random);
 	}
 	
 	public void energizeItems() {
@@ -284,14 +284,16 @@ public class TileLocation {
 	
 	public void placeScatteredHorse() {
 		GameObject horse = null;
-		for (GameObject go : tile.getGameObject().getHold()) {
+		for (java.util.Iterator _j14it1488 = (tile.getGameObject().getHold()).iterator(); _j14it1488.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1488.next();
 			if (go.hasThisAttribute(RealmComponent.HORSE) || go.hasThisAttribute(RealmComponent.MONSTER_STEED)) {
 				horse = go;
 			}
 		}
 		if (horse!=null) {
-			ArrayList<ClearingDetail> possibleClearings = new ArrayList<ClearingDetail>();
-			for (ClearingDetail cl : tile.getClearings()) {
+			ArrayList possibleClearings = new ArrayList();
+			for (java.util.Iterator _j14it1489 = (tile.getClearings()).iterator(); _j14it1489.hasNext(); ) {
+			  ClearingDetail cl = (ClearingDetail) _j14it1489.next();
 				if (!cl.isCave() || horse.hasThisAttribute(Constants.STEED_SURVIVES_CAVES)) {
 					possibleClearings.add(cl);
 				}
@@ -300,7 +302,7 @@ public class TileLocation {
 				ClearingUtility.moveToLocation(horse,null);
 				return;
 			}
-			ClearingDetail chosenCl = possibleClearings.get(RandomNumber.getRandom(possibleClearings.size()));
+			ClearingDetail chosenCl = (ClearingDetail) possibleClearings.get(RandomNumber.getRandom(possibleClearings.size()));
 			TileLocation chosenTileLocation = new TileLocation(chosenCl);
 			ClearingUtility.moveToLocation(horse,chosenTileLocation);
 			RealmUtility.sortGameObjectsHold(chosenTileLocation.tile.getGameObject(),false);

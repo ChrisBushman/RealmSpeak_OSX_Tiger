@@ -111,9 +111,11 @@ public class Note {
 	public String getPlayerName() {
 		return playerName;
 	}
-	public ArrayList<String> getNoteAsList() {
-		ArrayList<String> list = new ArrayList<String>();
-		for(String n:note.split("(, |and )")) {
+	public ArrayList getNoteAsList() {
+		ArrayList list = new ArrayList();
+		String[] _split1470 = note.split("(, |and )");
+		for (int _i1470 = 0; _i1470 < _split1470.length; _i1470++) {
+			String n = _split1470[_i1470];
 			list.add(n.trim());
 		}
 		return list;
@@ -121,7 +123,8 @@ public class Note {
 	public static void main(String[] args) {
 		String val = "this, that, those and the other";
 		String[] token = val.split("(, |and )");
-		for(String n:token) {
+		for (int _i1471 = 0; _i1471 < token.length; _i1471++) {
+			String n = token[_i1471];
 			System.out.println(n);
 		}
 	}

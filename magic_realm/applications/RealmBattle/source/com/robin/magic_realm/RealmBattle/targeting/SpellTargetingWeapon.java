@@ -20,9 +20,10 @@ public class SpellTargetingWeapon extends SpellTargetingSingle {
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
 		// Targets one weapon counter, native counter, Goblin counter, Ogre counter or Giant's club
 		TileLocation loc = battleModel.getBattleLocation();
-		Collection<RealmComponent> realmComponents = loc.clearing.getDeepClearingComponents();
+		Collection realmComponents = loc.clearing.getDeepClearingComponents();
 		realmComponents = CombatSheet.filterNativeFriendly(activeParticipant, realmComponents);
-		for (RealmComponent rc : realmComponents) {
+		for (java.util.Iterator _j14it845 = (realmComponents).iterator(); _j14it845.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it845.next();
 			if (rc.isWeapon() || (rc.isTreasure() && rc.getGameObject().hasThisAttribute(RealmComponent.WEAPON) && !spell.getGameObject().hasThisAttribute(NON_TREASURE_WEAPON))) {
 				gameObjects.add(rc.getGameObject());
 				identifiers.add(rc.getGameObject().getHeldBy().getName());

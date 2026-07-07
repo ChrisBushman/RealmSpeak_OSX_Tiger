@@ -4,7 +4,7 @@ import java.util.*;
 
 import com.robin.general.util.RandomNumber;
 
-public class GamePool extends ArrayList<GameObject> {
+public class GamePool extends ArrayList {
 
 	public static final int RANDOM = 0;
 	public static final int FROM_BEGINNING = 1;
@@ -21,17 +21,17 @@ public class GamePool extends ArrayList<GameObject> {
 		random = new Random();
 	}
 	
-	public GamePool(Collection<GameObject> c) {
+	public GamePool(Collection c) {
 		super();
 		addAll(c);
 		random = new Random();
 	}
 	
 	public GameObject getGameObject(int index) {
-		return get(index);
+		return (GameObject) get(index);
 	}
-	
-	public ArrayList<GameObject> pick(int number,int type) {
+
+	public ArrayList pick(int number,int type) {
 		GamePool temp = new GamePool();
 		move(temp,number,type);
 		return temp;
@@ -40,10 +40,10 @@ public class GamePool extends ArrayList<GameObject> {
 	public GameObject findFirst(String keyVals) {
 		return findFirst(makeKeyVals(keyVals));
 	}
-	public GameObject findFirst(Collection<String> keyVals) {
-		ArrayList<GameObject> list = find(keyVals);
+	public GameObject findFirst(Collection keyVals) {
+		ArrayList list = find(keyVals);
 		if (!list.isEmpty()) {
-			return list.get(0);
+			return (GameObject) list.get(0);
 		}
 		return null;
 	}
@@ -51,16 +51,16 @@ public class GamePool extends ArrayList<GameObject> {
 	/**
 	 * Locates all GameObjects that have all members of "keyVals" in their attributes
 	 */
-	public ArrayList<GameObject> find(String keyVals) {
+	public ArrayList find(String keyVals) {
 		return find(makeKeyVals(keyVals));
 	}
 	/**
 	 * Locates all GameObjects that have all members of "keyVals" in their attributes
 	 */
-	public ArrayList<GameObject> find(Collection<String> keyVals) {
-		ArrayList<GameObject> foundObjects = new ArrayList<GameObject>();
+	public ArrayList find(Collection keyVals) {
+		ArrayList foundObjects = new ArrayList();
 		for (int i=0;i<size();i++) {
-			GameObject go = get(i);
+			GameObject go = (GameObject) get(i);
 			if (go.hasAllKeyVals(keyVals)) {
 				foundObjects.add(go);
 			}
@@ -70,10 +70,10 @@ public class GamePool extends ArrayList<GameObject> {
 	/**
 	 * This is useful for translating the hold into a generic typed array
 	 */
-	public ArrayList<GameObject> findAll() {
-		ArrayList<GameObject> foundObjects = new ArrayList<GameObject>();
+	public ArrayList findAll() {
+		ArrayList foundObjects = new ArrayList();
 		for (int i=0;i<size();i++) {
-			GameObject go = get(i);
+			GameObject go = (GameObject) get(i);
 			foundObjects.add(go);
 		}
 		return foundObjects;
@@ -81,16 +81,16 @@ public class GamePool extends ArrayList<GameObject> {
 	/**
 	 * Locates and extracts (removes) all GameObjects that have all members of "keyVals" in their attributes
 	 */
-	public ArrayList<GameObject> extract(String keyVals) {
+	public ArrayList extract(String keyVals) {
 		return extract(makeKeyVals(keyVals),0);
 	}
-	public ArrayList<GameObject> extract(String keyVals,int limit) {
+	public ArrayList extract(String keyVals,int limit) {
 		return extract(makeKeyVals(keyVals),limit);
 	}
 	/**
 	 * Locates and extracts (removes) all GameObjects that have all members of "keyVals" in their attributes
 	 */
-	public ArrayList<GameObject> extract(Collection<String> keyVals) {
+	public ArrayList extract(Collection keyVals) {
 		return extract(keyVals,0);
 	}
 	/**
@@ -99,9 +99,10 @@ public class GamePool extends ArrayList<GameObject> {
 	 * @param keyVals		The keyvals
 	 * @param limit		The maximum number of objects to extract, or if less than 1, all of them.
 	 */
-	public ArrayList<GameObject> extract(Collection<String> keyVals,int limit) {
-		ArrayList<GameObject> extractedObjects = find(keyVals);
-		for (GameObject extracted:extractedObjects) {
+	public ArrayList extract(Collection keyVals,int limit) {
+		ArrayList extractedObjects = find(keyVals);
+		for (java.util.Iterator _j14it126 = (extractedObjects).iterator(); _j14it126.hasNext(); ) {
+		  GameObject extracted = (GameObject) _j14it126.next();
 			remove(extracted);
 			if (limit>0) {
 				limit--;
@@ -290,9 +291,9 @@ public class GamePool extends ArrayList<GameObject> {
 	/**
 	 * Convenience method for making a keyVal collection from a String
 	 */
-	public static ArrayList<String> makeKeyVals(String string) {
+	public static ArrayList makeKeyVals(String string) {
 		StringTokenizer tokens = new StringTokenizer(string,",");
-		ArrayList<String> keyVals = new ArrayList<String>();
+		ArrayList keyVals = new ArrayList();
 		while(tokens.hasMoreTokens()) {
 			keyVals.add(tokens.nextToken());
 		}

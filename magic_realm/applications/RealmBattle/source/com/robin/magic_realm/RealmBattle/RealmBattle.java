@@ -29,8 +29,9 @@ public class RealmBattle {
 		logger.fine("-------");
 		RealmComponent.resetTargetIndex(data);
 		GamePool pool = new GamePool(RealmObjectMaster.getRealmObjectMaster(data).getPlayerCharacterObjects());
-		Collection<GameObject> characterGameObjects = pool.find(CharacterWrapper.getKeyVals());
-		for (GameObject go : characterGameObjects) {
+		Collection characterGameObjects = pool.find(CharacterWrapper.getKeyVals());
+		for (java.util.Iterator _j14it656 = (characterGameObjects).iterator(); _j14it656.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it656.next();
 			// Clear combat info
 			CharacterWrapper character = new CharacterWrapper(go);
 			logger.finer(character.getCharacterName());
@@ -76,12 +77,13 @@ public class RealmBattle {
 		
 		BattlesWrapper battles = getBattles(data);
 		
-		ArrayList<TileLocation> battleLocations = new ArrayList<TileLocation>();
+		ArrayList battleLocations = new ArrayList();
 		
 		// Find all combat clearings by locating all active characters and leaders
 		GamePool pool = new GamePool(RealmObjectMaster.getRealmObjectMaster(data).getPlayerCharacterObjects());
-		Collection<GameObject> characterGameObjects = pool.extract(CharacterWrapper.getKeyVals());
-		for (GameObject cgo : characterGameObjects) {
+		Collection characterGameObjects = pool.extract(CharacterWrapper.getKeyVals());
+		for (java.util.Iterator _j14it657 = (characterGameObjects).iterator(); _j14it657.hasNext(); ) {
+		  GameObject cgo = (GameObject) _j14it657.next();
 			CharacterWrapper character = new CharacterWrapper(cgo);
 			if (character.isActive()) {
 				TileLocation tl = character.getCurrentLocation();
@@ -93,16 +95,18 @@ public class RealmBattle {
 						if (battleModel.getDenizenBattleGroup()==null && !character.getWantsCombat()) {
 							// make sure there is at least one character battling another (might all be friendly)
 							boolean battlingChars = false;
-							ArrayList<RealmComponent> leaders = battleModel.getAllLeaders();
+							ArrayList leaders = battleModel.getAllLeaders();
 							leaders.addAll(battleModel.getAllOwningCharacters());
-							for (RealmComponent rc1 : leaders) {
+							for (java.util.Iterator _j14it658 = (leaders).iterator(); _j14it658.hasNext(); ) {
+							  RealmComponent rc1 = (RealmComponent) _j14it658.next();
 								CharacterWrapper char1 = new CharacterWrapper(rc1.getGameObject());
 								if (char1.getWantsCombat()) {
 									// If somebody wants combat, then get out of here anyway
 									battlingChars = true;
 								}
 								else {
-									for (RealmComponent rc2 : leaders) {
+									for (java.util.Iterator _j14it659 = (leaders).iterator(); _j14it659.hasNext(); ) {
+									  RealmComponent rc2 = (RealmComponent) _j14it659.next();
 										if (char1.isEnemy(rc2.getGameObject())) {
 											battlingChars = true;
 											break;
@@ -137,7 +141,7 @@ public class RealmBattle {
 		if (battleLocations.size()>0) {
 			while(battleLocations.size()>0) {
 				int r = RandomNumber.getRandom(battleLocations.size());
-				TileLocation location = battleLocations.remove(r);
+				TileLocation location = (TileLocation) battleLocations.remove(r);
 				battles.addBattleLocation(location,data);
 			}
 			battles.initNextBattleLocation(data); // this starts it off
@@ -150,12 +154,13 @@ public class RealmBattle {
 		BattlesWrapper battles = getBattles(data);
 		return battles.getCurrentBattleLocation(data);
 	}
-	public static HashLists<Integer,CharacterWrapper> findCharacterStates(TileLocation currentCombatLocation,GameData data) {
+	public static HashLists findCharacterStates(TileLocation currentCombatLocation,GameData data) {
 		// Get all characters involved in battle
 		BattleModel model = buildBattleModel(currentCombatLocation,data);
-		Collection<RealmComponent> c = model.getAllOwningCharacters();
-		HashLists<Integer,CharacterWrapper> lists = new HashLists<Integer,CharacterWrapper>();
-		for (RealmComponent rc : c) {
+		Collection c = model.getAllOwningCharacters();
+		HashLists lists = new HashLists();
+		for (java.util.Iterator _j14it660 = (c).iterator(); _j14it660.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it660.next();
 			CharacterWrapper aChar = new CharacterWrapper(rc.getGameObject());
 			int astate = aChar.getCombatStatus();
 			if (astate>0) {
@@ -171,11 +176,11 @@ public class RealmBattle {
 		BattlesWrapper battles = getBattles(data);
 		battles.initNextBattleLocation(data);
 	}
-	public static HashLists<Integer,CharacterWrapper> currentCombatHashLists(GameData data) {
+	public static HashLists currentCombatHashLists(GameData data) {
 		logger.fine("-------");
 		TileLocation currentCombatLocation = getCurrentCombatLocation(data);
 		if (currentCombatLocation!=null && currentCombatLocation.hasClearing()) {
-			HashLists<Integer,CharacterWrapper> lists = findCharacterStates(currentCombatLocation,data);
+			HashLists lists = findCharacterStates(currentCombatLocation,data);
 			return lists;
 		}
 		return null;
@@ -210,8 +215,8 @@ public class RealmBattle {
 			
 			checkForHurricaneWinds(currentCombatLocation,data);
 			
-			HashLists<Integer,CharacterWrapper> lists = findCharacterStates(currentCombatLocation,data);
-			ArrayList<Integer> states = new ArrayList<Integer>(lists.keySet());
+			HashLists lists = findCharacterStates(currentCombatLocation,data);
+			ArrayList states = new ArrayList(lists.keySet());
 			
 			if (states.isEmpty()) { // this can happen when a character runs!  (I think...)
 				updateClearingOrder(data);
@@ -221,17 +226,17 @@ public class RealmBattle {
 			Collections.sort(states);
 			
 			// Determine the "first" state
-			Integer firstState = states.iterator().next();
-			
+			Integer firstState = (Integer) states.iterator().next();
+
 			// Get all those characters in the first state
-			ArrayList<CharacterWrapper> choices = lists.getList(firstState);
-				
+			ArrayList choices = lists.getList(firstState);
+
 			logger.finer("firstState="+firstState+" for "+choices);
-			
+
 			if (firstState.intValue()<Constants.COMBAT_WAIT // This first test seems to be useless....
 					&& firstState.intValue()==Constants.COMBAT_RESOLVING) {
 				// Might be stuck in a loop if all characters are hidden!
-				CharacterWrapper active = choices.iterator().next();
+				CharacterWrapper active = (CharacterWrapper) choices.iterator().next();
 				if (!requiresCombatInteraction(currentCombatLocation,active)) {
 					active.setCombatStatus(getNextWaitState(firstState.intValue()));
 					logger.finer(active.getCharacterName()+" No interaction needed, moving to next state...");
@@ -250,14 +255,16 @@ public class RealmBattle {
 					// Only one state, means everyone is the same.
 					// There is a special case where every character chooses to skip combat.  Check for this.
 					boolean skipCombat = true;
-					for (CharacterWrapper character : choices) {
+					for (java.util.Iterator _j14it661 = (choices).iterator(); _j14it661.hasNext(); ) {
+					  CharacterWrapper character = (CharacterWrapper) _j14it661.next();
 						CombatWrapper combat = new CombatWrapper(character.getGameObject());
 						if (!combat.getSkipCombat()) {
 							skipCombat = false;
 							break;
 						}
 					}
-					for (CharacterWrapper character : choices) {
+					for (java.util.Iterator _j14it662 = (choices).iterator(); _j14it662.hasNext(); ) {
+					  CharacterWrapper character = (CharacterWrapper) _j14it662.next();
 						CombatWrapper combat = new CombatWrapper(character.getGameObject());
 						combat.setSkipCombat(false); // reset it now
 					}
@@ -318,7 +325,8 @@ public class RealmBattle {
 						case Constants.COMBAT_DISENGAGE:
 							if (disengage(currentCombatLocation,data)) {
 								// reset back to LURE
-								for (CharacterWrapper one : choices) {
+								for (java.util.Iterator _j14it663 = (choices).iterator(); _j14it663.hasNext(); ) {
+								  CharacterWrapper one = (CharacterWrapper) _j14it663.next();
 									one.setCombatStatus(Constants.COMBAT_LURE+Constants.COMBAT_WAIT);
 								}
 							}
@@ -335,8 +343,8 @@ public class RealmBattle {
 				CharacterWrapper active = null;
 				if (actionState==Constants.COMBAT_RESOLVING) {
 					// RESOLVING happens simultaneously
-					for (Iterator<CharacterWrapper> n=choices.iterator();n.hasNext();) {
-						active = n.next();
+					for (Iterator n=choices.iterator();n.hasNext();) {
+						active = (CharacterWrapper) n.next();
 						active.setCombatStatus(actionState);
 					}
 					logger.finer("all.setCombatStatus "+actionState);
@@ -347,8 +355,10 @@ public class RealmBattle {
 					// TODO But DONT preserve the daylight order for TARGET selection...
 					
 					if (actionState==Constants.COMBAT_ASSIGN) {
-						Collections.sort(choices,new Comparator<CharacterWrapper>() {
-							public int compare(CharacterWrapper c1,CharacterWrapper c2) {
+						Collections.sort(choices,new Comparator() {
+							public int compare(Object o1,Object o2) {
+								CharacterWrapper c1 = (CharacterWrapper) o1;
+								CharacterWrapper c2 = (CharacterWrapper) o2;
 								int ret = 0;
 								ret = c1.getMeleePlayOrder()-c2.getMeleePlayOrder();
 								return ret;
@@ -356,8 +366,10 @@ public class RealmBattle {
 						});
 					}
 					else {
-						Collections.sort(choices,new Comparator<CharacterWrapper>() {
-							public int compare(CharacterWrapper c1,CharacterWrapper c2) {
+						Collections.sort(choices,new Comparator() {
+							public int compare(Object o1,Object o2) {
+								CharacterWrapper c1 = (CharacterWrapper) o1;
+								CharacterWrapper c2 = (CharacterWrapper) o2;
 								int ret = 0;
 								ret = c1.getCombatPlayOrder()-c2.getCombatPlayOrder();
 								return ret;
@@ -366,7 +378,7 @@ public class RealmBattle {
 					}
 					
 					// Take the first one (because of the sort, should be the next in line)
-					active = choices.iterator().next();
+					active = (CharacterWrapper) choices.iterator().next();
 					active.setCombatStatus(actionState);
 					logger.finer(active.getCharacterName()+" setCombatStatus "+actionState);
 				}
@@ -404,8 +416,9 @@ public class RealmBattle {
 		BattleModel model = buildBattleModel(current,character.getGameObject().getGameData());
 		boolean canSkipCombat = model.canSkipCombat(character.getCombatStatus());
 		BattleGroup denizens = model.getDenizenBattleGroup();
-		ArrayList<RealmComponent> sheetOwners = new ArrayList<RealmComponent>();
-		for (RealmComponent rc : model.getAllBattleParticipants(true)) {
+		ArrayList sheetOwners = new ArrayList();
+		for (java.util.Iterator _j14it664 = (model.getAllBattleParticipants(true)).iterator(); _j14it664.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it664.next();
 			CombatWrapper rcCombat = new CombatWrapper(rc.getGameObject());
 			if (rcCombat.isSheetOwner()) {
 				sheetOwners.add(rc);
@@ -427,7 +440,8 @@ public class RealmBattle {
 				}
 				// Check to see if any of the character's hirelings can lure
 				boolean hirelingsCanLure = false;
-				for (RealmComponent test : model.getBattleGroup(charRc).getBattleParticipants()) {
+				for (java.util.Iterator _j14it665 = (model.getBattleGroup(charRc).getBattleParticipants()).iterator(); _j14it665.hasNext(); ) {
+				  RealmComponent test = (RealmComponent) _j14it665.next();
 					if (!test.isCharacter()) {
 						if (model.getAttackersFor(test).size()==0) { // found one!
 							hirelingsCanLure = true;
@@ -443,7 +457,8 @@ public class RealmBattle {
 				// Check for unassigned denizens
 				RealmComponent characterTarget = null;
 				if (denizens!=null && denizens.size()>0) {
-					for (RealmComponent rc : denizens.getBattleParticipants()) {
+					for (java.util.Iterator _j14it666 = (denizens.getBattleParticipants()).iterator(); _j14it666.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it666.next();
 						if (character.isMistLike() && !rc.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE)
 								&& (!rc.isCharacter() || !(new CharacterWrapper(rc.getGameObject())).affectedByKey(Constants.IGNORE_MIST_LIKE))) continue;
 						RealmComponent target = rc.getTarget();
@@ -493,7 +508,8 @@ public class RealmBattle {
 				int count = 0;
 				int countAll = 0;
 				boolean ignoreMistLike = false;
-				for (CharacterChitComponent chit : model.getAllParticipatingCharacters()) {
+				for (java.util.Iterator _j14it667 = (model.getAllParticipatingCharacters()).iterator(); _j14it667.hasNext(); ) {
+				  CharacterChitComponent chit = (CharacterChitComponent) _j14it667.next();
 					if (chit.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE)) {
 						ignoreMistLike = true;
 					}
@@ -504,9 +520,10 @@ public class RealmBattle {
 				}
 				boolean multipleCharacters = count>1 || (countAll>1 && ignoreMistLike);
 				BattleGroup battleGroup = model.getParticipantsBattleGroup(RealmComponent.getRealmComponent(character.getGameObject()));
-				Collection<RealmComponent> hirelings = battleGroup.getHirelings();
+				Collection hirelings = battleGroup.getHirelings();
 				boolean unassignedHirelings = false;
-				for (RealmComponent hireling : hirelings) {
+				for (java.util.Iterator _j14it668 = (hirelings).iterator(); _j14it668.hasNext(); ) {
+				  RealmComponent hireling = (RealmComponent) _j14it668.next();
 					if (model.getAttackersFor(hireling).size()==0) {
 						unassignedHirelings = true;
 						break;
@@ -526,15 +543,16 @@ public class RealmBattle {
 					// Test to see if the character is present and has potential targets to assign
 					BattleGroup group = model.getBattleGroup(charRc);
 					if (activeCharacterIsHere && !character.isMistLike()) {
-						Collection<RealmComponent> c = model.getAllOtherBattleParticipants(group,true,character.getTreacheryPreference());
+						Collection c = model.getAllOtherBattleParticipants(group,true,character.getTreacheryPreference());
 						if (c.size()>0) {
 							return true;
 						}
 					}
 					else {
 						// Test to see if any hireling has any potential targets (more than one attacker)
-						for (RealmComponent rc : group.getBattleParticipants()) {
-							Collection<RealmComponent> c = model.getAttackersFor(rc);
+						for (java.util.Iterator _j14it669 = (group.getBattleParticipants()).iterator(); _j14it669.hasNext(); ) {
+						  RealmComponent rc = (RealmComponent) _j14it669.next();
+							Collection c = model.getAttackersFor(rc);
 							if (c.size()>1) {
 								return true;
 							}
@@ -545,7 +563,7 @@ public class RealmBattle {
 			case Constants.COMBAT_POSITIONING: // playing attacks and manuevers
 				return true; // Show positioning every round - this allows hidden characters to extend combat by fatiguing on purpose...
 			case Constants.COMBAT_TACTICS: // flips denizens, repositions, allows characters that *can* to replace MOVE or FIGHT
-				Collection<RealmComponent> attackers = model.getAttackersFor(RealmComponent.getRealmComponent(character.getGameObject()));
+				Collection attackers = model.getAttackersFor(RealmComponent.getRealmComponent(character.getGameObject()));
 				RealmComponent attacker = RealmComponent.getRealmComponent(character.getGameObject());
 				RealmComponent target = attacker.getTarget();
 				RealmComponent target2 = attacker.get2ndTarget();
@@ -581,11 +599,12 @@ public class RealmBattle {
 	 * @param data			The GameData
 	 */
 	public static BattleModel buildBattleModel(TileLocation tl,GameData data) {
-		HashLists<String,RealmComponent> lists = new HashLists<String,RealmComponent>();
-		Collection<RealmComponent> c = ClearingUtility.getCombatantsInClearing(tl,data);
+		HashLists lists = new HashLists();
+		Collection c = ClearingUtility.getCombatantsInClearing(tl,data);
 		
 		// Hash all combatants by ownerid - uncontrolled denizens will be owned by UNCONTROLLED
-		for (RealmComponent rc : c) {
+		for (java.util.Iterator _j14it670 = (c).iterator(); _j14it670.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it670.next();
 			String ownerid = rc.getOwnerId(); // Note:  characters own themselves
 			if (ownerid==null) {
 				// uncontrolled denizen
@@ -598,7 +617,8 @@ public class RealmBattle {
 		BattleModel model = new BattleModel(data,tl);
 		
 		// Iterate through the owner lists, and create separate BattleGroup objects for each
-		for (String ownerid : lists.keySet()) {	
+		for (java.util.Iterator _j14it671 = (lists.keySet()).iterator(); _j14it671.hasNext(); ) {
+		  String ownerid = (String) _j14it671.next();	
 			// Create a BattleGroup for the owner
 			RealmComponent owner = RealmComponent.getRealmComponentFromId(data,ownerid); // could be null
 			BattleGroup group = new BattleGroup(owner);
@@ -611,8 +631,9 @@ public class RealmBattle {
 			}
 			
 			// Put everyone in the list into the group
-			ArrayList<RealmComponent> list = lists.getList(ownerid);
-			for (RealmComponent rc : list) {
+			ArrayList list = lists.getList(ownerid);
+			for (java.util.Iterator _j14it672 = (list).iterator(); _j14it672.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it672.next();
 				group.addBattleParticipant((BattleChit)rc);
 			}
 			
@@ -659,7 +680,8 @@ public class RealmBattle {
 	
 	public static void checkForHurricaneWinds(TileLocation location,GameData data) {
 		BattleModel model = buildBattleModel(location,data);
-		for (RealmComponent rc : model.getAllBattleParticipants(true)) {
+		for (java.util.Iterator _j14it673 = (model.getAllBattleParticipants(true)).iterator(); _j14it673.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it673.next();
 			String blownSpellId = rc.getGameObject().getThisAttribute(Constants.BLOWS_TARGET);
 			if (blownSpellId!=null) {
 				model.blowTarget(blownSpellId, rc);
@@ -704,8 +726,9 @@ public class RealmBattle {
 		boolean fatigue = tile.getWasFatigue(); // from running characters (rare situation)
 		boolean spellCasting = false;
 		if (!fatigue) { // only continue if we got false on fatigue
-			ArrayList<CharacterChitComponent> characters = model.getAllParticipatingCharacters();
-			for (RealmComponent rc : characters) {
+			ArrayList characters = model.getAllParticipatingCharacters();
+			for (java.util.Iterator _j14it674 = (characters).iterator(); _j14it674.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it674.next();
 				CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 				Effort effortUsed = BattleUtility.getEffortUsed(character);
 				int free = character.getEffortFreeAsterisks();
@@ -816,12 +839,14 @@ public class RealmBattle {
 		cw.setWasSpellCasting(false);
 		cw.setWasUnhiding(false);
 		cw.setTremendousMonsterFlippedRedSideUp(false);
-		for (GameObject undead : cw.getRaisedUndeads()) {
+		for (java.util.Iterator _j14it675 = (cw.getRaisedUndeads()).iterator(); _j14it675.hasNext(); ) {
+		  GameObject undead = (GameObject) _j14it675.next();
 			RealmUtility.makeDead(RealmComponent.getRealmComponent(undead));
 		}
 		
 		// Need to clear out all monster combat info here too!
-		for (RealmComponent rc : location.clearing.getClearingComponents()) {
+		for (java.util.Iterator _j14it676 = (location.clearing.getClearingComponents()).iterator(); _j14it676.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it676.next();
 			CombatWrapper.clearAllCombatInfo(rc.getGameObject());
 			rc.clearTargets();
 			

@@ -10,25 +10,25 @@ import com.robin.general.util.*;
 
 public class GameOptionPane extends JPanel implements ActionListener {
 
-	private OrderedHashtable<String, String> keyHash;
+	private OrderedHashtable keyHash;
 	private OrderedHashtable tabHash; // String tabKey:OrderedHashtable options or String tabKey:Component c
-	private Hashtable<String, String> tabDescriptionHash;
+	private Hashtable tabDescriptionHash;
 	private int tabPlacement = SwingConstants.TOP;
-	private ArrayList<ActionListener> actionListeners;
+	private ArrayList actionListeners;
 	
 	public GameOptionPane() {
 		this(SwingConstants.TOP);
 	}
 	public GameOptionPane(int tabPlacement) {
 		super(new BorderLayout());
-		keyHash = new OrderedHashtable<String, String>();
+		keyHash = new OrderedHashtable();
 		tabHash = new OrderedHashtable();
-		tabDescriptionHash = new Hashtable<String, String>();
+		tabDescriptionHash = new Hashtable();
 		this.tabPlacement = tabPlacement;
 	}
 	public void addActionListener(ActionListener actionListener) {
 		if (actionListeners==null) {
-			actionListeners = new ArrayList<ActionListener>();
+			actionListeners = new ArrayList();
 		}
 		if (!actionListeners.contains(actionListener)) {
 			actionListeners.add(actionListener);
@@ -48,15 +48,16 @@ public class GameOptionPane extends JPanel implements ActionListener {
 	public String[] getOptionDescriptions(String tabKey,boolean active) {
 		Object obj = tabHash.get(tabKey);
 		if (obj instanceof OrderedHashtable) {
-			ArrayList<String> rules = new ArrayList<String>();
-			OrderedHashtable<String,GameOption> options = (OrderedHashtable)obj;
-			for (String key : options.orderedKeys()) {
-				GameOption option = options.get(key);
+			ArrayList rules = new ArrayList();
+			OrderedHashtable options = (OrderedHashtable)obj;
+			for (java.util.Iterator _j14it12 = (options.orderedKeys()).iterator(); _j14it12.hasNext(); ) {
+			  String key = (String) _j14it12.next();
+				GameOption option = (GameOption) options.get(key);
 				if (active == option.isActive()) {
 					rules.add(option.getDescription());
 				}
 			}
-			return rules.toArray(new String[rules.size()]);
+			return (String[]) rules.toArray(new String[rules.size()]);
 		}
 		return null;
 	}
@@ -74,9 +75,9 @@ public class GameOptionPane extends JPanel implements ActionListener {
 	}
 	public void addOption(String tabKey,GameOption option) {
 		if (!keyHash.containsKey(option.getKey())) {
-			OrderedHashtable<String, GameOption> options = (OrderedHashtable)tabHash.get(tabKey);
+			OrderedHashtable options = (OrderedHashtable)tabHash.get(tabKey);
 			if (options==null) {
-				options = new OrderedHashtable<String, GameOption>();
+				options = new OrderedHashtable();
 				tabHash.put(tabKey,options);
 			}
 			options.put(option.getKey(),option);
@@ -90,10 +91,10 @@ public class GameOptionPane extends JPanel implements ActionListener {
 	}
 	public GameOption getGameOption(String optionKey) {
 		GameOption option = null;
-		String tabKey = keyHash.get(optionKey);
+		String tabKey = (String) keyHash.get(optionKey);
 		if (tabKey!=null) {
-			OrderedHashtable<String, GameOption> options = (OrderedHashtable)tabHash.get(tabKey);
-			option = options.get(optionKey);
+			OrderedHashtable options = (OrderedHashtable)tabHash.get(tabKey);
+			option = (GameOption) options.get(optionKey);
 		}
 		return option;
 	}
@@ -112,7 +113,7 @@ public class GameOptionPane extends JPanel implements ActionListener {
 		}
 		throw new IllegalStateException("!!");
 	}
-	public Collection<String> getGameOptionKeys() {
+	public Collection getGameOptionKeys() {
 		return keyHash.keySet();
 	}
 	public void buildPane() {
@@ -142,7 +143,7 @@ public class GameOptionPane extends JPanel implements ActionListener {
 			}
 			
 			// Add description
-			String html = tabDescriptionHash.get(tabKey);
+			String html = (String) tabDescriptionHash.get(tabKey);
 			if (html!=null) {
 				Box hbox = Box.createHorizontalBox();
 					JEditorPane pane = new JEditorPane("text/html",html.toUpperCase()) {
@@ -216,7 +217,8 @@ public class GameOptionPane extends JPanel implements ActionListener {
 	private void fireActionPerformed() {
 		if (actionListeners==null) return;
 		ActionEvent ev = new ActionEvent(this,0,"");
-		for (ActionListener actionListener:actionListeners) {
+		for (java.util.Iterator _j14it13 = (actionListeners).iterator(); _j14it13.hasNext(); ) {
+		  ActionListener actionListener = (ActionListener) _j14it13.next();
 			actionListener.actionPerformed(ev);
 		}
 	}

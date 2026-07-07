@@ -21,7 +21,7 @@ import com.robin.magic_realm.components.wrapper.*;
 
 public class CharacterActionPanel extends CharacterFramePanel {
 	
-	private static Hashtable<Integer, ImageIcon> dieIconHash = null;
+	private static Hashtable dieIconHash = null;
 	
 	private HostPrefWrapper hostPrefs;
 	
@@ -123,10 +123,10 @@ public class CharacterActionPanel extends CharacterFramePanel {
 		}
 	}
 	private void showKills(int row) {
-		Collection<String> allDays = getCharacter().getGameObject().getAttributeList(getCharacter().getBlockName(),CharacterWrapper.ALL_DAYS);
+		Collection allDays = getCharacter().getGameObject().getAttributeList(getCharacter().getBlockName(),CharacterWrapper.ALL_DAYS);
 		if (allDays!=null && row<allDays.size()) {
-			String dayKey = (new ArrayList<String>(allDays)).get(row);
-			ArrayList<GameObject> kills = getCharacter().getKills(dayKey);
+			String dayKey = (String) (new ArrayList(allDays)).get(row);
+			ArrayList kills = getCharacter().getKills(dayKey);
 			RealmObjectPanel panel = new RealmObjectPanel();
 			panel.addObjects(kills);
 			JOptionPane.showMessageDialog(getGameHandler().getMainFrame(),panel,getCharacter().getCharacterName()+" Kills",JOptionPane.INFORMATION_MESSAGE,null);
@@ -180,7 +180,7 @@ public class CharacterActionPanel extends CharacterFramePanel {
 		public ActionHistoryTableModel() {
 		}
 		public int getRowCount() {
-			Collection<String> allDays = getCharacter().getAllDayKeys();
+			Collection allDays = getCharacter().getAllDayKeys();
 			return allDays==null?0:allDays.size();
 		}
 		public int getColumnCount() {
@@ -193,9 +193,9 @@ public class CharacterActionPanel extends CharacterFramePanel {
 			return columnClass[column];
 		}
 		public Object getValueAt(int row, int column) {
-			ArrayList<String> allDays = getCharacter().getGameObject().getAttributeList(getCharacter().getBlockName(),CharacterWrapper.ALL_DAYS);
+			ArrayList allDays = getCharacter().getGameObject().getAttributeList(getCharacter().getBlockName(),CharacterWrapper.ALL_DAYS);
 			if (allDays!=null && row<allDays.size()) {
-				String dayKey = allDays.get(row);
+				String dayKey = (String) allDays.get(row);
 				switch(column) {
 					case TURN:
 						return Integer.valueOf(row+1);
@@ -218,7 +218,7 @@ public class CharacterActionPanel extends CharacterFramePanel {
 						DieRoller roller = getCharacter().getMonsterRoll(dayKey);
 						if (roller!=null) {
 							if (dieIconHash==null) {
-								dieIconHash = new Hashtable<Integer, ImageIcon>();
+								dieIconHash = new Hashtable();
 								for (int i=1;i<=6;i++) {
 									DieRoller dr = new DieRoller(String.valueOf(i),16,4);
 									dr.setAllRed();
@@ -226,7 +226,7 @@ public class CharacterActionPanel extends CharacterFramePanel {
 								}
 							}
 							if (roller.getNumberOfDice()==1) {
-								return dieIconHash.get(roller.getValue(0));
+								return dieIconHash.get(new Integer(roller.getValue(0)));
 							}
 							roller = new DieRoller(roller.getStringResult(),16,4);
 							roller.setAllRed();
@@ -234,7 +234,7 @@ public class CharacterActionPanel extends CharacterFramePanel {
 						}
 						return null;
 					case KILLS:
-						ArrayList<GameObject> kills = getCharacter().getKills(dayKey);
+						ArrayList kills = getCharacter().getKills(dayKey);
 						return kills.isEmpty()?"-":String.valueOf(kills.size());
 				}
 			}
@@ -242,20 +242,21 @@ public class CharacterActionPanel extends CharacterFramePanel {
 		}
 		public String getActionString(String dayKey) {
 			boolean today = dayKey.equals(getCharacter().getCurrentDayKey());
-			Collection<String> c = getCharacter().getActions(dayKey);
+			Collection c = getCharacter().getActions(dayKey);
 			if (c!=null) {
 				StringBuffer sb = new StringBuffer();
-				Iterator<String> vai = null;
+				Iterator vai = null;
 				if (today) { // only today is drawn using html
 					sb.append("<html>");
-					Collection<String> v = getCharacter().getCurrentActionValids();
+					Collection v = getCharacter().getCurrentActionValids();
 					if (v==null) {
-						v = new ArrayList<String>();
+						v = new ArrayList();
 					}
 					vai = v.iterator();
 				}
 				int zero = sb.length();
-				for (String action : c) {			
+				for (java.util.Iterator _j14it1092 = (c).iterator(); _j14it1092.hasNext(); ) {
+				  String action = (String) _j14it1092.next();			
 					// Truncate anything starting with a tilde (~)
 					int tilde = action.indexOf('~');
 					if (tilde>=0) {

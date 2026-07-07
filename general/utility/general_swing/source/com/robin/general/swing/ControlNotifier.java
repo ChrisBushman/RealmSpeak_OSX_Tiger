@@ -9,13 +9,13 @@ import javax.swing.event.*;
 
 public class ControlNotifier implements ActionListener,CaretListener,ChangeListener {
 	
-	private ArrayList<ActionListener> actionListeners;
+	private ArrayList actionListeners;
 	
 	public ControlNotifier() {
 	}
 	public void addActionListener(ActionListener actionListener) {
 		if (actionListeners==null) {
-			actionListeners = new ArrayList<ActionListener>();
+			actionListeners = new ArrayList();
 		}
 		if (!actionListeners.contains(actionListener)) {
 			actionListeners.add(actionListener);
@@ -41,7 +41,8 @@ public class ControlNotifier implements ActionListener,CaretListener,ChangeListe
 	private void fireActionPerformed() {
 		if (actionListeners==null) return;
 		ActionEvent ev = new ActionEvent(this,0,"");
-		for (ActionListener actionListener:actionListeners) {
+		for (java.util.Iterator _j14it23 = (actionListeners).iterator(); _j14it23.hasNext(); ) {
+		  ActionListener actionListener = (ActionListener) _j14it23.next();
 			actionListener.actionPerformed(ev);
 		}
 	}

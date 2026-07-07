@@ -39,12 +39,12 @@ public class DieModEditPanel extends AdvantageEditPanel {
 	
 	// Affected Tables/Actions
 	private AllCheckBox allTablesOption;
-	private ArrayList<JCheckBox> specificTableOptions;
+	private ArrayList specificTableOptions;
 	
 	private AllCheckBox allConditionsOption;
-	private ArrayList<JCheckBox> specificConditionOptions;
+	private ArrayList specificConditionOptions;
 	
-	private Hashtable<String,JCheckBox> optionsHash;
+	private Hashtable optionsHash;
 
 	public DieModEditPanel(CharacterWrapper pChar,String levelKey) {
 		super(pChar,levelKey);
@@ -70,7 +70,7 @@ public class DieModEditPanel extends AdvantageEditPanel {
 		JPanel mainPanel = new JPanel(new GridLayout(1,3));
 		mainPanel.add(typePanel);
 		
-		optionsHash = new Hashtable<String,JCheckBox>();
+		optionsHash = new Hashtable();
 		
 		JPanel tableBox = new JPanel(new BorderLayout());
 		allTablesOption = new AllCheckBox("All Tables");
@@ -79,7 +79,8 @@ public class DieModEditPanel extends AdvantageEditPanel {
 				if (!allTablesOption.isSelected()) {
 					allTablesOption.setSelected(true);
 				}
-				for (JCheckBox option:specificTableOptions) {
+				for (java.util.Iterator _j14it941 = (specificTableOptions).iterator(); _j14it941.hasNext(); ) {
+				  JCheckBox option = (JCheckBox) _j14it941.next();
 					option.setSelected(false);
 				}
 			}
@@ -87,7 +88,7 @@ public class DieModEditPanel extends AdvantageEditPanel {
 		tableBox.add(allTablesOption,"North");
 		JPanel innerTableBox = new JPanel(new GridLayout(1,2));
 		tableBox.add(innerTableBox,"Center");
-		specificTableOptions = new ArrayList<JCheckBox>();
+		specificTableOptions = new ArrayList();
 		allTablesOption.setOptions(specificTableOptions);
 		Box column = null;
 		for (int i=0;i<TABLE.length;i++) {
@@ -108,7 +109,8 @@ public class DieModEditPanel extends AdvantageEditPanel {
 				if (!allConditionsOption.isSelected()) {
 					allConditionsOption.setSelected(true);
 				}
-				for (JCheckBox option:specificConditionOptions) {
+				for (java.util.Iterator _j14it942 = (specificConditionOptions).iterator(); _j14it942.hasNext(); ) {
+				  JCheckBox option = (JCheckBox) _j14it942.next();
 					option.setSelected(false);
 				}
 			}
@@ -116,7 +118,7 @@ public class DieModEditPanel extends AdvantageEditPanel {
 		conditionBox.add(allConditionsOption,"North");
 		JPanel innerConditionBox = new JPanel(new GridLayout(1,2));
 		conditionBox.add(innerConditionBox,"Center");
-		specificConditionOptions = new ArrayList<JCheckBox>();
+		specificConditionOptions = new ArrayList();
 		allConditionsOption.setOptions(specificConditionOptions);
 		column = null;
 		for (int i=0;i<CONDITION.length;i++) {
@@ -133,9 +135,9 @@ public class DieModEditPanel extends AdvantageEditPanel {
 		add(mainPanel,"Center");
 		
 		// Initialize
-		ArrayList<String> diemodList = getAttributeList(Constants.DIEMOD);
+		ArrayList diemodList = getAttributeList(Constants.DIEMOD);
 		if (diemodList!=null && !diemodList.isEmpty()) {
-			String diemod = diemodList.get(0); // only ever ONE of these
+			String diemod = (String) diemodList.get(0); // only ever ONE of these
 			StringTokenizer tokens = new StringTokenizer(diemod,":");
 			if (tokens.countTokens()==3) {
 				String typeKey = tokens.nextToken();
@@ -159,7 +161,7 @@ public class DieModEditPanel extends AdvantageEditPanel {
 			allConditionsOption.setSelected(true);
 		}
 	}
-	private void initOptions(String key,JCheckBox allOption,ArrayList<JCheckBox> targetOptions) {
+	private void initOptions(String key,JCheckBox allOption,ArrayList targetOptions) {
 		StringTokenizer tokens = new StringTokenizer(key,",");
 		while(tokens.hasMoreTokens()) {
 			String option = tokens.nextToken();
@@ -167,14 +169,14 @@ public class DieModEditPanel extends AdvantageEditPanel {
 				allOption.setSelected(true);
 			}
 			else {
-				JCheckBox optionBox = optionsHash.get(option);
+				JCheckBox optionBox = (JCheckBox) optionsHash.get(option);
 				if (targetOptions.contains(optionBox)) {
 					optionBox.setSelected(true);
 				}
 			}
 		}
 	}
-	private Box makeBox(AllCheckBox allButton,ArrayList<JCheckBox> list,String[] options) {
+	private Box makeBox(AllCheckBox allButton,ArrayList list,String[] options) {
 		Box box = Box.createVerticalBox();
 		
 		for (int i=1;i<options.length;i++) {
@@ -221,8 +223,9 @@ public class DieModEditPanel extends AdvantageEditPanel {
 			tableKey.append("all");
 		}
 		else {
-			for (String option:optionsHash.keySet()) {
-				JCheckBox control = optionsHash.get(option);
+			for (java.util.Iterator _j14it943 = (optionsHash.keySet()).iterator(); _j14it943.hasNext(); ) {
+			  String option = (String) _j14it943.next();
+				JCheckBox control = (JCheckBox) optionsHash.get(option);
 				if (control.isSelected() && specificTableOptions.contains(control)) {
 					tableKey.append(option);
 				}
@@ -234,8 +237,9 @@ public class DieModEditPanel extends AdvantageEditPanel {
 			conditionKey.append("all");
 		}
 		else {
-			for (String option:optionsHash.keySet()) {
-				JCheckBox control = optionsHash.get(option);
+			for (java.util.Iterator _j14it944 = (optionsHash.keySet()).iterator(); _j14it944.hasNext(); ) {
+			  String option = (String) _j14it944.next();
+				JCheckBox control = (JCheckBox) optionsHash.get(option);
 				if (control.isSelected() && specificConditionOptions.contains(control)) {
 					conditionKey.append(option);
 				}
@@ -247,7 +251,7 @@ public class DieModEditPanel extends AdvantageEditPanel {
 		fullKey.append(typeKey);
 		fullKey.append(tableKey.toString());
 		fullKey.append(conditionKey.toString());
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList list = new ArrayList();
 		list.add(fullKey.toString());
 		setAttributeList(Constants.DIEMOD,list);
 	}
@@ -268,8 +272,9 @@ public class DieModEditPanel extends AdvantageEditPanel {
 			sb.append(" on the ");
 			int count = 0;
 			StringBufferedList list = new StringBufferedList(", ","and ");
-			for (String option:optionsHash.keySet()) {
-				JCheckBox control = optionsHash.get(option);
+			for (java.util.Iterator _j14it945 = (optionsHash.keySet()).iterator(); _j14it945.hasNext(); ) {
+			  String option = (String) _j14it945.next();
+				JCheckBox control = (JCheckBox) optionsHash.get(option);
 				if (control.isSelected() && specificTableOptions.contains(control)) {
 					list.append(control.getText().toUpperCase());
 					count++;
@@ -282,8 +287,9 @@ public class DieModEditPanel extends AdvantageEditPanel {
 		if (!allConditionsOption.isSelected()) {
 			sb.append(" in the ");
 			StringBufferedList list = new StringBufferedList(", ","or ");
-			for (String option:optionsHash.keySet()) {
-				JCheckBox control = optionsHash.get(option);
+			for (java.util.Iterator _j14it946 = (optionsHash.keySet()).iterator(); _j14it946.hasNext(); ) {
+			  String option = (String) _j14it946.next();
+				JCheckBox control = (JCheckBox) optionsHash.get(option);
 				if (control.isSelected() && specificConditionOptions.contains(control)) {
 					list.append(control.getText());
 				}
@@ -295,16 +301,17 @@ public class DieModEditPanel extends AdvantageEditPanel {
 	}
 	
 	private class AllCheckBox extends JCheckBox implements ActionListener {
-		private ArrayList<JCheckBox> options;
+		private ArrayList options;
 		public AllCheckBox(String title) {
 			super(title);
 		}
-		public void setOptions(ArrayList<JCheckBox> in) {
+		public void setOptions(ArrayList in) {
 			options = in;
 		}
 		public void actionPerformed(ActionEvent ev) {
 			boolean oneSelected = false;
-			for(JCheckBox box:options) {
+			for (java.util.Iterator _j14it947 = (options).iterator(); _j14it947.hasNext(); ) {
+			  JCheckBox box = (JCheckBox) _j14it947.next();
 				if (box.isSelected()) {
 					oneSelected = true;
 					break;

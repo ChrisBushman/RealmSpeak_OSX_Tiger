@@ -134,8 +134,9 @@ public class SpellCardComponent extends CardComponent {
 			
 			// If the spell is alive, and a chit was used, the chit will be shown here
 			if (includeEmbellishments) {
-				ArrayList<GameObject> list = getGameObject().getHold();
-				for (GameObject held : list) {
+				ArrayList list = getGameObject().getHold();
+				for (java.util.Iterator _j14it1355 = (list).iterator(); _j14it1355.hasNext(); ) {
+				  GameObject held = (GameObject) _j14it1355.next();
 					RealmComponent rc = RealmComponent.getRealmComponent(held);
 					if (rc.isActionChit()) {
 						rc.paint(g.create(20,(CARD_HEIGHT>>1)-13,ChitComponent.M_CHIT_SIZE,ChitComponent.M_CHIT_SIZE));

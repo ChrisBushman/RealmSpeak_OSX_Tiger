@@ -18,9 +18,11 @@ public class SpellTargetingSiteWithSpell extends SpellTargetingSingle {
 		TileLocation loc = battleModel.getBattleLocation();
 		CharacterWrapper caster = spell.getCaster();
 		
-		for (RealmComponent rc : loc.clearing.getClearingComponents()) {
+		for (java.util.Iterator _j14it797 = (loc.clearing.getClearingComponents()).iterator(); _j14it797.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it797.next();
 			if (rc.isTreasureLocation() && caster.hasTreasureLocationDiscovery(rc.toString())) {
-				for (GameObject held : rc.getHold()) {
+				for (java.util.Iterator _j14it798 = (rc.getHold()).iterator(); _j14it798.hasNext(); ) {
+				  GameObject held = (GameObject) _j14it798.next();
 					if (held.hasThisAttribute(RealmComponent.SPELL)) {
 						gameObjects.add(rc.getGameObject());
 						break;

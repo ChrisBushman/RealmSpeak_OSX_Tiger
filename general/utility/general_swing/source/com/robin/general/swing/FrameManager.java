@@ -15,10 +15,10 @@ public class FrameManager {
 	public static String DEFAULT_FRAME_KEY = "default";
 	
 	private ManagedFrame mostRecentFrame;
-	private HashMap<String,ManagedFrame> frameHash;
+	private HashMap frameHash;
 	
 	private FrameManager() {
-		frameHash = new HashMap<String,ManagedFrame>();
+		frameHash = new HashMap();
 	}
 	private static void _dispose(ManagedFrame frame) {
 		frame.setVisible(false);
@@ -46,7 +46,7 @@ public class FrameManager {
 	 * Forces a frame registered to the frameKey to display.  Returns false if there is not.
 	 */
 	public boolean showFrame(String frameKey) {
-		ManagedFrame cached = frameHash.get(frameKey);
+		ManagedFrame cached = (ManagedFrame) frameHash.get(frameKey);
 		if (cached!=null) {
 			_show(cached);
 			return true;
@@ -57,14 +57,15 @@ public class FrameManager {
 		return frameHash.containsKey(frameKey);
 	}
 	public void disposeFrame(String frameKey) {
-		ManagedFrame cached = frameHash.get(frameKey);
+		ManagedFrame cached = (ManagedFrame) frameHash.get(frameKey);
 		if (cached!=null) {
 			_dispose(cached);
 			frameHash.remove(frameKey);
 		}
 	}
 	public void refresh() {
-		for(ManagedFrame frame : frameHash.values()) {
+		for (java.util.Iterator _j14it15 = (frameHash.values()).iterator(); _j14it15.hasNext(); ) {
+		  ManagedFrame frame = (ManagedFrame) _j14it15.next();
 			frame.toFront();
 		}
 	}

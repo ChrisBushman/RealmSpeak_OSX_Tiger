@@ -22,7 +22,7 @@ public class RealmSpeakInit {
 	private RealmLoader loader;
 	private GameData data; // convenience
 	
-	private ArrayList<String> appendNames;
+	private ArrayList appendNames;
 	private HostPrefWrapper hostPrefs;
 	
 	private int lastRating;
@@ -63,8 +63,9 @@ public class RealmSpeakInit {
 		
 		if(!hostPrefs.getGameKeyVals().contains("rw_expansion_1") && hostPrefs.hasPref(Constants.EXP_ASSASSIN_THIEF)){
 			GamePool pool = new GamePool(data.getGameObjects());
-			ArrayList<GameObject> exp1Characters = pool.find("rw_expansion_1_character");
-			for (GameObject go:exp1Characters) {
+			ArrayList exp1Characters = pool.find("rw_expansion_1_character");
+			for (java.util.Iterator _j14it256 = (exp1Characters).iterator(); _j14it256.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it256.next();
 				go.setThisKeyVals(hostPrefs.getGameKeyVals());
 			}
 		}
@@ -81,7 +82,7 @@ public class RealmSpeakInit {
 		}
 		
 		// Handle all pre-setup initialization
-		appendNames = new ArrayList<String>();
+		appendNames = new ArrayList();
 		if (hostPrefs.getAlternativeTilesEnabled()) {
 			enableAlternativeTilesInLoader(loader);
 		}
@@ -121,8 +122,9 @@ public class RealmSpeakInit {
 		}
 		if (hostPrefs.hasPref(Constants.OPT_POWER_OF_THE_PIT_ATTACK)) {
 			GamePool pool = new GamePool(data.getGameObjects());
-			ArrayList<GameObject> popSpells = pool.find("powerofthepit");
-			for (GameObject go:popSpells) {
+			ArrayList popSpells = pool.find("powerofthepit");
+			for (java.util.Iterator _j14it257 = (popSpells).iterator(); _j14it257.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it257.next();
 				go.setThisAttribute("duration","attack");
 				go.setThisAttribute("strength","");
 			}
@@ -175,9 +177,10 @@ public class RealmSpeakInit {
 		}
 	}
 	private void cleanupTiles() {
-		ArrayList<GameObject> tiles = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
-		ArrayList<GameObject> unused = new ArrayList<GameObject>();
-		for(GameObject tile:tiles) {
+		ArrayList tiles = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
+		ArrayList unused = new ArrayList();
+		for (java.util.Iterator _j14it258 = (tiles).iterator(); _j14it258.hasNext(); ) {
+		  GameObject tile = (GameObject) _j14it258.next();
 			if (tile.getHoldCount()==0) {
 				unused.add(tile);
 			}
@@ -187,8 +190,9 @@ public class RealmSpeakInit {
 	}
 	private void removeUnusedGenerators() {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> generators = pool.find(hostPrefs.getGameKeyVals()+",generator");
-		for (GameObject generator:generators) {
+		ArrayList generators = pool.find(hostPrefs.getGameKeyVals()+",generator");
+		for (java.util.Iterator _j14it259 = (generators).iterator(); _j14it259.hasNext(); ) {
+		  GameObject generator = (GameObject) _j14it259.next();
 			if (generator.getHoldCount()==0) {
 				generator.stripKeyVals("this",hostPrefs.getGameKeyVals());
 			}
@@ -196,8 +200,9 @@ public class RealmSpeakInit {
 	}
 	private void assignTravelerTemplates() {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> travelers = pool.find(hostPrefs.getGameKeyVals()+",traveler");
-		for (GameObject go:travelers) {
+		ArrayList travelers = pool.find(hostPrefs.getGameKeyVals()+",traveler");
+		for (java.util.Iterator _j14it260 = (travelers).iterator(); _j14it260.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it260.next();
 			TravelerChitComponent traveler = (TravelerChitComponent)RealmComponent.getRealmComponent(go);
 			traveler.assignTravelerTemplate();
 		}
@@ -205,9 +210,10 @@ public class RealmSpeakInit {
 	private void placeQuestsToNatives() {
 		QuestDeck deck = QuestDeck.findDeck(data);
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> targets = pool.find(hostPrefs.getGameKeyVals()+",quest_target");
+		ArrayList targets = pool.find(hostPrefs.getGameKeyVals()+",quest_target");
 		boolean twice = hostPrefs.hasPref(Constants.SR_SETUP_TWO_QUESTS);
-		for (GameObject go:targets) {
+		for (java.util.Iterator _j14it261 = (targets).iterator(); _j14it261.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it261.next();
 			Quest quest = deck.drawCard(go);
 			if (quest!=null) {
 				go.add(quest.getGameObject());
@@ -222,18 +228,18 @@ public class RealmSpeakInit {
 	}
 	private void enableAlternativeTilesInLoader(RealmLoader rl) {
 		GamePool tilePool = new GamePool(rl.getData().getGameObjects());
-		ArrayList<GameObject> tiles = tilePool.find("tile");
+		ArrayList tiles = tilePool.find("tile");
 		GameObject.stripListKeyVals("this",hostPrefs.getGameKeyVals(),tiles);
-		ArrayList<GameObject> atiles = tilePool.find("a_tile");
+		ArrayList atiles = tilePool.find("a_tile");
 		GameObject.setListKeyVals("this",hostPrefs.getGameKeyVals(),atiles);
-		for (GameObject go:atiles)
-		{
+		for (java.util.Iterator _j14it262 = (atiles).iterator(); _j14it262.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it262.next();
 			go.addThisAttributeListItem("tile", "");
 		}
 	}
 	private void enableEtilesInLoader(RealmLoader rl) {
 		GamePool etilePool = new GamePool(rl.getData().getGameObjects());
-		ArrayList<GameObject> etiles = etilePool.find("etile");
+		ArrayList etiles = etilePool.find("etile");
 		GameObject.setListKeyVals("this",hostPrefs.getGameKeyVals(),etiles);
 	}
 	private void prepMultiboard() {
@@ -251,10 +257,12 @@ public class RealmSpeakInit {
 			String appendName = " "+Constants.MULTI_BOARD_APPENDS.substring(n,n+1);
 			appendNames.add(appendName);
 		}
-		for (String appendName:appendNames) {
+		for (java.util.Iterator _j14it263 = (appendNames).iterator(); _j14it263.hasNext(); ) {
+		  String appendName = (String) _j14it263.next();
 			long start = data.getMaxId()+1;
 			doubleLoader.getData().renumberObjectsStartingWith(start);
-			for (GameObject go : doubleLoader.getData().getGameObjects()) {
+			for (java.util.Iterator _j14it264 = (doubleLoader.getData().getGameObjects()).iterator(); _j14it264.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it264.next();
 				if (!go.hasThisAttribute("season")) { // The one exception
 					GameObject dub = data.createNewObject(go.getId());
 					dub.copyFrom(go);
@@ -265,12 +273,13 @@ public class RealmSpeakInit {
 		}
 		
 		// Resolve objects (holds can't be calculated until all are loaded!)
-		for (GameObject obj : data.getGameObjects()) {
+		for (java.util.Iterator _j14it265 = (data.getGameObjects()).iterator(); _j14it265.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it265.next();
 			obj.resolveHold(data.getGameObjectIDHash());
 		}
 		
 		// Expand the setup to accommodate the new tiles
-		ArrayList<String> tiedPools = new ArrayList<String>();
+		ArrayList tiedPools = new ArrayList();
 		tiedPools.add("SPELL_I");
 		tiedPools.add("SPELL_II");
 		tiedPools.add("SPELL_III");
@@ -289,13 +298,14 @@ public class RealmSpeakInit {
 		tilePool.extract("name=Borderland");
 		
 		appendNames.add(0,"");
-		for (String appendName:appendNames) {
+		for (java.util.Iterator _j14it266 = (appendNames).iterator(); _j14it266.hasNext(); ) {
+		  String appendName = (String) _j14it266.next();
 			String extraQuery = appendName.length()==0?(",!"+Constants.BOARD_NUMBER):(","+Constants.BOARD_NUMBER+"="+appendName.trim());
-			ArrayList<GameObject> mountains = tilePool.find("tile_type=M"+extraQuery);
+			ArrayList mountains = tilePool.find("tile_type=M"+extraQuery);
 			int mCount = mountains.size();
-			ArrayList<GameObject> caves = tilePool.find("tile_type=C"+extraQuery);
+			ArrayList caves = tilePool.find("tile_type=C"+extraQuery);
 			int cCount = caves.size();
-			ArrayList<GameObject> valleys = tilePool.find("tile_type=V"+extraQuery);
+			ArrayList valleys = tilePool.find("tile_type=V"+extraQuery);
 			int vCount = valleys.size();
 			
 			// Mix in expansion tiles per group (XC=C and XM=M and S=V)
@@ -311,19 +321,19 @@ public class RealmSpeakInit {
 			// Random pick an appropriate # of tiles from each group, and add back the game key vals
 			for (int i=0;i<mCount;i++) {
 				int r = RandomNumber.getRandom(mountains.size());
-				GameObject go = mountains.remove(r);
+				GameObject go = (GameObject) mountains.remove(r);
 				go.setThisKeyVals(hostPrefs.getGameKeyVals());
 				go.setThisAttribute("tile_type","M");
 			}
 			for (int i=0;i<cCount;i++) {
 				int r = RandomNumber.getRandom(caves.size());
-				GameObject go = caves.remove(r);
+				GameObject go = (GameObject) caves.remove(r);
 				go.setThisKeyVals(hostPrefs.getGameKeyVals());
 				go.setThisAttribute("tile_type","C");
 			}
 			for (int i=0;i<vCount;i++) {
 				int r = RandomNumber.getRandom(valleys.size());
-				GameObject go = valleys.remove(r);
+				GameObject go = (GameObject) valleys.remove(r);
 				go.setThisKeyVals(hostPrefs.getGameKeyVals());
 				go.setThisAttribute("tile_type","V");
 			}
@@ -332,33 +342,38 @@ public class RealmSpeakInit {
 	}
 	private void prepSuperRealmCharacters() {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> baseCharacters = pool.find("character,original_game");
-		for (GameObject go:baseCharacters) {
+		ArrayList baseCharacters = pool.find("character,original_game");
+		for (java.util.Iterator _j14it267 = (baseCharacters).iterator(); _j14it267.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it267.next();
 			go.stripThisKeyVals(hostPrefs.getGameKeyVals());
 		}
-		ArrayList<GameObject> srCharacters = pool.find("character,super_realm");
-		for (GameObject go:srCharacters) {
+		ArrayList srCharacters = pool.find("character,super_realm");
+		for (java.util.Iterator _j14it268 = (srCharacters).iterator(); _j14it268.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it268.next();
 			go.setThisKeyVals(hostPrefs.getGameKeyVals());
 		}
 	}
 	private void prepExpansionSpells(String spellKey) {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> expansionSpells = pool.find("spell," + spellKey);
-		for (GameObject go:expansionSpells) {
+		ArrayList expansionSpells = pool.find("spell," + spellKey);
+		for (java.util.Iterator _j14it269 = (expansionSpells).iterator(); _j14it269.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it269.next();
 			go.setThisKeyVals(hostPrefs.getGameKeyVals());
 		}
 	}
 	private void removeSpells(String spellKey){
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> toRemove = pool.find("spell," + spellKey);
-		for (GameObject go:toRemove) {
+		ArrayList toRemove = pool.find("spell," + spellKey);
+		for (java.util.Iterator _j14it270 = (toRemove).iterator(); _j14it270.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it270.next();
 			go.stripThisKeyVals(hostPrefs.getGameKeyVals());
 		}	
 	}
 	private void alternateOgreWeaponLength(String length) {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> ogres = pool.find(Constants.OGRE);
-		for (GameObject go:ogres) {
+		ArrayList ogres = pool.find(Constants.OGRE);
+		for (java.util.Iterator _j14it271 = (ogres).iterator(); _j14it271.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it271.next();
 			go.setAttribute("light","length",length);
 			go.setAttribute("dark","length",length);
 			go.setThisKeyVals(Constants.WEAPON_USE_CHIT);
@@ -366,24 +381,26 @@ public class RealmSpeakInit {
 	}
 	private void prepExpansionTreasures(String gameKey) {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> expansionSpells = pool.find("!original_game,treasure,!treasure_within_treasure,!ts_section," + gameKey);
-		for (GameObject go:expansionSpells) {
+		ArrayList expansionSpells = pool.find("!original_game,treasure,!treasure_within_treasure,!ts_section," + gameKey);
+		for (java.util.Iterator _j14it272 = (expansionSpells).iterator(); _j14it272.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it272.next();
 			go.setThisKeyVals(hostPrefs.getGameKeyVals());
 		}
 	}
 	private void markItemStartingLocations() {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add("item");
 		query.add(hostPrefs.getGameKeyVals());
-		for(GameObject item:pool.find(query)) {
+		for (java.util.Iterator _j14it273 = (pool.find(query)).iterator(); _j14it273.hasNext(); ) {
+		  GameObject item = (GameObject) _j14it273.next();
 			GameObject heldBy = item.getHeldBy();
 			if (heldBy==null) continue; // shouldn't happen
 			item.setThisAttribute(Constants.SETUP,heldBy.getStringId());
 		}
 	}
 	private void doBoardAutoSetup() {
-		Collection<String> keyVals = GamePool.makeKeyVals(hostPrefs.getGameKeyVals());
+		Collection keyVals = GamePool.makeKeyVals(hostPrefs.getGameKeyVals());
 		lastRating = -1;
 		mapAttempt = 0;
 		MapProgressReportable reporter = new MapProgressReportable() {
@@ -423,7 +440,8 @@ public class RealmSpeakInit {
 	public static void prepQuestDeck(GameData data, boolean checkForDuplicateQuests) {
 		QuestDeck deck = QuestDeck.findDeck(data);
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
-		for(Quest template:QuestLoader.loadAllQuestsFromQuestFolder()) {
+		for (java.util.Iterator _j14it274 = (QuestLoader.loadAllQuestsFromQuestFolder()).iterator(); _j14it274.hasNext(); ) {
+		  Quest template = (Quest) _j14it274.next();
 			if (!template.verifyGameVariant(hostPrefs)) continue;
 			if ((hostPrefs.hasPref(Constants.HOUSE3_QTR_AND_SR_QUEST_CARDS) && (template.getBoolean(QuestConstants.WORKS_WITH_QTR) || template.getBoolean(QuestConstants.WORKS_WITH_SR)))
 					|| (hostPrefs.hasPref(Constants.QST_QUEST_CARDS) && !hostPrefs.hasPref(Constants.HOUSE3_EXCHANGE_QTR_AND_SR_QUEST_CARDS) && template.getBoolean(QuestConstants.WORKS_WITH_QTR))
@@ -435,9 +453,10 @@ public class RealmSpeakInit {
 				if (hostPrefs.hasPref(Constants.HOUSE3_NO_SECRET_QUESTS) && template.isSecretQuest()) continue;
 				boolean doesRequireActivation = false;
 				if ((hostPrefs.hasPref(Constants.HOUSE3_NO_EVENTS_AND_ALL_PLAY_QUESTS_WITHOUT_ACTIVATION) || hostPrefs.hasPref(Constants.HOUSE3_NO_EVENTS_AND_ALL_PLAY_QUESTS_WITH_ACTIVATION)) && template.isAllPlay()) {
-					QuestStep step = template.getSteps().get(0);
+					QuestStep step = (QuestStep) template.getSteps().get(0);
 					if (step == null) continue;
-					for (QuestRequirement req : step.getRequirements()) {
+					for (java.util.Iterator _j14it275 = (step.getRequirements()).iterator(); _j14it275.hasNext(); ) {
+					  QuestRequirement req = (QuestRequirement) _j14it275.next();
 						if (req.getRequirementType() == RequirementType.Active) {
 							doesRequireActivation = true;
 						}
@@ -470,14 +489,16 @@ public class RealmSpeakInit {
 	public static void prepBookOfQuests(GameData data, boolean checkForDuplicateQuests) {
 		QuestBookEvents book = QuestBookEvents.findBook(data);
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
-		for(Quest template:QuestLoader.loadAllQuestsFromQuestFolder()) {
+		for (java.util.Iterator _j14it276 = (QuestLoader.loadAllQuestsFromQuestFolder()).iterator(); _j14it276.hasNext(); ) {
+		  Quest template = (Quest) _j14it276.next();
 			if (!template.verifyGameVariant(hostPrefs)) continue;
 			if (hostPrefs.hasPref(Constants.HOUSE3_NO_EVENTS_AND_ALL_PLAY_QUESTS) && template.isEvent()) continue;
 			boolean doesRequireActivation = false;
 			if ((hostPrefs.hasPref(Constants.HOUSE3_NO_EVENTS_AND_ALL_PLAY_QUESTS_WITHOUT_ACTIVATION) || hostPrefs.hasPref(Constants.HOUSE3_NO_EVENTS_AND_ALL_PLAY_QUESTS_WITH_ACTIVATION)) && template.isEvent()) {
-				QuestStep step = template.getSteps().get(0);
+				QuestStep step = (QuestStep) template.getSteps().get(0);
 				if (step == null) continue;
-				for (QuestRequirement req : step.getRequirements()) {
+				for (java.util.Iterator _j14it277 = (step.getRequirements()).iterator(); _j14it277.hasNext(); ) {
+				  QuestRequirement req = (QuestRequirement) _j14it277.next();
 					if (req.getRequirementType() == RequirementType.Active) {
 						doesRequireActivation = true;
 					}
@@ -503,7 +524,8 @@ public class RealmSpeakInit {
 	public static void prepGuildQuests(GameData data, boolean checkForDuplicateQuests) {
 		QuestDeck deck = QuestDeck.findDeck(data);
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
-		for(Quest template:QuestLoader.loadAllQuestsFromQuestFolder()) {
+		for (java.util.Iterator _j14it278 = (QuestLoader.loadAllQuestsFromQuestFolder()).iterator(); _j14it278.hasNext(); ) {
+		  Quest template = (Quest) _j14it278.next();
 			if (!template.verifyGameVariant(hostPrefs)) continue;
 			
 			boolean qtr = hostPrefs.hasPref(Constants.HOUSE3_GUILD_QUESTS_ADD_QTR) && template.getBoolean(QuestConstants.WORKS_WITH_QTR);
@@ -515,9 +537,10 @@ public class RealmSpeakInit {
 				if (hostPrefs.hasPref(Constants.HOUSE3_NO_SECRET_QUESTS) && template.isSecretQuest()) continue;
 				boolean doesRequireActivation = false;
 				if ((hostPrefs.hasPref(Constants.HOUSE3_NO_EVENTS_AND_ALL_PLAY_QUESTS_WITHOUT_ACTIVATION) || hostPrefs.hasPref(Constants.HOUSE3_NO_EVENTS_AND_ALL_PLAY_QUESTS_WITH_ACTIVATION)) && template.isAllPlay()) {
-					QuestStep step = template.getSteps().get(0);
+					QuestStep step = (QuestStep) template.getSteps().get(0);
 					if (step == null) continue;
-					for (QuestRequirement req : step.getRequirements()) {
+					for (java.util.Iterator _j14it279 = (step.getRequirements()).iterator(); _j14it279.hasNext(); ) {
+					  QuestRequirement req = (QuestRequirement) _j14it279.next();
 						if (req.getRequirementType() == RequirementType.Active) {
 							doesRequireActivation = true;
 						}
@@ -549,12 +572,14 @@ public class RealmSpeakInit {
 	}
 	private void doItemSpellCasting() {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.addAll(GamePool.makeKeyVals(hostPrefs.getGameKeyVals()));
 		query.add(Constants.CAST_SPELL_ON_INIT);
-		Collection<GameObject> needsSpellInit = pool.find(query);
-		for (GameObject go : needsSpellInit) {
-			for (GameObject sgo : go.getHold()) {
+		Collection needsSpellInit = pool.find(query);
+		for (java.util.Iterator _j14it280 = (needsSpellInit).iterator(); _j14it280.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it280.next();
+			for (java.util.Iterator _j14it281 = (go.getHold()).iterator(); _j14it281.hasNext(); ) {
+			  GameObject sgo = (GameObject) _j14it281.next();
 				if (sgo.hasThisAttribute("spell")) {
 					SpellWrapper spell = new SpellWrapper(sgo);
 					spell.castSpellNoEnhancedMagic(go);

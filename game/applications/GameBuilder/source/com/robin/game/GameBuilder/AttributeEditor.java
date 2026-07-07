@@ -12,13 +12,12 @@ import com.robin.general.swing.*;
 import com.robin.general.util.OrderedHashtable;
 
 public class AttributeEditor extends AggressiveDialog {
-	private enum EditType {
-		String, ArrayList,
-	}
+	private static final int EDIT_TYPE_STRING = 0;
+	private static final int EDIT_TYPE_ARRAYLIST = 1;
 
 	private OrderedHashtable block;
 	private String key;
-	private EditType editType = EditType.String;
+	private int editType = EDIT_TYPE_STRING;
 	private Object initialValue = null;
 	private Object newValue = null;
 
@@ -43,7 +42,7 @@ public class AttributeEditor extends AggressiveDialog {
 		if (block.containsKey(key)) {
 			initialValue = block.get(key);
 			if (initialValue instanceof ArrayList) {
-				editType = EditType.ArrayList;
+				editType = EDIT_TYPE_ARRAYLIST;
 			}
 		}
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -62,11 +61,11 @@ public class AttributeEditor extends AggressiveDialog {
 		editTypeButton.setFocusable(false);
 		editTypeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				if (editType == EditType.String) {
-					editType = EditType.ArrayList;
+				if (editType == EDIT_TYPE_STRING) {
+					editType = EDIT_TYPE_ARRAYLIST;
 				}
 				else {
-					editType = EditType.String;
+					editType = EDIT_TYPE_STRING;
 					editBox = createEditBoxes(editBox,1);
 				}
 				updateEditFields();
@@ -122,7 +121,7 @@ public class AttributeEditor extends AggressiveDialog {
 		addSubButtons.add(addButton);
 		addSubButtons.add(subButton);
 
-		if (editType == EditType.String) {
+		if (editType == EDIT_TYPE_STRING) {
 			editBox = new JTextField[1];
 			if (initialValue != null) {
 				editBox[0] = createNewEditBox();
@@ -166,8 +165,8 @@ public class AttributeEditor extends AggressiveDialog {
 	}
 
 	private void updateEditFields() {
-		editTypeButton.setText(editType == EditType.String ? "-> ArrayList" : "-> String");
-		ArrayList<String> current = readCurrentFields();
+		editTypeButton.setText(editType == EDIT_TYPE_STRING ? "-> ArrayList" : "-> String");
+		ArrayList current = readCurrentFields();
 		editPanel.removeAll();
 		buttonPanel.removeAll();
 		editPanel.setLayout(new GridLayout(editBox.length, 1));
@@ -179,7 +178,7 @@ public class AttributeEditor extends AggressiveDialog {
 			}
 			editBox[i].setText(currentString);
 			editPanel.add(editBox[i]);
-			if (i == 0 && editType == EditType.ArrayList) {
+			if (i == 0 && editType == EDIT_TYPE_ARRAYLIST) {
 				buttonPanel.add(addSubButtons);
 			}
 			else {
@@ -195,8 +194,8 @@ public class AttributeEditor extends AggressiveDialog {
 		subButton.setEnabled(editBox.length > 1);
 	}
 
-	private ArrayList<String> readCurrentFields() {
-		ArrayList<String> list = new ArrayList<String>();
+	private ArrayList readCurrentFields() {
+		ArrayList list = new ArrayList();
 		if (editBox != null) {
 			for (int i = 0; i < editBox.length; i++) {
 				if (editBox[i] != null) {
@@ -216,7 +215,7 @@ public class AttributeEditor extends AggressiveDialog {
 	}
 
 	private void okay() {
-		if (editType == EditType.String) {
+		if (editType == EDIT_TYPE_STRING) {
 			newValue = editBox[0].getText();
 		}
 		else {
@@ -243,7 +242,7 @@ public class AttributeEditor extends AggressiveDialog {
 		JFrame frame = new JFrame();
 		String key = "test";
 		OrderedHashtable block = new OrderedHashtable();
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList list = new ArrayList();
 		list.add("this is a really really long string that you want to see the beginning of");
 		list.add("is");
 		list.add("a");

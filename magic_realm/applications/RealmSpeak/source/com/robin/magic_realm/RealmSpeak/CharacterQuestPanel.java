@@ -25,7 +25,7 @@ public class CharacterQuestPanel extends CharacterFramePanel {
 	private JButton drawQuestsButton;
 	private JButton viewAllPlayCardsButton;
 	
-	private ArrayList<Quest> characterQuests;
+	private ArrayList characterQuests;
 	
 	/// New design
 	private QuestView questView;
@@ -151,7 +151,8 @@ public class CharacterQuestPanel extends CharacterFramePanel {
 				public void actionPerformed(ActionEvent ev) {	
 					boolean added = false;
 					RealmObjectPanel panel = new RealmObjectPanel();
-					for(Quest quest:characterQuests) {
+					for (java.util.Iterator _j14it1154 = (characterQuests).iterator(); _j14it1154.hasNext(); ) {
+					  Quest quest = (Quest) _j14it1154.next();
 						if (quest.isAllPlay() && !quest.getState().isFinished()) {
 							panel.addObject(quest.getGameObject());
 							added = true;
@@ -205,8 +206,9 @@ public class CharacterQuestPanel extends CharacterFramePanel {
 
 	private void doDiscardQuestCards() {
 		RealmObjectChooser chooser = new RealmObjectChooser("Discard Which Cards?", getGame().getGameData(), false);
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
-		for (Quest quest : getCharacter().getAllQuests()) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it1155 = (getCharacter().getAllQuests()).iterator(); _j14it1155.hasNext(); ) {
+		  Quest quest = (Quest) _j14it1155.next();
 			if (quest.getState() == QuestState.Assigned && !quest.isAllPlay()) {
 				list.add(quest.getGameObject());
 			}
@@ -219,13 +221,14 @@ public class CharacterQuestPanel extends CharacterFramePanel {
 		chooser.setVisible(true);
 		if (chooser.pressedOkay()) {
 			questHandPanel.clearSelected();
-			ArrayList<GameObject> chosen = chooser.getChosenObjects();
+			ArrayList chosen = chooser.getChosenObjects();
 			if (chosen.isEmpty()) {
 				JOptionPane.showMessageDialog(getMainFrame(), "No quests were chosen for discard.", "Discard", JOptionPane.INFORMATION_MESSAGE);
 				return;
 			}
 			QuestDeck deck = QuestDeck.findDeck(getGame().getGameData());
-			for (GameObject go : chosen) {
+			for (java.util.Iterator _j14it1156 = (chosen).iterator(); _j14it1156.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it1156.next();
 				Quest quest = new Quest(go);
 				getCharacter().removeQuest(quest);
 				deck.discardCard(quest);
@@ -246,7 +249,7 @@ public class CharacterQuestPanel extends CharacterFramePanel {
 	private void doDrawQuests() {
 		QuestDeck deck = QuestDeck.findDeck(getGame().getGameData());
 		int cardsDrawn = deck.drawCards(getMainFrame(),getCharacter());
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Drew ");
 		sb.append(cardsDrawn);
 		sb.append(" new quest card");
@@ -298,7 +301,8 @@ public class CharacterQuestPanel extends CharacterFramePanel {
 			int slots = getCharacter().getQuestSlotCount(hostPrefs);
 			questHandPanel.removeAll();
 			completedQuestsPanel.removeAll();
-			for(Quest quest:characterQuests) {
+			for (java.util.Iterator _j14it1157 = (characterQuests).iterator(); _j14it1157.hasNext(); ) {
+			  Quest quest = (Quest) _j14it1157.next();
 				if (quest.getState().isFinished()) {
 					if  (quest.getInt(QuestConstants.VP_REWARD)>0 || hostPrefs.isUsingGuildQuests()) {
 						completedQuestsPanel.addObject(quest.getGameObject());
@@ -315,7 +319,7 @@ public class CharacterQuestPanel extends CharacterFramePanel {
 		}
 		else { //BoQ
 			if (getCharacter().getAllNonEventQuests().size() == 1) {
-				questView.updatePanel(getCharacter().getAllNonEventQuests().get(0),getCharacter());
+				questView.updatePanel((Quest) getCharacter().getAllNonEventQuests().get(0),getCharacter());
 			}
 		}
 	}

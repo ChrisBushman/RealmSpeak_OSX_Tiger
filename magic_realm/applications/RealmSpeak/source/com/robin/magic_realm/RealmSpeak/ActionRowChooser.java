@@ -16,10 +16,10 @@ public class ActionRowChooser extends AggressiveDialog {
 	private int lost;
 	
 	private ActionRowTableModel keepModel;
-	private ArrayList<ActionRow> keepList;
+	private ArrayList keepList;
 	
 	private ActionRowTableModel loseModel;
-	private ArrayList<ActionRow> loseList;
+	private ArrayList loseList;
 	
 	private JButton doneButton;
 	
@@ -29,15 +29,16 @@ public class ActionRowChooser extends AggressiveDialog {
 		super(parent,title,true);
 		this.toLose = toLose;
 		lost = 0;
-		keepList = new ArrayList<ActionRow>();
-		loseList = new ArrayList<ActionRow>();
+		keepList = new ArrayList();
+		loseList = new ArrayList();
 		initComponents();
 		updateTally();
 	}
-	public void setActionRows(ArrayList<ActionRow> in) {
+	public void setActionRows(ArrayList in) {
 		keepList.clear();
 		loseList.clear();
-		for (ActionRow ar:in) {
+		for (java.util.Iterator _j14it1095 = (in).iterator(); _j14it1095.hasNext(); ) {
+		  ActionRow ar = (ActionRow) _j14it1095.next();
 			int count = ar.getCount();
 			for (int i=0;i<count;i++) {
 				keepList.add(ar);
@@ -91,7 +92,8 @@ public class ActionRowChooser extends AggressiveDialog {
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 	}
 	private void finish() {
-		for (ActionRow ar:loseList) {
+		for (java.util.Iterator _j14it1096 = (loseList).iterator(); _j14it1096.hasNext(); ) {
+		  ActionRow ar = (ActionRow) _j14it1096.next();
 			if (ar!=emptyRow) {
 				if (ar.getCount()>1) {
 					ar.setCount(ar.getCount()-1);
@@ -105,8 +107,8 @@ public class ActionRowChooser extends AggressiveDialog {
 	}
 	private void moveRow(int row) {
 		if (row>=0 && row<keepList.size()) {
-			ActionRow keep = keepList.get(row);
-			ActionRow lose = loseList.get(row);
+			ActionRow keep = (ActionRow) keepList.get(row);
+			ActionRow lose = (ActionRow) loseList.get(row);
 			boolean losing = lose==emptyRow;
 			int count = keep==emptyRow?lose.getPhaseCount():keep.getPhaseCount();
 			
@@ -139,8 +141,8 @@ public class ActionRowChooser extends AggressiveDialog {
 	private static final Class[] ACTION_ROW_CLASS = { ImageIcon.class, String.class, Integer.class };
 
 	private class ActionRowTableModel extends AbstractTableModel {
-		private ArrayList<ActionRow> list;
-		public ActionRowTableModel(ArrayList<ActionRow> list) {
+		private ArrayList list;
+		public ActionRowTableModel(ArrayList list) {
 			this.list = list;
 		}
 
@@ -162,7 +164,7 @@ public class ActionRowChooser extends AggressiveDialog {
 
 		public Object getValueAt(int row, int col) {
 			if (row < list.size()) {
-				ActionRow ar = list.get(row);
+				ActionRow ar = (ActionRow) list.get(row);
 				if (ar!=emptyRow) {
 					switch (col) {
 						case 0:
@@ -174,7 +176,7 @@ public class ActionRowChooser extends AggressiveDialog {
 							ar.setCount(count);
 							return s;
 						case 2:
-							return ar.getPhaseCount();
+							return new Integer(ar.getPhaseCount());
 					}
 				}
 			}
@@ -211,7 +213,7 @@ public class ActionRowChooser extends AggressiveDialog {
 	public static void main(String[] args) {
 		ActionRowChooser chooser = new ActionRowChooser(new JFrame(),"Test",2);
 		chooser.setLocationRelativeTo(null);
-		ArrayList<ActionRow> list = new ArrayList<ActionRow>();
+		ArrayList list = new ArrayList();
 		list.add(new ActionRow("H",""));
 		ActionRow ar = new ActionRow("R","");
 		ar.setCount(4);

@@ -17,12 +17,12 @@ public class ButtonOptionDialog extends AggressiveDialog {
 
 	private JTextArea area;
 	private JPanel questionPanel;
-	private Hashtable<String,Object> objectNameHash;
+	private Hashtable objectNameHash;
 	private Object selectedObject;
-	private Hashtable<String,JButton> buttons;
-	private Hashtable<String,JLabel> labels;
+	private Hashtable buttons;
+	private Hashtable labels;
 	
-	private ArrayList<Box> buttonBoxes;
+	private ArrayList buttonBoxes;
 	
 	private boolean finished = false;
 	
@@ -40,11 +40,11 @@ public class ButtonOptionDialog extends AggressiveDialog {
 	public ButtonOptionDialog(JFrame parent,Icon icon,String message,String title,boolean includeCancel,int columns) {
 		super(parent,title,true);
 		this.columns = columns;
-		buttons = new Hashtable<String,JButton>();
-		labels = new Hashtable<String,JLabel>();
-		buttonBoxes = new ArrayList<Box>();
+		buttons = new Hashtable();
+		labels = new Hashtable();
+		buttonBoxes = new ArrayList();
 		selectedObject = null;
-		objectNameHash = new Hashtable<String,Object>();
+		objectNameHash = new Hashtable();
 		getContentPane().setLayout(new BorderLayout());
 		
 			questionPanel = new JPanel(new BorderLayout(10,10));
@@ -106,7 +106,8 @@ public class ButtonOptionDialog extends AggressiveDialog {
 		if (finished) {
 			throw new IllegalStateException("You cannot add selection objects to finished panel.");
 		}
-		for (Object o : c) {
+		for (java.util.Iterator _j14it20 = (c).iterator(); _j14it20.hasNext(); ) {
+		  Object o = (Object) _j14it20.next();
 			addSelectionObject(o);
 		}
 	}
@@ -187,7 +188,7 @@ public class ButtonOptionDialog extends AggressiveDialog {
 	public void setSelectionObjectIcon(Object object,Icon icon) {
 		if (icon==null) return;
 		String key = object.toString();
-		JLabel label = labels.get(key);
+		JLabel label = (JLabel) labels.get(key);
 		label.setIcon(icon);
 		maxIconHeight = Math.max(maxIconHeight,icon.getIconHeight());
 		updateButtonSizes();
@@ -204,7 +205,7 @@ public class ButtonOptionDialog extends AggressiveDialog {
 			JPanel panel = new JPanel(new GridLayout(rows+remRows,1));
 			int thisRows = rows + (rem==0?0:1);
 			for(int n=0;n<thisRows;n++) {
-				panel.add(buttonBoxes.get(b++));
+				panel.add((java.awt.Component) buttonBoxes.get(b++));
 			}
 			if (rem==0 && remRows==1) {
 				panel.add(Box.createGlue());
@@ -228,12 +229,14 @@ public class ButtonOptionDialog extends AggressiveDialog {
 	private void updateButtonSizes() {
 		int maxW = 0;
 		int maxH = maxIconHeight;
-		for (JButton button:buttons.values()) {
+		for (java.util.Iterator _j14it21 = (buttons.values()).iterator(); _j14it21.hasNext(); ) {
+		  JButton button = (JButton) _j14it21.next();
 			Dimension size = BasicGraphicsUtils.getPreferredButtonSize(button,5);
 			maxW = Math.max(maxW,size.width);
 			maxH = Math.max(maxH,size.height);
 		}
-		for (JButton button:buttons.values()) {
+		for (java.util.Iterator _j14it22 = (buttons.values()).iterator(); _j14it22.hasNext(); ) {
+		  JButton button = (JButton) _j14it22.next();
 			ComponentTools.lockComponentSize(button,maxW,maxH);
 		}
 	}

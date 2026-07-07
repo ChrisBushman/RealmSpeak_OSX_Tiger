@@ -31,7 +31,7 @@ public class MinorCharacterEditor extends GenericEditor {
 	private JTable abilityTable;
 	private QuestTableEditorPanel abilityEditor;
 	
-	private ArrayList<String> abilityBlockNames;
+	private ArrayList abilityBlockNames;
 	
 	public MinorCharacterEditor(JFrame parent, GameData realmSpeakData,Quest quest,QuestMinorCharacter minorCharacter) {
 		super(parent, realmSpeakData);
@@ -56,7 +56,8 @@ public class MinorCharacterEditor extends GenericEditor {
 	private void updateControls() {
 		String locName = name.getText();
 		boolean conflict = false;
-		for (QuestMinorCharacter mc:quest.getMinorCharacters()) {
+		for (java.util.Iterator _j14it344 = (quest.getMinorCharacters()).iterator(); _j14it344.hasNext(); ) {
+		  QuestMinorCharacter mc = (QuestMinorCharacter) _j14it344.next();
 			if (mc!=minorCharacter && mc.getName().equals(locName)) {
 				conflict = true;
 				break;
@@ -140,7 +141,9 @@ public class MinorCharacterEditor extends GenericEditor {
 		abilityEditor = new QuestTableEditorPanel("Abilities",abilityTable){
 			public void add() {
 				ButtonOptionDialog dialog = new ButtonOptionDialog(parent, null, "Choose an ability type:", "New Ability", true);
-				for (AbilityType rt : AbilityType.values()) {
+				AbilityType[] _j14arr345 = AbilityType.values();
+				for (int _j14i345 = 0; _j14i345 < _j14arr345.length; _j14i345++) {
+				  AbilityType rt = _j14arr345[_j14i345];
 					if (rt == AbilityType.MonsterInteraction) continue; // new naming: MonsterImmunity, but this is needed for old abilities
 					dialog.addSelectionObject(rt);
 				}
@@ -163,7 +166,7 @@ public class MinorCharacterEditor extends GenericEditor {
 				}			}
 			public void delete() {
 				int row = abilityTable.getSelectedRow();
-				String abilityBlock = abilityBlockNames.get(row);
+				String abilityBlock = (String) abilityBlockNames.get(row);
 				abilityBlockNames.remove(row);
 				minorCharacter.getGameObject().removeAttributeBlock(abilityBlock);
 				abilityTable.clearSelection();
@@ -172,7 +175,7 @@ public class MinorCharacterEditor extends GenericEditor {
 			}
 			public void edit() {
 				int row = abilityTable.getSelectedRow();
-				String abilityBlock = abilityBlockNames.get(row);
+				String abilityBlock = (String) abilityBlockNames.get(row);
 				AbilityType type = AbilityType.valueOf(minorCharacter.getGameObject().getAttribute(abilityBlock,QuestMinorCharacter.ABILITY_TYPE));
 				CharacterWrapper template = new CharacterWrapper(GameObject.createEmptyGameObject());
 				template.getGameObject().copyAttributeBlockFrom(minorCharacter.getGameObject(),abilityBlock);
@@ -225,7 +228,7 @@ public class MinorCharacterEditor extends GenericEditor {
 		}
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			if (rowIndex<getRowCount()) {
-				String blockName = abilityBlockNames.get(rowIndex);
+				String blockName = (String) abilityBlockNames.get(rowIndex);
 				return minorCharacter.getGameObject().getAttribute(blockName,QuestMinorCharacter.ABILITY_DESCRIPTION);
 			}
 			return null;

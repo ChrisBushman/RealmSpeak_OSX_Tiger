@@ -26,12 +26,13 @@ public class SpellTargetingMagic extends SpellTargetingMultiple {
 		boolean nonMagicChangedChitsOnly = spell.getGameObject().hasThisAttribute(Constants.TARGETS_NON_MAGIC_CHANGED_CHITS);
 		if (paren1>0 && paren2>paren1) {
 			String chitList = targetType.substring(paren1+1,paren2);
-			Collection<CharacterActionChitComponent> allChits = character.getActiveMagicChits();
-			Collection<String> types = null;
+			Collection allChits = character.getActiveMagicChits();
+			Collection types = null;
 			if (!"all".equals(chitList)) {
 				types = StringUtilities.stringToCollection(chitList,",");
 			}
-			for (CharacterActionChitComponent chit : allChits) {
+			for (java.util.Iterator _j14it844 = (allChits).iterator(); _j14it844.hasNext(); ) {
+			  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it844.next();
 				if (types==null || types.contains(chit.getMagicType())) {
 					if (!nonMagicChangedChitsOnly
 							|| (!chit.getGameObject().hasThisAttribute(Constants.MAGIC_CHANGE) && !chit.getGameObject().hasThisAttribute(Constants.MAGIC_CHANGE_BY_FREE_SPELL)))

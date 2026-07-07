@@ -27,9 +27,10 @@ public class SpellTargetingSound extends SpellTargetingSingle {
 		GameData gameData = spell.getGameObject().getGameData();
 		GamePool pool = new GamePool(gameData.getGameObjects());
 		
-		ArrayList<GameObject> clearingTiles = getFilteredTiles();
-		Collection<GameObject> c = pool.find("sound,chit");
-		for (GameObject soundChitObject : c) {
+		ArrayList clearingTiles = getFilteredTiles();
+		Collection c = pool.find("sound,chit");
+		for (java.util.Iterator _j14it813 = (c).iterator(); _j14it813.hasNext(); ) {
+		  GameObject soundChitObject = (GameObject) _j14it813.next();
 			GameObject tile = soundChitObject.getHeldBy();
 			if (tile!=null && !tile.hasThisAttribute("tile")) {
 				tile = tile.getHeldBy(); // this jumps up one from lost castle or city
@@ -38,11 +39,12 @@ public class SpellTargetingSound extends SpellTargetingSingle {
 				SoundChitComponent soundChit = (SoundChitComponent)RealmComponent.getRealmComponent(soundChitObject);
 				if (soundChit.isFaceUp()) {
 					int clearing = soundChitObject.getThisInt("clearing");
-					ArrayList<GameObject> tileChoices = new ArrayList<GameObject>();
+					ArrayList tileChoices = new ArrayList();
 					if (here.tile.getGameObject().equals(tile)) {
 						gameObjects.add(soundChitObject);
 						identifiers.add(tile.getName());
-						for (GameObject t : clearingTiles) {
+						for (java.util.Iterator _j14it814 = (clearingTiles).iterator(); _j14it814.hasNext(); ) {
+						  GameObject t = (GameObject) _j14it814.next();
 							TileComponent tc = new TileComponent(t);
 							if (tc.getClearing(clearing)!=null) {
 								// Moving sound from here to somewhere else
@@ -75,9 +77,10 @@ public class SpellTargetingSound extends SpellTargetingSingle {
 		
 		secondaryTargets.clear();
 		int clearing = soundChitObject.getThisInt("clearing");
-		Collection<GameObject> clearingTiles = getFilteredTiles();
-		ArrayList<GameObject> tileChoices = new ArrayList<GameObject>();
-		for (GameObject t : clearingTiles) {
+		Collection clearingTiles = getFilteredTiles();
+		ArrayList tileChoices = new ArrayList();
+		for (java.util.Iterator _j14it815 = (clearingTiles).iterator(); _j14it815.hasNext(); ) {
+		  GameObject t = (GameObject) _j14it815.next();
 			TileComponent tc = new TileComponent(t);
 			if (tc.getClearing(clearing)!=null) {
 				tileChoices.add(t);
@@ -87,11 +90,12 @@ public class SpellTargetingSound extends SpellTargetingSingle {
 		secondaryTargets.put(tile.getName(),tileChoices);
 	}
 	
-	private ArrayList<GameObject> getFilteredTiles() {
+	private ArrayList getFilteredTiles() {
 		GameData gameData = spell.getGameObject().getGameData();	
-		Collection<GameObject> tiles = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
-		ArrayList<GameObject> clearingTiles = new ArrayList<GameObject>();
-		for (GameObject tile : tiles) {
+		Collection tiles = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
+		ArrayList clearingTiles = new ArrayList();
+		for (java.util.Iterator _j14it816 = (tiles).iterator(); _j14it816.hasNext(); ) {
+		  GameObject tile = (GameObject) _j14it816.next();
 			TileComponent tc = (TileComponent)RealmComponent.getRealmComponent(tile);
 			int clearingReq = spell.getGameObject().getThisInt("tile_req");
 			if (tc.getClearingCount()>=clearingReq || clearingReq==0) {

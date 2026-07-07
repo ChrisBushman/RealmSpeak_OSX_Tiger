@@ -169,18 +169,18 @@ public class CompanionEditPanel extends AdvantageEditPanel {
 	private JSpinner companionCount; 
 	private JLabel lightSideIcon;
 	private JLabel darkSideIcon;
-	private Hashtable<String,RealmComponent> hash;
-	private ArrayList<RealmObjectPanel> allPanels;
-	private Hashtable<String,RealmObjectPanel> panelLookup;
+	private Hashtable hash;
+	private ArrayList allPanels;
+	private Hashtable panelLookup;
 	private ChitComponent selected;
 	private boolean lockListener = false;
 	
 	public CompanionEditPanel(CharacterWrapper pChar, String levelKey) {
 		super(pChar, levelKey);
 		
-		hash = new Hashtable<String,RealmComponent>();
-		allPanels = new ArrayList<RealmObjectPanel>();
-		panelLookup = new Hashtable<String,RealmObjectPanel>();
+		hash = new Hashtable();
+		allPanels = new ArrayList();
+		panelLookup = new Hashtable();
 		
 		setLayout(new BorderLayout());
 		
@@ -226,18 +226,19 @@ public class CompanionEditPanel extends AdvantageEditPanel {
 		
 		add(tabs,"Center");
 		
-		ArrayList<String> list = getAttributeList(Constants.COMPANION_NAME);
+		ArrayList list = getAttributeList(Constants.COMPANION_NAME);
 		if (list!=null) {
-			companionCount.setValue(list.size());
-			for (String name : list) {
-				RealmComponent rc = hash.get(name);
-				RealmObjectPanel panel = panelLookup.get(name);
+			companionCount.setValue(new Integer(list.size()));
+			for (java.util.Iterator _j14it948 = (list).iterator(); _j14it948.hasNext(); ) {
+			  String name = (String) _j14it948.next();
+				RealmComponent rc = (RealmComponent) hash.get(name);
+				RealmObjectPanel panel = (RealmObjectPanel) panelLookup.get(name);
 				if (rc!=null && panel!=null) {
 					clearSelections(null);
 					panel.setSelected(rc);
 					
 					GamePool pool = new GamePool(getGameData().getGameObjects());
-					ArrayList<String> query = new ArrayList<String>();
+					ArrayList query = new ArrayList();
 					query.add("Name="+name);
 					query.add(Constants.COMPANION);
 					
@@ -255,7 +256,8 @@ public class CompanionEditPanel extends AdvantageEditPanel {
 		updateIcons();
 	}
 	private void clearSelections(RealmObjectPanel panel) {
-		for(RealmObjectPanel other:allPanels) {
+		for (java.util.Iterator _j14it949 = (allPanels).iterator(); _j14it949.hasNext(); ) {
+		  RealmObjectPanel other = (RealmObjectPanel) _j14it949.next();
 			if (other==panel) continue;
 			other.clearSelected();
 		}
@@ -300,7 +302,7 @@ public class CompanionEditPanel extends AdvantageEditPanel {
 		String name = getOptionName();
 		if (selected!=null) {
 			int cc =getCompanionCount();
-			ArrayList<String> list = new ArrayList<String>();
+			ArrayList list = new ArrayList();
 			for (int n=0;n<cc;n++) {
 				list.add(name);
 				TemplateLibrary.getSingleton().createCompanionFromTemplate(getGameData(),selected.getGameObject());
@@ -310,7 +312,7 @@ public class CompanionEditPanel extends AdvantageEditPanel {
 	}
 	
 	private int getCompanionCount() {
-		return (Integer)companionCount.getValue();
+		return ((Integer)companionCount.getValue()).intValue();
 	}
 	
 	public String getSuggestedDescription() {

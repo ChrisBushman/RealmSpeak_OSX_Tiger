@@ -8,12 +8,10 @@ public class ApplyNamedEffect implements ISpellEffect {
 		_effectName = effectName;
 	}
 	
-	@Override
 	public void apply(SpellEffectContext context) {
 		SpellUtility.ApplyNamedSpellEffectToTarget(_effectName, context.Target.getGameObject(), context.Spell);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		if(context.Target.getGameObject().hasThisAttribute(_effectName)){
 			context.Target.getGameObject().removeThisAttribute(_effectName);

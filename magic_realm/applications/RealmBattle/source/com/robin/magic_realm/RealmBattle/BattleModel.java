@@ -49,18 +49,18 @@ public class BattleModel {
 	private TileLocation battleLocation;
 
 	private BattleGroup denizenBattleGroup; // only one allowed
-	private ArrayList<BattleGroup> characterBattleGroups;
-	private ArrayList<BattleGroup> characterBattleGroupsNotGoingLast;
-	private ArrayList<BattleGroup> characterBattleGroupsGoingLast;
+	private ArrayList characterBattleGroups;
+	private ArrayList characterBattleGroupsNotGoingLast;
+	private ArrayList characterBattleGroupsGoingLast;
 
 	// The killedTallyHash is a hash of dead:killers - used to determine how many ways the points are divided
-	private HashLists<GameObject,GameObject> killedTallyHash;
+	private HashLists killedTallyHash;
 	
 	// The killTallyHash is a hash of attacker:kills - used to add points in the proper order after battle resolution
-	private HashLists<GameObject,GameObject> killTallyHash;
+	private HashLists killTallyHash;
 	
 	// The killerOrder is the order that killers killed stuff, so that characters that kill characters get credit for notoriety earned in the same turn.
-	private ArrayList<GameObject> killerOrder;
+	private ArrayList killerOrder;
 	
 	private int totalHits;
 	
@@ -68,9 +68,9 @@ public class BattleModel {
 		this.gameData = data;
 		this.battleLocation = battleLocation;
 		denizenBattleGroup = null;
-		characterBattleGroups = new ArrayList<BattleGroup>();
-		characterBattleGroupsNotGoingLast = new ArrayList<BattleGroup>();
-		characterBattleGroupsGoingLast = new ArrayList<BattleGroup>();
+		characterBattleGroups = new ArrayList();
+		characterBattleGroupsNotGoingLast = new ArrayList();
+		characterBattleGroupsGoingLast = new ArrayList();
 		hostPrefs = HostPrefWrapper.findHostPrefs(gameData);
 		theGame = GameWrapper.findGame(gameData);
 	}
@@ -93,7 +93,8 @@ public class BattleModel {
 	}
 	
 	public boolean arePinningMonsters() {
-		for (RealmComponent rc : getAllBattleParticipants(true)) {
+		for (java.util.Iterator _j14it388 = (getAllBattleParticipants(true)).iterator(); _j14it388.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it388.next();
 			if (rc.isMonster()) {
 				MonsterChitComponent monster = (MonsterChitComponent)rc;
 				if (monster.isPinningOpponent()) {
@@ -111,9 +112,10 @@ public class BattleModel {
 		return false;
 	}
 	private boolean isPacifiedByAllCharacters(RealmComponent denizen) {
-		ArrayList<CharacterChitComponent> characters = getAllParticipatingCharacters();
+		ArrayList characters = getAllParticipatingCharacters();
 		boolean pacified = characters.size()>0; // must be at least one character present for ANY pacification to happen
-		for (CharacterChitComponent cc:characters) {
+		for (java.util.Iterator _j14it389 = (characters).iterator(); _j14it389.hasNext(); ) {
+		  CharacterChitComponent cc = (CharacterChitComponent) _j14it389.next();
 			CharacterWrapper character = new CharacterWrapper(cc.getGameObject());
 			if (!denizen.isPacifiedBy(character)) {
 				pacified = false;
@@ -127,12 +129,14 @@ public class BattleModel {
 	 */
 	public boolean denizensAreBattling() {
 		if (denizenBattleGroup!=null) {
-			for (RealmComponent denizen:denizenBattleGroup.getBattleParticipants()) {
+			for (java.util.Iterator _j14it390 = (denizenBattleGroup.getBattleParticipants()).iterator(); _j14it390.hasNext(); ) {
+			  RealmComponent denizen = (RealmComponent) _j14it390.next();
 				CombatWrapper combat = new CombatWrapper(denizen.getGameObject());
 				
 				if (combat.isPeaceful() || isPacifiedByAllCharacters(denizen) || combat.isPacified()) continue;
 				
-				for (BattleGroup group:getAllBattleGroups(false)) {
+				for (java.util.Iterator _j14it391 = (getAllBattleGroups(false)).iterator(); _j14it391.hasNext(); ) {
+				  BattleGroup group = (BattleGroup) _j14it391.next();
 					if (!group.canBeAttackedBy(denizen)) continue;
 					if (denizen.isNative()) {
 						String groupName = denizen.getGameObject().getThisAttribute("native").toLowerCase();
@@ -152,7 +156,8 @@ public class BattleModel {
 	
 	public boolean areUnhiredNatives() {
 		if (denizenBattleGroup != null) {
-			for (RealmComponent denizen : denizenBattleGroup.getBattleParticipants()) {
+			for (java.util.Iterator _j14it392 = (denizenBattleGroup.getBattleParticipants()).iterator(); _j14it392.hasNext(); ) {
+			  RealmComponent denizen = (RealmComponent) _j14it392.next();
 				if (denizen.isNative()) {
 					return true;
 				}
@@ -163,7 +168,8 @@ public class BattleModel {
 	
 	public boolean areUnassignedDenizens() {
 		if (denizenBattleGroup != null) {
-			for (RealmComponent denizen : denizenBattleGroup.getBattleParticipants()) {
+			for (java.util.Iterator _j14it393 = (denizenBattleGroup.getBattleParticipants()).iterator(); _j14it393.hasNext(); ) {
+			  RealmComponent denizen = (RealmComponent) _j14it393.next();
 				if (denizen.getTarget()==null && denizen.get2ndTarget()==null) {
 					return true;
 				}
@@ -174,7 +180,8 @@ public class BattleModel {
 	
 	public boolean unassignedDenizenCanAttackMistLike() {
 		if (denizenBattleGroup != null) {
-			for (RealmComponent denizen : denizenBattleGroup.getBattleParticipants()) {
+			for (java.util.Iterator _j14it394 = (denizenBattleGroup.getBattleParticipants()).iterator(); _j14it394.hasNext(); ) {
+			  RealmComponent denizen = (RealmComponent) _j14it394.next();
 				if (denizen.getTarget()==null && denizen.get2ndTarget()==null) {
 					if (denizen.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE)) {
 						return true;
@@ -213,7 +220,8 @@ public class BattleModel {
 		group.setModel(this);
 	}
 	public BattleGroup getBattleGroup(RealmComponent owner) {
-		for (BattleGroup group:characterBattleGroups) {
+		for (java.util.Iterator _j14it395 = (characterBattleGroups).iterator(); _j14it395.hasNext(); ) {
+		  BattleGroup group = (BattleGroup) _j14it395.next();
 			if (group.getOwningCharacter().equals(owner)) {
 				return group;
 			}
@@ -221,7 +229,8 @@ public class BattleModel {
 		return null;
 	}
 	public BattleGroup getParticipantsBattleGroup(RealmComponent participant) {
-		for (BattleGroup group : getAllBattleGroups(true)) {
+		for (java.util.Iterator _j14it396 = (getAllBattleGroups(true)).iterator(); _j14it396.hasNext(); ) {
+		  BattleGroup group = (BattleGroup) _j14it396.next();
 			if (group.contains(participant)) {
 				return group;
 			}
@@ -250,7 +259,8 @@ public class BattleModel {
 			denizenBattleGroup.allHorsesWalk();
 			
 			// denizens reset to not having a sheet
-			for (RealmComponent rc : denizenBattleGroup.getBattleParticipants()) {
+			for (java.util.Iterator _j14it397 = (denizenBattleGroup.getBattleParticipants()).iterator(); _j14it397.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it397.next();
 				CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 				if (combat.isSheetOwner()) {
 					if(!rc.hasTarget() || (rc.isMonster() && ((MonsterChitComponent)rc).isTremendousWeight() && rc.getTarget().isCharacter())) {
@@ -263,7 +273,8 @@ public class BattleModel {
 		
 		// Setup combat sheet owners
 		// Make sure all non-hired participants in clearing are sheet owners (to start)
-		for (RealmComponent rc : getAllBattleParticipants(false)) {
+		for (java.util.Iterator _j14it398 = (getAllBattleParticipants(false)).iterator(); _j14it398.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it398.next();
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 			if (!combat.isSheetOwner()) {
 				combat.setSheetOwner(true);
@@ -276,12 +287,14 @@ public class BattleModel {
 	 */
 	public void doRandomAssignment() {
 		if (denizenBattleGroup != null) {
-			for (RealmComponent denizen:denizenBattleGroup.getBattleParticipants()) {
+			for (java.util.Iterator _j14it399 = (denizenBattleGroup.getBattleParticipants()).iterator(); _j14it399.hasNext(); ) {
+			  RealmComponent denizen = (RealmComponent) _j14it399.next();
 				CombatWrapper combat = new CombatWrapper(denizen.getGameObject());
 				if (!denizen.isAssigned() && !combat.isPeaceful()  && !combat.isPacified() && !denizen.isMistLike()) {
-					ArrayList<BattleGroup> availableGroups = new ArrayList<BattleGroup>();
+					ArrayList availableGroups = new ArrayList();
 					// Find one possibility for each BattleGroup
-					for (BattleGroup bg:characterBattleGroups) {
+					for (java.util.Iterator _j14it400 = (characterBattleGroups).iterator(); _j14it400.hasNext(); ) {
+					  BattleGroup bg = (BattleGroup) _j14it400.next();
 						if (bg.hasAvailableParticipant(denizen)) {
 							availableGroups.add(bg);
 						}
@@ -304,16 +317,17 @@ public class BattleModel {
 		}
 	}
 
-	private static BattleGroup rollOffForWorst(Collection<BattleGroup> groups) {
+	private static BattleGroup rollOffForWorst(Collection groups) {
 		return rollOff(groups, false);
 	}
 
-	private static BattleGroup rollOff(Collection<BattleGroup> groups, boolean best) {
+	private static BattleGroup rollOff(Collection groups, boolean best) {
 		if (groups.size() > 0) {
 			while (groups.size() > 1) { // As long as there are ties, the rolloff continues. Only one "winner" allowed.
 				int markRoll = best ? 99 : -99;
-				ArrayList<BattleGroup> markedRollers = new ArrayList<BattleGroup>();
-				for (BattleGroup bg : groups) {
+				ArrayList markedRollers = new ArrayList();
+				for (java.util.Iterator _j14it401 = (groups).iterator(); _j14it401.hasNext(); ) {
+				  BattleGroup bg = (BattleGroup) _j14it401.next();
 					DieRoller roller = bg.createDieRoller("Roll Off");
 					int roll = roller.getHighDieResult();
 					if (roll == markRoll) {
@@ -329,7 +343,7 @@ public class BattleModel {
 				}
 				groups = markedRollers;
 			}
-			return groups.iterator().next();
+			return (BattleGroup) groups.iterator().next();
 		}
 		return null;
 	}
@@ -342,11 +356,11 @@ public class BattleModel {
 		return denizenBattleGroup!=null;
 	}
 
-	public ArrayList<RealmComponent> getAllBattleParticipants(boolean includeDenizens) {
+	public ArrayList getAllBattleParticipants(boolean includeDenizens) {
 		return getParticipantsFromGroups(getAllBattleGroups(includeDenizens));
 	}
-	public ArrayList<RealmComponent> getAllOtherBattleParticipants(BattleGroup bg,boolean includeDenizens,boolean allowTreachery) {
-		ArrayList<BattleGroup> list = findOtherBattleGroups(bg,includeDenizens);
+	public ArrayList getAllOtherBattleParticipants(BattleGroup bg,boolean includeDenizens,boolean allowTreachery) {
+		ArrayList list = findOtherBattleGroups(bg,includeDenizens);
 		if (allowTreachery) {
 			list.add(bg);
 		}
@@ -362,9 +376,10 @@ public class BattleModel {
 	/**
 	 * @return			All characters involved in battle (includes characters that are absent, but have hirelings)
 	 */
-	public ArrayList<RealmComponent> getAllOwningCharacters() {
-		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
-		for (BattleGroup group:characterBattleGroups) {
+	public ArrayList getAllOwningCharacters() {
+		ArrayList ret = new ArrayList();
+		for (java.util.Iterator _j14it402 = (characterBattleGroups).iterator(); _j14it402.hasNext(); ) {
+		  BattleGroup group = (BattleGroup) _j14it402.next();
 			RealmComponent rc = group.getOwningCharacter();
 			if (rc!=null) {
 				ret.add(rc);
@@ -376,10 +391,11 @@ public class BattleModel {
 	/**
 	 * Returns a list of all native leaders, and controlled monsters in the clearing (not characters).
 	 */
-	public ArrayList<RealmComponent> getAllLeaders() {
-		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
-		ArrayList<RealmComponent> list  = getAllBattleParticipants(false);
-		for (RealmComponent rc : list) {
+	public ArrayList getAllLeaders() {
+		ArrayList ret = new ArrayList();
+		ArrayList list  = getAllBattleParticipants(false);
+		for (java.util.Iterator _j14it403 = (list).iterator(); _j14it403.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it403.next();
 			if (rc.isPlayerControlledLeader() && !rc.isCharacter()) {
 				ret.add(rc);
 			}
@@ -391,9 +407,10 @@ public class BattleModel {
 	/**
 	 * @return			All characters in the battle (not owningCharacters!)
 	 */
-	public ArrayList<CharacterChitComponent> getAllParticipatingCharacters() {
-		ArrayList<CharacterChitComponent> ret = new ArrayList<CharacterChitComponent>();
-		for (BattleGroup group:characterBattleGroups) {
+	public ArrayList getAllParticipatingCharacters() {
+		ArrayList ret = new ArrayList();
+		for (java.util.Iterator _j14it404 = (characterBattleGroups).iterator(); _j14it404.hasNext(); ) {
+		  BattleGroup group = (BattleGroup) _j14it404.next();
 			CharacterChitComponent rc = group.getCharacterInBattle();
 			if (rc!=null) {
 				ret.add(rc);
@@ -405,9 +422,10 @@ public class BattleModel {
 	/**
 	 * @return			All characters in the battle (not owningCharacters!)
 	 */
-	public ArrayList<RealmComponent> getAllParticipatingCharactersAsRc() {
-		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
-		for (BattleGroup group:characterBattleGroups) {
+	public ArrayList getAllParticipatingCharactersAsRc() {
+		ArrayList ret = new ArrayList();
+		for (java.util.Iterator _j14it405 = (characterBattleGroups).iterator(); _j14it405.hasNext(); ) {
+		  BattleGroup group = (BattleGroup) _j14it405.next();
 			RealmComponent rc = group.getCharacterInBattle();
 			if (rc!=null) {
 				ret.add(rc);
@@ -419,8 +437,8 @@ public class BattleModel {
 	/**
 	 * Returns a Collection of all the battle groups in this model.
 	 */
-	public ArrayList<BattleGroup> getAllBattleGroups(boolean includeDenizens) {
-		ArrayList<BattleGroup> all = new ArrayList<BattleGroup>();
+	public ArrayList getAllBattleGroups(boolean includeDenizens) {
+		ArrayList all = new ArrayList();
 		all.addAll(characterBattleGroups);
 		if (includeDenizens && denizenBattleGroup != null) {
 			all.add(denizenBattleGroup);
@@ -431,8 +449,8 @@ public class BattleModel {
 	/**
 	 * Returns a collection of all battle groups that are not the specified battle group\ (denizens and characters are grouped together)
 	 */
-	public ArrayList<BattleGroup> findOtherBattleGroups(BattleGroup bg, boolean includeDenizens) {
-		ArrayList<BattleGroup> otherBattleGroups = getAllBattleGroups(includeDenizens);
+	public ArrayList findOtherBattleGroups(BattleGroup bg, boolean includeDenizens) {
+		ArrayList otherBattleGroups = getAllBattleGroups(includeDenizens);
 		otherBattleGroups.remove(bg);
 		return otherBattleGroups;
 	}
@@ -443,15 +461,16 @@ public class BattleModel {
 			denizenBattleGroup.allHorsesGallop();
 			
 			// Denizens select their target
-			for (RealmComponent denizen : denizenBattleGroup.getBattleParticipants()) {
+			for (java.util.Iterator _j14it406 = (denizenBattleGroup.getBattleParticipants()).iterator(); _j14it406.hasNext(); ) {
+			  RealmComponent denizen = (RealmComponent) _j14it406.next();
 				if (!denizen.isMonster() || !((MonsterChitComponent)denizen).isPinningOpponent()) {
-					ArrayList<RealmComponent> attackers = getAttackersFor(denizen);
+					ArrayList attackers = getAttackersFor(denizen);
 					if (!attackers.isEmpty()) {
 						Collections.sort(attackers,new TargetIndexComparator());
 						// Target the last one, unless a character
 						int n = attackers.size()-1;
 						RealmComponent target = null;
-						while(n>=0 && (target = attackers.get(n)).isCharacter()) {
+						while(n>=0 && (target = (RealmComponent) attackers.get(n)).isCharacter()) {
 							target = null;
 							n--;
 						}
@@ -464,20 +483,23 @@ public class BattleModel {
 		}
 
 		// Hireling horses turn over
-		for (BattleGroup bg:characterBattleGroups) {
+		for (java.util.Iterator _j14it407 = (characterBattleGroups).iterator(); _j14it407.hasNext(); ) {
+		  BattleGroup bg = (BattleGroup) _j14it407.next();
 			bg.allHorsesFlip();
 		}
 		
 		// Assign targets for hirelings where obvious
-		ArrayList<RealmComponent> owners = new ArrayList<RealmComponent>();
-		for (BattleGroup bg:characterBattleGroups) {
+		ArrayList owners = new ArrayList();
+		for (java.util.Iterator _j14it408 = (characterBattleGroups).iterator(); _j14it408.hasNext(); ) {
+		  BattleGroup bg = (BattleGroup) _j14it408.next();
 			owners.add(bg.getOwningCharacter());
-			for (RealmComponent hireling:bg.getHirelings()) {
+			for (java.util.Iterator _j14it409 = (bg.getHirelings()).iterator(); _j14it409.hasNext(); ) {
+			  RealmComponent hireling = (RealmComponent) _j14it409.next();
 				if (hireling.getTarget()==null && hireling.get2ndTarget()==null) {
-					ArrayList<RealmComponent> attackers = getAttackersFor(hireling,true,false);
+					ArrayList attackers = getAttackersFor(hireling,true,false);
 					if (attackers.size()==1) {
 						// its obvious, so do it here
-						RealmComponent soleAttacker = attackers.iterator().next();
+						RealmComponent soleAttacker = (RealmComponent) attackers.iterator().next();
 						hireling.setTarget(soleAttacker);
 						boolean gotUnhidden = CombatFrame.makeTarget(CombatFrame.getSingleton(),null,hireling,soleAttacker);
 						if (gotUnhidden) {
@@ -490,13 +512,14 @@ public class BattleModel {
 		
 		// Assign the order for target selection (randomized every round)
 		RealmLogging.logMessage(RealmLogging.BATTLE,"Assigning random target selection order.");
-		ArrayList<RealmComponent> randomOrder = new ArrayList<RealmComponent>();
+		ArrayList randomOrder = new ArrayList();
 		while(!owners.isEmpty()) {
 			int r = RandomNumber.getRandom(owners.size());
 			randomOrder.add(owners.remove(r));
 		}
 		int n=1;
-		for(RealmComponent rc:randomOrder) {
+		for (java.util.Iterator _j14it410 = (randomOrder).iterator(); _j14it410.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it410.next();
 			CharacterWrapper owner = new CharacterWrapper(rc.getGameObject());
 			owner.setMeleePlayOrder(n++);
 			owner.setPlayerOrdering(n++);
@@ -504,7 +527,8 @@ public class BattleModel {
 	}
 	
 	public void doRaiseDeads() {
-		for (CharacterChitComponent rc : getAllParticipatingCharacters()) {
+		for (java.util.Iterator _j14it411 = (getAllParticipatingCharacters()).iterator(); _j14it411.hasNext(); ) {
+		  CharacterChitComponent rc = (CharacterChitComponent) _j14it411.next();
 			CombatWrapper character = new CombatWrapper(rc.getGameObject());
 			if (character.getRaiseTheDead() && !rc.affectedByKey(Constants.DISENCHANT_POTION)) {
 				CharacterWrapper characterCasting = new CharacterWrapper(rc.getGameObject());
@@ -524,7 +548,8 @@ public class BattleModel {
 			guild = battleLocation.clearing.getGuild();
 		}
 		if (guild==null) return;
-		for (CharacterChitComponent rc : getAllParticipatingCharacters()) {
+		for (java.util.Iterator _j14it412 = (getAllParticipatingCharacters()).iterator(); _j14it412.hasNext(); ) {
+		  CharacterChitComponent rc = (CharacterChitComponent) _j14it412.next();
 			CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 			if (character.isGuildMember(guild.getGameObject().getThisAttribute(Constants.GUILD))) {
 				character.setHidden(true);
@@ -533,12 +558,14 @@ public class BattleModel {
 	}
 	
 	public void doEnergizeDenizenPreBattleSpells() {
-		ArrayList<RealmComponent> casters = new ArrayList<RealmComponent>();
-		for (RealmComponent battleParticipant : getAllBattleParticipants(true)) {
+		ArrayList casters = new ArrayList();
+		for (java.util.Iterator _j14it413 = (getAllBattleParticipants(true)).iterator(); _j14it413.hasNext(); ) {
+		  RealmComponent battleParticipant = (RealmComponent) _j14it413.next();
 			if ((battleParticipant.isMonster() || battleParticipant.isNative()) && battleParticipant.getGameObject().hasThisAttribute(Constants.SPELL_PRE_BATTLE)) {
 				String spellName = battleParticipant.getGameObject().getThisAttribute(Constants.SPELL_PRE_BATTLE);
 				SpellWrapper spell = null;
-				for (GameObject held : battleParticipant.getGameObject().getHold()) {
+				for (java.util.Iterator _j14it414 = (battleParticipant.getGameObject().getHold()).iterator(); _j14it414.hasNext(); ) {
+				  GameObject held = (GameObject) _j14it414.next();
 					if (held.getName().toLowerCase().matches(spellName.toLowerCase()) && held.hasThisAttribute(Constants.SPELL_DENIZEN)) {
 						spell = new SpellWrapper(held);
 						break;
@@ -551,7 +578,7 @@ public class BattleModel {
 					}
 					
 					if (!validTarget || spell.isNullified() || !spell.isAlive()) continue;
-					ArrayList<String> logs = new ArrayList<String>();
+					ArrayList logs = new ArrayList();
 					if (spell.isInstantSpell() && !spell.uneffectAtMidnight()) {
 						logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,true,null);
 					}
@@ -559,7 +586,8 @@ public class BattleModel {
 						logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,false,null);
 					}
 					if (logs != null && !logs.isEmpty()) {
-						for (String log : logs) {
+						for (java.util.Iterator _j14it415 = (logs).iterator(); _j14it415.hasNext(); ) {
+						  String log = (String) _j14it415.next();
 							logBattleInfo(log);
 						}
 					}
@@ -570,7 +598,8 @@ public class BattleModel {
 			}
 		}
 		
-		for (RealmComponent rc : casters) {
+		for (java.util.Iterator _j14it416 = (casters).iterator(); _j14it416.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it416.next();
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 			if (combat.isSheetOwner()) {
 				if(!rc.hasTarget() || (rc.isMonster() && ((MonsterChitComponent)rc).isTremendousWeight() && rc.getTarget().isCharacter())) {
@@ -587,11 +616,12 @@ public class BattleModel {
 		energizeFloodEvent();
 		
 		// Find and hash all spells and casters cast this round by speed
-		HashLists<Integer,SpellWrapper> spells = new HashLists<Integer,SpellWrapper>();
-		HashLists<Integer,BattleChit> monsterSpells = new HashLists<Integer,BattleChit>();
-		HashLists<Integer,CharacterChitComponent> casters = new HashLists<Integer,CharacterChitComponent>();
-		ArrayList<BattleChit> spellCasters = new ArrayList<BattleChit>();
-		for (CharacterChitComponent rc : getAllParticipatingCharacters()) {
+		HashLists spells = new HashLists();
+		HashLists monsterSpells = new HashLists();
+		HashLists casters = new HashLists();
+		ArrayList spellCasters = new ArrayList();
+		for (java.util.Iterator _j14it417 = (getAllParticipatingCharacters()).iterator(); _j14it417.hasNext(); ) {
+		  CharacterChitComponent rc = (CharacterChitComponent) _j14it417.next();
 			CombatWrapper character = new CombatWrapper(rc.getGameObject());
 			GameObject go = character.getCastSpell();
 			if (go!=null) {
@@ -605,7 +635,8 @@ public class BattleModel {
 				}
 			}
 		}
-		for (RealmComponent battleParticipant : getAllBattleParticipants(true)) {
+		for (java.util.Iterator _j14it418 = (getAllBattleParticipants(true)).iterator(); _j14it418.hasNext(); ) {
+		  RealmComponent battleParticipant = (RealmComponent) _j14it418.next();
 			boolean transmorphed = false;
 			if (battleParticipant.isCharacter()) {
 				if ((new CharacterWrapper(battleParticipant.getGameObject())).isTransmorphed()) {
@@ -626,7 +657,8 @@ public class BattleModel {
 						&& denizen.getMagicType()!=null&&(denizen.getMagicType().length() > 0)) {
 					String spellName = denizen.getAttackSpell();
 					SpellWrapper spell = null;
-					for (GameObject held : denizen.getGameObject().getHold()) {
+					for (java.util.Iterator _j14it419 = (denizen.getGameObject().getHold()).iterator(); _j14it419.hasNext(); ) {
+					  GameObject held = (GameObject) _j14it419.next();
 						if (held.getName().toLowerCase().matches(spellName.toLowerCase()) && held.hasThisAttribute(Constants.SPELL_DENIZEN)) {
 							spell = new SpellWrapper(held);
 							break;
@@ -649,24 +681,27 @@ public class BattleModel {
 		}
 		
 		if (spells.size()>0) {
-			ArrayList<Integer> allSpeeds = new ArrayList<Integer>(spells.keySet());
+			ArrayList allSpeeds = new ArrayList(spells.keySet());
 			allSpeeds.addAll(monsterSpells.keySet());
 			Collections.sort(allSpeeds);
 			
 			// Determine which spells cancel which spellcasters
-			for (Integer speed : allSpeeds) {
-				ArrayList<SpellWrapper> spellsAtSpeed = spells.getList(speed);
-				ArrayList<CharacterChitComponent> unaffectedCasters = casters.getList(speed);
+			for (java.util.Iterator _j14it420 = (allSpeeds).iterator(); _j14it420.hasNext(); ) {
+			  Integer speed = (Integer) _j14it420.next();
+				ArrayList spellsAtSpeed = spells.getList(speed);
+				ArrayList unaffectedCasters = casters.getList(speed);
 				
 				if (spellsAtSpeed != null) {
-					for (SpellWrapper spell : spellsAtSpeed) {
+					for (java.util.Iterator _j14it421 = (spellsAtSpeed).iterator(); _j14it421.hasNext(); ) {
+					  SpellWrapper spell = (SpellWrapper) _j14it421.next();
 						if (spell.isAlive() && !spell.targetsClearing()) { // might have already been cancelled!
-							ArrayList<RealmComponent> targets = spell.getTargets();
+							ArrayList targets = spell.getTargets();
 							targets.retainAll(spellCasters);
 							if (unaffectedCasters!=null) targets.removeAll(unaffectedCasters);
 							
 							if (targets.size()>0) {
-								for (RealmComponent target : targets) {
+								for (java.util.Iterator _j14it422 = (targets).iterator(); _j14it422.hasNext(); ) {
+								  RealmComponent target = (RealmComponent) _j14it422.next();
 									CombatWrapper combat = new CombatWrapper(target.getGameObject());
 									if (hostPrefs.hasPref(Constants.OPT_POWER_OF_THE_PIT_DEMON)) {
 										boolean targetTransmorphed = false;
@@ -678,7 +713,7 @@ public class BattleModel {
 										if ((target.isMonster() || targetTransmorphed) && !target.isMonsterPart()) {
 											BattleChit monster = (BattleChit)target;
 											if ("V".equals(monster.getMagicType()) && Constants.POWER_OF_THE_PIT.matches(monster.getAttackSpell())) {
-												if (monster.getAttackSpeed().getNum() <= speed) continue;
+												if (monster.getAttackSpeed().getNum() <= speed.intValue()) continue;
 												combat.setCancelSpell();
 												String message = "Attack spell, cast by the "
 														+monster.getGameObject().getNameWithNumber()
@@ -699,7 +734,7 @@ public class BattleModel {
 									
 									//attackSpeed cannot be fetched anymore, if spell already expired (e.g. dissolve spell didn't have a target)
 									if (spellToCancel.getIncantationObject() == null) continue;
-									if (spellToCancel.getAttackSpeed().getNum() <= speed) continue;
+									if (spellToCancel.getAttackSpeed().getNum() <= speed.intValue()) continue;
 																	
 									String targetingClearing = "";
 									if (spellToCancel.targetsClearing()) {
@@ -725,9 +760,10 @@ public class BattleModel {
 				}
 				
 				if (hostPrefs.hasPref(Constants.OPT_POWER_OF_THE_PIT_DEMON)) {
-					ArrayList<BattleChit> monstersAtSpeed = monsterSpells.getList(speed);
+					ArrayList monstersAtSpeed = monsterSpells.getList(speed);
 					if (monstersAtSpeed!=null) {
-						for (BattleChit monster : monstersAtSpeed) {
+						for (java.util.Iterator _j14it423 = (monstersAtSpeed).iterator(); _j14it423.hasNext(); ) {
+						  BattleChit monster = (BattleChit) _j14it423.next();
 							RealmComponent target = monster.getTarget();
 							if (target == null || (unaffectedCasters != null && unaffectedCasters.contains(target))) continue;
 							CombatWrapper combat = new CombatWrapper(target.getGameObject());
@@ -736,7 +772,7 @@ public class BattleModel {
 							SpellWrapper spellToCancel = new SpellWrapper(spellToCancelGo);	
 							//attackSpeed cannot be fetched anymore, if spell already expired (e.g. dissolve spell didn't have a target)
 							if (spellToCancel.getIncantationObject() == null) continue;
-							if (spellToCancel.getAttackSpeed().getNum() <= speed) continue;
+							if (spellToCancel.getAttackSpeed().getNum() <= speed.intValue()) continue;
 							String message = spellToCancelGo.getName()
 									+", cast by the "
 									+target.getGameObject().getNameWithNumber()
@@ -750,39 +786,43 @@ public class BattleModel {
 				}
 				
 				// check for duplicate conflicting (transmorph) spells at same target
-				HashMap<RealmComponent,ArrayList<SpellWrapper>> conflictingSpells = new HashMap<RealmComponent,ArrayList<SpellWrapper>>();
-				HashMap<RealmComponent,Integer> conflictingSpellsStrength = new HashMap<RealmComponent,Integer>();
-				HashMap<RealmComponent,SpellWrapper> strongestConflictingSpells = new HashMap<RealmComponent,SpellWrapper>();
+				HashMap conflictingSpells = new HashMap();
+				HashMap conflictingSpellsStrength = new HashMap();
+				HashMap strongestConflictingSpells = new HashMap();
 				if (spellsAtSpeed != null) {
-					for (SpellWrapper spell : spellsAtSpeed) {
+					for (java.util.Iterator _j14it424 = (spellsAtSpeed).iterator(); _j14it424.hasNext(); ) {
+					  SpellWrapper spell = (SpellWrapper) _j14it424.next();
 						if (!spell.isActive()) continue; // might have already been cancelled!
-						ArrayList<RealmComponent> targets = spell.getTargets();
-						for (RealmComponent target : targets) {
+						ArrayList targets = spell.getTargets();
+						for (java.util.Iterator _j14it425 = (targets).iterator(); _j14it425.hasNext(); ) {
+						  RealmComponent target = (RealmComponent) _j14it425.next();
 							if (spell.canConflict()) {
-								ArrayList<SpellWrapper> targetedConflictingSpells = new ArrayList<SpellWrapper>();
+								ArrayList targetedConflictingSpells = new ArrayList();
 								targetedConflictingSpells.add(spell);
 								int strongestSpellStrength = 0;
 								if (conflictingSpells.containsKey(target)) {
-									targetedConflictingSpells.addAll(conflictingSpells.get(target));
-									strongestSpellStrength = conflictingSpellsStrength.get(target);
+									targetedConflictingSpells.addAll((ArrayList) conflictingSpells.get(target));
+									strongestSpellStrength = ((Integer) conflictingSpellsStrength.get(target)).intValue();
 								}
 								conflictingSpells.put(target, targetedConflictingSpells);
 								if (spell.getConflictStrength() > strongestSpellStrength) {
-									conflictingSpellsStrength.put(target, spell.getConflictStrength());
+									conflictingSpellsStrength.put(target, new Integer(spell.getConflictStrength()));
 									strongestConflictingSpells.put(target, spell); 
 								}
 							}
 						}
 					}
 				}
-				for (RealmComponent target : conflictingSpells.keySet()) {
-					ArrayList<SpellWrapper> conflictingSpellsAtTarget = conflictingSpells.get(target);
+				for (java.util.Iterator _j14it426 = (conflictingSpells.keySet()).iterator(); _j14it426.hasNext(); ) {
+				  RealmComponent target = (RealmComponent) _j14it426.next();
+					ArrayList conflictingSpellsAtTarget = (ArrayList) conflictingSpells.get(target);
 					if (conflictingSpellsAtTarget.size() <= 1) continue;
-					int strongestSpellStrength = conflictingSpellsStrength.get(target);
+					int strongestSpellStrength = ((Integer) conflictingSpellsStrength.get(target)).intValue();
 					int numberOfStrongestSpells = 0;
-					for (SpellWrapper spell : conflictingSpellsAtTarget) {
+					for (java.util.Iterator _j14it427 = (conflictingSpellsAtTarget).iterator(); _j14it427.hasNext(); ) {
+					  SpellWrapper spell = (SpellWrapper) _j14it427.next();
 						if (spell.getConflictStrength() < strongestSpellStrength) {
-							strongestConflictingSpells.get(target).addListItem(SpellWrapper.NULLIFIED_SPELLS, spell.getGameObject().getStringId());
+							((SpellWrapper) strongestConflictingSpells.get(target)).addListItem(SpellWrapper.NULLIFIED_SPELLS, spell.getGameObject().getStringId());
 							spell.nullifySpell(true);
 							logBattleInfo(spell.getName() + " (cast by "+spell.getCaster().getName()+") was nullified as a stronger spell hit the " + target + " at the same speed of " + speed +".");
 						}
@@ -791,7 +831,8 @@ public class BattleModel {
 						}
 					}
 					if (numberOfStrongestSpells >= 2) {
-						for (SpellWrapper spell : conflictingSpellsAtTarget) {
+						for (java.util.Iterator _j14it428 = (conflictingSpellsAtTarget).iterator(); _j14it428.hasNext(); ) {
+						  SpellWrapper spell = (SpellWrapper) _j14it428.next();
 							if (spell.getConflictStrength() == strongestSpellStrength) {
 								if (spell.isTransform() || spell.isStoneGaze()) {
 									spell.cancelSpell();
@@ -808,17 +849,19 @@ public class BattleModel {
 					
 			// Non-attack spells go into effect here
 			CombatWrapper tile = new CombatWrapper(battleLocation.tile.getGameObject());
-			for (Integer speed : allSpeeds) {
-				ArrayList<SpellWrapper> spellsAtSpeed = spells.getList(speed);
+			for (java.util.Iterator _j14it429 = (allSpeeds).iterator(); _j14it429.hasNext(); ) {
+			  Integer speed = (Integer) _j14it429.next();
+				ArrayList spellsAtSpeed = spells.getList(speed);
 				if (spellsAtSpeed == null) continue;
-				for (SpellWrapper spell : spellsAtSpeed) {
+				for (java.util.Iterator _j14it430 = (spellsAtSpeed).iterator(); _j14it430.hasNext(); ) {
+				  SpellWrapper spell = (SpellWrapper) _j14it430.next();
 					if (spell.isNullified() || !spell.isAlive()) continue;
 					if (spell.getCaster().affectedByKey(Constants.DISENCHANT_POTION)) {
 						spell.cancelSpell();
 						logBattleInfo("Spell canceled. Caster affected by Disenchant Potion");
 						continue;
 					}
-					ArrayList<String> logs = new ArrayList<String>();
+					ArrayList logs = new ArrayList();
 					
 					if (spell.isDenizenSpell()) {
 						if (spell.isInstantSpell() && !spell.uneffectAtMidnight()) {
@@ -828,7 +871,8 @@ public class BattleModel {
 							logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,false,null);
 						}
 						if (logs != null && !logs.isEmpty()) {
-							for (String log : logs) {
+							for (java.util.Iterator _j14it431 = (logs).iterator(); _j14it431.hasNext(); ) {
+							  String log = (String) _j14it431.next();
 								logBattleInfo(log);
 							}
 						}
@@ -848,7 +892,8 @@ public class BattleModel {
 						logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,false,spellsAtSpeed);
 					}
 					if (logs != null && !logs.isEmpty()) {
-						for (String log : logs) {
+						for (java.util.Iterator _j14it432 = (logs).iterator(); _j14it432.hasNext(); ) {
+						  String log = (String) _j14it432.next();
 							logBattleInfo(log);
 						}
 					}
@@ -874,7 +919,8 @@ public class BattleModel {
 	}
 	
 	private void energizeInstantTeleport() {
-		for (CharacterChitComponent rc : getAllParticipatingCharacters()) {
+		for (java.util.Iterator _j14it433 = (getAllParticipatingCharacters()).iterator(); _j14it433.hasNext(); ) {
+		  CharacterChitComponent rc = (CharacterChitComponent) _j14it433.next();
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 			if (combat.getInstantTeleport()!=null) {
 				CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
@@ -893,14 +939,16 @@ public class BattleModel {
 	
 	private void energizeRoofCollapsesEvent() {
 		if (battleLocation.tile.getGameObject().hasThisAttribute(Constants.EVENT_CAVE_IN)) {
-			ArrayList<String> clearings = battleLocation.tile.getGameObject().getThisAttributeList(Constants.EVENT_CAVE_IN);
-			for (String cl : clearings) {
+			ArrayList clearings = battleLocation.tile.getGameObject().getThisAttributeList(Constants.EVENT_CAVE_IN);
+			for (java.util.Iterator _j14it434 = (clearings).iterator(); _j14it434.hasNext(); ) {
+			  String cl = (String) _j14it434.next();
 				if (battleLocation.clearing.getNumString().matches(cl)) {
-					ArrayList<RealmComponent> allBattleParticipants = getAllBattleParticipants(true);
+					ArrayList allBattleParticipants = getAllBattleParticipants(true);
 					GamePool pool = new GamePool(gameData.getGameObjects());
 					GameObject objectToCopy = pool.findFirst("name=Roof Collapses");
 					if (objectToCopy!=null) {
-						for (RealmComponent participant : allBattleParticipants) {
+						for (java.util.Iterator _j14it435 = (allBattleParticipants).iterator(); _j14it435.hasNext(); ) {
+						  RealmComponent participant = (RealmComponent) _j14it435.next();
 							GameObject spell = gameData.createNewObject(objectToCopy);
 							spell.setThisAttribute(Constants.EVENT);
 							spell.setThisAttribute("target",participant.getGameObject().getNameWithNumber());
@@ -925,14 +973,16 @@ public class BattleModel {
 	
 	private void energizeFloodEvent() {
 		if (battleLocation.tile.getGameObject().hasThisAttribute(Constants.EVENT_FLOOD) && !battleLocation.clearing.isMountain()) {
-			ArrayList<String> clearings = battleLocation.tile.getGameObject().getThisAttributeList(Constants.EVENT_FLOOD);
-			for (String cl : clearings) {
+			ArrayList clearings = battleLocation.tile.getGameObject().getThisAttributeList(Constants.EVENT_FLOOD);
+			for (java.util.Iterator _j14it436 = (clearings).iterator(); _j14it436.hasNext(); ) {
+			  String cl = (String) _j14it436.next();
 				if (battleLocation.clearing.getNumString().matches(cl)) {
-					ArrayList<RealmComponent> allBattleParticipants = getAllBattleParticipants(true);
+					ArrayList allBattleParticipants = getAllBattleParticipants(true);
 					GamePool pool = new GamePool(gameData.getGameObjects());
 					GameObject objectToCopy = pool.findFirst("name=Flood");
 					if (objectToCopy!=null) {
-						for (RealmComponent participant : allBattleParticipants) {
+						for (java.util.Iterator _j14it437 = (allBattleParticipants).iterator(); _j14it437.hasNext(); ) {
+						  RealmComponent participant = (RealmComponent) _j14it437.next();
 							if (participant.isMonster() && ((MonsterChitComponent)participant).flies()) {
 								continue;
 							}
@@ -975,11 +1025,13 @@ public class BattleModel {
 	
 	private void energizeHurricaneWindsEvent() {
 		if (battleLocation.tile.getGameObject().hasThisAttribute(Constants.EVENT_HURRICANE_WINDS)) {
-			ArrayList<String> clearings = battleLocation.tile.getGameObject().getThisAttributeList(Constants.EVENT_HURRICANE_WINDS);
-			for (String cl : clearings) {
+			ArrayList clearings = battleLocation.tile.getGameObject().getThisAttributeList(Constants.EVENT_HURRICANE_WINDS);
+			for (java.util.Iterator _j14it438 = (clearings).iterator(); _j14it438.hasNext(); ) {
+			  String cl = (String) _j14it438.next();
 				if (battleLocation.clearing.getNumString().matches(cl)) {
-					ArrayList<RealmComponent> allBattleParticipants = getAllBattleParticipants(true);
-					for (RealmComponent participant : allBattleParticipants) {
+					ArrayList allBattleParticipants = getAllBattleParticipants(true);
+					for (java.util.Iterator _j14it439 = (allBattleParticipants).iterator(); _j14it439.hasNext(); ) {
+					  RealmComponent participant = (RealmComponent) _j14it439.next();
 						participant.getGameObject().setThisAttribute(Constants.EVENT_HURRICANE_WINDS);
 					}
 					logBattleInfo("EVENT: Hurricane Winds is cast.");
@@ -992,13 +1044,14 @@ public class BattleModel {
 	
 	private boolean colorSuppliedForDenizenSpell(SpellWrapper spell) {
 		ColorMagic requiredColorMagic = spell.getRequiredColorMagic();
-		ArrayList<ColorMagic> availableColors = battleLocation.clearing.getAllSourcesOfColor(false);
+		ArrayList availableColors = battleLocation.clearing.getAllSourcesOfColor(false);
 		RealmCalendar cal = RealmCalendar.getCalendar(gameData);
 		availableColors.addAll(cal.getColorMagic(theGame.getMonth(),theGame.getDay()));
 		availableColors.addAll(RealmEvents.getInfiniteColorMagicSources(gameData));
 		
 		boolean colorSupplied = false;
-		for (ColorMagic color : availableColors) {
+		for (java.util.Iterator _j14it440 = (availableColors).iterator(); _j14it440.hasNext(); ) {
+		  ColorMagic color = (ColorMagic) _j14it440.next();
 			if (requiredColorMagic.getColor() == color.getColor()) {
 				colorSupplied = true;
 				break;
@@ -1015,7 +1068,8 @@ public class BattleModel {
 	public void doFixSheetOwners() {
 		BattleGroup battleGroup = getDenizenBattleGroup();
 		if (battleGroup!=null) {
-			for (RealmComponent rc : battleGroup.getBattleParticipants()) {
+			for (java.util.Iterator _j14it441 = (battleGroup.getBattleParticipants()).iterator(); _j14it441.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it441.next();
 				CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 				if (rc.getTarget()==null && rc.get2ndTarget()==null && combat.getAttackerCount()>0 && !combat.isSheetOwner()) { // being attacked, but not already on their own sheet
 					// As far as I know, there is NEVER a reason that the denizen shouldn't get their own sheet at this time
@@ -1031,11 +1085,11 @@ public class BattleModel {
 						combat.setCombatBoxDefense(3);
 					}
 					else {
-						ArrayList<String> boxesA = combat.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
-						String boxA = boxesA.get(RandomNumber.getRandom(boxesA.size()));
+						ArrayList boxesA = combat.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
+						String boxA = (String) boxesA.get(RandomNumber.getRandom(boxesA.size()));
 						combat.setCombatBoxAttack(Integer.parseInt(boxA));
-						ArrayList<String> boxesD = combat.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_DEFENSE);
-						String boxD = boxesD.get(RandomNumber.getRandom(boxesD.size()));
+						ArrayList boxesD = combat.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_DEFENSE);
+						String boxD = (String) boxesD.get(RandomNumber.getRandom(boxesD.size()));
 						combat.setCombatBoxAttack(Integer.parseInt(boxD));
 					}
 				}
@@ -1063,11 +1117,12 @@ public class BattleModel {
 		 * 		CIRCLE - Attackers = 0-n
 		 * 		RED - Self
 		 */
-		ArrayList<RealmComponent> all = getAllBattleParticipants(true);
-		for (RealmComponent rc : all) {
+		ArrayList all = getAllBattleParticipants(true);
+		for (java.util.Iterator _j14it442 = (all).iterator(); _j14it442.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it442.next();
 			RealmComponent target = rc.getTarget();
 			RealmComponent target2 = rc.get2ndTarget();
-			ArrayList<RealmComponent> attackers = getAttackersFor(rc,false,true); // don't include character attackers here!
+			ArrayList attackers = getAttackersFor(rc,false,true); // don't include character attackers here!
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 			if (combat.isSheetOwner()/* && (target!=null || attackers.size()>0)*/) {
 				if (rc.isCharacter()) {
@@ -1079,8 +1134,9 @@ public class BattleModel {
 					}
 					
 					// Circle group - hirelings or denizens targeting targets on character sheet
-					ArrayList<RealmComponent> helpers = new ArrayList<RealmComponent>();
-					for (RealmComponent test : all) {
+					ArrayList helpers = new ArrayList();
+					for (java.util.Iterator _j14it443 = (all).iterator(); _j14it443.hasNext(); ) {
+					  RealmComponent test = (RealmComponent) _j14it443.next();
 						if (!test.isCharacter() && (attackers.contains(test.getTarget()) || attackers.contains(test.get2ndTarget())) ) {
 							helpers.add(test);
 						}
@@ -1091,8 +1147,8 @@ public class BattleModel {
 				}
 				else {
 					// Setup some more lists
-					ArrayList<RealmComponent> targets = new ArrayList<RealmComponent>(); // intentional misnomer - only ever one target
-					ArrayList<RealmComponent> attackersMinusTarget = new ArrayList<RealmComponent>();
+					ArrayList targets = new ArrayList(); // intentional misnomer - only ever one target
+					ArrayList attackersMinusTarget = new ArrayList();
 					if (attackers.size()>0) {
 						attackersMinusTarget.addAll(attackers);
 					}
@@ -1126,7 +1182,7 @@ public class BattleModel {
 					repositionAndChangeTactics(CombatWrapper.GROUP_CIRCLE,combat,attackersMinusTarget);
 					
 					if (rc.getOwnerId()==null) {
-						ArrayList<RealmComponent> self = new ArrayList<RealmComponent>();
+						ArrayList self = new ArrayList();
 						self.add(rc);
 						repositionAndChangeTactics(CombatWrapper.GROUP_RED,combat,self);
 					}
@@ -1164,11 +1220,11 @@ public class BattleModel {
 	 * @return The number of hits that occurred during this round
 	 */
 	public int doResolveAttacks(int round,CombatWrapper tile) {
-		killedTallyHash = new HashLists<GameObject,GameObject>();
-		killTallyHash = new HashLists<GameObject,GameObject>();
-		killerOrder = new ArrayList<GameObject>();
+		killedTallyHash = new HashLists();
+		killTallyHash = new HashLists();
+		killerOrder = new ArrayList();
 		
-		ArrayList<RealmComponent> all = new ArrayList<RealmComponent>(getAllBattleParticipants(true));
+		ArrayList all = new ArrayList(getAllBattleParticipants(true));
 		
 		// Since things might have been killed previously this round (PoP), be sure to start with them now
 		populateKillLists(all);
@@ -1180,7 +1236,7 @@ public class BattleModel {
 		 */
 		
 		// First, collect all the battle chits that have targets
-		ArrayList<BattleChit> battleChits = collectBattleChits(all, hostPrefs);
+		ArrayList battleChits = collectBattleChits(all, hostPrefs);
 		
 		// Include combat spells
 		collectSpells(battleChits, getAllParticipatingCharacters());
@@ -1189,8 +1245,8 @@ public class BattleModel {
 		sortAccordingToRound(battleChits, round);
 		
 		// Group attackers that have same length and speed (simultaneous)
-		ArrayList<String> attackBlockOrder = new ArrayList<String>();
-		HashLists<String,BattleChit> attackBlocks = new HashLists<String,BattleChit>();
+		ArrayList attackBlockOrder = new ArrayList();
+		HashLists attackBlocks = new HashLists();
 
 		handleSortTies(battleChits, attackBlockOrder, attackBlocks);
 		
@@ -1201,7 +1257,8 @@ public class BattleModel {
 		// Now, do all the appropriate scoring for characters that killed things
 		scoreKills(round, hostPrefs);
 		
-		for (GameObject kill : killedTallyHash.keySet()) {
+		for (java.util.Iterator _j14it444 = (killedTallyHash.keySet()).iterator(); _j14it444.hasNext(); ) {
+		  GameObject kill = (GameObject) _j14it444.next();
 			tile.addKill(kill);
 		}		
 		
@@ -1212,8 +1269,9 @@ public class BattleModel {
 		return totalHits;
 	}
 
-	private void populateKillLists(ArrayList<RealmComponent> allBattleChits) {
-		for (RealmComponent realmComponent : allBattleChits) {
+	private void populateKillLists(ArrayList allBattleChits) {
+		for (java.util.Iterator _j14it445 = (allBattleChits).iterator(); _j14it445.hasNext(); ) {
+		  RealmComponent realmComponent = (RealmComponent) _j14it445.next();
 			BattleChit battleChit = (BattleChit)realmComponent;
 			CombatWrapper combat = new CombatWrapper(battleChit.getGameObject());
 			GameObject killedBy = combat.getKilledBy();
@@ -1226,9 +1284,10 @@ public class BattleModel {
 	}
 
 	//collect all the battle chits that have targets, including weapons
-	private static ArrayList<BattleChit>collectBattleChits(ArrayList<RealmComponent> allBattleChits, HostPrefWrapper hostPrefs) {
-		ArrayList<BattleChit> battleChits = new ArrayList<BattleChit>();
-		for (RealmComponent realmComponent : allBattleChits) {
+	private static ArrayList collectBattleChits(ArrayList allBattleChits, HostPrefWrapper hostPrefs) {
+		ArrayList battleChits = new ArrayList();
+		for (java.util.Iterator _j14it446 = (allBattleChits).iterator(); _j14it446.hasNext(); ) {
+		  RealmComponent realmComponent = (RealmComponent) _j14it446.next();
 			BattleChit battleChit=(BattleChit)realmComponent;
 			if (battleChit.getTarget()!=null) {
 				// Only add battle chits that have targets
@@ -1251,7 +1310,8 @@ public class BattleModel {
 						}
 					}
 					CharacterWrapper character = new CharacterWrapper(battleChit.getGameObject());
-					for (RealmComponent fightChit : BattleUtility.findFightComponentsWithCombatBox(character.getFightSpeedOptions(new Speed(), true))) {
+					for (java.util.Iterator _j14it447 = (BattleUtility.findFightComponentsWithCombatBox(character.getFightSpeedOptions(new Speed(), true))).iterator(); _j14it447.hasNext(); ) {
+					  RealmComponent fightChit = (RealmComponent) _j14it447.next();
 						CharacterChitComponent charChit = new CharacterChitComponent(chit.getGameObject());
 						charChit.setAttackChit(fightChit);
 						battleChits.add(charChit);
@@ -1266,7 +1326,8 @@ public class BattleModel {
 					CharacterChitComponent chit = (CharacterChitComponent)battleChit;
 					if (chit.getTransmorphedComponent()!=null) continue;
 					CharacterWrapper character = new CharacterWrapper(battleChit.getGameObject());
-					for (RealmComponent fightChit : BattleUtility.findFightComponentsWithCombatBox(character.getFightSpeedOptions(new Speed(), true))) {
+					for (java.util.Iterator _j14it448 = (BattleUtility.findFightComponentsWithCombatBox(character.getFightSpeedOptions(new Speed(), true))).iterator(); _j14it448.hasNext(); ) {
+					  RealmComponent fightChit = (RealmComponent) _j14it448.next();
 						CombatWrapper combatChit = new CombatWrapper(fightChit.getGameObject());
 						if (!combatChit.getPlacedAsParry() || combatChit.getCombatBoxDefense()==0) continue;
 						CharacterChitComponent charChit = new CharacterChitComponent(chit.getGameObject());
@@ -1279,10 +1340,12 @@ public class BattleModel {
 		return battleChits;
 	}
 
-	private static void collectSpells(ArrayList<BattleChit>battleChits, ArrayList<CharacterChitComponent> participatingCharacters) {
-		for (CharacterChitComponent characterChitComponent : participatingCharacters) {
+	private static void collectSpells(ArrayList battleChits, ArrayList participatingCharacters) {
+		for (java.util.Iterator _j14it449 = (participatingCharacters).iterator(); _j14it449.hasNext(); ) {
+		  CharacterChitComponent characterChitComponent = (CharacterChitComponent) _j14it449.next();
 			CharacterWrapper character = new CharacterWrapper(characterChitComponent.getGameObject());
-			for (SpellWrapper spell : character.getAliveSpells()) {
+			for (java.util.Iterator _j14it450 = (character.getAliveSpells()).iterator(); _j14it450.hasNext(); ) {
+			  SpellWrapper spell = (SpellWrapper) _j14it450.next();
 				if (spell.isAttackSpell()) {
 					battleChits.add(spell);
 				}
@@ -1290,7 +1353,7 @@ public class BattleModel {
 		}
 	}
 	
-	private static void sortAccordingToRound(ArrayList<BattleChit>battleChits, int round) {
+	private static void sortAccordingToRound(ArrayList battleChits, int round) {
 		RealmLogging.clearIndent();
 		if (round==1) {
 			// 1st round, sort by length first, then speed
@@ -1304,8 +1367,9 @@ public class BattleModel {
 		}
 	}
 
-	private static void handleSortTies(ArrayList<BattleChit>battleChits, ArrayList<String> attackBlockOrder, HashLists<String, BattleChit> attackBlocks) {
-		for (BattleChit battleChit : battleChits) {
+	private static void handleSortTies(ArrayList battleChits, ArrayList attackBlockOrder, HashLists attackBlocks) {
+		for (java.util.Iterator _j14it451 = (battleChits).iterator(); _j14it451.hasNext(); ) {
+		  BattleChit battleChit = (BattleChit) _j14it451.next();
 			String key = null;
 			key = battleChit.getLength()+":"+battleChit.getAttackSpeed().getNum();
 			if (!attackBlockOrder.contains(key)) {
@@ -1315,28 +1379,33 @@ public class BattleModel {
 		}
 	}
 
-	private void processHits(ArrayList<String> attackBlockOrder, HashLists<String,BattleChit> attackBlocks, int round) {
+	private void processHits(ArrayList attackBlockOrder, HashLists attackBlocks, int round) {
 		int attackOrderPos = 1;	// This is incremented for each group:
 		// all members of group have SAME attackOrderPos (simultaneous)
-		for (String key : attackBlockOrder) {
+		for (java.util.Iterator _j14it452 = (attackBlockOrder).iterator(); _j14it452.hasNext(); ) {
+		  String key = (String) _j14it452.next();
 			// All the chits in this list are simultaneous attackers
-			for (BattleChit attacker : attackBlocks.getList(key)) {
+			for (java.util.Iterator _j14it453 = (attackBlocks.getList(key)).iterator(); _j14it453.hasNext(); ) {
+			  BattleChit attacker = (BattleChit) _j14it453.next();
 				if (attacker instanceof SpellWrapper) {
 					SpellWrapper spell = (SpellWrapper)attacker;
 					if (spell.noTargeting()) {
 						CharacterWrapper character = spell.getCaster();
 						RealmComponent characterRc = RealmComponent.getRealmComponent(character.getGameObject());
 						CombatSheet sheet = CombatSheet.createCombatSheet(CombatFrame.getSingleton(),this,characterRc,false, hostPrefs);
-						Collection<RealmComponent> c = sheet.getAllParticipantsOnSheet();
+						Collection c = sheet.getAllParticipantsOnSheet();
 						int attackCombatBox = spell.getAttackCombatBox();
-						for (RealmComponent target : c) {
+						for (java.util.Iterator _j14it454 = (c).iterator(); _j14it454.hasNext(); ) {
+						  RealmComponent target = (RealmComponent) _j14it454.next();
 							CombatWrapper combatTarget = new CombatWrapper(target.getGameObject());
 							if (combatTarget.getCombatBoxDefense() == attackCombatBox) {
 								spell.addTarget(hostPrefs, target.getGameObject());
 							}
 						}
-						for (String key2 : attackBlockOrder) {
-							for (BattleChit casterAttacker : attackBlocks.getList(key2)) {
+						for (java.util.Iterator _j14it455 = (attackBlockOrder).iterator(); _j14it455.hasNext(); ) {
+						  String key2 = (String) _j14it455.next();
+							for (java.util.Iterator _j14it456 = (attackBlocks.getList(key2)).iterator(); _j14it456.hasNext(); ) {
+							  BattleChit casterAttacker = (BattleChit) _j14it456.next();
 								RealmComponent casterAttackerRc = RealmComponent.getRealmComponent(casterAttacker.getGameObject());
 								if(casterAttackerRc.isCharacter() && (casterAttackerRc.getTarget() == characterRc || casterAttackerRc.get2ndTarget() == characterRc)) {
 									if (casterAttacker.getAttackCombatBox() == attackCombatBox) {
@@ -1346,7 +1415,8 @@ public class BattleModel {
 							}
 						}
 					}
-					for (RealmComponent rc : spell.getTargets()) {
+					for (java.util.Iterator _j14it457 = (spell.getTargets()).iterator(); _j14it457.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it457.next();
 						BattleChit target = (BattleChit)rc;
 						doTargetAttack(attacker,target,round,attackOrderPos);
 						RealmLogging.clearIndent();
@@ -1393,7 +1463,8 @@ public class BattleModel {
 				&& (attacker.getGameObject().hasThisAttribute(Constants.SPELL_TARGETS_SELF) || ((ChitComponent)attacker).hasFaceAttribute(Constants.SPELL_TARGETS_SELF))) {
 			String spellName = attacker.getAttackSpell();
 			SpellWrapper spell = null;
-			for (GameObject held : attacker.getGameObject().getHold()) {
+			for (java.util.Iterator _j14it458 = (attacker.getGameObject().getHold()).iterator(); _j14it458.hasNext(); ) {
+			  GameObject held = (GameObject) _j14it458.next();
 				if (held.getName().toLowerCase().matches(spellName.toLowerCase()) && held.hasThisAttribute("spell_native")) {
 					spell = new SpellWrapper(held);
 					break;
@@ -1410,7 +1481,7 @@ public class BattleModel {
 				if (!attacker.isNative() || !new CombatWrapper(attacker).isAffectedByExorcise() || colorSuppliedForDenizenSpell(spell)){
 					spell.selectTargetForDenizen(hostPrefs, battleLocation, attacker,null);
 					spell.castSpellByDenizen(attacker.getGameObject());
-					ArrayList<String> logs = new ArrayList<String>();
+					ArrayList logs = new ArrayList();
 					if (spell.isInstantSpell() && !spell.uneffectAtMidnight()) {
 						logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,true,null);
 					}
@@ -1418,7 +1489,8 @@ public class BattleModel {
 						logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,false,null);
 					}
 					if (logs != null && !logs.isEmpty()) {
-						for (String log : logs) {
+						for (java.util.Iterator _j14it459 = (logs).iterator(); _j14it459.hasNext(); ) {
+						  String log = (String) _j14it459.next();
 							logBattleInfo(log);
 						}
 					}
@@ -1439,7 +1511,8 @@ public class BattleModel {
 	
 	private void scoreKills(int round, HostPrefWrapper hostPrefs) {
 		boolean hiredCaptains = hostPrefs.hasPref(Constants.FE_HIRED_CAPTAINS);
-		for (GameObject attacker : killerOrder) { // use killerOrder instead of killTallyHash.keySet to guarantee proper ordering of calculations (fixes BUG 1719)
+		for (java.util.Iterator _j14it460 = (killerOrder).iterator(); _j14it460.hasNext(); ) {
+		  GameObject attacker = (GameObject) _j14it460.next(); // use killerOrder instead of killTallyHash.keySet to guarantee proper ordering of calculations (fixes BUG 1719)
 			RealmComponent rc = RealmComponent.getRealmComponent(attacker);
 			RealmComponent owner = rc.getOwner();
 			if (owner!=null) { // only characters and hirelings can score points and gold
@@ -1450,10 +1523,12 @@ public class BattleModel {
 					character = new CharacterWrapper(owner.getGameObject());
 				}
 				CombatWrapper attackerCombat = new CombatWrapper(attacker);
-				ArrayList<GameObject> kills = killTallyHash.getList(attacker);
+				ArrayList kills = killTallyHash.getList(attacker);
 				// Need to sort from most to least notoriety (Rule 43.4)
-				Collections.sort(kills,new Comparator<GameObject>() {
-					public int compare(GameObject go1,GameObject go2) {
+				Collections.sort(kills,new Comparator() {
+					public int compare(Object o1,Object o2) {
+						GameObject go1 = (GameObject) o1;
+						GameObject go2 = (GameObject) o2;
 						int ret = 0;
 						RealmComponent rc1 = RealmComponent.getRealmComponent(go1);
 						RealmComponent rc2 = RealmComponent.getRealmComponent(go2);
@@ -1472,7 +1547,8 @@ public class BattleModel {
 					}
 				});
 				// Cycle through kills
-				for (GameObject kill : kills) {
+				for (java.util.Iterator _j14it461 = (kills).iterator(); _j14it461.hasNext(); ) {
+				  GameObject kill = (GameObject) _j14it461.next();
 					int divides = killedTallyHash.getList(kill).size(); // how many ways to split?
 
 					RealmComponent rcKill = RealmComponent.getRealmComponent(kill);
@@ -1498,12 +1574,14 @@ public class BattleModel {
 								+" for the death of the "
 								+kill.getNameWithNumber());
 						if (hostPrefs.hasPref(Constants.FE_GLORY)) {
-							for (GameObject item : character.getInventory()) {
+							for (java.util.Iterator _j14it462 = (character.getInventory()).iterator(); _j14it462.hasNext(); ) {
+							  GameObject item = (GameObject) _j14it462.next();
 								RealmComponent itemRc = RealmComponent.getRealmComponent(item);
 								if (!itemRc.isGoldSpecial()) continue;
 								GoldSpecialChitComponent gs = (GoldSpecialChitComponent)rc;
 								if (!gs.isCampaign()) continue;
-								for (String foe : gs.getFoes()) {
+								for (java.util.Iterator _j14it463 = (gs.getFoes()).iterator(); _j14it463.hasNext(); ) {
+								  String foe = (String) _j14it463.next();
 									if (kill.hasThisAttribute(foe) || kill.hasThisAttribute(foe.toLowerCase())
 											|| (kill.hasThisAttribute("native") && kill.getThisAttribute("native").toLowerCase().matches(foe.toLowerCase()))
 											|| (kill.hasThisAttribute("icon_type") && kill.getThisAttribute("icon_type").toLowerCase().matches(foe.toLowerCase()))) {
@@ -1587,10 +1665,11 @@ public class BattleModel {
 		RealmLogging.incrementIndent();
 		
 		int attackerDefenseBox = (new CombatWrapper(characterChit.getAttackChit().getGameObject())).getCombatBoxDefense();
-		ArrayList<BattleChit> allTargets = new ArrayList<BattleChit>();
+		ArrayList allTargets = new ArrayList();
 		Speed fastestAttackSpeed = new Speed();
-		Integer maxLength = 0;
-		for (RealmComponent target : attackerCombat.getAttackersAsComponents()) {
+		Integer maxLength = new Integer(0);
+		for (java.util.Iterator _j14it464 = (attackerCombat.getAttackersAsComponents()).iterator(); _j14it464.hasNext(); ) {
+		  RealmComponent target = (RealmComponent) _j14it464.next();
 			CombatWrapper targetCombat = new CombatWrapper(target.getGameObject());
 			if (targetCombat.getCombatBoxAttack()!=attackerDefenseBox) continue;
 			BattleChit targetBc = (BattleChit)target;
@@ -1598,28 +1677,31 @@ public class BattleModel {
 			if (targetBc.getAttackSpeed().fasterThan(fastestAttackSpeed)) {
 				fastestAttackSpeed = targetBc.getAttackSpeed();
 			}
-			if (targetBc.getLength() > maxLength) {
+			if (targetBc.getLength().intValue() > maxLength.intValue()) {
 				maxLength = targetBc.getLength();
 			}
 		}
 		
-		ArrayList<BattleChit> targets = new ArrayList<BattleChit>();
+		ArrayList targets = new ArrayList();
 		
 		if (round==1) {
-			for (BattleChit targetBc : allTargets) {
+			for (java.util.Iterator _j14it465 = (allTargets).iterator(); _j14it465.hasNext(); ) {
+			  BattleChit targetBc = (BattleChit) _j14it465.next();
 				if (targetBc.getLength()==maxLength) {
 					targets.add(targetBc);
 				}
 			}
 		} else {
-			for (BattleChit targetBc : allTargets) {
+			for (java.util.Iterator _j14it466 = (allTargets).iterator(); _j14it466.hasNext(); ) {
+			  BattleChit targetBc = (BattleChit) _j14it466.next();
 				if (targetBc.getAttackSpeed().equalTo(fastestAttackSpeed)) {
 					targets.add(targetBc);
 				}
 			}
 		}
 		
-		for (BattleChit targetBc : targets) {
+		for (java.util.Iterator _j14it467 = (targets).iterator(); _j14it467.hasNext(); ) {
+		  BattleChit targetBc = (BattleChit) _j14it467.next();
 			parryTarget(attacker, attackerCombat, attackerDefenseBox, targetBc);
 		}
 	}
@@ -1814,7 +1896,8 @@ public class BattleModel {
 				}
 				if (!ignoresMistLike) {
 					CharacterWrapper character = new CharacterWrapper(attacker.getGameObject());
-					for (GameObject item : character.getActiveInventory()) {
+					for (java.util.Iterator _j14it468 = (character.getActiveInventory()).iterator(); _j14it468.hasNext(); ) {
+					  GameObject item = (GameObject) _j14it468.next();
 						if (item.hasThisAttribute(Constants.IGNORE_MIST_LIKE) && !item.hasThisAttribute("attack") && !item.hasThisAttribute(RealmComponent.WEAPON)) {
 							ignoresMistLike = true;
 						}
@@ -1868,8 +1951,8 @@ public class BattleModel {
 				}
 				else {
 					if (target.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_ATTACK)) {
-						ArrayList<String> boxes = target.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
-						String box = boxes.get(RandomNumber.getRandom(boxes.size()));
+						ArrayList boxes = target.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
+						String box = (String) boxes.get(RandomNumber.getRandom(boxes.size()));
 						attackerCombat.setCombatBoxAttack(Integer.parseInt(box));
 					} else {
 						attackerCombat.setCombatBoxAttack(RandomNumber.getRandom(3)+1);
@@ -1982,10 +2065,11 @@ public class BattleModel {
 						// Demon's Power of the Pit
 						logBattleInfo(target.getGameObject().getNameWithNumber()+" was hit with Power of the Pit along box "+attacker.getAttackCombatBox());
 						PowerOfThePit pop = PowerOfThePit.doNow(SpellWrapper.dummyFrame,attacker.getGameObject(),target.getGameObject(),false,0,attacker.getAttackSpeed());
-						ArrayList<GameObject> kills = new ArrayList<GameObject>(pop.getKills());
+						ArrayList kills = new ArrayList(pop.getKills());
 						kills.remove(targetCombat.getGameObject()); // Because targetCombat will be handled normally
 						
-						for (GameObject kill:kills) {
+						for (java.util.Iterator _j14it469 = (kills).iterator(); _j14it469.hasNext(); ) {
+						  GameObject kill = (GameObject) _j14it469.next();
 							logBattleInfo(kill.getNameWithNumber()+" was killed!");
 							killedTallyHash.put(kill,attacker.getGameObject());
 							killTallyHash.put(attacker.getGameObject(),kill);
@@ -2005,10 +2089,11 @@ public class BattleModel {
 						// Devils Spell
 						logBattleInfo(target.getGameObject().getNameWithNumber()+" was hit with Devil's Spell along box "+attacker.getAttackCombatBox());
 						DevilsSpell ds = DevilsSpell.doNow(SpellWrapper.dummyFrame,attacker.getGameObject(),target.getGameObject(),false,0,attacker.getAttackSpeed());
-						ArrayList<GameObject> kills = new ArrayList<GameObject>(ds.getKills());
+						ArrayList kills = new ArrayList(ds.getKills());
 						kills.remove(targetCombat.getGameObject()); // Because targetCombat will be handled normally
 						
-						for (GameObject kill:kills) {
+						for (java.util.Iterator _j14it470 = (kills).iterator(); _j14it470.hasNext(); ) {
+						  GameObject kill = (GameObject) _j14it470.next();
 							logBattleInfo(kill.getNameWithNumber()+" was killed!");
 							killedTallyHash.put(kill,attacker.getGameObject());
 							killTallyHash.put(attacker.getGameObject(),kill);
@@ -2039,7 +2124,8 @@ public class BattleModel {
 						String spellName = attacker.getAttackSpell();
 						SpellWrapper spell = null;
 						if (round==1 || (!attacker.getGameObject().hasThisAttribute(Constants.CAST_ONLY_IN_FIRST_COMBAT_ROUND) && !((ChitComponent)attacker).hasFaceAttribute(Constants.CAST_ONLY_IN_FIRST_COMBAT_ROUND))) {
-							for (GameObject held : attacker.getGameObject().getHold()) {
+							for (java.util.Iterator _j14it471 = (attacker.getGameObject().getHold()).iterator(); _j14it471.hasNext(); ) {
+							  GameObject held = (GameObject) _j14it471.next();
 								if (held.getName().toLowerCase().matches(spellName.toLowerCase()) && held.hasThisAttribute(Constants.SPELL_DENIZEN)) {
 									spell = new SpellWrapper(held);
 									break;
@@ -2071,7 +2157,7 @@ public class BattleModel {
 										}
 									}
 									else {
-										ArrayList<String> logs = new ArrayList<String>();
+										ArrayList logs = new ArrayList();
 										if (spell.isInstantSpell() && !spell.uneffectAtMidnight()) {
 											logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,true,null);
 										}
@@ -2079,7 +2165,8 @@ public class BattleModel {
 											logs = spell.affectTargets(CombatFrame.getSingleton(),theGame,false,null);
 										}
 										if (logs != null && !logs.isEmpty()) {
-											for (String log : logs) {
+											for (java.util.Iterator _j14it472 = (logs).iterator(); _j14it472.hasNext(); ) {
+											  String log = (String) _j14it472.next();
 												logBattleInfo(log);
 											}
 										}
@@ -2227,7 +2314,7 @@ public class BattleModel {
 				return;
 			}
 			
-			ArrayList<BattleChit> targets = new ArrayList<BattleChit>();
+			ArrayList targets = new ArrayList();
 			if (!target.isCharacter()) {
 				targets.add(target);
 				if (target.isMonster()) {
@@ -2249,7 +2336,8 @@ public class BattleModel {
 					}
 				}
 				CharacterWrapper character = new CharacterWrapper(target.getGameObject());
-				for (RealmComponent fightChit : BattleUtility.findFightComponentsWithCombatBox(character.getFightSpeedOptions(new Speed(), true))) {
+				for (java.util.Iterator _j14it473 = (BattleUtility.findFightComponentsWithCombatBox(character.getFightSpeedOptions(new Speed(), true))).iterator(); _j14it473.hasNext(); ) {
+				  RealmComponent fightChit = (RealmComponent) _j14it473.next();
 					CharacterChitComponent charChit = new CharacterChitComponent(chit.getGameObject());
 					charChit.setAttackChit(fightChit);
 					targets.add(charChit);
@@ -2259,7 +2347,8 @@ public class BattleModel {
 			CharacterChitComponent characterChit = (CharacterChitComponent) attacker;
 			int attackerDefenseBox = (new CombatWrapper(characterChit.getAttackChit().getGameObject())).getCombatBoxDefense();
 
-			for (BattleChit targetBc : targets) {
+			for (java.util.Iterator _j14it474 = (targets).iterator(); _j14it474.hasNext(); ) {
+			  BattleChit targetBc = (BattleChit) _j14it474.next();
 				parryTarget(attacker,attackerCombat,attackerDefenseBox,targetBc);
 			}
 		}
@@ -2366,11 +2455,12 @@ public class BattleModel {
 		CombatWrapper attackerCombat = new CombatWrapper(attacker.getGameObject());
 		if (hostPrefs.hasPref(Constants.OPT_TWO_HANDED_WEAPONS) && RealmComponent.getRealmComponent(attackerCombat.getGameObject()).isCharacter()) {
 			CharacterWrapper attackerCharacter = new CharacterWrapper(attackerCombat.getGameObject());
-			ArrayList<GameObject> activeInventory = attackerCharacter.getActiveInventory();
+			ArrayList activeInventory = attackerCharacter.getActiveInventory();
 			boolean shield = false;
 			boolean twoHandedWeapon = false;
 			if (!attackerCharacter.affectedByKey(Constants.STRONG)) {
-				for (GameObject item : activeInventory) {
+				for (java.util.Iterator _j14it475 = (activeInventory).iterator(); _j14it475.hasNext(); ) {
+				  GameObject item = (GameObject) _j14it475.next();
 					if (item.hasThisAttribute(Constants.SHIELD) && item.getThisAttribute(Constants.WEIGHT) != "L") shield = true;
 					if (item.hasThisAttribute(Constants.TWO_HANDED)) twoHandedWeapon = true;
 				}
@@ -2541,11 +2631,12 @@ public class BattleModel {
 		}
 		return totalHarm;
 	}
-	private void repositionAndChangeTactics(String prefix,CombatWrapper sheetOwner,ArrayList<RealmComponent> groupList) {
+	private void repositionAndChangeTactics(String prefix,CombatWrapper sheetOwner,ArrayList groupList) {
 		if (groupList.size()>0) {
 			// Hash by box
-			HashLists<Key, RealmComponent> boxHash = new HashLists<Key, RealmComponent>();
-			for (RealmComponent rc : groupList) {
+			HashLists boxHash = new HashLists();
+			for (java.util.Iterator _j14it476 = (groupList).iterator(); _j14it476.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it476.next();
 				CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 				int boxA = combat.getCombatBoxAttack();
 				int boxD = combat.getCombatBoxDefense();
@@ -2602,15 +2693,17 @@ public class BattleModel {
 			}
 		}
 	}
-	private void reposition3x3(String prefix,CombatWrapper combatTarget,HashLists<Key, RealmComponent> boxHash) {
+	private void reposition3x3(String prefix,CombatWrapper combatTarget,HashLists boxHash) {
 		boolean tacticChange = true;
 		if (battleLocation!=null && battleLocation.clearing!=null && battleLocation.clearing.hasSpellEffect(Constants.BEWILDERED)) {
 			tacticChange = false;
 			RealmLogging.logMessage(RealmLogging.BATTLE,"No Change Tactics rolls were made because of bewilder effect in clearing.");
 		}
-		for (Key key : boxHash.keySet()) {
-			ArrayList<RealmComponent> list = boxHash.getList(key);
-			for (RealmComponent rc : list) {
+		for (java.util.Iterator _j14it477 = (boxHash.keySet()).iterator(); _j14it477.hasNext(); ) {
+		  Key key = (Key) _j14it477.next();
+			ArrayList list = boxHash.getList(key);
+			for (java.util.Iterator _j14it478 = (list).iterator(); _j14it478.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it478.next();
 				if (rc instanceof EventSpellCardComponent) continue;
 				int attackDie = RandomNumber.getRandom(6)+1;
 				int defenceDie = RandomNumber.getRandom(6)+1;
@@ -2620,15 +2713,15 @@ public class BattleModel {
 				if (!SKIP_REPOSITIONING) {
 					CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 					if (rc.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_ATTACK)) {
-						ArrayList<String> boxes = rc.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
-						String box = boxes.get(RandomNumber.getRandom(boxes.size()));
+						ArrayList boxes = rc.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
+						String box = (String) boxes.get(RandomNumber.getRandom(boxes.size()));
 						combat.setCombatBoxAttack(Integer.parseInt(box));
 					} else {
 						combat.setCombatBoxAttack(boxA);
 					}
 					if (rc.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_DEFENSE)) {
-						ArrayList<String> boxes = rc.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_DEFENSE);
-						String box = boxes.get(RandomNumber.getRandom(boxes.size()));
+						ArrayList boxes = rc.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_DEFENSE);
+						String box = (String) boxes.get(RandomNumber.getRandom(boxes.size()));
 						combat.setCombatBoxDefense(Integer.parseInt(box));
 					} else {
 						combat.setCombatBoxDefense(boxD);
@@ -2646,7 +2739,7 @@ public class BattleModel {
 			}
 		}
 	}
-	private static void reposition(String prefix,CombatWrapper combatTarget,HashLists<Key, RealmComponent> boxHash) {		
+	private static void reposition(String prefix,CombatWrapper combatTarget,HashLists boxHash) {		
 		DieRoller roller = new DieRoller(); // Rule 22.5/2 specifies that modifiers do NOT affect this roll
 		roller.addRedDie();
 		roller.rollDice("Reposition");
@@ -2656,9 +2749,9 @@ public class BattleModel {
 		}
 		int result = roller.getValue(0);
 		combatTarget.setRepositionResult(prefix,result); // Capture the result for purposes of displaying
-		ArrayList<RealmComponent> box1 = null;
-		ArrayList<RealmComponent> box2 = null;
-		ArrayList<RealmComponent> box3 = null;
+		ArrayList box1 = null;
+		ArrayList box2 = null;
+		ArrayList box3 = null;
 		// 1,2,3 means THAT box unchanged
 		// 4 no change
 		// 5 shift down/right
@@ -2709,8 +2802,9 @@ public class BattleModel {
 			repositionToBox(box3,3,3);
 		}
 	}
-	private static void repositionToBox(ArrayList<RealmComponent> list,int boxA, int boxD) {
-		for (RealmComponent rc : list) {
+	private static void repositionToBox(ArrayList list,int boxA, int boxD) {
+		for (java.util.Iterator _j14it479 = (list).iterator(); _j14it479.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it479.next();
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 			if (combat.canUseCombatBoxAttack(boxA) && combat.canUseCombatBoxDefense(boxD)) {
 				combat.setCombatBoxAttack(boxA);
@@ -2718,7 +2812,7 @@ public class BattleModel {
 			}
 		}
 	}
-	private static void changeTactics(String prefix,CombatWrapper combatTarget,HashLists<Key, RealmComponent> boxHash) {		
+	private static void changeTactics(String prefix,CombatWrapper combatTarget,HashLists boxHash) {		
 		DieRoller roller = new DieRoller(); // Rule 22.5/3 specifies that modifiers do NOT affect this roll
 		roller.addRedDie();
 		roller.addWhiteDie();
@@ -2727,7 +2821,7 @@ public class BattleModel {
 		changeTactics(prefix,combatTarget,boxHash,roller,2);
 		changeTactics(prefix,combatTarget,boxHash,roller,3);
 	}
-	private static void changeTactics(String prefix,CombatWrapper combatTarget,HashLists<Key, RealmComponent> boxHash,DieRoller roller,int boxNumber) {
+	private static void changeTactics(String prefix,CombatWrapper combatTarget,HashLists boxHash,DieRoller roller,int boxNumber) {
 		roller.reset();
 		roller.rollDice("Change Tactics");
 		if (SKIP_REPOSITIONING || DebugUtility.isMonsterLock()) {
@@ -2738,11 +2832,12 @@ public class BattleModel {
 			roller.setValue(0,6);
 		}
 		int result = roller.getHighDieResult();
-		ArrayList<RealmComponent> list = boxHash.getList(new Key(boxNumber,boxNumber));
+		ArrayList list = boxHash.getList(new Key(boxNumber,boxNumber));
 		if (list!=null) {
 			// Make sure there is at least ONE chit to flip
 			boolean isOne = false;
-			for (RealmComponent rc : list) {
+			for (java.util.Iterator _j14it480 = (list).iterator(); _j14it480.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it480.next();
 				ChitComponent chit = (ChitComponent)rc; // they should ALL be chits
 				if (canChangeTactics(chit)) {
 					isOne = true;
@@ -2778,10 +2873,11 @@ public class BattleModel {
 		}
 		return flip;
 	}
-	private static void changeTacticsOn(ArrayList<RealmComponent> list,int result,int boxNumber) {
+	private static void changeTacticsOn(ArrayList list,int result,int boxNumber) {
 		if (list!=null) {
 			boolean reportedChange = false;
-			for (RealmComponent rc : list) {
+			for (java.util.Iterator _j14it481 = (list).iterator(); _j14it481.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it481.next();
 				ChitComponent chit = (ChitComponent)rc; // they should ALL be chits
 				if (canChangeTactics(chit)) {
 					if (result==6 || chit.getGameObject().hasThisAttribute(Constants.SENSITIVE_TACTICS)) {
@@ -2798,7 +2894,7 @@ public class BattleModel {
 			}
 		}
 	}
-	public Collection<GameObject> getKilledObjects() {
+	public Collection getKilledObjects() {
 		CombatWrapper cw = new CombatWrapper(battleLocation.tile.getGameObject());
 		return cw.getAllKills();
 	}
@@ -2806,17 +2902,19 @@ public class BattleModel {
 	 * This has to happen separate from disengagement, so that the fatigue/wound step isn't confusing.
 	 */
 	public void doExpireWishStrength() {
-		ArrayList<RealmComponent> all = getAllBattleParticipants(true);
-		for (RealmComponent rc:all) {
+		ArrayList all = getAllBattleParticipants(true);
+		for (java.util.Iterator _j14it482 = (all).iterator(); _j14it482.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it482.next();
 			// Determine if character has wishStrength, and hit with a physical attack
 			if (rc.isCharacter()) {
 				CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 				CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 				if (character.getWishStrength()!=null) {
 					// Character has a "Wish for Strength" result applied
-					Collection<RealmComponent> list = character.getActiveFightChitsAsRealmComponents();
+					Collection list = character.getActiveFightChitsAsRealmComponents();
 					// Add any gloves cards
-					for (GameObject go: character.getActiveInventory()) {
+					for (java.util.Iterator _j14it483 = (character.getActiveInventory()).iterator(); _j14it483.hasNext(); ) {
+					  GameObject go = (GameObject) _j14it483.next();
 						RealmComponent item = RealmComponent.getRealmComponent(go);
 						if (go.hasThisAttribute("gloves")) {
 							list.add(item);
@@ -2840,18 +2938,20 @@ public class BattleModel {
 		logBattleInfo("---- DISENGAGEMENT ----");
 		
 		// Flip all native horses to light side
-		for (BattleGroup bg : getAllBattleGroups(true)) {
+		for (java.util.Iterator _j14it484 = (getAllBattleGroups(true)).iterator(); _j14it484.hasNext(); ) {
+		  BattleGroup bg = (BattleGroup) _j14it484.next();
 			bg.allHorsesWalk();
 		}
 		
 		// Need to get rid of dead participants here - wounds should have been handled already?  fatigued effort?
-		ArrayList<SpellWrapper> attackSpellsToExpire = new ArrayList<SpellWrapper>();
-		ArrayList<SpellWrapper> spellsToExpireAtRoundEnd = new ArrayList<SpellWrapper>();
-		ArrayList<RealmComponent> rcsToMakeDead = new ArrayList<RealmComponent>();
-		ArrayList<RealmComponent> all = getAllBattleParticipants(true);
+		ArrayList attackSpellsToExpire = new ArrayList();
+		ArrayList spellsToExpireAtRoundEnd = new ArrayList();
+		ArrayList rcsToMakeDead = new ArrayList();
+		ArrayList all = getAllBattleParticipants(true);
 	
 		if (hostPrefs.hasPref(Constants.SR_OPT_CORNERED)) {
-			for (RealmComponent rc:all) {
+			for (java.util.Iterator _j14it485 = (all).iterator(); _j14it485.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it485.next();
 				RealmComponent target = rc.getTarget();
 				if (!rc.getGameObject().hasThisAttribute(Constants.DEAD) && target!=null && !target.getGameObject().hasThisAttribute(Constants.DEAD)) {
 					CombatWrapper combat = new CombatWrapper(rc.getGameObject());
@@ -2885,7 +2985,8 @@ public class BattleModel {
 			}
 		}
 		
-		for (RealmComponent rc:all) {
+		for (java.util.Iterator _j14it486 = (all).iterator(); _j14it486.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it486.next();
 			if (rc instanceof EventSpellCardComponent) {
 				rc.clearTargets();
 				CombatWrapper.clearRoundCombatInfo(rc.getGameObject());
@@ -2906,7 +3007,8 @@ public class BattleModel {
 				CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 				
 				character.getGameObject().removeThisAttribute(Constants.RANDOM_ASSIGNMENT_WINNER);
-				for (CharacterActionChitComponent chit:character.getAllChits()) {
+				for (java.util.Iterator _j14it487 = (character.getAllChits()).iterator(); _j14it487.hasNext(); ) {
+				  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it487.next();
 					if (chit.isMagicMove()) {
 						chit.setMagicMove(false);
 					}
@@ -2918,7 +3020,8 @@ public class BattleModel {
 					character.setFortDamaged(false);
 				}
 				
-				for (GameObject thing : character.getActiveInventory()) {
+				for (java.util.Iterator _j14it488 = (character.getActiveInventory()).iterator(); _j14it488.hasNext(); ) {
+				  GameObject thing = (GameObject) _j14it488.next();
 					CombatWrapper thingCombat = new CombatWrapper(thing);
 					if (thingCombat.getKilledBy()!=null) { // A dead thing means destroyed
 						rc.getGameObject().remove(thing);
@@ -2945,7 +3048,8 @@ public class BattleModel {
 				}
 				
 				// Cue up attack spells to expire (don't expire until AFTER Grudges are determined)
-				for (SpellWrapper spell : character.getAliveSpells()) {
+				for (java.util.Iterator _j14it489 = (character.getAliveSpells()).iterator(); _j14it489.hasNext(); ) {
+				  SpellWrapper spell = (SpellWrapper) _j14it489.next();
 					// Attack spells are over at the end of a round of combat
 					if (spell.isAttackSpell()) {
 						attackSpellsToExpire.add(spell);
@@ -2993,7 +3097,8 @@ public class BattleModel {
 				}
 			}
 			else {
-				for (GameObject go : rc.getHold()) {
+				for (java.util.Iterator _j14it490 = (rc.getHold()).iterator(); _j14it490.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it490.next();
 					if (go.hasThisAttribute(Constants.SPELL_DENIZEN)) {
 						SpellWrapper spell = new SpellWrapper(go);
 						if (spell.isAlive()) {
@@ -3182,23 +3287,28 @@ public class BattleModel {
 		}
 		
 		// Now clean up
-		for (RealmComponent rc:rcsToMakeDead) {
+		for (java.util.Iterator _j14it491 = (rcsToMakeDead).iterator(); _j14it491.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it491.next();
 			RealmUtility.makeDead(rc);
 		}
-		for (SpellWrapper spell : attackSpellsToExpire) {
+		for (java.util.Iterator _j14it492 = (attackSpellsToExpire).iterator(); _j14it492.hasNext(); ) {
+		  SpellWrapper spell = (SpellWrapper) _j14it492.next();
 			spell.expireSpell();
 		}
-		for (SpellWrapper spell : spellsToExpireAtRoundEnd) {
+		for (java.util.Iterator _j14it493 = (spellsToExpireAtRoundEnd).iterator(); _j14it493.hasNext(); ) {
+		  SpellWrapper spell = (SpellWrapper) _j14it493.next();
 			spell.expireSpell();
 		}
-		for (RealmComponent rc:all) {
+		for (java.util.Iterator _j14it494 = (all).iterator(); _j14it494.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it494.next();
 			CombatWrapper rcc = new CombatWrapper(rc.getGameObject());
 			boolean dead = rcc.getKilledBy()!=null;
 			
 			// Expire "move" spells on all played chits (except fly chits - handled below)
 			CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 			boolean expiredOne = false;
-			for (CharacterActionChitComponent chit:BattleUtility.getPlayedChits(character)) {
+			for (java.util.Iterator _j14it495 = (BattleUtility.getPlayedChits(character)).iterator(); _j14it495.hasNext(); ) {
+			  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it495.next();
 				if (chit.expireMoveSpells()) {
 					expiredOne = true;
 				}
@@ -3208,9 +3318,10 @@ public class BattleModel {
 			}
 
 			// Clear out all round combat info (include all held stuff)
-			ArrayList<GameObject> removeList = new ArrayList<GameObject>();
-			ArrayList<GameObject> hold = new ArrayList<GameObject>(rc.getGameObject().getHold()); // to prevent concurrent mod issues when flychits are expired
-			for (GameObject held : hold) {
+			ArrayList removeList = new ArrayList();
+			ArrayList hold = new ArrayList(rc.getGameObject().getHold()); // to prevent concurrent mod issues when flychits are expired
+			for (java.util.Iterator _j14it496 = (hold).iterator(); _j14it496.hasNext(); ) {
+			  GameObject held = (GameObject) _j14it496.next();
 				CombatWrapper combat = new CombatWrapper(held);
 				
 				// If a "held" item is a horse, and its dead, then remove it
@@ -3230,7 +3341,8 @@ public class BattleModel {
 				CombatWrapper.clearRoundCombatInfo(held);
 				
 				if (held.hasThisAttribute(Quest.QUEST_MINOR_CHARS)) {
-					for (GameObject bonusChit : held.getHold()) {
+					for (java.util.Iterator _j14it497 = (held.getHold()).iterator(); _j14it497.hasNext(); ) {
+					  GameObject bonusChit = (GameObject) _j14it497.next();
 						CombatWrapper.clearRoundCombatInfo(bonusChit);
 					}
 				}
@@ -3238,7 +3350,8 @@ public class BattleModel {
 			
 			if (rc.isCharacter()) {
 				// Expire any spells on fly chits (special case) - is this really necessary?  It seems like this happens above with fly.useFly()...
-				for (GameObject go : rcc.getUsedChits()) {
+				for (java.util.Iterator _j14it498 = (rcc.getUsedChits()).iterator(); _j14it498.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it498.next();
 					RealmComponent goc = RealmComponent.getRealmComponent(go);
 					if (goc.isFlyChit()) {
 						FlyChitComponent flyChit = (FlyChitComponent)goc;
@@ -3271,7 +3384,8 @@ public class BattleModel {
 			CombatWrapper.clearRoundCombatInfo(rc.getGameObject());
 			
 			// Remove any dead horses...
-			for (GameObject held : removeList) {
+			for (java.util.Iterator _j14it499 = (removeList).iterator(); _j14it499.hasNext(); ) {
+			  GameObject held = (GameObject) _j14it499.next();
 				rc.getGameObject().remove(held);
 				CombatWrapper.clearAllCombatInfo(held);
 			}
@@ -3282,7 +3396,8 @@ public class BattleModel {
 			}
 		}
 		// Reestablish attacker state for all attackers!
-		for (RealmComponent rc:all) {
+		for (java.util.Iterator _j14it500 = (all).iterator(); _j14it500.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it500.next();
 			RealmComponent target = rc.getTarget();
 			if (target!=null) {
 				CombatWrapper combat = new CombatWrapper(target.getGameObject());
@@ -3320,11 +3435,13 @@ public class BattleModel {
 		GameObject nativeMember = rc.getGameObject();
 		String nativeGroupName = nativeMember.getThisAttribute("native").toLowerCase();
 		boolean isFoe = false;
-		ArrayList<String> allFoes = new ArrayList<String>();
-		for (GameObject inv : responsibleCharacter.getInventory()) {
+		ArrayList allFoes = new ArrayList();
+		for (java.util.Iterator _j14it501 = (responsibleCharacter.getInventory()).iterator(); _j14it501.hasNext(); ) {
+		  GameObject inv = (GameObject) _j14it501.next();
 			if (!isFoe && inv.hasThisAttribute(RealmComponent.GOLD_SPECIAL)) {
-				ArrayList<String> foes = ((GoldSpecialChitComponent)RealmComponent.getRealmComponent(inv)).getFoes();
-				for (String foe : foes) {
+				ArrayList foes = ((GoldSpecialChitComponent)RealmComponent.getRealmComponent(inv)).getFoes();
+				for (java.util.Iterator _j14it502 = (foes).iterator(); _j14it502.hasNext(); ) {
+				  String foe = (String) _j14it502.next();
 					allFoes.add(foe.toLowerCase());
 					if (nativeGroupName.toLowerCase().matches(foe.toLowerCase())) {
 						isFoe = true;
@@ -3343,9 +3460,10 @@ public class BattleModel {
 			String clanId = nativeMember.getThisAttribute(Constants.CLAN);
 			if (clanId!=null) {
 				GamePool pool = new GamePool(responsibleCharacter.getGameData().getGameObjects());
-				ArrayList<GameObject> hqs = pool.extract("native,rank=HQ,clan="+clanId);
-				ArrayList<String> affectedClans = new ArrayList<String>();
-				for (GameObject hq : hqs) {
+				ArrayList hqs = pool.extract("native,rank=HQ,clan="+clanId);
+				ArrayList affectedClans = new ArrayList();
+				for (java.util.Iterator _j14it503 = (hqs).iterator(); _j14it503.hasNext(); ) {
+				  GameObject hq = (GameObject) _j14it503.next();
 					String nativeClanName = hq.getThisAttribute("native").toLowerCase();
 					if (!affectedClans.contains(nativeClanName) && !allFoes.contains(nativeClanName) && !responsibleCharacter.hasChangedRelationshipToday(hq)) {
 						affectedClans.add(hq.getThisAttribute("native").toLowerCase());
@@ -3378,12 +3496,13 @@ public class BattleModel {
 	public void setBattleLocation(TileLocation battleLocation) {
 		this.battleLocation = battleLocation;
 	}
-	public ArrayList<RealmComponent> getAttackersFor(RealmComponent rc) {
+	public ArrayList getAttackersFor(RealmComponent rc) {
 		return getAttackersFor(rc,true,true);
 	}
-	public ArrayList<RealmComponent> getAttackersFor(RealmComponent rc,boolean includeCharacters,boolean includeWeapons) {
-		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
-		for (RealmComponent bp : getAllBattleParticipants(true)) {
+	public ArrayList getAttackersFor(RealmComponent rc,boolean includeCharacters,boolean includeWeapons) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it504 = (getAllBattleParticipants(true)).iterator(); _j14it504.hasNext(); ) {
+		  RealmComponent bp = (RealmComponent) _j14it504.next();
 			if (includeCharacters || !bp.isCharacter()) {
 				if ((bp.getTarget()!=null && rc.equals(bp.getTarget())) || (bp.get2ndTarget()!=null && rc.equals(bp.get2ndTarget()))) {
 					list.add(bp);
@@ -3431,7 +3550,8 @@ public class BattleModel {
 		return ret;
 	}
 	private boolean somebodyIsCharging() {
-		for (CharacterChitComponent chit:getAllParticipatingCharacters()) {
+		for (java.util.Iterator _j14it505 = (getAllParticipatingCharacters()).iterator(); _j14it505.hasNext(); ) {
+		  CharacterChitComponent chit = (CharacterChitComponent) _j14it505.next();
 			CombatWrapper character = new CombatWrapper(chit.getGameObject());
 			if (character.getHasCharged()) return true;
 		}
@@ -3447,9 +3567,10 @@ public class BattleModel {
 	 * @return		A list of all RealmComponents in the clearing that are currently being affected
 	 * 				by Hurricane Winds
 	 */
-	public ArrayList<RealmComponent> getAllBlowees() {
-		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
-		for (RealmComponent rc : getAllBattleParticipants(true)) {
+	public ArrayList getAllBlowees() {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it506 = (getAllBattleParticipants(true)).iterator(); _j14it506.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it506.next();
 			if (rc.getGameObject().hasThisAttribute(Constants.BLOWS_TARGET) || rc.getGameObject().hasThisAttribute(Constants.EVENT_HURRICANE_WINDS)) {
 				list.add(rc);
 			}
@@ -3458,7 +3579,8 @@ public class BattleModel {
 	}
 	public boolean somebodyIsTargeted() {
 		boolean ret = false;
-		for (RealmComponent rc : getAllBattleParticipants(true)) {
+		for (java.util.Iterator _j14it507 = (getAllBattleParticipants(true)).iterator(); _j14it507.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it507.next();
 			logger.finest(rc.getGameObject().getName()+"...");
 			CombatWrapper rcCombat = new CombatWrapper(rc.getGameObject());
 			if (rc.getTarget()!=null || rc.get2ndTarget()!=null) {
@@ -3497,32 +3619,35 @@ public class BattleModel {
 		}
 		else {
 			TileLocation loc = rc.getCurrentLocation();
-			ArrayList<TileComponent> possibleTiles = new ArrayList<TileComponent>();
+			ArrayList possibleTiles = new ArrayList();
 			Point basePosition = RealmUtility.getTilePositionFromGameObject(loc.tile.getGameObject());
 			GamePool pool = new GamePool(gameData.getGameObjects());
-			ArrayList<GameObject> tiles = pool.find("tile");
-			for (GameObject tile : tiles) {
+			ArrayList tiles = pool.find("tile");
+			for (java.util.Iterator _j14it508 = (tiles).iterator(); _j14it508.hasNext(); ) {
+			  GameObject tile = (GameObject) _j14it508.next();
 				Point position = RealmUtility.getTilePositionFromGameObject(tile);
 				if ((position.x==basePosition.x || position.x==basePosition.x-1 || position.x==basePosition.x+1)
 						&& (position.y==basePosition.y || position.y==basePosition.y-1 || position.y==basePosition.y+1)) {
 					possibleTiles.add(new TileComponent(tile));
 				}
 			}
-			TileComponent chosenTile = possibleTiles.get(RandomNumber.getRandom(possibleTiles.size()));
+			TileComponent chosenTile = (TileComponent) possibleTiles.get(RandomNumber.getRandom(possibleTiles.size()));
 			tl = new TileLocation(chosenTile,true);
 		}
 		
 		if (!hostPrefs.hasPref(Constants.HOUSE2_HURRICANE_WINDS_BLOWS_HIRELINGS)) {
 			TileLocation loc = rc.getCurrentLocation();
 			if (loc.clearing!=null) {
-				ArrayList<GameObject> leftBehindItems = new ArrayList<GameObject>();
-				for (GameObject item : rc.getGameObject().getHold()) {
+				ArrayList leftBehindItems = new ArrayList();
+				for (java.util.Iterator _j14it509 = (rc.getGameObject().getHold()).iterator(); _j14it509.hasNext(); ) {
+				  GameObject item = (GameObject) _j14it509.next();
 					RealmComponent itemRc = RealmComponent.getRealmComponent(item);
 					if ((itemRc.isHiredOrControlled() || itemRc.isNative() || itemRc.isMonster()) && itemRc.getCurrentLocation().equals(loc)) {
 						leftBehindItems.add(item);
 					}
 				}
-				for (GameObject item : leftBehindItems) {
+				for (java.util.Iterator _j14it510 = (leftBehindItems).iterator(); _j14it510.hasNext(); ) {
+				  GameObject item = (GameObject) _j14it510.next();
 					loc.clearing.add(item, null);
 				}
 			}
@@ -3532,7 +3657,8 @@ public class BattleModel {
 		
 		CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 		// Clear all attackers
-		for (GameObject attacker:combat.getAttackers()) {
+		for (java.util.Iterator _j14it511 = (combat.getAttackers()).iterator(); _j14it511.hasNext(); ) {
+		  GameObject attacker = (GameObject) _j14it511.next();
 			RealmComponent arc = RealmComponent.getRealmComponent(attacker);
 				arc.clearTargets();
 			combat.removeAttacker(attacker);
@@ -3616,14 +3742,16 @@ public class BattleModel {
 	 * Disengage ALL targets
 	 */
 	public void makePeace() {
-		for (RealmComponent rc : getAllBattleParticipants(true)) {
+		for (java.util.Iterator _j14it512 = (getAllBattleParticipants(true)).iterator(); _j14it512.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it512.next();
 			rc.clearTargets();
 		}
 	}
 	
-	public static ArrayList<RealmComponent> getParticipantsFromGroups(Collection<BattleGroup> battleGroups) {
-		ArrayList<RealmComponent> participants = new ArrayList<RealmComponent>();
-		for (BattleGroup bg : battleGroups) {
+	public static ArrayList getParticipantsFromGroups(Collection battleGroups) {
+		ArrayList participants = new ArrayList();
+		for (java.util.Iterator _j14it513 = (battleGroups).iterator(); _j14it513.hasNext(); ) {
+		  BattleGroup bg = (BattleGroup) _j14it513.next();
 			participants.addAll(bg.getBattleParticipants());
 		}
 		return participants;
@@ -3644,7 +3772,8 @@ public class BattleModel {
 		cw.setTremendousMonsterFlippedRedSideUp(true);
 	}
 	public void autoPositioningForAttackers() {
-		for (RealmComponent rc : getAllBattleParticipants(false)) {
+		for (java.util.Iterator _j14it514 = (getAllBattleParticipants(false)).iterator(); _j14it514.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it514.next();
 			if (rc.isCharacter()) {
 				CharacterCombatSheet sheet = new CharacterCombatSheet(CombatFrame.getSingleton(),this,rc,false, hostPrefs);
 				sheet.autoPositioningForAttackers();

@@ -42,7 +42,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 	private ActionRowTableModel model;
 	private JTable actionTable;
 
-	private ArrayList<ActionRow> actionRows;
+	private ArrayList actionRows;
 	private int currentActionRow;
 	
 	private JPanel top;
@@ -64,7 +64,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 	
 	private boolean isFollowing;
 	
-	private ArrayList<CharacterWrapper> actionFollowers;
+	private ArrayList actionFollowers;
 	
 	private PhaseManager phaseManager;
 	private JLabel blockWarningLabel;
@@ -104,7 +104,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		
 		if (getCharacter().canDoDaytimeRecord()) {
 			startDaytimeRecord();
-			ArrayList<String> actionList = getCharacter().getList(getCharacter().getCurrentDayKey()+"P");
+			ArrayList actionList = getCharacter().getList(getCharacter().getCurrentDayKey()+"P");
 			if (actionList != null) {
 				int numberOfActionsTaken = actionList.size();
 				getCharacter().addLostPhases(numberOfActionsTaken);
@@ -122,7 +122,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			String clientName = getGameHandler().getClient().getClientName();
 			if (!game.isClientTakenTurn(clientName)) {
 				game.addClientTakenTurn(clientName);
-				ArrayList<GameObject> list = game.getRegeneratedDenizens();
+				ArrayList list = game.getRegeneratedDenizens();
 				if (list!=null) {
 					RealmObjectPanel panel = new RealmObjectPanel();
 					panel.addObjects(list);
@@ -158,7 +158,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			line.add(label);
 			line.add(Box.createHorizontalGlue());
 			box.add(line);
-			for (CharacterWrapper follower:actionFollowers) {
+			for (java.util.Iterator _j14it1271 = (actionFollowers).iterator(); _j14it1271.hasNext(); ) {
+			  CharacterWrapper follower = (CharacterWrapper) _j14it1271.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(follower.getGameObject());
 				label = new JLabel("The "+follower.getGameObject().getName(),rc.getSmallIcon(),SwingConstants.LEADING);
 				label.setFont(followFont);
@@ -217,18 +218,18 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			
 		// Now init
 		ActionRow.askAboutAbandoningFollowers = true;
-		actionRows = new ArrayList<ActionRow>();
-		ArrayList<String> actions = getCharacter().getCurrentActions();
+		actionRows = new ArrayList();
+		ArrayList actions = getCharacter().getCurrentActions();
 		if (actions!=null) {
-			ArrayList<String> actionTypeCodes = getCharacter().getCurrentActionTypeCodes();
-			ArrayList<String> actionTypeValids = (ArrayList<String>) getCharacter().getCurrentActionValids();
+			ArrayList actionTypeCodes = getCharacter().getCurrentActionTypeCodes();
+			ArrayList actionTypeValids = (ArrayList) getCharacter().getCurrentActionValids();
 			if (actionTypeCodes==null) {
-				actionTypeCodes = new ArrayList<String>();
+				actionTypeCodes = new ArrayList();
 			}
 			isFollowing = false; // followers are exempt from blocking rules because the action is simultaneous with the guide.
 			for (int i=0;i<actions.size();i++) {
-				String action = actions.get(i);
-				String actionTypeCode = actionTypeCodes.get(i);
+				String action = (String) actions.get(i);
+				String actionTypeCode = (String) actionTypeCodes.get(i);
 				ActionRow ar = initActionRow(action,actionTypeCode);
 				if (actionTypeValids.get(i) == "F" && ar!=null) {
 					ar.setInvalidPlannedPhase();
@@ -245,7 +246,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		}
 	}
 	private boolean isAwaitingFollowersResting() {
-		for (CharacterWrapper follower:actionFollowers) {
+		for (java.util.Iterator _j14it1272 = (actionFollowers).iterator(); _j14it1272.hasNext(); ) {
+		  CharacterWrapper follower = (CharacterWrapper) _j14it1272.next();
 			if (follower.getFollowRests()>0) {
 				return true;
 			}
@@ -253,7 +255,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		return false;
 	}
 	private boolean isAwaitingFollowersAlerting() {
-		for (CharacterWrapper follower:actionFollowers) {
+		for (java.util.Iterator _j14it1273 = (actionFollowers).iterator(); _j14it1273.hasNext(); ) {
+		  CharacterWrapper follower = (CharacterWrapper) _j14it1273.next();
 			if (follower.getFollowAlerts()>0) {
 				return true;
 			}
@@ -261,7 +264,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		return false;
 	}
 	private boolean isAwaitingFollowersWeatherFatigue() {
-		for (CharacterWrapper follower:actionFollowers) {
+		for (java.util.Iterator _j14it1274 = (actionFollowers).iterator(); _j14it1274.hasNext(); ) {
+		  CharacterWrapper follower = (CharacterWrapper) _j14it1274.next();
 			if (follower.getWeatherFatigue()>0) {
 				return true;
 			}
@@ -269,7 +273,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		return false;
 	}
 	private boolean isAwaitingFollowersSpellActions() {
-		for (CharacterWrapper follower:actionFollowers) {
+		for (java.util.Iterator _j14it1275 = (actionFollowers).iterator(); _j14it1275.hasNext(); ) {
+		  CharacterWrapper follower = (CharacterWrapper) _j14it1275.next();
 			if (follower.getFollowSpellActions()>0) {
 				return true;
 			}
@@ -291,7 +296,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 					current = getCharacter().getCurrentLocation();
 				}
 				if (current!=null && current.isInClearing()) {
-					for (RealmComponent rc:current.clearing.getClearingComponents()) {
+					for (java.util.Iterator _j14it1276 = (current.clearing.getClearingComponents()).iterator(); _j14it1276.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it1276.next();
 						if (!rc.getGameObject().equals(getCharacter().getGameObject()) && (rc.isPlayerControlledLeader())) {
 							CharacterWrapper target = new CharacterWrapper(rc.getGameObject());
 							if (target.isBlocking() && !target.getGameObject().hasThisAttribute(Constants.MEDITATE_NO_BLOCKING) && !target.isMistLike() && (!getCharacter().isMistLike() || target.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE)) && !target.isMinion() && !target.isSleep()
@@ -320,7 +326,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			blockWarningLabel.setText("");
 			TileLocation current = getCharacter().getCurrentLocation();
 			if (current!=null && current.isInClearing()) {
-				for (RealmComponent rc:current.clearing.getClearingComponents()) {
+				for (java.util.Iterator _j14it1277 = (current.clearing.getClearingComponents()).iterator(); _j14it1277.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it1277.next();
 					if (!rc.getGameObject().equals(getCharacter().getGameObject()) && (rc.isPlayerControlledLeader())) {
 						CharacterWrapper target = new CharacterWrapper(rc.getGameObject());
 						if (target.isBlocking() && !target.isMinion()
@@ -334,9 +341,10 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			}
 		}
 		if (evaluateBlockingReactions && getCharacter().getNeedsBlockEvaluation()) {
-			ArrayList<GameObject> livingCharacters = RealmUtility.getLivingCharacters(getCharacter().getGameData());
+			ArrayList livingCharacters = RealmUtility.getLivingCharacters(getCharacter().getGameData());
 			getCharacter().setNeedsBlockEvaluation(false);
-			for (GameObject livingCharacter : livingCharacters) {
+			for (java.util.Iterator _j14it1278 = (livingCharacters).iterator(); _j14it1278.hasNext(); ) {
+			  GameObject livingCharacter = (GameObject) _j14it1278.next();
 				if (hostPrefs.hasPref(Constants.OPT_BLOCKING_PHASES)) {
 					new CharacterWrapper(livingCharacter).removeAllBlockDecisions();
 				}
@@ -357,11 +365,12 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		boolean waitingForSingleButton = getCharacterFrame().isWaitingForSingleButton();
 		boolean controlsLocked = isAwaitingBlockDecision() || waitingForSingleButton || isAwaitingInterruptionDecision();
 		
-		boolean playedAnAction = actionRows.size()>0 && !(actionRows.get(0)).isPending();
+		boolean playedAnAction = actionRows.size()>0 && !((ActionRow)actionRows.get(0)).isPending();
 		
 		boolean areActionFollowersToLeaveBehind = false;
 		if (getCharacter().isHidden()) {
-			for (CharacterWrapper follower:actionFollowers) {
+			for (java.util.Iterator _j14it1279 = (actionFollowers).iterator(); _j14it1279.hasNext(); ) {
+			  CharacterWrapper follower = (CharacterWrapper) _j14it1279.next();
 				if (!follower.foundHiddenEnemy(getCharacter().getGameObject())) {
 					areActionFollowersToLeaveBehind = true;
 					break;
@@ -374,7 +383,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		boolean haveFollowersThatHaveFollowRests = isAwaitingFollowersResting();
 		boolean haveFollowersThatHaveWeatherFatigue = isAwaitingFollowersWeatherFatigue();
 		boolean beingFollowedByOtherPlayers = false;
-		for (CharacterWrapper follower:actionFollowers) {
+		for (java.util.Iterator _j14it1280 = (actionFollowers).iterator(); _j14it1280.hasNext(); ) {
+		  CharacterWrapper follower = (CharacterWrapper) _j14it1280.next();
 			if (!follower.getPlayerName().equals(me)) {
 				beingFollowedByOtherPlayers = true;
 				break;
@@ -620,9 +630,10 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		TileLocation current = getCharacter().getCurrentLocation();
 		String where = getCharacter().isHidden()?"at your feet":"in plain sight";
 		if (current.isInClearing()) {
-			ArrayList<RealmComponent> components = current.clearing.getClearingComponentsInPlainSight(getCharacter());
-			ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
-			for (RealmComponent item : components) {
+			ArrayList components = current.clearing.getClearingComponentsInPlainSight(getCharacter());
+			ArrayList list = new ArrayList();
+			for (java.util.Iterator _j14it1281 = (components).iterator(); _j14it1281.hasNext(); ) {
+			  RealmComponent item = (RealmComponent) _j14it1281.next();
 				if (!item.getWeight().isMaximum()) {
 					list.add(item);
 				}
@@ -870,12 +881,13 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			// Summon monsters for any action followers who stopped following!
 			DieRoller monsterDieRoller = game.getMonsterDie();
 			DieRoller nativeDieRoller = game.getNativeDie();
-			for (CharacterWrapper follower:getCharacter().getStoppedActionFollowers()) {
+			for (java.util.Iterator _j14it1282 = (getCharacter().getStoppedActionFollowers()).iterator(); _j14it1282.hasNext(); ) {
+			  CharacterWrapper follower = (CharacterWrapper) _j14it1282.next();
 				getCharacter().removeActionFollower(follower,monsterDieRoller,nativeDieRoller);
 			}
 		
 			// Collect any newActions that may have spawned (ie., Curse as the result of a search)
-			ArrayList<ActionRow> newActions = new ArrayList<ActionRow>();
+			ArrayList newActions = new ArrayList();
 			ActionRow newAction = ar.getNewAction();
 			while(newAction!=null) {
 				newAction.setSpawned(true);
@@ -889,7 +901,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			}
 			
 			// Energize any permanent spells
-			ArrayList<String> se = getCharacter().getSpellExtras();
+			ArrayList se = getCharacter().getSpellExtras();
 			int seBefore = se==null?0:se.size();
 			spellMaster.energizePermanentSpells(getGameHandler().getMainFrame(),game);
 			ar.updateBlocked(hostPrefs); // check block status AFTER energizing spells - BUG 1624
@@ -899,10 +911,10 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			if (seAfter>seBefore) {
 				// A spell (or spells) were energized automatically during the turn.  Make sure these
 				// make it into the PhaseManager
-				ArrayList<GameObject> ses = getCharacter().getSpellExtraSources();
+				ArrayList ses = getCharacter().getSpellExtraSources();
 				for (int i=seBefore;i<seAfter;i++) {
-					String seAction = se.get(i);
-					GameObject seGo = ses.get(i);
+					String seAction = (String) se.get(i);
+					GameObject seGo = (GameObject) ses.get(i);
 					phaseManager.addFreeAction(seAction,seGo);
 				}
 			}
@@ -921,7 +933,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 					// Separate phases in case there is a mountain move or rest block
 					String phase = ar.getAction();
 					if (phase!=null) {
-						ArrayList<String> separatePhases = new ArrayList<String>();
+						ArrayList separatePhases = new ArrayList();
 						for (int i=0;i<ar.getCount();i++) {
 							if (phase.indexOf(",")>=0) {
 								StringTokenizer phases = new StringTokenizer(phase,",");
@@ -935,7 +947,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 						}
 						
 						int ponyMovesBefore = phaseManager.getPonyMoves();
-						for (String aPhase : separatePhases) {
+						for (java.util.Iterator _j14it1283 = (separatePhases).iterator(); _j14it1283.hasNext(); ) {
+						  String aPhase = (String) _j14it1283.next();
 							phaseManager.addPerformedPhase(aPhase,requiredObject,pony,locationAfterAction);
 							
 							// refresh the required object, so that freeActions isn't used more than is available!
@@ -946,7 +959,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 						
 						if (ponyMovesBefore>ponyMovesAfter) {
 							// Need to "ditch" all pony-less followers
-							for (CharacterWrapper follower : getCharacter().getActionFollowers()) {
+							for (java.util.Iterator _j14it1284 = (getCharacter().getActionFollowers()).iterator(); _j14it1284.hasNext(); ) {
+							  CharacterWrapper follower = (CharacterWrapper) _j14it1284.next();
 								BattleHorse horse = follower.getActiveSteed();
 								if (horse==null || horse.isDead() || !horse.doublesMove()) {
 									ClearingUtility.moveToLocation(follower.getGameObject(), locationBeforeAction);
@@ -954,7 +968,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 									getGameHandler().broadcast(follower.getGameObject().getName(),"Unable to follow Guide:  Guide is on a Pony");
 								}
 							}
-							for (RealmComponent hireling : getCharacter().getFollowingHirelings()) {
+							for (java.util.Iterator _j14it1285 = (getCharacter().getFollowingHirelings()).iterator(); _j14it1285.hasNext(); ) {
+							  RealmComponent hireling = (RealmComponent) _j14it1285.next();
 								BattleHorse horse = hireling.getHorse(false); // don't check location here!  If guide can do it, so can natives
 								if (horse==null || horse.isDead() || !horse.doublesMove()) {
 									// moving to the clearing is sufficient here
@@ -1002,7 +1017,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		return (getCharacter().canDoDaytimeRecord() && phaseManager.hasActionsLeft()) || isNextAction();
 	}
 	private boolean isNextAction() {
-		for (ActionRow ar:actionRows) {
+		for (java.util.Iterator _j14it1286 = (actionRows).iterator(); _j14it1286.hasNext(); ) {
+		  ActionRow ar = (ActionRow) _j14it1286.next();
 			if (ar.isPending()) {
 				return true;
 			}
@@ -1011,7 +1027,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 	}
 	private ActionRow nextAction() {
 		int n=0;
-		for (ActionRow ar:actionRows) {
+		for (java.util.Iterator _j14it1287 = (actionRows).iterator(); _j14it1287.hasNext(); ) {
+		  ActionRow ar = (ActionRow) _j14it1287.next();
 			if (ar.isPending()) {
 				currentActionRow = n;
 				return ar;
@@ -1022,23 +1039,25 @@ public class RealmTurnPanel extends CharacterFramePanel {
 	}
 	
 	private void openSite() {
-		Collection<GameObject> openable = getCharacter().getAllOpenableSites();
+		Collection openable = getCharacter().getAllOpenableSites();
 		if (TreasureUtility.openOneObject(getGameHandler().getMainFrame(),getCharacter(),openable,getGameHandler().getUpdateFrameListener(),false)!=null) {
 			updateControls();
 		}
 	}
 	
-	private Collection<RealmComponent> getUnavailableManeuverOptions() {
+	private Collection getUnavailableManeuverOptions() {
 		// Limit maneuver choices to those that can handle the heaviest piece of inventory
 		Strength heaviestInventory = getCharacter().getNeededSupportWeight();
-		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
-		for (CharacterActionChitComponent chit : getCharacter().getActiveMoveChits()) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it1288 = (getCharacter().getActiveMoveChits()).iterator(); _j14it1288.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it1288.next();
 			if (!chit.getStrength().strongerOrEqualTo(heaviestInventory)) {
 				list.add(chit);
 			}
 		}
 		// Add any boots cards or horses
-		for (GameObject go : getCharacter().getActiveInventory()) {
+		for (java.util.Iterator _j14it1289 = (getCharacter().getActiveInventory()).iterator(); _j14it1289.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1289.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (go.hasThisAttribute("boots")) {
 				Strength bootStrength = RealmUtility.getBootsStrength(go);
@@ -1062,7 +1081,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		getCharacter().setCombatPlayOrder(game.getNextDayTurnCount());
 		
 		// Check to see if any chits are going to be hindered in combat due to inventory, and report it here
-		Collection<RealmComponent> c = getUnavailableManeuverOptions();
+		Collection c = getUnavailableManeuverOptions();
 		if (getGameHandler().isOption(RealmSpeakOptions.HEAVY_INV_WARNING) && c.size()>0) {
 			RealmComponentDisplayDialog dialog = new RealmComponentDisplayDialog(
 					getGameHandler().getMainFrame(),
@@ -1078,8 +1097,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		if (actionRows.size()>0) {
 			// NOTE:  current action type codes will be off, but I don't think it matters anymore...
 			// Actually, it does, so keep these up to date
-			Collection<String> atc = getCharacter().getCurrentActionTypeCodes();
-			Collection<String> oldCodes = new ArrayList<String>();
+			Collection atc = getCharacter().getCurrentActionTypeCodes();
+			Collection oldCodes = new ArrayList();
 			if (atc!=null) {
 				oldCodes.addAll(atc);
 			}
@@ -1089,8 +1108,9 @@ public class RealmTurnPanel extends CharacterFramePanel {
 
 			// Now, rebuild them from actionRows
 			boolean blocked = false;
-			Iterator<String> fi = oldCodes.iterator();
-			for (ActionRow ar:actionRows) {
+			Iterator fi = oldCodes.iterator();
+			for (java.util.Iterator _j14it1290 = (actionRows).iterator(); _j14it1290.hasNext(); ) {
+			  ActionRow ar = (ActionRow) _j14it1290.next();
 				if (!blocked && ar.isCancelled()) {
 					blocked = true;
 					getCharacter().addCurrentAction(Constants.BLOCKED);
@@ -1101,7 +1121,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 				if (action!=null) { // might be null if there was a re-roll on a table
 					String actionTypeCode = "*"; // actionTypeCode is the type of clearing from which the action was performed
 					try {
-						actionTypeCode = fi.next(); // NoSuchElementException!?!?
+						actionTypeCode = (String) fi.next(); // NoSuchElementException!?!?
 					}
 					catch(NoSuchElementException ex) {
 						// Well this will tell me what's happening if it happens again
@@ -1154,7 +1174,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		if (getsTurn && current!=null && !getCharacter().isMinion() && !getCharacter().isSleep()) {
 			// UPDATE - According to RH, it doesn't matter whether or not you completed actions: if you fall asleep, you simply aren't there until Sunset
 			if (current!=null && current.clearing!=null) {
-				for (RealmComponent chit : current.clearing.getClearingComponents()) {
+				for (java.util.Iterator _j14it1291 = (current.clearing.getClearingComponents()).iterator(); _j14it1291.hasNext(); ) {
+				  RealmComponent chit = (RealmComponent) _j14it1291.next();
 					if (chit.isGoldSpecial()) {
 						((GoldSpecialChitComponent)chit).drawFrontside();
 					}
@@ -1162,8 +1183,10 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			}
 			if (hostPrefs.hasPref(Constants.SR_REVEAL_TRAVELERS)) {
 				if (current!=null && current.tile!=null) {
-					for (ClearingDetail cl : current.tile.getClearings()) {
-						for (RealmComponent chit : cl.getClearingComponents()) {
+					for (java.util.Iterator _j14it1292 = (current.tile.getClearings()).iterator(); _j14it1292.hasNext(); ) {
+					  ClearingDetail cl = (ClearingDetail) _j14it1292.next();
+						for (java.util.Iterator _j14it1293 = (cl.getClearingComponents()).iterator(); _j14it1293.hasNext(); ) {
+						  RealmComponent chit = (RealmComponent) _j14it1293.next();
 							if (chit.isGoldSpecial()) {
 								((GoldSpecialChitComponent)chit).drawFrontside();
 							}
@@ -1173,14 +1196,15 @@ public class RealmTurnPanel extends CharacterFramePanel {
 			}
 			
 			if (!getCharacter().isHidden() || !hostPrefs.hasPref(Constants.OPT_QUIET_MONSTERS)) {
-				ArrayList<StateChitComponent> flipped = current.tile.setChitsFaceUp();
-				for(StateChitComponent chit:flipped) {
+				ArrayList flipped = current.tile.setChitsFaceUp();
+				for (java.util.Iterator _j14it1294 = (flipped).iterator(); _j14it1294.hasNext(); ) {
+				  StateChitComponent chit = (StateChitComponent) _j14it1294.next();
 					getGameHandler().broadcast(getCharacter().getGameObject().getName(),"Reveals: "+chit.getGameObject().getName());
 				}
 			}
 			DieRoller monsterDieRoller = game.getMonsterDie();
 			DieRoller nativeDieRoller = game.getNativeDie();
-			ArrayList<GameObject> summoned = new ArrayList<GameObject>();
+			ArrayList summoned = new ArrayList();
 			if (!hostPrefs.hasPref(Constants.SR_NO_SUMMONING_FOR_FOLLOWERS) || getCharacter().getCharacterImFollowing()==null || getCharacter().isStopFollowing()) {
 				SetupCardUtility.summonMonsters(hostPrefs,summoned,getCharacter(),monsterDieRoller,nativeDieRoller);
 			}
@@ -1195,11 +1219,12 @@ public class RealmTurnPanel extends CharacterFramePanel {
 				}
 			}
 
-			ArrayList<GameObject> list = getCharacter().getAllActiveInventoryThisKeyAndValue(Constants.DWELLING_GOLD,null);
+			ArrayList list = getCharacter().getAllActiveInventoryThisKeyAndValue(Constants.DWELLING_GOLD,null);
 			if (!list.isEmpty()) {
 				GameObject dwelling = ClearingUtility.findDwellingInClearing(getCharacter().getCurrentLocation());
 				if (dwelling!=null) {
-					for (GameObject go:list) {
+					for (java.util.Iterator _j14it1295 = (list).iterator(); _j14it1295.hasNext(); ) {
+					  GameObject go = (GameObject) _j14it1295.next();
 						String roll = go.getThisAttribute(Constants.DWELLING_GOLD);
 						int gain = RandomNumber.getFromDieString(roll);
 						getCharacter().addGold(gain);
@@ -1272,7 +1297,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 
 		public Object getValueAt(int row, int col) {
 			if (row < actionRows.size()) {
-				ActionRow ar = actionRows.get(row);
+				ActionRow ar = (ActionRow) actionRows.get(row);
 				switch (col) {
 					case 0:
 						return ar.getIcon();
@@ -1288,8 +1313,9 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		}
 	}
 	public void verifyAbandonActionFollowers() {
-		ArrayList<CharacterWrapper> canLeaveBehind = new ArrayList<CharacterWrapper>();
-		for (CharacterWrapper follower:actionFollowers) {
+		ArrayList canLeaveBehind = new ArrayList();
+		for (java.util.Iterator _j14it1296 = (actionFollowers).iterator(); _j14it1296.hasNext(); ) {
+		  CharacterWrapper follower = (CharacterWrapper) _j14it1296.next();
 			if (!follower.foundHiddenEnemy(getCharacter().getGameObject())) {
 				canLeaveBehind.add(follower);
 			}
@@ -1320,27 +1346,30 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		}
 	}
 	public void doAbandonActionFollowers() {
-		ArrayList<CharacterWrapper> toRemove = new ArrayList<CharacterWrapper>();
+		ArrayList toRemove = new ArrayList();
 		if (actionFollowers.size()==1) {
 			toRemove.add(actionFollowers.get(0));
 		}
 		else {
-			ArrayList<GameObject> list = new ArrayList<GameObject>();
-			for (CharacterWrapper aFollower:actionFollowers) {
+			ArrayList list = new ArrayList();
+			for (java.util.Iterator _j14it1297 = (actionFollowers).iterator(); _j14it1297.hasNext(); ) {
+			  CharacterWrapper aFollower = (CharacterWrapper) _j14it1297.next();
 				list.add(aFollower.getGameObject());
 			}
 			RealmObjectChooser chooser = new RealmObjectChooser("Which follower(s) do you want to leave behind?",getCharacter().getGameObject().getGameData(),false);
 			chooser.addObjectsToChoose(list);
 			chooser.setVisible(true);
 			if (chooser.pressedOkay()) {
-				for (GameObject go : chooser.getChosenObjects()) {
+				for (java.util.Iterator _j14it1298 = (chooser.getChosenObjects()).iterator(); _j14it1298.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it1298.next();
 					toRemove.add(new CharacterWrapper(go));
 				}
 			}
 		}
 		DieRoller monsterDieRoller = game.getMonsterDie();
 		DieRoller nativeDieRoller = game.getNativeDie();
-		for (CharacterWrapper aFollower : toRemove) {
+		for (java.util.Iterator _j14it1299 = (toRemove).iterator(); _j14it1299.hasNext(); ) {
+		  CharacterWrapper aFollower = (CharacterWrapper) _j14it1299.next();
 			if (!aFollower.hasActiveInventoryThisKey(Constants.LINKS)) {
 				getCharacter().removeActionFollower(aFollower,monsterDieRoller,nativeDieRoller);
 			}
@@ -1367,7 +1396,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 	}
 	public ActionRow getLastActionRow() {
 		if (!actionRows.isEmpty()) {
-			return actionRows.get(actionRows.size()-1);
+			return (ActionRow) actionRows.get(actionRows.size()-1);
 		}
 		return null;
 	}
@@ -1392,17 +1421,17 @@ public class RealmTurnPanel extends CharacterFramePanel {
 	private void cancelAction() {	
 		if (isFollowing) return;
 				
-		ActionRow ar = actionRows.get(currentActionRow);
+		ActionRow ar = (ActionRow) actionRows.get(currentActionRow);
 		String removedAction = ar.getAction();
 		actionRows.remove(ar);
-		ArrayList<String> actions = new ArrayList<String>(getCharacter().getCurrentActions());
+		ArrayList actions = new ArrayList(getCharacter().getCurrentActions());
 		actions.remove(currentActionRow);
 		getCharacter().setCurrentActions(actions);
 		if (removedAction.startsWith(DayAction.MOVE_ACTION.getCode()) || removedAction.startsWith(DayAction.FLY_ACTION.getCode())) {
 			getCharacter().rebuildClearingPlot();
 		}
-		ArrayList<String> actionTypeCodes = new ArrayList<String>();
-		Collection<String> c = getCharacter().getCurrentActionTypeCodes();
+		ArrayList actionTypeCodes = new ArrayList();
+		Collection c = getCharacter().getCurrentActionTypeCodes();
 		if (c!=null && !c.isEmpty()) {
 			actionTypeCodes.addAll(c);
 			actionTypeCodes.remove(currentActionRow);
@@ -1413,15 +1442,16 @@ public class RealmTurnPanel extends CharacterFramePanel {
 	public void startDaytimeRecord() {
 		if (!isFollowing) {
 			// First, remove all pending actions
-			Collection<String> atcOld = getCharacter().getCurrentActionTypeCodes();
-			ArrayList<String> atc = new ArrayList<String>();
+			Collection atcOld = getCharacter().getCurrentActionTypeCodes();
+			ArrayList atc = new ArrayList();
 			if (atcOld!=null) {
 				atc.addAll(atcOld);
 			}
-			Iterator<String> n=atc.iterator();
+			Iterator n=atc.iterator();
 			getCharacter().clearCurrentActions();
-			ArrayList<ActionRow> toRemove = new ArrayList<ActionRow>();
-			for (ActionRow ar:actionRows) {
+			ArrayList toRemove = new ArrayList();
+			for (java.util.Iterator _j14it1300 = (actionRows).iterator(); _j14it1300.hasNext(); ) {
+			  ActionRow ar = (ActionRow) _j14it1300.next();
 				if (ar.getAction()!=null) { // ignore null action rows
 					if (ar.isPending()) {
 						toRemove.add(ar);
@@ -1435,7 +1465,7 @@ public class RealmTurnPanel extends CharacterFramePanel {
 						// Add it back
 						getCharacter().addCurrentAction(ar.getAction());
 						getCharacter().addCurrentActionValid(true);
-						getCharacter().addCurrentActionTypeCode(n.next());
+						getCharacter().addCurrentActionTypeCode((String)n.next());
 					}
 				}
 			}
@@ -1476,8 +1506,9 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		getCharacter().addLostPhases(getCharacter().getLostPhases()+phases);
 		// Find pending phases
 		int pendingCount = 0;
-		ArrayList<ActionRow> pendingPhases = new ArrayList<ActionRow>();
-		for (ActionRow ar:actionRows) {
+		ArrayList pendingPhases = new ArrayList();
+		for (java.util.Iterator _j14it1301 = (actionRows).iterator(); _j14it1301.hasNext(); ) {
+		  ActionRow ar = (ActionRow) _j14it1301.next();
 			if (ar.isInvalidPlannedPhase()) {
 				ar.setActionState(ActionState.Invalid);
 			}
@@ -1490,7 +1521,8 @@ public class RealmTurnPanel extends CharacterFramePanel {
 		// Lose them
 		if (phases>=pendingCount) {
 			// Cancel all remaining phases
-			for (ActionRow ar:pendingPhases) {
+			for (java.util.Iterator _j14it1302 = (pendingPhases).iterator(); _j14it1302.hasNext(); ) {
+			  ActionRow ar = (ActionRow) _j14it1302.next();
 				ar.setCancelled(true);
 			}
 			if (getCharacter().canDoDaytimeRecord()) {
@@ -1518,8 +1550,9 @@ public class RealmTurnPanel extends CharacterFramePanel {
 	
 	public void endConditionalPermanentSpells(String key){
 		CharacterWrapper character = getCharacter();
-		ArrayList<SpellWrapper>toEnd = SpellUtility.getBewitchingSpellsWithKey(character.getGameObject(), key);	
-		for(SpellWrapper ending:toEnd){
+		ArrayList toEnd = SpellUtility.getBewitchingSpellsWithKey(character.getGameObject(), key);
+		for (java.util.Iterator _j14it1303 = (toEnd).iterator(); _j14it1303.hasNext(); ) {
+		  SpellWrapper ending = (SpellWrapper) _j14it1303.next();
 			ending.expireSpell();
 		}
 	}

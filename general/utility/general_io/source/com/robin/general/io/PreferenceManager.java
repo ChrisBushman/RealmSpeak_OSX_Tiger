@@ -120,14 +120,15 @@ public class PreferenceManager {
 	 */
 	public void addListItem(String key,String val,int bufferSize) {
 		if (bufferSize<1) bufferSize = 1;
-		ArrayList<String> list = getList(key);
+		ArrayList list = getList(key);
 		while(list.remove(val));
 		list.add(0,val);
 		while(bufferSize>0 && list.size()>bufferSize) {
 			list.remove(list.size()-1);
 		}
 		int n=0;
-		for (String item:list) {
+		for (java.util.Iterator _j14it1 = (list).iterator(); _j14it1.hasNext(); ) {
+		  String item = (String) _j14it1.next();
 			preferences.setProperty(key+n,item);
 			n++;
 		}
@@ -141,8 +142,8 @@ public class PreferenceManager {
 			n++;
 		}
 	}
-	public ArrayList<String> getList(String key) {
-		ArrayList<String> list = new ArrayList<String>();
+	public ArrayList getList(String key) {
+		ArrayList list = new ArrayList();
 		int n=0;
 		while(true) {
 			String val = preferences.getProperty(key+n);
@@ -207,14 +208,15 @@ public class PreferenceManager {
 	 * Clears all keys that start with the provided string
 	 */
 	public void clearStartsWith(String start) {
-		ArrayList<String> keysToRemove = new ArrayList<String>();
+		ArrayList keysToRemove = new ArrayList();
 		for (Iterator i=preferences.keySet().iterator();i.hasNext();) {
 			String key = (String)i.next();
 			if (key.startsWith(start)) {
 				keysToRemove.add(key);
 			}
 		}
-		for (String key : keysToRemove) {
+		for (java.util.Iterator _j14it2 = (keysToRemove).iterator(); _j14it2.hasNext(); ) {
+		  String key = (String) _j14it2.next();
 			preferences.remove(key);
 		}
 	}

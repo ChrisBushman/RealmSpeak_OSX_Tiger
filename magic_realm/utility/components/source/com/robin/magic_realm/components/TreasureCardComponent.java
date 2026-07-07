@@ -129,17 +129,18 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 				// Draw magic
 				String magic = gameObject.getThisAttribute("magic");
 				if (magic!=null) {
-					ArrayList<String> tiedMagic = readTiedMagicTypes(getGameObject());
-					ArrayList<String> enchantedMagic = gameObject.getThisAttributeList(Constants.ARTIFACT_ENHANCED_MAGIC);
-					ArrayList<String> finalList = new ArrayList<String>();
+					ArrayList tiedMagic = readTiedMagicTypes(getGameObject());
+					ArrayList enchantedMagic = gameObject.getThisAttributeList(Constants.ARTIFACT_ENHANCED_MAGIC);
+					ArrayList finalList = new ArrayList();
 					finalList.add(magic);
 					if (enchantedMagic!=null) {
-						TreeSet<String> unique = new TreeSet<String>();
+						TreeSet unique = new TreeSet();
 						unique.addAll(enchantedMagic);
 						finalList.addAll(unique);
 					}
 					StringBuffer sb = new StringBuffer();
-					for (String mt:finalList) {
+					for (java.util.Iterator _j14it1309 = (finalList).iterator(); _j14it1309.hasNext(); ) {
+					  String mt = (String) _j14it1309.next();
 						if (sb.length()>0) sb.append(",");
 						boolean tied = tiedMagic.remove(mt);
 						if (tied) sb.append("(");
@@ -301,7 +302,8 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 				}
 				
 				if (gameObject.hasThisAttribute(Constants.CAST_SPELL_ON_INIT)) {
-					for (GameObject sgo : gameObject.getHold()) {
+					for (java.util.Iterator _j14it1310 = (gameObject.getHold()).iterator(); _j14it1310.hasNext(); ) {
+					  GameObject sgo = (GameObject) _j14it1310.next();
 						if (sgo.hasThisAttribute("spell")) {
 							SpellWrapper spell = new SpellWrapper(sgo);
 							if (spell.isInert()) {
@@ -342,8 +344,9 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 		return getGameObject().hasThisAttribute(Constants.ENCHANTED_COLOR);
 	}
 	public boolean compatibleWith(ColorMagic cm) {
-		ArrayList<String> types = readAvailableMagicTypes(null,getGameObject());
-		for(String type:types) {
+		ArrayList types = readAvailableMagicTypes(null,getGameObject());
+		for (java.util.Iterator _j14it1311 = (types).iterator(); _j14it1311.hasNext(); ) {
+		  String type = (String) _j14it1311.next();
 			int mn = CharacterActionChitComponent.getMagicNumber(type);
 			if (cm.getColorNumber()==mn) {
 				return true;
@@ -358,15 +361,16 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 		}
 		return null;
 	}
-	public ArrayList<Integer> getEnchantableNumbers() {
+	public ArrayList getEnchantableNumbers() {
 		// only 1-5 can be enchanted colors!
 		return getAllMagicNumbers(5);
 	}
-	public ArrayList<Integer> getAllMagicNumbers(int maximum) {
-		ArrayList<Integer> list = new ArrayList<Integer>();
+	public ArrayList getAllMagicNumbers(int maximum) {
+		ArrayList list = new ArrayList();
 		
-		ArrayList<String> types = readAvailableMagicTypes(null,getGameObject());
-		for(String type:types) {
+		ArrayList types = readAvailableMagicTypes(null,getGameObject());
+		for (java.util.Iterator _j14it1312 = (types).iterator(); _j14it1312.hasNext(); ) {
+		  String type = (String) _j14it1312.next();
 			int mn = CharacterActionChitComponent.getMagicNumber(type);
 			if (mn>0 && mn<=maximum) {
 				list.add(Integer.valueOf(mn));
@@ -398,29 +402,29 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 		}
 	}
 	
-	private static ArrayList<String> readTiedMagicTypes(GameObject treasure) {
-		ArrayList<String> magicTypes = new ArrayList<String>();
+	private static ArrayList readTiedMagicTypes(GameObject treasure) {
+		ArrayList magicTypes = new ArrayList();
 		
 		// for backward compatibility
 		Object test = treasure.getThisAttributeBlock().get(SpellWrapper.INCANTATION_TIE); 
 		if (test instanceof String) {
 			SpellWrapper spell = new SpellWrapper(treasure.getGameObjectFromThisAttribute(SpellWrapper.INCANTATION_TIE));
-			ArrayList<String> newList = new ArrayList<String>();
+			ArrayList newList = new ArrayList();
 			newList.add(spell.getCastMagicType());
 			treasure.removeThisAttribute(SpellWrapper.INCANTATION_TIE);
 			treasure.setThisAttributeList(SpellWrapper.INCANTATION_TIE,newList);
 		}
 		
 		// Ok, back to normal now
-		ArrayList<String> list = treasure.getThisAttributeList(SpellWrapper.INCANTATION_TIE);
+		ArrayList list = treasure.getThisAttributeList(SpellWrapper.INCANTATION_TIE);
 		if (list!=null) {
 			magicTypes.addAll(list);
 		}
 		return magicTypes;
 	}
 
-	public static ArrayList<String> readAvailableMagicTypes(String dayKey,GameObject treasure) {
-		ArrayList<String> possMagicTypes = new ArrayList<String>();
+	public static ArrayList readAvailableMagicTypes(String dayKey,GameObject treasure) {
+		ArrayList possMagicTypes = new ArrayList();
 		
 		String magic = treasure.getThisAttribute("magic");
 		if (magic!=null) {
@@ -432,9 +436,10 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 		}
 		
 		// Include any enchantments
-		ArrayList<String> enchants = treasure.getThisAttributeList(Constants.ARTIFACT_ENHANCED_MAGIC);
+		ArrayList enchants = treasure.getThisAttributeList(Constants.ARTIFACT_ENHANCED_MAGIC);
 		if (enchants!=null) {
-			for (String enchant : enchants) {
+			for (java.util.Iterator _j14it1313 = (enchants).iterator(); _j14it1313.hasNext(); ) {
+			  String enchant = (String) _j14it1313.next();
 				if (!possMagicTypes.contains(enchant)) {
 					possMagicTypes.add(enchant);
 				}
@@ -444,17 +449,19 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 		// Figure out which magic types have already been used on this artifact today and remove them from possibilities
 		String usedKey = treasure.getThisAttribute(Constants.USED_SPELL);
 		if (usedKey!=null && usedKey.equals(dayKey)) {
-			ArrayList<String> list = treasure.getThisAttributeList(Constants.USED_MAGIC_TYPE_LIST);
+			ArrayList list = treasure.getThisAttributeList(Constants.USED_MAGIC_TYPE_LIST);
 			if (list!=null) {
-				for (String chitType : list) {
+				for (java.util.Iterator _j14it1314 = (list).iterator(); _j14it1314.hasNext(); ) {
+				  String chitType = (String) _j14it1314.next();
 					possMagicTypes.remove(chitType);
 				}
 			}
 		}
 		
 		// Finally, remove any tied magic types
-		ArrayList<String> tiedMagicTypes = readTiedMagicTypes(treasure);
-		for (String tiedMagicType : tiedMagicTypes) {
+		ArrayList tiedMagicTypes = readTiedMagicTypes(treasure);
+		for (java.util.Iterator _j14it1315 = (tiedMagicTypes).iterator(); _j14it1315.hasNext(); ) {
+		  String tiedMagicType = (String) _j14it1315.next();
 			if (possMagicTypes.contains(tiedMagicType)) {
 				possMagicTypes.remove(tiedMagicType);
 			}

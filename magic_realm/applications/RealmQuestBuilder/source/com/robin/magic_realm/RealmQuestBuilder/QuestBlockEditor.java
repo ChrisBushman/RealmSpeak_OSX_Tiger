@@ -21,10 +21,10 @@ import com.robin.magic_realm.components.utility.TemplateLibrary;
 public abstract class QuestBlockEditor extends GenericEditor {
 	
 	protected abstract String getEditorTitle();
-	protected abstract ArrayList<QuestPropertyBlock> createPropertyBlocks();
+	protected abstract ArrayList createPropertyBlocks();
 	
 	private JFrame parent;
-	private ArrayList<QuestPropertyBlock> propertyBlocks;
+	private ArrayList propertyBlocks;
 	private GameObjectWrapper go;
 	private ChitTypePanel chitTypePanel; // important to remember this one, in case it is used
 	
@@ -46,7 +46,8 @@ public abstract class QuestBlockEditor extends GenericEditor {
 		initComponents();
 	}
 	protected boolean isValidForm() {
-		for (QuestPropertyBlock block:propertyBlocks) {
+		for (java.util.Iterator _j14it354 = (propertyBlocks).iterator(); _j14it354.hasNext(); ) {
+		  QuestPropertyBlock block = (QuestPropertyBlock) _j14it354.next();
 			if (block.getFieldType()==FieldType.NoSpacesTextLine) {
 				String val = ((JTextField)block.getComponent()).getText();
 				if (val==null || val.trim().length()==0) {
@@ -65,37 +66,26 @@ public abstract class QuestBlockEditor extends GenericEditor {
 		return true;
 	}
 	protected void save() {
-		for (QuestPropertyBlock block:propertyBlocks) {
-			switch(block.getFieldType()) {
-				case TextLine:
-				case NoSpacesTextLine:
-				case SmartTextLine:
-				case Regex:
-				case RegexIgnoreChitTypes:
+		for (java.util.Iterator _j14it355 = (propertyBlocks).iterator(); _j14it355.hasNext(); ) {
+		  QuestPropertyBlock block = (QuestPropertyBlock) _j14it355.next();
+			{
+				FieldType _ft = block.getFieldType();
+				if (_ft == FieldType.TextLine || _ft == FieldType.NoSpacesTextLine || _ft == FieldType.SmartTextLine || _ft == FieldType.Regex || _ft == FieldType.RegexIgnoreChitTypes) {
 					go.setString(block.getKeyName(),((JTextField)block.getComponent()).getText().trim());
-					break;
-				case SmartTextArea:
-				case TextArea:
+				} else if (_ft == FieldType.SmartTextArea || _ft == FieldType.TextArea) {
 					go.setString(block.getKeyName(),((JTextArea)block.getComponent()).getText().trim());
-					break;
-				case Number:
-				case NumberAll:
+				} else if (_ft == FieldType.Number || _ft == FieldType.NumberAll) {
 					go.setInt(block.getKeyName(),((IntegerField)block.getComponent()).getInt());
-					break;
-				case StringSelector:
-				case GameObjectWrapperSelector:
+				} else if (_ft == FieldType.StringSelector || _ft == FieldType.GameObjectWrapperSelector) {
 					saveSelection(block,(JComboBox)block.getComponent());
-					break;
-				case Boolean:
+				} else if (_ft == FieldType.Boolean) {
 					go.setBoolean(block.getKeyName(),((JCheckBox)block.getComponent()).isSelected());
-					break;
-				case ChitType:
+				} else if (_ft == FieldType.ChitType) {
 					go.setList(block.getKeyName(),((ChitTypePanel)block.getComponent()).getChitTypeList());
-					break;
-				case CompanionSelector:
+				} else if (_ft == FieldType.CompanionSelector) {
 					go.setString(QuestConstants.KEY_PREFIX+block.getKeyName(),((JLabel)block.getComponent()).getText());
 					go.setString(QuestConstants.VALUE_PREFIX+block.getKeyName(),block.getComponent().getToolTipText());
-					break;
+				}
 			}
 		}
 	}
@@ -109,17 +99,18 @@ public abstract class QuestBlockEditor extends GenericEditor {
 	private Box buildForm() {
 		UniformLabelGroup group = new UniformLabelGroup();
 		Box box = Box.createVerticalBox();
-		for (QuestPropertyBlock block:propertyBlocks) {
+		for (java.util.Iterator _j14it356 = (propertyBlocks).iterator(); _j14it356.hasNext(); ) {
+		  QuestPropertyBlock block = (QuestPropertyBlock) _j14it356.next();
 			Box line = group.createLabelLine(block.getFieldName());
 			JComponent component = null;
 			JButton button = null;
 			boolean useScrollPane = false;
-			switch(block.getFieldType()) {
-				case TextLine:
+			{
+				FieldType _ft2 = block.getFieldType();
+				if (_ft2 == FieldType.TextLine) {
 					component = new JTextField(go.getString(block.getKeyName()));
 					ComponentTools.lockComponentSize(component,150,25);
-					break;
-				case SmartTextLine:
+				} else if (_ft2 == FieldType.SmartTextLine) {
 					SuggestionTextField sta = new SuggestionTextField();
 					sta.setText(go.getString(block.getKeyName()));
 					sta.setWords(block.getSelectionsAsStrings());
@@ -128,8 +119,7 @@ public abstract class QuestBlockEditor extends GenericEditor {
 					sta.setAutoSpace(false);
 					component = sta;
 					ComponentTools.lockComponentSize(component,150,25);
-					break;
-				case SmartTextArea:
+				} else if (_ft2 == FieldType.SmartTextArea) {
 					SuggestionTextArea star = new SuggestionTextArea();
 					star.setText(go.getString(block.getKeyName()));
 					star.setWords(block.getSelectionsAsStrings());
@@ -140,8 +130,7 @@ public abstract class QuestBlockEditor extends GenericEditor {
 					star.setLineWrap(true);
 					component = star;
 					ComponentTools.lockComponentSize(component,200,100);
-					break;
-				case NoSpacesTextLine:
+				} else if (_ft2 == FieldType.NoSpacesTextLine) {
 					JTextField tf = new JTextField();
 					component = tf;
 					ComponentTools.lockComponentSize(component,150,25);
@@ -157,40 +146,33 @@ public abstract class QuestBlockEditor extends GenericEditor {
 							if (temp.length()>0)
 								super.insertString(offset,temp.toString(),attr);
 						}
-					});				
+					});
 					tf.setText(go.getString(block.getKeyName()));
-					break;
-				case TextArea:
+				} else if (_ft2 == FieldType.TextArea) {
 					JTextArea ta = new JTextArea(15,40);
 					ta.setLineWrap(true);
 					ta.setWrapStyleWord(true);
 					ta.setText(go.getString(block.getKeyName()));
 					useScrollPane = true;
 					component = ta;
-					break;
-				case Number:
+				} else if (_ft2 == FieldType.Number) {
 					int n = go.getInt(block.getKeyName());
 					component = new IntegerField(n==0?1:n);
 					ComponentTools.lockComponentSize(component,150,25);
-					break;
-				case NumberAll:
+				} else if (_ft2 == FieldType.NumberAll) {
 					int i = go.getInt(block.getKeyName());
 					component = new IntegerField(i);
 					ComponentTools.lockComponentSize(component,150,25);
-					break;
-				case StringSelector:
-				case GameObjectWrapperSelector:
+				} else if (_ft2 == FieldType.StringSelector || _ft2 == FieldType.GameObjectWrapperSelector) {
 					JComboBox cb = new JComboBox(block.getSelections());
 					component = cb;
 					readSelection(block,cb);
 					ComponentTools.lockComponentSize(component,200,25);
-					break;
-				case Boolean:
+				} else if (_ft2 == FieldType.Boolean) {
 					JCheckBox yesBox = new JCheckBox("",go.getBoolean(block.getKeyName()));
 					yesBox.setFocusable(false);
 					component = yesBox;
-					break;
-				case Regex:
+				} else if (_ft2 == FieldType.Regex) {
 					component = new JTextField(go.getString(block.getKeyName()));
 					ComponentTools.lockComponentSize(component,150,25);
 					button = new PropertyButton("...",component,block);
@@ -204,8 +186,7 @@ public abstract class QuestBlockEditor extends GenericEditor {
 							}
 						}
 					});
-					break;
-				case RegexIgnoreChitTypes:
+				} else if (_ft2 == FieldType.RegexIgnoreChitTypes) {
 					component = new JTextField(go.getString(block.getKeyName()));
 					ComponentTools.lockComponentSize(component,150,25);
 					button = new PropertyButton("...",component,block);
@@ -219,12 +200,10 @@ public abstract class QuestBlockEditor extends GenericEditor {
 							}
 						}
 					});
-					break;
-				case ChitType:
+				} else if (_ft2 == FieldType.ChitType) {
 					chitTypePanel = new ChitTypePanel(go.getList(block.getKeyName()));
 					component = chitTypePanel;
-					break;
-				case CompanionSelector:
+				} else if (_ft2 == FieldType.CompanionSelector) {
 					JLabel label = new JLabel();
 					component = label;
 					String current = go.getString(block.getKeyName());
@@ -232,7 +211,9 @@ public abstract class QuestBlockEditor extends GenericEditor {
 						current = go.getString(QuestConstants.KEY_PREFIX+block.getKeyName());
 					}
 					if (current!=null && current.length()>0) {
-						for(KeyValuePair kv:(KeyValuePair[])block.getSelections()) {
+						KeyValuePair[] _j14arr357 = (KeyValuePair[]) block.getSelections();
+						for (int _j14i357 = 0; _j14i357 < _j14arr357.length; _j14i357++) {
+						  KeyValuePair kv = _j14arr357[_j14i357];
 							if (!kv.getKey().equals(current)) continue;
 							GameObject go = TemplateLibrary.getSingleton().getCompanionTemplate(kv.getKey(),kv.getValue());
 							ChitComponent chit = (ChitComponent)RealmComponent.getRealmComponent(go);
@@ -247,7 +228,7 @@ public abstract class QuestBlockEditor extends GenericEditor {
 						public void actionPerformed(ActionEvent ev) {
 							PropertyButton me = (PropertyButton)ev.getSource();
 							JLabel field = (JLabel)me.getMyComponent();
-							
+
 							ChitComponent chit = selectCompanion((KeyValuePair[])me.getBlock().getSelections());
 							if (chit!=null) {
 								field.setIcon(chit.getIcon());
@@ -256,7 +237,7 @@ public abstract class QuestBlockEditor extends GenericEditor {
 							}
 						}
 					});
-					break;
+				}
 			}
 			block.setComponent(component);
 			if (useScrollPane) {
@@ -276,8 +257,9 @@ public abstract class QuestBlockEditor extends GenericEditor {
 		return box;
 	}
 	private ChitComponent selectCompanion(KeyValuePair[] keyVals) {
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
-		for(KeyValuePair kv:keyVals) {
+		ArrayList list = new ArrayList();
+		for (int _j14i358 = 0; _j14i358 < keyVals.length; _j14i358++) {
+		  KeyValuePair kv = keyVals[_j14i358];
 			GameObject go = TemplateLibrary.getSingleton().getCompanionTemplate(kv.getKey(),kv.getValue());
 			list.add(go);
 		}
@@ -293,10 +275,11 @@ public abstract class QuestBlockEditor extends GenericEditor {
 		return launchRegexHelper(text,block,false);
 	}
 	private String launchRegexHelper(String text,QuestPropertyBlock block,boolean ignoreChitTypePanel) {
-		ArrayList<String> objectNames = new ArrayList<String>();
+		ArrayList objectNames = new ArrayList();
 		if (chitTypePanel!=null&&!ignoreChitTypePanel) {
-			ArrayList<GameObject> objects = QuestRewardItem.getObjectList(realmSpeakData.getGameObjects(),chitTypePanel.getChitItemTypes(),null); 
-			for(GameObject go:objects) {
+			ArrayList objects = QuestRewardItem.getObjectList(realmSpeakData.getGameObjects(),chitTypePanel.getChitItemTypes(),null); 
+			for (java.util.Iterator _j14it359 = (objects).iterator(); _j14it359.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it359.next();
 				if (!objectNames.contains(go.getName())) {
 					objectNames.add(go.getName());
 				}
@@ -306,15 +289,17 @@ public abstract class QuestBlockEditor extends GenericEditor {
 			String[] keyVals = block.getKeyVals();
 			if (keyVals!=null && keyVals.length>0) {
 				GamePool pool = new GamePool(realmSpeakData.getGameObjects());
-				for (String keyVal:keyVals) {
-					for(GameObject go:pool.find(keyVal)) {
+				for (int _j14i360 = 0; _j14i360 < keyVals.length; _j14i360++) {
+				  String keyVal = keyVals[_j14i360];
+					for (java.util.Iterator _j14it361 = (pool.find(keyVal)).iterator(); _j14it361.hasNext(); ) {
+					  GameObject go = (GameObject) _j14it361.next();
 						if (objectNames.contains(go.getName())) continue;
 						objectNames.add(go.getName());
 					}
 				}
 			}
 			else {
-				objectNames = new ArrayList<String>(realmSpeakData.getAllGameObjectNames());
+				objectNames = new ArrayList(realmSpeakData.getAllGameObjectNames());
 			}
 		}
 		Collections.sort(objectNames);

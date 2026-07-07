@@ -227,7 +227,7 @@ public class RealmCharacterBuilderFrame extends JFrame {
 		exportAllCharacterGraphicsItem.setEnabled(model!=null);
 	}
 	private void importCharacter() {
-		ArrayList<String> list = TemplateLibrary.getSingleton().getAllCharacterTemplateNames();
+		ArrayList list = TemplateLibrary.getSingleton().getAllCharacterTemplateNames();
 		Collections.sort(list);
 		String name = (String)JOptionPane.showInputDialog(this,"Choose a character to import:","Import Character",JOptionPane.PLAIN_MESSAGE,null,list.toArray(),list.get(0));
 		if (name!=null && name.trim().length()>0) {

@@ -531,7 +531,7 @@ public class QuestTesterFrame extends JFrame {
 		JButton relationship = new JButton("Set");
 		relationship.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> list = chooseOther("native","rank=HQ","visitor");
+				ArrayList list = chooseOther("native", new String[] {"rank=HQ","visitor"});
 				if (list == null)
 					return;
 				if (list.size() != 1) {
@@ -539,8 +539,9 @@ public class QuestTesterFrame extends JFrame {
 					return;
 				}
 				int targetRel = chooseRelationshipLevel();
-				ArrayList<GameObject> representativeNativesToChange = QuestRequirementRelationship.getRepresentativeNatives(character);
-				for(GameObject denizen:representativeNativesToChange) {
+				ArrayList representativeNativesToChange = QuestRequirementRelationship.getRepresentativeNatives(character);
+				for (java.util.Iterator _j14it311 = (representativeNativesToChange).iterator(); _j14it311.hasNext(); ) {
+				  GameObject denizen = (GameObject) _j14it311.next();
 					int current = character.getRelationship(denizen);
 					int diff = targetRel - current;
 					character.changeRelationship(denizen,diff);
@@ -559,7 +560,7 @@ public class QuestTesterFrame extends JFrame {
 		JButton guild = new JButton("Set");
 		guild.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> guildName = chooseOther("Guilds", "guild");
+				ArrayList guildName = chooseOther("Guilds", new String[] {"guild"});
 				if (guildName == null)
 					return;
 				if (guildName.size() != 1) {
@@ -569,7 +570,7 @@ public class QuestTesterFrame extends JFrame {
 				GuildLevel level = chooseGuildLevel();
 				int guildLevel = GuildLevelType.getIntFor(level);
 				
-				character.setCurrentGuild(guildName.get(0).getName());
+				character.setCurrentGuild(((GameObject) guildName.get(0)).getName());
 				character.setCurrentGuildLevel(guildLevel);
 				
 				updateCharacterPanel();
@@ -625,10 +626,11 @@ public class QuestTesterFrame extends JFrame {
 		addNew.setToolTipText("Gain an item (treasure/weapon/armor)");
 		addNew.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> things = chooseItem();
+				ArrayList things = chooseItem();
 				if (things == null)
 					return;
-				for (GameObject thing : things) {
+				for (java.util.Iterator _j14it312 = (things).iterator(); _j14it312.hasNext(); ) {
+				  GameObject thing = (GameObject) _j14it312.next();
 					Loot.addItemToCharacter(QuestTesterFrame.this, null, character, thing, HostPrefWrapper.findHostPrefs(gameData));
 				}
 				updateCharacterPanel();
@@ -706,23 +708,24 @@ public class QuestTesterFrame extends JFrame {
 		buy.setToolTipText("Buy an Item from a Native.");
 		buy.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> list = chooseOther("Seller", "visitor", "native,rank=HQ");
+				ArrayList list = chooseOther("Seller", new String[] {"visitor", "native,rank=HQ"});
 				if (list == null)
 					return;
 				if (list.size() != 1) {
 					JOptionPane.showMessageDialog(QuestTesterFrame.this, "Pick 1");
 					return;
 				}
-				GameObject seller = list.get(0);		
+				GameObject seller = (GameObject) list.get(0);
 				QuestRequirementParams params = new QuestRequirementParams();
 				params.actionType = CharacterActionType.Trading;
 				params.actionName = TradeType.Buy.toString();
-				params.objectList = new ArrayList<GameObject>();
+				params.objectList = new ArrayList();
 				params.targetOfSearch = seller;
-				ArrayList<GameObject> items = chooseItem();
+				ArrayList items = chooseItem();
 				if (items == null)
 					return;
-				for (GameObject item : items) {
+				for (java.util.Iterator _j14it313 = (items).iterator(); _j14it313.hasNext(); ) {
+				  GameObject item = (GameObject) _j14it313.next();
 					RealmComponent itemRc = RealmComponent.getRealmComponent(item);
 					int price = TreasureUtility.getBasePrice(null, itemRc);
 					character.setGold(character.getGold()-price);
@@ -741,7 +744,7 @@ public class QuestTesterFrame extends JFrame {
 			public void actionPerformed(ActionEvent ev) {
 				if (activeInventory.getSelectedIndex() == -1 && inactiveInventory.getSelectedIndex() == -1)
 					return;
-				ArrayList<GameObject> list = chooseOther("Buyer", "visitor", "native,rank=HQ");
+				ArrayList list = chooseOther("Buyer", new String[] {"visitor", "native,rank=HQ"});
 				if (list == null)
 					return;
 				if (list.size() != 1) {
@@ -752,8 +755,8 @@ public class QuestTesterFrame extends JFrame {
 				QuestRequirementParams params = new QuestRequirementParams();
 				params.actionType = CharacterActionType.Trading;
 				params.actionName = TradeType.Sell.toString();
-				params.objectList = new ArrayList<GameObject>();
-				params.targetOfSearch = list.get(0);
+				params.objectList = new ArrayList();
+				params.targetOfSearch = (GameObject) list.get(0);
 
 				if (activeInventory.getSelectedIndex() != -1) {
 					GameObject item = (GameObject) activeInventory.getSelectedValue();
@@ -800,7 +803,7 @@ public class QuestTesterFrame extends JFrame {
 		castSpell.setToolTipText("Casts a spell");
 		castSpell.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> spells = chooseOther("Spell", "spell");
+				ArrayList spells = chooseOther("Spell", new String[] {"spell"});
 				if (spells == null)
 					return;
 				if (spells.size() != 1) {
@@ -809,7 +812,7 @@ public class QuestTesterFrame extends JFrame {
 				}
 				updateCharacterPanel();
 								
-				GameObject castedSpell = spells.get(0);
+				GameObject castedSpell = (GameObject) spells.get(0);
 				character.addCastedSpell(castedSpell);
 				String spellName = (castedSpell.getName().replaceAll("(\\s)\\[([0-9]+)\\]",""));
 				castedSpell.setName(spellName);
@@ -842,13 +845,14 @@ public class QuestTesterFrame extends JFrame {
 		hirelingAdd.setToolTipText("Hire new hirelings");
 		hirelingAdd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> things = chooseOther("Hireling", "native,!treasure,!dwelling,!horse,!boon,!credit");
+				ArrayList things = chooseOther("Hireling", new String[] {"native,!treasure,!dwelling,!horse,!boon,!credit"});
 				if (things == null)
 					return;
 				
 				QuestRequirementParams qp = new QuestRequirementParams();
 				qp.actionType = CharacterActionType.Hire;
-				for (GameObject thing : things) {
+				for (java.util.Iterator _j14it314 = (things).iterator(); _j14it314.hasNext(); ) {
+				  GameObject thing = (GameObject) _j14it314.next();
 					thing.setThisAttribute("seen");
 					thing.removeThisAttribute(Constants.DEAD);
 					character.getCurrentLocation().clearing.add(thing, null);
@@ -956,7 +960,7 @@ public class QuestTesterFrame extends JFrame {
 		openLocationButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				RealmComponent rc = (RealmComponent) clearingComponents.getSelectedValue();
-				ArrayList<GameObject> objectsToOpen = new ArrayList<GameObject>();
+				ArrayList objectsToOpen = new ArrayList();
 				objectsToOpen.add(rc.getGameObject());
 				TreasureUtility.openOneObject(QuestTesterFrame.this, character, objectsToOpen, null, true);
 				updateCharacterPanel();
@@ -1022,10 +1026,11 @@ public class QuestTesterFrame extends JFrame {
 		JButton addChit = new JButton("Chit");
 		addChit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> things = chooseOther("Chit", "chit,!treasure_location");
+				ArrayList things = chooseOther("Chit", new String[] {"chit,!treasure_location"});
 				if (things == null)
 					return;
-				for (GameObject thing : things) {
+				for (java.util.Iterator _j14it315 = (things).iterator(); _j14it315.hasNext(); ) {
+				  GameObject thing = (GameObject) _j14it315.next();
 					thing.setThisAttribute("seen");
 					character.getCurrentLocation().clearing.add(thing, null);
 				}
@@ -1037,10 +1042,11 @@ public class QuestTesterFrame extends JFrame {
 		JButton addLocation = new JButton("Location");
 		addLocation.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> things = chooseOther("Location", "chit,treasure_location");
+				ArrayList things = chooseOther("Location", new String[] {"chit,treasure_location"});
 				if (things == null)
 					return;
-				for (GameObject thing : things) {
+				for (java.util.Iterator _j14it316 = (things).iterator(); _j14it316.hasNext(); ) {
+				  GameObject thing = (GameObject) _j14it316.next();
 					thing.setThisAttribute("seen");
 					character.getCurrentLocation().clearing.add(thing, null);
 				}
@@ -1052,10 +1058,11 @@ public class QuestTesterFrame extends JFrame {
 		JButton addItem = new JButton("Item");
 		addItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> things = chooseItem();
+				ArrayList things = chooseItem();
 				if (things == null)
 					return;
-				for (GameObject thing : things) {
+				for (java.util.Iterator _j14it317 = (things).iterator(); _j14it317.hasNext(); ) {
+				  GameObject thing = (GameObject) _j14it317.next();
 					thing.setThisAttribute("seen");
 					character.getCurrentLocation().clearing.add(thing, null);
 				}
@@ -1067,10 +1074,11 @@ public class QuestTesterFrame extends JFrame {
 		JButton addDwelling = new JButton("Dwelling");
 		addDwelling.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> things = chooseOther("Dwelling", "dwelling,!native");
+				ArrayList things = chooseOther("Dwelling", new String[] {"dwelling,!native"});
 				if (things == null)
 					return;
-				for (GameObject thing : things) {
+				for (java.util.Iterator _j14it318 = (things).iterator(); _j14it318.hasNext(); ) {
+				  GameObject thing = (GameObject) _j14it318.next();
 					thing.setThisAttribute("seen");
 					character.getCurrentLocation().clearing.add(thing, null);
 				}
@@ -1082,10 +1090,11 @@ public class QuestTesterFrame extends JFrame {
 		JButton addMonster = new JButton("Monster");
 		addMonster.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> things = chooseOther("Monster", "monster,!part");
+				ArrayList things = chooseOther("Monster", new String[] {"monster,!part"});
 				if (things == null)
 					return;
-				for (GameObject thing : things) {
+				for (java.util.Iterator _j14it319 = (things).iterator(); _j14it319.hasNext(); ) {
+				  GameObject thing = (GameObject) _j14it319.next();
 					thing.setThisAttribute("seen");
 					thing.removeThisAttribute(Constants.DEAD);
 					character.getCurrentLocation().clearing.add(thing, null);
@@ -1098,10 +1107,11 @@ public class QuestTesterFrame extends JFrame {
 		JButton addNative = new JButton("Native");
 		addNative.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> things = chooseOther("Native", "native,!treasure,!dwelling,!horse,!boon,!credit");
+				ArrayList things = chooseOther("Native", new String[] {"native,!treasure,!dwelling,!horse,!boon,!credit"});
 				if (things == null)
 					return;
-				for (GameObject thing : things) {
+				for (java.util.Iterator _j14it320 = (things).iterator(); _j14it320.hasNext(); ) {
+				  GameObject thing = (GameObject) _j14it320.next();
 					thing.setThisAttribute("seen");
 					thing.removeThisAttribute(Constants.DEAD);
 					character.getCurrentLocation().clearing.add(thing, null);
@@ -1115,10 +1125,11 @@ public class QuestTesterFrame extends JFrame {
 		JButton addVisitor = new JButton("V");
 		addVisitor.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> things = chooseOther("Visitor", Constants.VISITOR);
+				ArrayList things = chooseOther("Visitor", new String[] {Constants.VISITOR});
 				if (things == null)
 					return;
-				for (GameObject thing : things) {
+				for (java.util.Iterator _j14it321 = (things).iterator(); _j14it321.hasNext(); ) {
+				  GameObject thing = (GameObject) _j14it321.next();
 					thing.setThisAttribute("seen");
 					character.getCurrentLocation().clearing.add(thing, null);
 				}
@@ -1130,10 +1141,11 @@ public class QuestTesterFrame extends JFrame {
 		JButton addTraveler = new JButton("T");
 		addTraveler.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> things = chooseOther("Traveler", Constants.TRAVELER_TEMPLATE);
+				ArrayList things = chooseOther("Traveler", new String[] {Constants.TRAVELER_TEMPLATE});
 				if (things == null)
 					return;
-				for (GameObject template : things) {
+				for (java.util.Iterator _j14it322 = (things).iterator(); _j14it322.hasNext(); ) {
+				  GameObject template = (GameObject) _j14it322.next();
 					GameObject go = gameData.createNewObject();
 					TravelerChitComponent traveler = new TravelerChitComponent(go);
 					traveler.assignTravelerTemplate(template);
@@ -1151,10 +1163,11 @@ public class QuestTesterFrame extends JFrame {
 		JButton addMission = new JButton("Mission");
 		addMission.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<GameObject> things = chooseOther("Mission", "gold_special,!visitor");
+				ArrayList things = chooseOther("Mission", new String[] {"gold_special,!visitor"});
 				if (things == null)
 					return;
-				for (GameObject thing : things) {
+				for (java.util.Iterator _j14it323 = (things).iterator(); _j14it323.hasNext(); ) {
+				  GameObject thing = (GameObject) _j14it323.next();
 					thing.setThisAttribute("seen");
 					character.getCurrentLocation().clearing.add(thing, null);
 				}
@@ -1237,7 +1250,7 @@ public class QuestTesterFrame extends JFrame {
 
 	private void killDenizen(RealmComponent victim) {		
 		String dayKey = character.getCurrentDayKey();
-		ArrayList<GameObject> kills = character.getKills(dayKey);
+		ArrayList kills = character.getKills(dayKey);
 		int killCount = kills == null ? 0 : kills.size();
 		GameObject victimGameObject = victim.getGameObject();
 		victimGameObject.setThisAttribute(Constants.DEAD);
@@ -1257,17 +1270,18 @@ public class QuestTesterFrame extends JFrame {
 		updateCharacterPanel();
 	}
 	
-	private ArrayList<GameObject> chooseItem() {
+	private ArrayList chooseItem() {
 		GamePool pool = new GamePool(gameData.getGameObjects());
-		Hashtable<String, GameObject> hash = new Hashtable<String, GameObject>();
-		ArrayList<String> weaponList = new ArrayList<String>();
-		ArrayList<String> armorList = new ArrayList<String>();
-		ArrayList<String> steedList = new ArrayList<String>();
-		ArrayList<String> treasureList = new ArrayList<String>();
+		Hashtable hash = new Hashtable();
+		ArrayList weaponList = new ArrayList();
+		ArrayList armorList = new ArrayList();
+		ArrayList steedList = new ArrayList();
+		ArrayList treasureList = new ArrayList();
 
-		ArrayList<GameObject> all = pool.find("item");
+		ArrayList all = pool.find("item");
 		all.addAll(pool.find("treasure_within_treasure"));
-		for (GameObject item : all) {
+		for (java.util.Iterator _j14it324 = (all).iterator(); _j14it324.hasNext(); ) {
+		  GameObject item = (GameObject) _j14it324.next();
 			String itemKey = getKey(item);
 			GameObject held = item.getHeldBy();
 			if (held != null && (held == character.getGameObject() || (held.hasThisAttribute("tile") && held.hasThisAttribute("clearing"))))
@@ -1284,7 +1298,7 @@ public class QuestTesterFrame extends JFrame {
 
 			hash.put(itemKey, item);
 		}
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList list = new ArrayList();
 		list.addAll(weaponList);
 		list.addAll(armorList);
 		list.addAll(steedList);
@@ -1297,7 +1311,7 @@ public class QuestTesterFrame extends JFrame {
 		chooser.setVisible(true);
 		Vector v = chooser.getSelectedItems();
 		if (v != null && !v.isEmpty()) {
-			ArrayList<GameObject> ret = new ArrayList<GameObject>();
+			ArrayList ret = new ArrayList();
 			for (int i = 0; i < v.size(); i++) {
 				ret.add(hash.get(v.get(i)));
 			}
@@ -1306,12 +1320,14 @@ public class QuestTesterFrame extends JFrame {
 		return null;
 	}
 
-	private ArrayList<GameObject> chooseOther(String name, String... keyVals) {
+	private ArrayList chooseOther(String name, String[] keyVals) {
 		GamePool pool = new GamePool(gameData.getGameObjects());
-		Hashtable<String, GameObject> hash = new Hashtable<String, GameObject>();
-		ArrayList<String> chitList = new ArrayList<String>();
-		for (String kv : keyVals) {
-			for (GameObject thing : pool.find(kv)) {
+		Hashtable hash = new Hashtable();
+		ArrayList chitList = new ArrayList();
+		for (int _j14i325 = 0; _j14i325 < keyVals.length; _j14i325++) {
+		  String kv = keyVals[_j14i325];
+			for (java.util.Iterator _j14it326 = (pool.find(kv)).iterator(); _j14it326.hasNext(); ) {
+			  GameObject thing = (GameObject) _j14it326.next();
 				String itemKey = getKey(thing);
 				if (hash.containsKey(itemKey)) continue;
 				chitList.add(itemKey);
@@ -1325,7 +1341,7 @@ public class QuestTesterFrame extends JFrame {
 		chooser.setVisible(true);
 		Vector v = chooser.getSelectedItems();
 		if (v != null && !v.isEmpty()) {
-			ArrayList<GameObject> ret = new ArrayList<GameObject>();
+			ArrayList ret = new ArrayList();
 			for (int i = 0; i < v.size(); i++) {
 				ret.add(hash.get(v.get(i)));
 			}
@@ -1384,7 +1400,8 @@ public class QuestTesterFrame extends JFrame {
 	private String getMagicColors() {
 		StringBuffer colors = new StringBuffer();
 		if (character != null && character.getCurrentLocation() != null) {		
-			for (String color : Constants.MAGIC_COLORS) {
+			for (int _j14i327 = 0; _j14i327 < Constants.MAGIC_COLORS.length; _j14i327++) {
+			  String color = Constants.MAGIC_COLORS[_j14i327];
 				int colorId = Arrays.asList(Constants.MAGIC_COLORS).indexOf(color);
 				if (character.getCurrentLocation().clearing.getMagic(colorId)) {
 					colors.append(color+" ");
@@ -1405,7 +1422,8 @@ public class QuestTesterFrame extends JFrame {
 			sb.append(step.getReqType());
 			sb.append("):\n");
 		}
-		for (QuestRequirement req : step.getRequirements()) {
+		for (java.util.Iterator _j14it328 = (step.getRequirements()).iterator(); _j14it328.hasNext(); ) {
+		  QuestRequirement req = (QuestRequirement) _j14it328.next();
 			sb.append("[");
 			sb.append(req.getRequirementType());
 			sb.append("]: ");
@@ -1418,7 +1436,8 @@ public class QuestTesterFrame extends JFrame {
 		if (step.getRewards().size() > 0) {
 			sb.append("\nREWARDS:\n");
 		}
-		for (QuestReward reward : step.getRewards()) {
+		for (java.util.Iterator _j14it329 = (step.getRewards()).iterator(); _j14it329.hasNext(); ) {
+		  QuestReward reward = (QuestReward) _j14it329.next();
 			sb.append("[");
 			sb.append(reward.getRewardType());
 			sb.append("]: ");
@@ -1447,7 +1466,7 @@ public class QuestTesterFrame extends JFrame {
 		//		doubleBoard.setSelected(quest.getBoolean(QuestConstants.DOUBLE_BOARD));
 		//		tripleBoard.setSelected(quest.getBoolean(QuestConstants.TRIPLE_BOARD));
 
-		ArrayList<GameVariant> variantChoices = new ArrayList<GameVariant>();
+		ArrayList variantChoices = new ArrayList();
 		if (quest.getBoolean(QuestConstants.VARIANT_ORIGINAL))
 			variantChoices.add(GameVariant.ORIGINAL_GAME_VARIANT);
 		if (quest.getBoolean(QuestConstants.VARIANT_PRUITTS))
@@ -1465,7 +1484,7 @@ public class QuestTesterFrame extends JFrame {
 
 		GameVariant useVariant;
 		if (variantChoices.size() == 1) {
-			useVariant = variantChoices.get(0);
+			useVariant = (GameVariant) variantChoices.get(0);
 		}
 		else {
 			ButtonOptionDialog variantChooser = new ButtonOptionDialog(this, null, "Which variant are you testing?", "Choose game variant", false);
@@ -1481,10 +1500,12 @@ public class QuestTesterFrame extends JFrame {
 		GameObject chosen;
 		if (characterName == null) {
 			GamePool pool = new GamePool(gameData.getGameObjects());
-			ArrayList<GameObject> characters = pool.find("character,!" + CharacterWrapper.NAME_KEY);
+			ArrayList characters = pool.find("character,!" + CharacterWrapper.NAME_KEY);
 			characters.addAll(CustomCharacterLibrary.getSingleton().getCharacterTemplateList());
-			Collections.sort(characters, new Comparator<GameObject>() {
-				public int compare(GameObject go1, GameObject go2) {
+			Collections.sort(characters, new Comparator() {
+				public int compare(Object o1, Object o2) {
+					GameObject go1 = (GameObject) o1;
+					GameObject go2 = (GameObject) o2;
 					return go1.getName().compareTo(go2.getName());
 				}
 			});
@@ -1519,7 +1540,8 @@ public class QuestTesterFrame extends JFrame {
 		character.setCurrentDay(game.getDay());
 		TileComponent tile = (TileComponent) RealmComponent.getRealmComponent(gameData.getGameObjectByName("Awful Valley"));
 		GamePool pool = new GamePool(gameData.getGameObjects());
-		for (GameObject go : pool.find("tile")) {
+		for (java.util.Iterator _j14it330 = (pool.find("tile")).iterator(); _j14it330.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it330.next();
 			go.setAttribute("mapGrid","mapPosition",0);
 		}
 		ClearingDetail clearing = tile.getClearing(1);
@@ -1602,16 +1624,17 @@ public class QuestTesterFrame extends JFrame {
 		wounds.setText(String.valueOf(character.getExtraWounds()));
 		guild.setText(character.getCurrentGuildLevelName());
 
-		activeInventory.setListData(new Vector<GameObject>(character.getActiveInventory()));
-		inactiveInventory.setListData(new Vector<GameObject>(character.getInactiveInventory()));
-		hirelings.setListData(new Vector<RealmComponent>(character.getAllHirelings()));
-		journalList.setListData(new Vector<QuestJournalEntry>(quest.getJournalEntries()));
-		markedThings.setListData(new Vector<RealmComponent>(getAllMarkedThings()));
+		activeInventory.setListData(new Vector(character.getActiveInventory()));
+		inactiveInventory.setListData(new Vector(character.getInactiveInventory()));
+		hirelings.setListData(new Vector(character.getAllHirelings()));
+		journalList.setListData(new Vector(quest.getJournalEntries()));
+		markedThings.setListData(new Vector(getAllMarkedThings()));
 
 		clearingTitle.setText(character.getCurrentLocation().toString()+getEnchanted()+" "+getMagicColors());
 		
-		Vector<RealmComponent> rcs = new Vector<RealmComponent>();
-		for (RealmComponent rc : character.getCurrentLocation().clearing.getClearingComponents(true)) {
+		Vector rcs = new Vector();
+		for (java.util.Iterator _j14it331 = (character.getCurrentLocation().clearing.getClearingComponents(true)).iterator(); _j14it331.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it331.next();
 			if (rc.isCharacter())
 				continue;
 			rcs.add(rc);
@@ -1668,7 +1691,8 @@ public class QuestTesterFrame extends JFrame {
 		// All following hirelings need to remain behind
 		TileLocation oldLocation = character.getCurrentLocation();
 		if (oldLocation != null) {
-			for (RealmComponent hireling : character.getFollowingHirelings()) {
+			for (java.util.Iterator _j14it332 = (character.getFollowingHirelings()).iterator(); _j14it332.hasNext(); ) {
+			  RealmComponent hireling = (RealmComponent) _j14it332.next();
 				oldLocation.clearing.add(hireling.getGameObject(),null);
 				if (hireling.getGameObject().hasThisAttribute(Constants.CAPTURE)) {
 					character.removeHireling(hireling.getGameObject());
@@ -1703,11 +1727,13 @@ public class QuestTesterFrame extends JFrame {
 		
 	private ClearingDetail chooseNewLocationDialog(boolean runAway) {
 		GamePool pool = new GamePool(gameData.getGameObjects());
-		Hashtable<String, ClearingDetail> hash = new Hashtable<String, ClearingDetail>();
-		Vector<String> locationNames = new Vector<String>();
-		for (GameObject go : pool.find("tile")) {
+		Hashtable hash = new Hashtable();
+		Vector locationNames = new Vector();
+		for (java.util.Iterator _j14it333 = (pool.find("tile")).iterator(); _j14it333.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it333.next();
 			TileComponent tile = (TileComponent) RealmComponent.getRealmComponent(go);
-			for (ClearingDetail clearing : tile.getClearings()) {
+			for (java.util.Iterator _j14it334 = (tile.getClearings()).iterator(); _j14it334.hasNext(); ) {
+			  ClearingDetail clearing = (ClearingDetail) _j14it334.next();
 				String key = clearing.getTileLocation().toString();
 				locationNames.add(key);
 				hash.put(key, clearing);
@@ -1730,7 +1756,7 @@ public class QuestTesterFrame extends JFrame {
 		if (val==null) {
 			return null;
 		}
-		return hash.get(val);
+		return (ClearingDetail) hash.get(val);
 	}
 
 	private void exitApp() {
@@ -1782,11 +1808,12 @@ public class QuestTesterFrame extends JFrame {
 		}
 		else if (SEARCH_RESULT_TREASURE.equals(gain)) {
 			params.searchHadAnEffect = true;
-			ArrayList<GameObject> stuff = chooseItem();
+			ArrayList stuff = chooseItem();
 			if (stuff == null || stuff.size() == 0)
 				return;
 			params.objectList = stuff;
-			for (GameObject thing : stuff) {
+			for (java.util.Iterator _j14it335 = (stuff).iterator(); _j14it335.hasNext(); ) {
+			  GameObject thing = (GameObject) _j14it335.next();
 				Loot loot = new Loot(this, character, rc.getGameObject(), null);
 				loot.handleSpecial(character, thing, true);
 				//Loot.addItemToCharacter(this,null,character,thing);
@@ -1794,11 +1821,12 @@ public class QuestTesterFrame extends JFrame {
 		}
 		else if (SEARCH_RESULT_SPELL.equals(gain)) {
 			params.searchHadAnEffect = true;
-			ArrayList<GameObject> stuff = chooseOther("Spells", "spell,learnable");
+			ArrayList stuff = chooseOther("Spells", new String[] {"spell,learnable"});
 			if (stuff == null || stuff.size() == 0)
 				return;
 			params.objectList = stuff;
-			for (GameObject spell : stuff) {
+			for (java.util.Iterator _j14it336 = (stuff).iterator(); _j14it336.hasNext(); ) {
+			  GameObject spell = (GameObject) _j14it336.next();
 				character.recordNewSpell(this, spell, true); // force learn?
 			}
 		}
@@ -1815,17 +1843,14 @@ public class QuestTesterFrame extends JFrame {
 
 	private void redirectSystemStreams() {
 		OutputStream out = new OutputStream() {
-			@Override
 			public void write(int b) throws IOException {
 				updateTextArea(String.valueOf((char) b));
 			}
 
-			@Override
 			public void write(byte[] b, int off, int len) throws IOException {
 				updateTextArea(new String(b, off, len));
 			}
 
-			@Override
 			public void write(byte[] b) throws IOException {
 				write(b, 0, b.length);
 			}
@@ -1926,10 +1951,11 @@ public class QuestTesterFrame extends JFrame {
 		}
 	}
 	
-	public ArrayList<RealmComponent> getAllMarkedThings() {
-		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
+	public ArrayList getAllMarkedThings() {
+		ArrayList list = new ArrayList();
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());
-		for (GameObject go : pool.find(QuestConstants.QUEST_MARK)) {
+		for (java.util.Iterator _j14it337 = (pool.find(QuestConstants.QUEST_MARK)).iterator(); _j14it337.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it337.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			list.add(rc);
 		}
@@ -1973,7 +1999,7 @@ public class QuestTesterFrame extends JFrame {
 		data.ignoreRandomSeed = true;
 		File file = (args.length > 0 && args[0].trim().length() > 0) ? new File(args[0]) : null;
 		if (file != null && data.zipFromFile(file)) {
-			Quest aQuest = new Quest(data.getGameObjects().iterator().next());
+			Quest aQuest = new Quest((GameObject) data.getGameObjects().iterator().next());
 			aQuest.autoRepair(); // Just in case
 
 			final QuestTesterFrame frame = new QuestTesterFrame(aQuest, "Berserker");

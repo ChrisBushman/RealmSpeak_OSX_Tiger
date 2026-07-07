@@ -5,7 +5,6 @@ import com.robin.magic_realm.components.utility.Constants;
 
 public class AskDemonEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		// The target (demon) is actually irrelevant here: we use only the extra identifier
 		String string = context.Spell.getExtraIdentifier();
@@ -34,7 +33,6 @@ public class AskDemonEffect implements ISpellEffect {
 		context.Game.addQuestion(context.Spell.getCaster().getPlayerName(),playerName,question);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 	}
 

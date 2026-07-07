@@ -23,10 +23,10 @@ public class Spoils {
 		StringTokenizer tokens = new StringTokenizer(key,";");
 		if (tokens.countTokens()==7) {
 			useMultiplier = "T".equals(tokens.nextToken());
-			fame = Double.valueOf(tokens.nextToken());
-			notoriety = Double.valueOf(tokens.nextToken());
-			goldBounty = Double.valueOf(tokens.nextToken());
-			goldRecord = Double.valueOf(tokens.nextToken());
+			fame = Double.parseDouble(tokens.nextToken());
+			notoriety = Double.parseDouble(tokens.nextToken());
+			goldBounty = Double.parseDouble(tokens.nextToken());
+			goldRecord = Double.parseDouble(tokens.nextToken());
 			divisor = Integer.parseInt(tokens.nextToken());
 			multiplier = Integer.parseInt(tokens.nextToken());
 		}

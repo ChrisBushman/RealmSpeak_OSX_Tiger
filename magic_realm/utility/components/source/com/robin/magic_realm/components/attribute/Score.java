@@ -10,8 +10,8 @@ public class Score {
 	private int mult;
 	private int vps;
 	private boolean noPenalty = false;
-	private ArrayList<GameObject> scoringGameObjects;
-	public Score(int recordedPoints,int ownedPoints,int mult,int vps,ArrayList<GameObject> scoringGameObjects, boolean noPenalty) {
+	private ArrayList scoringGameObjects;
+	public Score(int recordedPoints,int ownedPoints,int mult,int vps,ArrayList scoringGameObjects, boolean noPenalty) {
 		this.recordedPoints = recordedPoints;
 		this.ownedPoints = ownedPoints;
 		this.mult = mult;
@@ -19,14 +19,14 @@ public class Score {
 		this.scoringGameObjects = scoringGameObjects;
 		this.noPenalty = noPenalty;
 	}
-	public Score(int recordedPoints,int ownedPoints,int mult,int vps,ArrayList<GameObject> scoringGameObjects) {
+	public Score(int recordedPoints,int ownedPoints,int mult,int vps,ArrayList scoringGameObjects) {
 		this.recordedPoints = recordedPoints;
 		this.ownedPoints = ownedPoints;
 		this.mult = mult;
 		this.vps = vps;
 		this.scoringGameObjects = scoringGameObjects;
 	}
-	public ArrayList<GameObject> getScoringGameObjects() {
+	public ArrayList getScoringGameObjects() {
 		return scoringGameObjects;
 	}
 	public int getRecordedPoints() {

@@ -6,10 +6,10 @@ public class SingleButtonManager {
 	
 	private boolean oneShowing;
 	private boolean mandatoryShowing;
-	private ArrayList<SingleButton> buttons;
+	private ArrayList buttons;
 	
 	public SingleButtonManager() {
-		buttons = new ArrayList<SingleButton>();
+		buttons = new ArrayList();
 	}
 	public void addButton(SingleButton button) {
 		buttons.add(button);
@@ -17,7 +17,8 @@ public class SingleButtonManager {
 	public void updateButtonVisibility() {
 		oneShowing = false;
 		mandatoryShowing = false;
-		for (SingleButton button:buttons) {
+		for (java.util.Iterator _j14it10 = (buttons).iterator(); _j14it10.hasNext(); ) {
+		  SingleButton button = (SingleButton) _j14it10.next();
 			if (!oneShowing && button.needsShow()) {
 				button.setVisible(true);
 				oneShowing = true;

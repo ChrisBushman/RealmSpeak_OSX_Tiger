@@ -26,8 +26,8 @@ public class RealmCharacterWebFrame extends JFrame {
 	private File characterFolder;
 	
 	private File webLayoutFile;
-	private ArrayList<File> rscharFiles;
-	private ArrayList<RscharLayout> layoutRecords;
+	private ArrayList rscharFiles;
+	private ArrayList layoutRecords;
 	
 	private JMenu fileMenu;
 	private JMenuItem saveMenuItem;
@@ -50,7 +50,7 @@ public class RealmCharacterWebFrame extends JFrame {
 	}
 	private void refresh() {
 		fetchRscharFiles();
-		layoutRecords = new ArrayList<RscharLayout>();
+		layoutRecords = new ArrayList();
 		if (webLayoutFile!=null) {
 			if (!loadFromFile(webLayoutFile)) {
 				webLayoutFile = null;
@@ -159,7 +159,8 @@ public class RealmCharacterWebFrame extends JFrame {
 		webLayoutFile = new File(characterFolder.getAbsolutePath()+File.separator+WEB_LAYOUT_FILE);
 		
 		Element layout = new Element("webLayout");
-		for (RscharLayout rl:layoutRecords) {
+		for (java.util.Iterator _j14it892 = (layoutRecords).iterator(); _j14it892.hasNext(); ) {
+		  RscharLayout rl = (RscharLayout) _j14it892.next();
 			layout.addContent(rl.getElement());
 		}
 		
@@ -190,7 +191,8 @@ public class RealmCharacterWebFrame extends JFrame {
 			if (!imagesDir.exists()) {
 				imagesDir.mkdir();
 			}
-			for (RscharLayout rec:layoutRecords) {
+			for (java.util.Iterator _j14it893 = (layoutRecords).iterator(); _j14it893.hasNext(); ) {
+			  RscharLayout rec = (RscharLayout) _j14it893.next();
 				rec.clearStatus();
 			}
 			repaintTable();
@@ -200,8 +202,9 @@ public class RealmCharacterWebFrame extends JFrame {
 			
 			// Create all the folders
 			Menu menu = new Menu();
-			Hashtable<String,File> folders = new Hashtable<String,File>();
-			for (RscharLayout rec:layoutRecords) {
+			Hashtable folders = new Hashtable();
+			for (java.util.Iterator _j14it894 = (layoutRecords).iterator(); _j14it894.hasNext(); ) {
+			  RscharLayout rec = (RscharLayout) _j14it894.next();
 				String folder = rec.getWebFolder();
 				File webFolder;
 				if (!folders.containsKey(folder)) {
@@ -262,7 +265,8 @@ public class RealmCharacterWebFrame extends JFrame {
 		return false;
 	}
 	private void buildLayoutRecords() {
-		for (File file:rscharFiles) {
+		for (java.util.Iterator _j14it895 = (rscharFiles).iterator(); _j14it895.hasNext(); ) {
+		  File file = (File) _j14it895.next();
 			RscharLayout rl = new RscharLayout(file);
 			layoutRecords.add(rl);
 		}
@@ -270,7 +274,7 @@ public class RealmCharacterWebFrame extends JFrame {
 		Collections.sort(layoutRecords);
 	}
 	private void fetchRscharFiles() {
-		rscharFiles = new ArrayList<File>();
+		rscharFiles = new ArrayList();
 		File[] files = characterFolder.listFiles(new FileFilter() {
 			public boolean accept(File file) {
 				if (file.isFile()) {

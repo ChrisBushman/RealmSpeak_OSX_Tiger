@@ -35,21 +35,21 @@ public abstract class SpellTargetingMultiple extends SpellTargeting {
 		}
 		chooser.setVisible(true);
 		if (chooser.pressedOkay()) {
-			ArrayList<GameObject> chosen = new ArrayList<GameObject>(chooser.getChosenObjects());
+			ArrayList chosen = new ArrayList(chooser.getChosenObjects());
 			
 			// This is lazy, but there is really only ONE spell that has such a rule, so I'm not going generalize
 			if (requiredTargets==4 && chosen.size()<requiredTargets) {
 				if (chosen.size()==1) {
 					// All 4 go to same target
-					GameObject target = chosen.get(0);
+					GameObject target = (GameObject) chosen.get(0);
 					for (int i=0;i<3;i++) {
 						chosen.add(target);
 					}
 				}
 				else if (chosen.size()==2) {
 					// 2 go to each
-					GameObject t1 = chosen.get(0);
-					GameObject t2 = chosen.get(1);
+					GameObject t1 = (GameObject) chosen.get(0);
+					GameObject t2 = (GameObject) chosen.get(1);
 					chosen.add(t1);
 					chosen.add(t2);
 				}
@@ -69,14 +69,16 @@ public abstract class SpellTargetingMultiple extends SpellTargeting {
 			}
 			
 			if (hostPrefs.hasPref(Constants.SR_ADV_PROTECTED_LEADERS_TARGETING)) {
-				for (GameObject target : chosen) {
+				for (java.util.Iterator _j14it799 = (chosen).iterator(); _j14it799.hasNext(); ) {
+				  GameObject target = (GameObject) _j14it799.next();
 					RealmComponent theTarget = RealmComponent.getRealmComponent(target);
 					if (theTarget.isNativeLeader() && !theTarget.isHiredOrControlled() && !theTarget.getGameObject().hasThisAttribute(Constants.DEAD)) {
 						CombatWrapper combatWrapperTarget = new CombatWrapper(theTarget.getGameObject());
 						if (combatWrapperTarget.getKilledBy()==null) {
 							String groupName = theTarget.getGameObject().getThisAttribute(RealmComponent.NATIVE).toLowerCase();
 							BattleGroup group = combatFrame.getBattleModel().getDenizenBattleGroup();
-							for (RealmComponent member : group.getBattleParticipants()) {
+							for (java.util.Iterator _j14it800 = (group.getBattleParticipants()).iterator(); _j14it800.hasNext(); ) {
+							  RealmComponent member = (RealmComponent) _j14it800.next();
 								if (!member.isNativeLeader() && member.isNative() && member.getGameObject().getThisAttribute(RealmComponent.NATIVE).toLowerCase().matches(groupName) && !member.isHiredOrControlled()) {
 									CombatWrapper combatWrapper = new CombatWrapper(member.getGameObject());
 									if (combatWrapper.getAttackerCount()==0 && !chosen.contains(member.getGameObject())) {
@@ -90,7 +92,8 @@ public abstract class SpellTargetingMultiple extends SpellTargeting {
 				}
 			}
 			
-			for (GameObject theTarget : chosen) {
+			for (java.util.Iterator _j14it801 = (chosen).iterator(); _j14it801.hasNext(); ) {
+			  GameObject theTarget = (GameObject) _j14it801.next();
 				spell.addTarget(hostPrefs,theTarget);
 				combatFrame.makeWatchfulNatives(RealmComponent.getRealmComponent(theTarget),true);
 				String append = "";

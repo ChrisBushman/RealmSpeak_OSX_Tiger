@@ -4,7 +4,6 @@ import com.robin.magic_realm.components.CharacterActionChitComponent;
 
 public class ActionChangeEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		CharacterActionChitComponent chit = (CharacterActionChitComponent)context.Target;
 		
@@ -18,7 +17,6 @@ public class ActionChangeEffect implements ISpellEffect {
 		context.Spell.getCaster().updateChitEffects();
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		context.Target.getGameObject().removeThisAttribute("action_change");
 		context.Target.getGameObject().removeThisAttribute("action_change_str");

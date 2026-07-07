@@ -14,8 +14,8 @@ public class GameAttributeListChange extends GameObjectChange {
 	private String blockName;
 	private String attributeName;
 	private boolean clearList = false;
-	private Collection<String> addList;
-	private Collection<String> removeList;
+	private Collection addList;
+	private Collection removeList;
 	
 	public GameAttributeListChange(GameObject go) {
 		super(go);
@@ -33,16 +33,16 @@ public class GameAttributeListChange extends GameObjectChange {
 	public void addAttributeListItem(String inBlockName,String inAttributeName,String val) {
 		this.blockName = inBlockName;
 		this.attributeName = inAttributeName;
-		addList = new ArrayList<String>();
+		addList = new ArrayList();
 		addList.add(val);
 	}
 	public void removeAttributeListItem(String inBlockName,String inAttributeName,String val) {
 		this.blockName = inBlockName;
 		this.attributeName = inAttributeName;
-		removeList = new ArrayList<String>();
+		removeList = new ArrayList();
 		removeList.add(val);
 	}
-	public void setAttributeList(String blockName,String attributeName,ArrayList<String> oldList,ArrayList<String> newList) {
+	public void setAttributeList(String blockName,String attributeName,ArrayList oldList,ArrayList newList) {
 		logger.finer("setAttributeList Change from "+oldList+" to "+newList);
 		this.blockName = blockName;
 		this.attributeName = attributeName;
@@ -51,14 +51,14 @@ public class GameAttributeListChange extends GameObjectChange {
 		if (oldList!=null && newList!=null && oldList.size()<newList.size()) {
 			boolean subset = true;
 			for (int i=0;i<oldList.size();i++) {
-				String oldItem = oldList.get(i);
-				String newItem = newList.get(i);
+				String oldItem = (String) oldList.get(i);
+				String newItem = (String) newList.get(i);
 				if (!oldItem.equals(newItem)) {
 					subset = false;
 					break;
 				}
 			}
-			addList = new ArrayList<String>();
+			addList = new ArrayList();
 			if (subset) {
 				for (int i=oldList.size();i<newList.size();i++) {
 					addList.add(newList.get(i));
@@ -73,13 +73,13 @@ public class GameAttributeListChange extends GameObjectChange {
 		else if (oldList!=null && newList!=null && oldList.size()>newList.size()) {
 			// items were likely deleted - to keep it simple, set all new (someday may want to make this smarter)
 			clearList = true;
-			addList = new ArrayList<String>();
+			addList = new ArrayList();
 			addList.addAll(newList);
 		}
 		else if (newList!=null && !newList.isEmpty() && (oldList==null || oldList.isEmpty())) {
 			// Nothing in old list, so set all new
 			clearList = true;
-			addList = new ArrayList<String>();
+			addList = new ArrayList();
 			addList.addAll(newList);
 		}
 		else if (newList==null || newList.isEmpty()) {
@@ -95,20 +95,20 @@ public class GameAttributeListChange extends GameObjectChange {
 				go._removeAttribute(blockName,attributeName);
 			}
 			if (addList!=null) {
-				ArrayList<String> list = go.getAttributeList(blockName,attributeName);
+				ArrayList list = go.getAttributeList(blockName,attributeName);
 				if (list==null) {
-					list = new ArrayList<String>();
+					list = new ArrayList();
 				}
-				list = new ArrayList<String>(list);
+				list = new ArrayList(list);
 				logger.finer("applyChange to data "+data.getDataId()+":  adding "+addList+" to list "+list);
 				list.addAll(addList);
 				logger.finer("applyChange to data "+data.getDataId()+":  resulting list is "+list);
 				go._setAttributeList(blockName,attributeName,list);
 			}
 			if (removeList!=null) {
-				ArrayList<String> list = go.getAttributeList(blockName,attributeName);
+				ArrayList list = go.getAttributeList(blockName,attributeName);
 				if (list!=null) {
-					list = new ArrayList<String>(list);
+					list = new ArrayList(list);
 					logger.finer("applyChange to data "+data.getDataId()+":  removing "+removeList+" from list "+list);
 					list.removeAll(removeList);
 					logger.finer("applyChange to data "+data.getDataId()+":  resulting list is "+list);
@@ -123,20 +123,20 @@ public class GameAttributeListChange extends GameObjectChange {
 				go.removeAttribute(blockName,attributeName);
 			}
 			if (addList!=null) {
-				ArrayList<String> list = go.getAttributeList(blockName,attributeName);
+				ArrayList list = go.getAttributeList(blockName,attributeName);
 				if (list==null) {
-					list = new ArrayList<String>();
+					list = new ArrayList();
 				}
-				list = new ArrayList<String>(list);
+				list = new ArrayList(list);
 				logger.finer("applyChange to data "+data.getDataId()+":  adding "+addList+" to list "+list);
 				list.addAll(addList);
 				logger.finer("applyChange to data "+data.getDataId()+":  resulting list is "+list);
 				go.setAttributeList(blockName,attributeName,list);
 			}
 			if (removeList!=null) {
-				ArrayList<String> list = go.getAttributeList(blockName,attributeName);
+				ArrayList list = go.getAttributeList(blockName,attributeName);
 				if (list!=null) {
-					list = new ArrayList<String>(list);
+					list = new ArrayList(list);
 					logger.finer("applyChange to data "+data.getDataId()+":  removing "+removeList+" from list "+list);
 					list.removeAll(removeList);
 					logger.finer("applyChange to data "+data.getDataId()+":  resulting list is "+list);

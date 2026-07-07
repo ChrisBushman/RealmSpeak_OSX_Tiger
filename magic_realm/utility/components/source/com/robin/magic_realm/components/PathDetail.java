@@ -102,7 +102,8 @@ public class PathDetail implements Comparable {
 			ClearingDetail otherClearing = findConnection(edgeClearing);
 			if (otherClearing!=null) {
 				// Iterate through all paths that connect to that clearing, and find the one that connects back to this one!  (sounds a bit loopy...)
-				for (PathDetail pd:otherClearing.getParent().findConnections(otherClearing)) {
+				for (java.util.Iterator _j14it1352 = (otherClearing.getParent().findConnections(otherClearing)).iterator(); _j14it1352.hasNext(); ) {
+				  PathDetail pd = (PathDetail) _j14it1352.next();
 					if (pd.findConnection(otherClearing).equals(edgeClearing)) {
 						return pd;
 					}

@@ -20,7 +20,7 @@ public class GameOverPanel extends JPanel {
 	private static Font tableFont = new Font("Dialog",Font.PLAIN,18);
 	private static Font titleFont = new Font("Dialog",Font.BOLD,36);
 	
-	private ArrayList<CharacterResult> results;
+	private ArrayList results;
 	
 	private GameObject owningChar;
 	private HostPrefWrapper hostPrefs;
@@ -34,9 +34,10 @@ public class GameOverPanel extends JPanel {
 		initComponents();
 	}
 	private void buildResults() {
-		results = new ArrayList<CharacterResult>();
-		ArrayList<GameObject> c = RealmObjectMaster.getRealmObjectMaster(owningChar.getGameData()).getPlayerCharacterObjects();
-		for (GameObject go : c) {
+		results = new ArrayList();
+		ArrayList c = RealmObjectMaster.getRealmObjectMaster(owningChar.getGameData()).getPlayerCharacterObjects();
+		for (java.util.Iterator _j14it1163 = (c).iterator(); _j14it1163.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1163.next();
 			CharacterWrapper cw = new CharacterWrapper(go);
 			if (cw.isCharacter()) {
 				if (go.hasAttributeBlock(CharacterWrapper.PLAYER_BLOCK)) { // was in the game at some point
@@ -49,13 +50,15 @@ public class GameOverPanel extends JPanel {
 			}
 		}
 		
-		Collections.sort(results,new Comparator<CharacterResult>() {
-			public int compare(CharacterResult r1,CharacterResult r2) {
+		Collections.sort(results,new Comparator() {
+			public int compare(Object obj1,Object obj2) {
+				CharacterResult r1 = (CharacterResult) obj1;
+				CharacterResult r2 = (CharacterResult) obj2;
 				int ret=0;
 				if (hostPrefs.isUsingBookOfQuests()) {
 					ret = r2.getCharacter().getCompletedQuestCount() - r1.getCharacter().getCompletedQuestCount();
 				}
-				if (ret==0) ret = r2.getCharacter().getTotalScore() - r1.getCharacter().getTotalScore(); 
+				if (ret==0) ret = r2.getCharacter().getTotalScore() - r1.getCharacter().getTotalScore();
 				return ret;
 			}
 		});
@@ -141,13 +144,13 @@ public class GameOverPanel extends JPanel {
 			return columnClass[column];
 		}
 		private int getTopScore() {
-			CharacterResult result = results.get(0);
+			CharacterResult result = (CharacterResult) results.get(0);
 			CharacterWrapper character = result.getCharacter();
 			return character.getTotalScore();
 		}
 		public Object getValueAt(int row, int column) {
 			if (row<results.size()) {
-				CharacterResult result = results.get(row);
+				CharacterResult result = (CharacterResult) results.get(row);
 				CharacterWrapper character = result.getCharacter();
 				String rank = "";
 				if (row==0 || character.getTotalScore()==getTopScore()) {

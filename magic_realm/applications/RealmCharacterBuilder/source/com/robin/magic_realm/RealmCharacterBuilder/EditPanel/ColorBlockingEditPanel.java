@@ -56,7 +56,7 @@ public class ColorBlockingEditPanel extends AdvantageEditPanel implements Action
 		box.add(Box.createVerticalGlue());
 		add(box,"Center");
 		
-		ArrayList<String> cs = getAttributeList(Constants.BLOCKED_BY_MAGIC_COLOR);
+		ArrayList cs = getAttributeList(Constants.BLOCKED_BY_MAGIC_COLOR);
 		if (cs!=null) {
 			for (int i=0;i<COLOR_MAGIC.length;i++) {
 				if (cs.contains(COLOR_MAGIC[i].toLowerCase())) {

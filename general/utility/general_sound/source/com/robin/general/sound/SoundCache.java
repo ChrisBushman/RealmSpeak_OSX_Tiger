@@ -9,7 +9,7 @@ import javax.sound.sampled.*;
 import com.robin.general.io.ResourceFinder;
 
 public class SoundCache {
-	private static Hashtable<String,Clip> cache = new Hashtable<String,Clip>();
+	private static Hashtable cache = new Hashtable();
 	
 	private static double currentGain = 0.5;
 	
@@ -24,7 +24,7 @@ public class SoundCache {
 	
 	public static Clip getClip(String name) {
 		String soundPath = "sounds/"+name;
-		Clip clip = cache.get(soundPath);
+		Clip clip = (Clip) cache.get(soundPath);
 		if (clip==null) {
 			clip = loadClip(soundPath);
 			cache.put(soundPath,clip);
@@ -86,7 +86,7 @@ public class SoundCache {
 	public static void playSound(String name) {
 		if (useSound && name!=null) {
 			String soundPath = "sounds/"+name;
-			Clip clip = cache.get(name);
+			Clip clip = (Clip) cache.get(name);
 			if (clip==null) {
 				try {
 					InputStream stream = ResourceFinder.getInputStream(soundPath);
@@ -126,7 +126,8 @@ public class SoundCache {
 				throw new IllegalArgumentException("gain must be from 0 to 1");
 			}
 			currentGain = gain;
-			for (Clip clip : cache.values()) {
+			for (java.util.Iterator _j14it54 = (cache.values()).iterator(); _j14it54.hasNext(); ) {
+			  Clip clip = (Clip) _j14it54.next();
 				adjustVolume(clip,currentGain);
 			}
 		}

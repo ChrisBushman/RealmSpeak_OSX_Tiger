@@ -13,10 +13,11 @@ import com.robin.magic_realm.components.attribute.ChatStyle;
 
 public class CharacterChatPanel extends CharacterFramePanel {
 	
-	private static ArrayList<CharacterChatPanel> allChatPanels = new ArrayList<CharacterChatPanel>();
+	private static ArrayList allChatPanels = new ArrayList();
 	public static void updateAllChatPanels(ChatLine line) {
 		if (allChatPanels==null)return;
-		for (CharacterChatPanel panel:allChatPanels) {
+		for (java.util.Iterator _j14it1093 = (allChatPanels).iterator(); _j14it1093.hasNext(); ) {
+		  CharacterChatPanel panel = (CharacterChatPanel) _j14it1093.next();
 			panel.addChatLine(line);
 		}
 	}
@@ -24,11 +25,11 @@ public class CharacterChatPanel extends CharacterFramePanel {
 	private JTextPane chatPane;
 	private JTextField chatField;
 	private StyledDocument chatDoc;
-	private ArrayList<ChatLine> list;
+	private ArrayList list;
 	
 	public CharacterChatPanel(CharacterFrame parent) {
 		super(parent);
-		list = new ArrayList<ChatLine>();
+		list = new ArrayList();
 		initComponents();
 		allChatPanels.add(this);
 	}
@@ -79,7 +80,8 @@ public class CharacterChatPanel extends CharacterFramePanel {
 		StyleConstants.setFontSize(def,12);
 		
 		Style s;
-		for (ChatStyle style:ChatStyle.styles) {
+		for (int _j14i1094 = 0; _j14i1094 < ChatStyle.styles.length; _j14i1094++) {
+		  ChatStyle style = ChatStyle.styles[_j14i1094];
 			s = chatDoc.addStyle(ChatLine.BOLD_PREFIX+style.getStyleName(),regular);
 			StyleConstants.setForeground(s,style.getColor());
 			StyleConstants.setBold(s, true);

@@ -126,7 +126,8 @@ public class DevelopmentProgress {
 	public int getNumberOfDiscoveredTreasures() {
 		if (character.getTreasureLocationDiscoveries() == null) return 0;
 		int amount = 0;
-		for(String discovery : character.getTreasureLocationDiscoveries()) {
+		for (java.util.Iterator _j14it1469 = (character.getTreasureLocationDiscoveries()).iterator(); _j14it1469.hasNext(); ) {
+		  String discovery = (String) _j14it1469.next();
 			if (!discovery.matches(".*"+Constants.CACHE_NAME+".*")) {
 				amount++;
 			}
@@ -134,12 +135,12 @@ public class DevelopmentProgress {
 		return amount;
 	}
 	public int getNumberOfCompletedMissions() {
-		Collection<String> completed = character.getCompletedMissions();
+		Collection completed = character.getCompletedMissions();
 		if (completed == null) return 0;
 		return completed.size();
 	}
 	public int getNumberOfCompletedCampaigns() {
-		Collection<String> completed = character.getCompletedCampaigns();
+		Collection completed = character.getCompletedCampaigns();
 		if (completed == null) return 0;
 		return completed.size();
 	}

@@ -14,7 +14,8 @@ public class SpellTargetingKilledDenizen extends SpellTargetingSingle {
 	}
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
-		for (GameObject go:battleModel.getKilledObjects()) {
+		for (java.util.Iterator _j14it854 = (battleModel.getKilledObjects()).iterator(); _j14it854.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it854.next();
 			if (RealmComponent.getRealmComponent(go).isDenizen() && !go.hasThisAttribute(Constants.DEAD_PERMANENT)) {
 				gameObjects.add(go);
 			}

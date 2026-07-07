@@ -27,7 +27,7 @@ public class ImageCache {
 		new ImagePath("images",".gif")
 	};
 	
-	private static Hashtable<String, ImageIcon> cache = new Hashtable<String, ImageIcon>();
+	private static Hashtable cache = new Hashtable();
 	
 	/**
 	 * This method is a sneaky way to trick the cache into believing the icon has already been fetched.
@@ -38,7 +38,7 @@ public class ImageCache {
 	
 	public static void resetCache() {
 		cache.clear();
-		cache = new Hashtable<String, ImageIcon>();
+		cache = new Hashtable();
 	}
 	
 	public static boolean iconExists(String name) {
@@ -59,10 +59,11 @@ public class ImageCache {
 	}
 	private static ImageIcon fetchIcon(String name) {
 		if (name == null) return null;
-		ImageIcon ii = cache.get(name);
+		ImageIcon ii = (ImageIcon) cache.get(name);
 		if (ii==null) {
 			String iconPath = null;
-			for (ImagePath ip:validPaths) {
+			for (int _i19 = 0; _i19 < validPaths.length; _i19++) {
+			  ImagePath ip = validPaths[_i19];
 				iconPath = ip.getPath(name);
 				ii = IconFactory.findIcon(iconPath);
 				if (ii!=null) return ii;
@@ -76,7 +77,7 @@ public class ImageCache {
 	public static ImageIcon getIcon(String name,Color tint,float percent) {
 		if (name!=null) {
 			String key = name+":c"+tint.toString()+":"+percent;
-			ImageIcon ii = cache.get(key);
+			ImageIcon ii = (ImageIcon) cache.get(key);
 			if (ii==null) {
 				ii = getIcon(name);
 				BufferedImage bi = new BufferedImage(ii.getIconWidth(),ii.getIconHeight(),BufferedImage.TYPE_4BYTE_ABGR);
@@ -95,7 +96,7 @@ public class ImageCache {
 	public static ImageIcon getIcon(String name,int width,int height) {
 		if (name!=null) {
 			String key = name+":"+width+","+height;
-			ImageIcon ii = cache.get(key);
+			ImageIcon ii = (ImageIcon) cache.get(key);
 			if (ii==null) {
 				ii = getIcon(name);
 				Image i = ii.getImage().getScaledInstance(width,height,Image.SCALE_SMOOTH);
@@ -113,7 +114,7 @@ public class ImageCache {
 				return getIcon(name);
 			}
 			String key = name+":"+percent;
-			ImageIcon ii = cache.get(key);
+			ImageIcon ii = (ImageIcon) cache.get(key);
 			if (ii==null) {
 				ii = getIcon(name);
 				int w = (ii.getIconWidth()*percent)/100;

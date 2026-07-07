@@ -10,7 +10,7 @@ public class RandomNumber {
 	private long count;
 
 	private RandomNumber() {
-		this(System.nanoTime(), 0);
+		this(System.currentTimeMillis(), 0);
 	}
 
 	private RandomNumber(long seed, long count) {
@@ -30,10 +30,12 @@ public class RandomNumber {
 	}
 	
 	private Randomable getRandomable(long seed) {
-		switch(currentRandomNumberType) {
-			case R250_521:			return new R250_521(seed);
-			case MersenneTwister:	return new MersenneTwister(seed);
-			default: 				return new JavaRandom(seed);
+		if (currentRandomNumberType == RandomNumberType.R250_521) {
+			return new R250_521(seed);
+		} else if (currentRandomNumberType == RandomNumberType.MersenneTwister) {
+			return new MersenneTwister(seed);
+		} else {
+			return new JavaRandom(seed);
 		}
 	}
 	

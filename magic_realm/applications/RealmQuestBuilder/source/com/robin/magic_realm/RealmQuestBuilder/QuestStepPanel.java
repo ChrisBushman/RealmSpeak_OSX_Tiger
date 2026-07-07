@@ -208,7 +208,9 @@ public class QuestStepPanel extends JPanel {
 		requirementPanel = new QuestTableEditorPanel("Requirements",requirementsTable,true) {
 			public void add() {
 				ButtonOptionDialog dialog = new ButtonOptionDialog(parent, null, "Choose a requirement type:", "New Requirement", true,4);
-				for (RequirementType rt : RequirementType.values()) {
+				RequirementType[] _j14arr298 = RequirementType.values();
+				for (int _j14i298 = 0; _j14i298 < _j14arr298.length; _j14i298++) {
+				  RequirementType rt = _j14arr298[_j14i298];
 					boolean enabled = (rt!=RequirementType.OccupyLocation && rt!=RequirementType.LocationExists && rt!=RequirementType.Counter)
 							|| (rt==RequirementType.OccupyLocation && quest.getLocations().size()>0)
 							|| (rt==RequirementType.LocationExists && quest.getLocations().size()>0)
@@ -233,7 +235,7 @@ public class QuestStepPanel extends JPanel {
 			}
 			public void edit() {
 				int selRow = requirementsTable.getSelectedRow();
-				QuestRequirement req = step.getRequirements().get(selRow);
+				QuestRequirement req = (QuestRequirement) step.getRequirements().get(selRow);
 				QuestRequirementEditor editor = new QuestRequirementEditor(parent,realmSpeakData,quest,req);
 				editor.setVisible(true);
 				requirementsTable.revalidate();
@@ -241,7 +243,7 @@ public class QuestStepPanel extends JPanel {
 			}
 			public void delete() {
 				int selRow = requirementsTable.getSelectedRow();
-				QuestRequirement req = step.getRequirements().get(selRow);
+				QuestRequirement req = (QuestRequirement) step.getRequirements().get(selRow);
 				step.deleteRequirement(req);
 				requirementsTable.revalidate();
 				quest.updateActivatePossible();
@@ -257,10 +259,11 @@ public class QuestStepPanel extends JPanel {
 			private void moveRequirement(int dir) {
 				int selRow = requirementsTable.getSelectedRow();
 				int newPos = selRow+dir;
-				ArrayList<QuestRequirement> reqs = step.getRequirements();
-				QuestRequirement sel = reqs.remove(selRow);
+				ArrayList reqs = step.getRequirements();
+				QuestRequirement sel = (QuestRequirement) reqs.remove(selRow);
 				int curr = 0;
-				for(QuestRequirement req:reqs) {
+				for (java.util.Iterator _j14it299 = (reqs).iterator(); _j14it299.hasNext(); ) {
+				  QuestRequirement req = (QuestRequirement) _j14it299.next();
 					if (curr==newPos) step.getGameObject().add(sel.getGameObject());
 					step.getGameObject().add(req.getGameObject());
 					curr++;
@@ -320,7 +323,9 @@ public class QuestStepPanel extends JPanel {
 		rewardPanel = new QuestTableEditorPanel("Rewards",rewardsTable,true) {
 			public void add() {
 				ButtonOptionDialog dialog = new ButtonOptionDialog(parent, null, "Choose a reward type:", "New Reward", true,4);
-				for (RewardType rt : RewardType.values()) {
+				RewardType[] _j14arr300 = RewardType.values();
+				for (int _j14i300 = 0; _j14i300 < _j14arr300.length; _j14i300++) {
+				  RewardType rt = _j14arr300[_j14i300];
 					boolean enabled = (!rt.requiresLocations() && rt!=RewardType.Counter)
 							|| (rt.requiresLocations() && quest.getLocations().size()>0)
 							|| (rt==RewardType.Counter && quest.getCounters().size()>0);					
@@ -342,7 +347,7 @@ public class QuestStepPanel extends JPanel {
 			}
 			public void edit() {
 				int selRow = rewardsTable.getSelectedRow();
-				QuestReward reward = step.getRewards().get(selRow);
+				QuestReward reward = (QuestReward) step.getRewards().get(selRow);
 				QuestRewardEditor editor = new QuestRewardEditor(parent,realmSpeakData,quest,reward);
 				editor.setVisible(true);
 				rewardsTable.revalidate();
@@ -350,7 +355,7 @@ public class QuestStepPanel extends JPanel {
 			}
 			public void delete() {
 				int selRow = rewardsTable.getSelectedRow();
-				QuestReward reward = step.getRewards().get(selRow);
+				QuestReward reward = (QuestReward) step.getRewards().get(selRow);
 				step.deleteReward(reward);
 				rewardsTable.revalidate();
 				updateControls();
@@ -364,10 +369,11 @@ public class QuestStepPanel extends JPanel {
 			private void moveReward(int dir) {
 				int selRow = rewardsTable.getSelectedRow();
 				int newPos = selRow+dir;
-				ArrayList<QuestReward> rews = step.getRewards();
-				QuestReward sel = rews.remove(selRow);
+				ArrayList rews = step.getRewards();
+				QuestReward sel = (QuestReward) rews.remove(selRow);
 				int curr = 0;
-				for(QuestReward rew:rews) {
+				for (java.util.Iterator _j14it301 = (rews).iterator(); _j14it301.hasNext(); ) {
+				  QuestReward rew = (QuestReward) _j14it301.next();
 					if (curr==newPos) step.getGameObject().add(sel.getGameObject());
 					step.getGameObject().add(rew.getGameObject());
 					curr++;
@@ -411,20 +417,20 @@ public class QuestStepPanel extends JPanel {
 				int skip = quest.getSteps().indexOf(step);
 				if (rowIndex >= skip)
 					rowIndex++;
-				QuestStep rowStep = quest.getSteps().get(rowIndex);
-				ArrayList<String> steps;
+				QuestStep rowStep = (QuestStep) quest.getSteps().get(rowIndex);
+				ArrayList steps;
 				switch (columnIndex) {
 					case 0:
 						steps = step.getRequiredSteps();
-						return steps != null && steps.contains(rowStep.getGameObject().getStringId());
+						return new Boolean(steps != null && steps.contains(rowStep.getGameObject().getStringId()));
 					case 1:
 						steps = step.getFailSteps();
-						return steps != null && steps.contains(rowStep.getGameObject().getStringId());
+						return new Boolean(steps != null && steps.contains(rowStep.getGameObject().getStringId()));
 					case 2:
 						steps = step.getPreemptedSteps();
-						return steps != null && steps.contains(rowStep.getGameObject().getStringId());
+						return new Boolean(steps != null && steps.contains(rowStep.getGameObject().getStringId()));
 					case 3:
-						return rowStep.getId();
+						return new Integer(rowStep.getId());
 					case 4:
 						return rowStep.getName();
 				}
@@ -440,9 +446,9 @@ public class QuestStepPanel extends JPanel {
 			if (rowIndex < getRowCount()) {
 				int skip = quest.getSteps().indexOf(step);
 				int stepIndex = (rowIndex >= skip) ? rowIndex + 1 : rowIndex;
-				QuestStep rowStep = quest.getSteps().get(stepIndex);
+				QuestStep rowStep = (QuestStep) quest.getSteps().get(stepIndex);
 
-				boolean set = ((Boolean) aValue);
+				boolean set = ((Boolean) aValue).booleanValue();
 				if (columnIndex == 0) {
 					if (set) {
 						step.addRequiredStep(rowStep);
@@ -504,7 +510,7 @@ public class QuestStepPanel extends JPanel {
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			if (rowIndex < getRowCount()) {
-				QuestRequirement requirement = step.getRequirements().get(rowIndex);
+				QuestRequirement requirement = (QuestRequirement) step.getRequirements().get(rowIndex);
 				switch (columnIndex) {
 					case 0:
 						return requirement.getRequirementType().toString();
@@ -538,7 +544,7 @@ public class QuestStepPanel extends JPanel {
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			if (rowIndex < getRowCount()) {
-				QuestReward reward = step.getRewards().get(rowIndex);
+				QuestReward reward = (QuestReward) step.getRewards().get(rowIndex);
 				switch (columnIndex) {
 					case 0:
 						return reward.getRewardGroup();

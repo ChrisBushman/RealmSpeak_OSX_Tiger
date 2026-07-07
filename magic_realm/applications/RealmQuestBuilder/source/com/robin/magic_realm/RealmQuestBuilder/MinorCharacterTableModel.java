@@ -33,7 +33,7 @@ public class MinorCharacterTableModel extends AbstractTableModel {
 
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		if (rowIndex < getRowCount()) {
-			QuestMinorCharacter mc = quest.getMinorCharacters().get(rowIndex);
+			QuestMinorCharacter mc = (QuestMinorCharacter) quest.getMinorCharacters().get(rowIndex);
 			switch (columnIndex) {
 				case 0:
 					return mc.getName();

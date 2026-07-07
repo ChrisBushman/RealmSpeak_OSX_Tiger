@@ -12,7 +12,7 @@ public class RockerSwitch extends JPanel {
 	private JToggleButton offButton;
 	private JToggleButton onButton;
 	
-	private ArrayList<ActionListener> actionListeners;
+	private ArrayList actionListeners;
 	
 	public RockerSwitch() {
 		this(false);
@@ -28,7 +28,7 @@ public class RockerSwitch extends JPanel {
 	}
 	public RockerSwitch(boolean defaultOn) {
 		initComponents(defaultOn);
-		actionListeners = new ArrayList<ActionListener>();
+		actionListeners = new ArrayList();
 	}
 	public void addActionListener(ActionListener listener) {
 		actionListeners.add(listener);
@@ -38,7 +38,8 @@ public class RockerSwitch extends JPanel {
 	}
 	protected void fireActionPerformed() {
 		ActionEvent ev = new ActionEvent(this,0,"");
-		for(ActionListener listener:actionListeners) {
+		for (java.util.Iterator _j14it212 = (actionListeners).iterator(); _j14it212.hasNext(); ) {
+		  ActionListener listener = (ActionListener) _j14it212.next();
 			listener.actionPerformed(ev);
 		}
 	}

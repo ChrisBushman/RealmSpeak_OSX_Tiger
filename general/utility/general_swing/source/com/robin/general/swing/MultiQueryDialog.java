@@ -9,9 +9,9 @@ import javax.swing.text.*;
 
 public class MultiQueryDialog extends AggressiveDialog {
 
-	protected Hashtable<String, JTextComponent> textComponents = new Hashtable<String, JTextComponent>();
-	protected Hashtable<String, JComboBox> comboBoxes = new Hashtable<String, JComboBox>();
-	protected ArrayList<JTextComponent> requiredInputComponents = new ArrayList<JTextComponent>();
+	protected Hashtable textComponents = new Hashtable();
+	protected Hashtable comboBoxes = new Hashtable();
+	protected ArrayList requiredInputComponents = new ArrayList();
 	
 	protected Box layoutBox;
 	protected JButton okay;
@@ -59,7 +59,8 @@ public class MultiQueryDialog extends AggressiveDialog {
 	}
 	public void updateButtons() {
 		boolean allClear = true;
-		for (JTextComponent tc : requiredInputComponents) {
+		for (java.util.Iterator _j14it43 = (requiredInputComponents).iterator(); _j14it43.hasNext(); ) {
+		  JTextComponent tc = (JTextComponent) _j14it43.next();
 			if (tc.getText().trim().length()==0) {
 				allClear = false;
 				break;
@@ -99,14 +100,14 @@ public class MultiQueryDialog extends AggressiveDialog {
 		comboBoxes.put(key,comboBox);
 	}
 	public String getText(String key) {
-		JTextComponent textComponent = textComponents.get(key);
+		JTextComponent textComponent = (JTextComponent) textComponents.get(key);
 		if (textComponent!=null) {
 			return textComponent.getText().trim();
 		}
 		return null;
 	}
 	public Object getComboChoice(String key) {
-		JComboBox comboBox = comboBoxes.get(key);
+		JComboBox comboBox = (JComboBox) comboBoxes.get(key);
 		if (comboBox!=null) {
 			return comboBox.getSelectedItem();
 		}

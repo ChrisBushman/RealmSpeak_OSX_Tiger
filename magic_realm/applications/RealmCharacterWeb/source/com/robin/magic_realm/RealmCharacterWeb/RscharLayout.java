@@ -8,7 +8,7 @@ import com.robin.general.io.FileUtilities;
 import com.robin.magic_realm.RealmCharacterBuilder.RealmCharacterBuilderModel;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
-public class RscharLayout implements Comparable<RscharLayout> {
+public class RscharLayout implements Comparable {
 	
 	private String webFolder;
 	private File file;

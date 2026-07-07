@@ -6,7 +6,6 @@ import com.robin.magic_realm.components.wrapper.SpellMasterWrapper;
 
 public class ChitChangeEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		CharacterActionChitComponent chit = (CharacterActionChitComponent)context.Target;
 		String change = context.Spell.getGameObject().getThisAttribute(chit.getMagicType());
@@ -16,7 +15,6 @@ public class ChitChangeEffect implements ISpellEffect {
 		chit.getGameObject().setThisAttribute(Constants.MAGIC_CHANGE,change);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		CharacterActionChitComponent chit = (CharacterActionChitComponent)context.Target;
 		if (chit.isColor()) {

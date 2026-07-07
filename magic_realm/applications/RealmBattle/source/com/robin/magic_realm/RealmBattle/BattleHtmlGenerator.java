@@ -51,7 +51,7 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 	
 	private BattleModel battleModel;
 	private int actionState;
-	private ArrayList<CombatSheet> combatSheets;
+	private ArrayList combatSheets;
 	private RealmComponent activeParticipant;
 	private String battleLog;
 	private String roundLog;
@@ -66,7 +66,7 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 		battleLog = parser.getBattleLogFor(game.getMonth(),game.getDay(),current);
 		roundLog = parser.getBattleLogFor(game.getMonth(),game.getDay(),current,battleModel.getBattleRound(actionState));
 	}
-	public void setCombatSheets(ArrayList<CombatSheet> combatSheets) {
+	public void setCombatSheets(ArrayList combatSheets) {
 		this.combatSheets = combatSheets;
 	}
 	public void saveHtml(String path) {
@@ -111,11 +111,12 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 		TileLocation current = battleModel.getBattleLocation();
 		return action+" in "+current.clearing.getDescription();
 	}
-	private ArrayList<RealmComponent> getUnassignedDenizens() {
-		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
+	private ArrayList getUnassignedDenizens() {
+		ArrayList list = new ArrayList();
 		BattleGroup denizenGroup = battleModel.getDenizenBattleGroup();
 		if (denizenGroup!=null && denizenGroup.size()>0) {
-			for (RealmComponent denizen : denizenGroup.getBattleParticipants()) {
+			for (java.util.Iterator _j14it767 = (denizenGroup.getBattleParticipants()).iterator(); _j14it767.hasNext(); ) {
+			  RealmComponent denizen = (RealmComponent) _j14it767.next();
 				CombatWrapper combat = new CombatWrapper(denizen.getGameObject());
 				if (denizen.getTarget()==null && denizen.get2ndTarget()==null && !combat.isSheetOwner()) {
 					list.add(denizen);
@@ -135,7 +136,7 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 		return false;
 	}
 	private void saveBattle(HtmlPath path) {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		
 		String title = getTitle();
 		sb.append("<h1>"+title+"</h1>\n");
@@ -156,8 +157,9 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 		sb.append("</tr></table>");
 		
 		TileLocation current = battleModel.getBattleLocation();
-		ArrayList<Integer> color = new ArrayList<Integer>(); // only need to show one instance of each
-		for (ColorMagic cm:current.clearing.getAllSourcesOfColor(true)) {
+		ArrayList color = new ArrayList(); // only need to show one instance of each
+		for (java.util.Iterator _j14it768 = (current.clearing.getAllSourcesOfColor(true)).iterator(); _j14it768.hasNext(); ) {
+		  ColorMagic cm = (ColorMagic) _j14it768.next();
 			if (color.contains(Integer.valueOf(cm.getColorNumber()))) continue;
 			color.add(Integer.valueOf(cm.getColorNumber()));
 			exportImage(path.path(cm.getColorName()+".jpg"),cm.getIcon(),1.0f,Color.white);
@@ -167,9 +169,11 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 			sb.append("\n<br>\n");
 		}
 		
-		for (CharacterChitComponent chit:battleModel.getAllParticipatingCharacters()) {
+		for (java.util.Iterator _j14it769 = (battleModel.getAllParticipatingCharacters()).iterator(); _j14it769.hasNext(); ) {
+		  CharacterChitComponent chit = (CharacterChitComponent) _j14it769.next();
 			CharacterWrapper character = new CharacterWrapper(chit.getGameObject());
-			for (String groupName : character.getBattlingNativeGroups()) {
+			for (java.util.Iterator _j14it770 = (character.getBattlingNativeGroups()).iterator(); _j14it770.hasNext(); ) {
+			  String groupName = (String) _j14it770.next();
 				sb.append("<table cellpadding=\"2\"><tr><td bgcolor=\"#FFFF00\">");
 				sb.append("<b>The ");
 				sb.append(StringUtilities.capitalize(groupName));
@@ -180,7 +184,7 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 			}
 		}
 		
-		ArrayList<RealmComponent> unassigned = getUnassignedDenizens();
+		ArrayList unassigned = getUnassignedDenizens();
 		if (!unassigned.isEmpty()) {
 			createRealmComponentSection(sb,path,"Unassigned Denizens",battleModel.getDenizenBattleGroup().getBattleParticipants());
 		}
@@ -190,7 +194,8 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 			
 			int n=0;
 			int maxWidth = 250;
-			for (CombatSheet combatSheet:combatSheets) {
+			for (java.util.Iterator _j14it771 = (combatSheets).iterator(); _j14it771.hasNext(); ) {
+			  CombatSheet combatSheet = (CombatSheet) _j14it771.next();
 				String name = COMBAT_SHEET+(n++);
 				String imageName = name+".jpg";
 				String sheetPageName = name+".html";
@@ -200,7 +205,7 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 				int newHeight = (int)(icon.getIconHeight() * scale);
 				String imagePath = path.relativePathTo(combatSheetFolder).path(imageName);
 				String sheetPath = path.relativePathTo(combatSheetFolder).path(sheetPageName);
-				StringBuilder isb = new StringBuilder();
+				StringBuffer isb = new StringBuffer();
 				isb.append("<a href=\"");
 				isb.append(sheetPath);
 				isb.append("\"><img border=2 alt=\"Combat Sheet\" src=\"");
@@ -232,12 +237,12 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 	private void saveSheet(String sheetPageName, CombatSheet combatSheet, String imageName, HtmlPath path) {
 		RealmComponent owner = combatSheet.getSheetOwner();
 		String pageFile = imageName+"_cs";
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("<h1>");
 		sb.append(owner.getGameObject().getName());
 		sb.append("</h1>");
 		CombatWrapper combat = new CombatWrapper(owner.getGameObject());
-		ArrayList<RealmComponent> attackers = combat.getAttackersAsComponents();
+		ArrayList attackers = combat.getAttackersAsComponents();
 		if (!attackers.isEmpty()) {
 			createRealmComponentSection(sb,path,"Attackers",attackers);
 		}
@@ -250,7 +255,7 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 		}
 		sb.append("<table border=\"1\" cellpadding=\"2\" cellspacing=\"2\" >\n");
 		sb.append("<tr><td valign=\"top\" width=\"1\" rowspan=3>\n");
-		StringBuilder isb = new StringBuilder();
+		StringBuffer isb = new StringBuffer();
 		isb.append("<a href=\"..");
 		isb.append(File.separator);
 		isb.append(COMBAT_MAIN);
@@ -309,7 +314,7 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 		sheet.alwaysSecret = false;
 		return new ImageIcon(bi);
 	}
-	protected void createRealmComponentSection(StringBuilder sb,HtmlPath path,String title,ArrayList<RealmComponent> list) {
+	protected void createRealmComponentSection(StringBuffer sb,HtmlPath path,String title,ArrayList list) {
 		sb.append("<table border=\"1\" cellpadding=\"2\" cellspacing=\"2\" >\n");
 		sb.append("<tr><th bgcolor=\"#FFFF00\">");
 		sb.append(title);
@@ -318,9 +323,10 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 		populateRealmComponents(path,sb,list);
 		sb.append("</td></tr></table>");
 	}
-	protected void populateRealmComponents(HtmlPath path,StringBuilder sb,ArrayList<RealmComponent> list) {
+	protected void populateRealmComponents(HtmlPath path,StringBuffer sb,ArrayList list) {
 		HtmlPath attackerPath = path.newDirectory(ATTACKER_FOLDER);
-		for (RealmComponent denizen:list) {
+		for (java.util.Iterator _j14it772 = (list).iterator(); _j14it772.hasNext(); ) {
+		  RealmComponent denizen = (RealmComponent) _j14it772.next();
 			String name = denizen.getName();
 			ImageIcon icon = denizen.getIcon();
 			String imageName = UD_PREFIX+attackerIndex+".jpg";

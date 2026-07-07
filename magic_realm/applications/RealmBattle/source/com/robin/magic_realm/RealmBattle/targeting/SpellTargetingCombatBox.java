@@ -40,12 +40,10 @@ public class SpellTargetingCombatBox extends SpellTargeting {
 		return true;
 	}
 
-	@Override
 	public boolean assign(HostPrefWrapper hostPrefs, CharacterWrapper activeCharacter) {
 		return false;
 	}
 
-	@Override
 	public boolean hasTargets() {
 		return spell.getExtraIdentifier() != null && !(spell.getExtraIdentifier().length() == 0);
 	}

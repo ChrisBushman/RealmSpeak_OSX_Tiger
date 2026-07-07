@@ -21,9 +21,10 @@ public class SpellTargetingActiveHorse extends SpellTargetingSingle {
 	}
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
-		ArrayList<RealmComponent> potentialTargets = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
+		ArrayList potentialTargets = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
 		potentialTargets = CombatSheet.filterNativeFriendly(activeParticipant, potentialTargets);
-		for (RealmComponent rc : potentialTargets) {
+		for (java.util.Iterator _j14it830 = (potentialTargets).iterator(); _j14it830.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it830.next();
 			if (rc.hasMagicProtection() || rc.hasMagicColorImmunity(spell)) continue;
 			if (rc.isNativeHorse()) {
 				if (filterControlledHorses && rc.getGameObject().hasThisAttribute(Constants.CONTROLLED_HORSE)) continue;
@@ -31,7 +32,8 @@ public class SpellTargetingActiveHorse extends SpellTargetingSingle {
 				continue;
 			}
 			if (rc.isNative() || rc.isMonster()) {
-				for (GameObject item : rc.getHold()) {
+				for (java.util.Iterator _j14it831 = (rc.getHold()).iterator(); _j14it831.hasNext(); ) {
+				  GameObject item = (GameObject) _j14it831.next();
 					RealmComponent itemRc = (RealmComponent.getRealmComponent(item));
 					if (itemRc.isNativeHorse() && !((BattleHorse)itemRc).isDead() && !itemRc.hasMagicProtection() && !itemRc.hasMagicColorImmunity(spell)) {
 						if (filterControlledHorses && rc.getGameObject().hasThisAttribute(Constants.CONTROLLED_HORSE)) continue;
@@ -42,7 +44,8 @@ public class SpellTargetingActiveHorse extends SpellTargetingSingle {
 			}
 			if (rc.isCharacter() && !rc.getGameObject().equals(spell.getCaster().getGameObject())) {
 				CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
-				for (GameObject item : character.getActiveInventory()) {
+				for (java.util.Iterator _j14it832 = (character.getActiveInventory()).iterator(); _j14it832.hasNext(); ) {
+				  GameObject item = (GameObject) _j14it832.next();
 					RealmComponent itemRc = (RealmComponent.getRealmComponent(item));
 					if (itemRc.isHorse() && !itemRc.hasMagicProtection() && !itemRc.hasMagicColorImmunity(spell)) {
 						if (filterControlledHorses && rc.getGameObject().hasThisAttribute(Constants.CONTROLLED_HORSE)) continue;

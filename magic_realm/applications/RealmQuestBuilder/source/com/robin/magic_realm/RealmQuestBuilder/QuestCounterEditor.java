@@ -26,7 +26,8 @@ public class QuestCounterEditor extends GenericEditor {
 		name.setText(counter.getName());
 		setLocationRelativeTo(parent);
 	}
-		protected boolean isValidForm() {
+	
+	protected boolean isValidForm() {
 		return true;
 	}
 	protected void save() {
@@ -47,7 +48,8 @@ public class QuestCounterEditor extends GenericEditor {
 	private void updateControls() {
 		String cntName = name.getText();
 		boolean conflict = false;
-		for (QuestCounter cnt:quest.getCounters()) {
+		for (java.util.Iterator _j14it339 = (quest.getCounters()).iterator(); _j14it339.hasNext(); ) {
+		  QuestCounter cnt = (QuestCounter) _j14it339.next();
 			if (cnt!=counter && cnt.getName().equals(cntName)) {
 				conflict = true;
 				break;

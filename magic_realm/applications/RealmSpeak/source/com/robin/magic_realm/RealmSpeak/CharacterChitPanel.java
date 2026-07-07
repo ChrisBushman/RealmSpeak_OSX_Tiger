@@ -121,11 +121,13 @@ public class CharacterChitPanel extends CharacterFramePanel {
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(getCharacter().getGameData());
 		// Refresh the chit panel
 		chitHolderPanel.removeAll();
-		ArrayList<StateChitComponent> allChits = getCharacter().getCompleteChitList();
-		for (RealmComponent chit : allChits) {
+		ArrayList allChits = getCharacter().getCompleteChitList();
+		for (java.util.Iterator _j14it974 = (allChits).iterator(); _j14it974.hasNext(); ) {
+		  RealmComponent chit = (RealmComponent) _j14it974.next();
 			chitHolderPanel.add(chit);
 		}
-		for (GameObject go:getCharacter().getInventory()) {
+		for (java.util.Iterator _j14it975 = (getCharacter().getInventory()).iterator(); _j14it975.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it975.next();
 			RealmComponent item = RealmComponent.getRealmComponent(go);
 			if (item.isEnchanted()) {
 				chitHolderPanel.add(item);
@@ -133,9 +135,11 @@ public class CharacterChitPanel extends CharacterFramePanel {
 		}
 		if (hostPrefs.hasPref(Constants.OPT_ENHANCED_ARTIFACTS_TRANSMORPHED)) {
 			SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(getCharacter().getGameObject().getGameData());
-			for (SpellWrapper spell:sm.getAffectingSpells(getCharacter().getGameObject())) {
+			for (java.util.Iterator _j14it976 = (sm.getAffectingSpells(getCharacter().getGameObject())).iterator(); _j14it976.hasNext(); ) {
+			  SpellWrapper spell = (SpellWrapper) _j14it976.next();
 				if (spell.getGameObject().hasThisAttribute("transmorph")) {
-					for (GameObject go : spell.getGameObject().getHold()) {
+					for (java.util.Iterator _j14it977 = (spell.getGameObject().getHold()).iterator(); _j14it977.hasNext(); ) {
+					  GameObject go = (GameObject) _j14it977.next();
 						RealmComponent item = RealmComponent.getRealmComponent(go);
 						if (item.isEnchanted()) {
 							chitHolderPanel.add(item);
@@ -155,7 +159,7 @@ public class CharacterChitPanel extends CharacterFramePanel {
 		MagicChit chit = (MagicChit)chitHolderPanel.getSelectedComponent();
 		// because of button disabling, we know this is a color chit
 		
-		ArrayList<String> se = getCharacter().getSpellExtras();
+		ArrayList se = getCharacter().getSpellExtras();
 		int seBefore = se==null?0:se.size();
 		
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(getCharacter().getGameData());
@@ -166,10 +170,10 @@ public class CharacterChitPanel extends CharacterFramePanel {
 			int seAfter = se==null?0:se.size();
 			if (seAfter>seBefore) {
 				// A spell (or spells) were energized manually during the turn.  Make sure these make it into the PhaseManager
-				ArrayList<GameObject> ses = getCharacter().getSpellExtraSources();
+				ArrayList ses = getCharacter().getSpellExtraSources();
 				for (int i=seBefore;i<seAfter;i++) {
-					String seAction = se.get(i);
-					GameObject seGo = ses.get(i);
+					String seAction = (String) se.get(i);
+					GameObject seGo = (GameObject) ses.get(i);
 					getCharacterFrame().getTurnPanel().getPhaseManager().addFreeAction(seAction,seGo);
 				}
 			}

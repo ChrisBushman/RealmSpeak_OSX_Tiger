@@ -12,8 +12,8 @@ import com.robin.magic_realm.components.wrapper.SpellWrapper;
 public class SpellSet {
 	
 	private GameObject spell;
-	private ArrayList<GameObject> validTypeObjects; // GameObjects
-	private ArrayList<MagicChit> validColorChits;	// MagicChit objects
+	private ArrayList validTypeObjects; // GameObjects
+	private ArrayList validColorChits;	// MagicChit objects
 	private ColorMagic infiniteSource;	// duh!
 	
 	/**
@@ -21,8 +21,8 @@ public class SpellSet {
 	 */
 	public SpellSet(GameObject spell) {
 		this.spell = spell;
-		validTypeObjects = new ArrayList<GameObject>();
-		validColorChits = new ArrayList<MagicChit>();
+		validTypeObjects = new ArrayList();
+		validColorChits = new ArrayList();
 		infiniteSource = null;
 	}
 	public String toString() {
@@ -41,7 +41,8 @@ public class SpellSet {
 		return sw.isAttackSpell();
 	}
 	public boolean alreadyHasChit(CharacterActionChitComponent inCc) {
-		for (GameObject to:validTypeObjects) {
+		for (java.util.Iterator _j14it1472 = (validTypeObjects).iterator(); _j14it1472.hasNext(); ) {
+		  GameObject to = (GameObject) _j14it1472.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(to);
 			if (rc.isActionChit()) {
 				CharacterActionChitComponent cc = (CharacterActionChitComponent)rc;
@@ -66,8 +67,9 @@ public class SpellSet {
 	 * filtering process may make the spell uncastable!
 	 */
 	public void filterSpeed(Speed speedToBeat) {
-		ArrayList<GameObject> toRemove = new ArrayList<GameObject>();
-		for (GameObject type:validTypeObjects) {
+		ArrayList toRemove = new ArrayList();
+		for (java.util.Iterator _j14it1473 = (validTypeObjects).iterator(); _j14it1473.hasNext(); ) {
+		  GameObject type = (GameObject) _j14it1473.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(type);
 			if (rc.isActionChit()) { // only action chits are concerned with speed (everything else is time 0)
 				CharacterActionChitComponent chit = (CharacterActionChitComponent)rc;
@@ -82,7 +84,8 @@ public class SpellSet {
 	 * Returns the speed of the spell
 	 */
 	public Speed getSpeed() {
-		for (GameObject type:validTypeObjects) {
+		for (java.util.Iterator _j14it1474 = (validTypeObjects).iterator(); _j14it1474.hasNext(); ) {
+		  GameObject type = (GameObject) _j14it1474.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(type);
 			if (rc.isActionChit()) { // only action chits are concerned with speed (everything else is time 0)
 				CharacterActionChitComponent chit = (CharacterActionChitComponent)rc;
@@ -129,8 +132,9 @@ public class SpellSet {
 			validTypeObjects.add(obj);
 		}
 	}
-	public void addColorChits(Collection<MagicChit> in) {
-		for (MagicChit chit : in) {
+	public void addColorChits(Collection in) {
+		for (java.util.Iterator _j14it1475 = (in).iterator(); _j14it1475.hasNext(); ) {
+		  MagicChit chit = (MagicChit) _j14it1475.next();
 			addColorChit(chit);
 		}
 	}
@@ -139,7 +143,8 @@ public class SpellSet {
 	 * to cast the spell.
 	 */
 	public void addColorChit(MagicChit chit) {
-		for (MagicChit test:validColorChits) {
+		for (java.util.Iterator _j14it1476 = (validColorChits).iterator(); _j14it1476.hasNext(); ) {
+		  MagicChit test = (MagicChit) _j14it1476.next();
 			if (test.sameChitAttributes(chit)) {
 				// Already got it, so exit here!
 				return;
@@ -169,13 +174,13 @@ public class SpellSet {
 	/**
 	 * @return Returns the validColorChits.
 	 */
-	public ArrayList<MagicChit> getValidColorChits() {
+	public ArrayList getValidColorChits() {
 		return validColorChits;
 	}
 	/**
 	 * @return Returns the validTypeObjects.
 	 */
-	public ArrayList<GameObject> getValidTypeObjects() {
+	public ArrayList getValidTypeObjects() {
 		return validTypeObjects;
 	}
 }

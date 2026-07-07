@@ -71,11 +71,11 @@ public class StringUtilities {
 	 * @param string				The string to be parsed
 	 * @param delim					The delimiter to use
 	 */
-	public static ArrayList<String> stringToCollection(String string,String delim) {
+	public static ArrayList stringToCollection(String string,String delim) {
 		return stringToCollection(string,delim,false);
 	}
-	public static ArrayList<String> stringToCollection(String string,String delim,boolean convertNulls) {
-		ArrayList<String> list = new ArrayList<String>();
+	public static ArrayList stringToCollection(String string,String delim,boolean convertNulls) {
+		ArrayList list = new ArrayList();
 		boolean stringAdded = false;
 		StringTokenizer tokens = new StringTokenizer(string,delim,true);
 		while(tokens.hasMoreTokens()) {
@@ -119,7 +119,7 @@ public class StringUtilities {
 		return ret;
 	}
 	public static String intArrayToString(int[] array,String delim) {
-		ArrayList<Integer> list = new ArrayList<Integer>();
+		ArrayList list = new ArrayList();
 		for (int i=0;i<array.length;i++) {
 			list.add(Integer.valueOf(array[i]));
 		}
@@ -132,7 +132,7 @@ public class StringUtilities {
 		}
 		return val;
 	}
-	private static void printCollectionDebug(Collection<String> c) {
+	private static void printCollectionDebug(Collection c) {
 		System.out.println(c.size()+":  "+c);
 	}
 	public static void main(String[] args) {

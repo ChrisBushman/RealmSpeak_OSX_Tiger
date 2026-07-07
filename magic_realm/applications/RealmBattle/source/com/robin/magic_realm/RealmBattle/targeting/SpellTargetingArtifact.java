@@ -19,10 +19,11 @@ public class SpellTargetingArtifact extends SpellTargetingSingle {
 		// Assume that activeParticipant IS character
 		CharacterWrapper character = new CharacterWrapper(activeParticipant.getGameObject());
 		secondaryTargetChoiceString = "Select a spell to enchant artifact with:";
-		ArrayList<GameObject> spellPossibilities = new ArrayList<GameObject>(character.getAllSpells());
+		ArrayList spellPossibilities = new ArrayList(character.getAllSpells());
 		// Eliminate the casting spell?  Maybe not...
 		if (spellPossibilities.size()>0) { // can't enchant an artifact with a recorded spell, if you have none!
-			for (GameObject item : character.getInventory()) {
+			for (java.util.Iterator _j14it841 = (character.getInventory()).iterator(); _j14it841.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it841.next();
 				if (item.hasThisAttribute("artifact") || item.hasThisAttribute("book")) {
 					RealmComponent rc = RealmComponent.getRealmComponent(item);
 					if (!rc.isEnchanted()) {

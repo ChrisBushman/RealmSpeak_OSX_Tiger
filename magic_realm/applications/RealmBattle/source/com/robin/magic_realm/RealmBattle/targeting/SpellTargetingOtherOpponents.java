@@ -14,10 +14,11 @@ public class SpellTargetingOtherOpponents extends SpellTargetingMultiple {
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
 		BattleGroup bg = battleModel.getParticipantsBattleGroup(activeParticipant);
-		ArrayList<RealmComponent> potentialTargets = combatFrame.findCanBeSeen(battleModel.getAllOtherBattleParticipants(bg,true,combatFrame.allowsTreachery()),true);
+		ArrayList potentialTargets = combatFrame.findCanBeSeen(battleModel.getAllOtherBattleParticipants(bg,true,combatFrame.allowsTreachery()),true);
 		potentialTargets = CombatSheet.filterNativeFriendly(activeParticipant, potentialTargets);
 		potentialTargets.remove(bg.getOwningCharacter()); // Never target yourself here
-		for (RealmComponent rc:potentialTargets) {
+		for (java.util.Iterator _j14it782 = (potentialTargets).iterator(); _j14it782.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it782.next();
 			if (!rc.hasMagicProtection() && !rc.hasMagicColorImmunity(spell)) {
 				gameObjects.add(rc.getGameObject());
 			}

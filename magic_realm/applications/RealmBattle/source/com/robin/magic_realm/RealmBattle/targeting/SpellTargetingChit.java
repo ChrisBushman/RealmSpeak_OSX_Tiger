@@ -15,7 +15,8 @@ public class SpellTargetingChit extends SpellTargetingSingle {
 	}
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
 		CharacterWrapper caster = spell.getCaster();
-		for (CharacterActionChitComponent chit:caster.getAllChits()) {
+		for (java.util.Iterator _j14it848 = (caster.getAllChits()).iterator(); _j14it848.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it848.next();
 			if (chit.getAction().equals(action)) {
 				gameObjects.add(chit.getGameObject());
 			}

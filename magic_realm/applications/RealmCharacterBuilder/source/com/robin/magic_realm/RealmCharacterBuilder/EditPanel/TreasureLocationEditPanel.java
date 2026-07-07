@@ -19,13 +19,13 @@ public class TreasureLocationEditPanel extends AdvantageEditPanel {
 				"Pit","Den","Tower","Spire","Garden","Temple",
 				"Circle of Stones:circle_of_stones","Conjuror's Remains:conjuror", "Ethereal Abbey:abbey", "Fairy Grove:grove", "Haunted Grave:grave", "Mage Library:library"};
 
-	private Hashtable<String,JCheckBox> hash;
+	private Hashtable hash;
 	
 	public TreasureLocationEditPanel(CharacterWrapper pChar, String levelKey) {
 		super(pChar, levelKey);
 		setBorder(BorderFactory.createTitledBorder(toString())); // update name
 		
-		hash = new Hashtable<String,JCheckBox>();
+		hash = new Hashtable();
 		setLayout(new BorderLayout());
 		JPanel main = new JPanel(new GridLayout(TREASURES.length,1));
 		
@@ -42,10 +42,11 @@ public class TreasureLocationEditPanel extends AdvantageEditPanel {
 	}	
 	
 	private void updateSelection() {
-		ArrayList<String> list = getAttributeList(Constants.TREASURE_LOCATION_FEAR);
+		ArrayList list = getAttributeList(Constants.TREASURE_LOCATION_FEAR);
 		if (list != null) {
-			for (String key : list) {
-				JCheckBox option = hash.get(key);
+			for (java.util.Iterator _j14it933 = (list).iterator(); _j14it933.hasNext(); ) {
+			  String key = (String) _j14it933.next();
+				JCheckBox option = (JCheckBox) hash.get(key);
 				if (option!=null) {
 					option.setSelected(true);
 				}
@@ -54,9 +55,10 @@ public class TreasureLocationEditPanel extends AdvantageEditPanel {
 	}
 
 	protected void applyAdvantage() {
-		ArrayList<String> list = new ArrayList<String>();
-		for (String key:hash.keySet()) {
-			JCheckBox option = hash.get(key);
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it934 = (hash.keySet()).iterator(); _j14it934.hasNext(); ) {
+		  String key = (String) _j14it934.next();
+			JCheckBox option = (JCheckBox) hash.get(key);
 			if (option.isSelected()) {
 				list.add(key.toLowerCase());
 			}
@@ -67,8 +69,9 @@ public class TreasureLocationEditPanel extends AdvantageEditPanel {
 		StringBuffer sb = new StringBuffer();
 		sb.append("Fears the treasure locations ");
 		StringBufferedList list = new StringBufferedList(", ","and ");
-		for (String key:hash.keySet()) {
-			JCheckBox option = hash.get(key);
+		for (java.util.Iterator _j14it935 = (hash.keySet()).iterator(); _j14it935.hasNext(); ) {
+		  String key = (String) _j14it935.next();
+			JCheckBox option = (JCheckBox) hash.get(key);
 			if (option.isSelected()) {
 				list.append(option.getText());
 			}

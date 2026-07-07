@@ -28,8 +28,9 @@ public class SpellTargetingCharacter extends SpellTargetingSingle {
 	}
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
-		ArrayList<RealmComponent> allCharacters = combatFrame.findCanBeSeen(battleModel.getAllParticipatingCharactersAsRc(),true);
-		for (RealmComponent rc : allCharacters) {
+		ArrayList allCharacters = combatFrame.findCanBeSeen(battleModel.getAllParticipatingCharactersAsRc(),true);
+		for (java.util.Iterator _j14it864 = (allCharacters).iterator(); _j14it864.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it864.next();
 			CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 			if (!character.hasMagicProtection() && (!lightOnly || !character.getVulnerability().strongerThan(new Strength("L")))) {
 				gameObjects.add(rc.getGameObject());
@@ -50,9 +51,10 @@ public class SpellTargetingCharacter extends SpellTargetingSingle {
 			return true;
 		}
 		
-		ArrayList<ColorMagic> colors = loc.clearing.getAllSourcesOfColor(true);
-		ArrayList<String> colorNames = new ArrayList<String>();
-		for (ColorMagic color : colors) {
+		ArrayList colors = loc.clearing.getAllSourcesOfColor(true);
+		ArrayList colorNames = new ArrayList();
+		for (java.util.Iterator _j14it865 = (colors).iterator(); _j14it865.hasNext(); ) {
+		  ColorMagic color = (ColorMagic) _j14it865.next();
 			colorNames.add(color.getColorName());
 		}
 		ListChooser chooser = new ListChooser(combatFrame, "Select magic color", colorNames);
@@ -60,13 +62,13 @@ public class SpellTargetingCharacter extends SpellTargetingSingle {
 		chooser.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		chooser.setLocationRelativeTo(combatFrame);
 		chooser.setVisible(true);
-		Vector<String> v = chooser.getSelectedItems();
+		Vector v = chooser.getSelectedItems();
 		if (v == null || v.isEmpty()) {
 			spell.expireSpell();
 			RealmLogging.logMessage(spell.getCaster().getCharacterName(),"Spell cancelled - no magic color chosen or none available.");
 			return false;
 		}
-		spell.setExtraIdentifier(v.get(0));
+		spell.setExtraIdentifier((String) v.get(0));
 		RealmLogging.logMessage(spell.getCaster().getCharacterName(),"Magic Color chosen: "+v.get(0));
 		return true;
 	}

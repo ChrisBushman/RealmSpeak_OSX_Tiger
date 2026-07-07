@@ -23,7 +23,7 @@ public class CharacterSpellsPanel extends CharacterFramePanel {
 	private RealmObjectPanel recordedSpellsObjectPanel;
 	
 	private JPanel bottom;
-	private ArrayList<SpellWrapper> bewitchingSpells;
+	private ArrayList bewitchingSpells;
 	private SpellListModel listModel;
 	private JList bewitchingSpellsList;
 	private SpellMasterWrapper spellMaster;
@@ -78,7 +78,7 @@ public class CharacterSpellsPanel extends CharacterFramePanel {
 				if (ev.getClickCount()==2 || MouseUtility.isRightOrControlClick(ev)) {
 					int index = bewitchingSpellsList.getSelectedIndex();
 					if (index>=0 && index<listModel.getSize()) {
-						SpellWrapper spell = bewitchingSpells.get(index);
+						SpellWrapper spell = (SpellWrapper) bewitchingSpells.get(index);
 						SpellInfoDialog.showSpellInfo(getGameHandler().getMainFrame(),spell);
 					}
 				}
@@ -87,7 +87,7 @@ public class CharacterSpellsPanel extends CharacterFramePanel {
 				if ( MouseUtility.isRightOrControlClick(ev)) {
 					int index = bewitchingSpellsList.locationToIndex(ev.getPoint());
 					if (index>=0 && index<listModel.getSize()) {
-						SpellWrapper spell = bewitchingSpells.get(index);
+						SpellWrapper spell = (SpellWrapper) bewitchingSpells.get(index);
 						SpellInfoDialog.showSpellInfo(getGameHandler().getMainFrame(),spell);
 					}
 				}
@@ -103,7 +103,7 @@ public class CharacterSpellsPanel extends CharacterFramePanel {
 	}
 	public void updatePanel() {
 		recordedSpellsObjectPanel.removeAll();
-		ArrayList<GameObject> spells = getCharacter().getAllSpells();
+		ArrayList spells = getCharacter().getAllSpells();
 		recordedSpellsObjectPanel.addObjects(spells);
 		if (!getGameHandler().getHostPrefs().hasPref(Constants.HOUSE2_NO_SPELL_LIMIT)) {
 			int total = recordedSpellsObjectPanel.getComponentCount();
@@ -120,9 +120,9 @@ public class CharacterSpellsPanel extends CharacterFramePanel {
 		bottom.setVisible(!bewitchingSpells.isEmpty());
 	}
 	private class SpellListModel extends AbstractListModel {
-		public String getElementAt(int index) {
+		public Object getElementAt(int index) {
 			if (index<getSize()) {
-				SpellWrapper spell = bewitchingSpells.get(index);
+				SpellWrapper spell = (SpellWrapper) bewitchingSpells.get(index);
 				String caster = spell.getCaster().getGameObject().getName();
 				String spellName = spell.getName();
 				String duration = spell.getGameObject().getThisAttribute("duration");

@@ -281,7 +281,8 @@ public class QuestBuilderFrame extends JFrame {
 
 	private void rebuildSteps() {
 		questSteps.removeAll();
-		for (QuestStep step : quest.getSteps()) {
+		for (java.util.Iterator _j14it346 = (quest.getSteps()).iterator(); _j14it346.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it346.next();
 			QuestStepPanel stepPanel = new QuestStepPanel(this, questStepView, realmSpeakData, quest, step);
 			stepPanel.setBorder(BorderFactory.createLineBorder(Color.green, 5));
 			questSteps.addTab(String.valueOf(step.getId()), stepPanel);
@@ -298,7 +299,7 @@ public class QuestBuilderFrame extends JFrame {
 				GameData data = new GameData();
 				data.ignoreRandomSeed = true;
 				if (data.zipFromFile(file)) {
-					quest = new Quest(data.getGameObjects().iterator().next());
+					quest = new Quest((GameObject) data.getGameObjects().iterator().next());
 					quest.autoRepair(); // Just in case
 					readQuest();
 					setFile(file);
@@ -329,7 +330,6 @@ public class QuestBuilderFrame extends JFrame {
 	private void saveQuest(File selectedFile, boolean saveWithoutPrompt) {
 		if (selectedFile == null || !saveWithoutPrompt) {
 			JFileChooser chooser = new JFileChooser(selectedFile == null ? lastQuestFilePath : selectedFile) {
-				@Override
 				public void approveSelection() {
 					if (getDialogType() == SAVE_DIALOG) {
 						File selectedFile = getSelectedFile();
@@ -569,37 +569,37 @@ public class QuestBuilderFrame extends JFrame {
 
 	private void viewDeck(Constants.QuestDeckMode mode) {
 		System.setProperty("questFolder", lastQuestFilePath.getAbsolutePath());
-		ArrayList<Quest> quests = QuestLoader.loadAllQuestsFromQuestFolder();
-		ArrayList<Quest> questCards = new ArrayList<Quest>();
-		switch (mode) {
-		case QtR:
-			for (Quest quest : quests) {
+		ArrayList quests = QuestLoader.loadAllQuestsFromQuestFolder();
+		ArrayList questCards = new ArrayList();
+		Constants.QuestDeckMode _qdm = mode;
+		if (_qdm == Constants.QuestDeckMode.QtR) {
+			for (java.util.Iterator _j14it347 = (quests).iterator(); _j14it347.hasNext(); ) {
+			  Quest quest = (Quest) _j14it347.next();
 				if (quest.getBoolean(QuestConstants.WORKS_WITH_QTR)) {
 					questCards.add(quest);
 				}
 			}
-			break;
-		case BoQ:
-			for (Quest quest : quests) {
+		} else if (_qdm == Constants.QuestDeckMode.BoQ) {
+			for (java.util.Iterator _j14it348 = (quests).iterator(); _j14it348.hasNext(); ) {
+			  Quest quest = (Quest) _j14it348.next();
 				if (quest.getBoolean(QuestConstants.WORKS_WITH_BOQ)) {
 					questCards.add(quest);
 				}
 			}
-			break;
-		case GQ:
-			for (Quest quest : quests) {
+		} else if (_qdm == Constants.QuestDeckMode.GQ) {
+			for (java.util.Iterator _j14it349 = (quests).iterator(); _j14it349.hasNext(); ) {
+			  Quest quest = (Quest) _j14it349.next();
 				if (quest.getGuild()!=null) {
 					questCards.add(quest);
 				}
 			}
-			break;
-		case SR:
-			for (Quest quest : quests) {
+		} else if (_qdm == Constants.QuestDeckMode.SR) {
+			for (java.util.Iterator _j14it350 = (quests).iterator(); _j14it350.hasNext(); ) {
+			  Quest quest = (Quest) _j14it350.next();
 				if (quest.getBoolean(QuestConstants.WORKS_WITH_SR)) {
 					questCards.add(quest);
 				}
 			}
-			break;
 		}
 		QuestDeckViewer viewer = new QuestDeckViewer(this, questCards, mode);
 		viewer.setLocationRelativeTo(this);
@@ -850,8 +850,9 @@ public class QuestBuilderFrame extends JFrame {
 		specificCharacterHelperButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				GamePool pool = new GamePool(realmSpeakData.getGameObjects());
-				ArrayList<String> names = new ArrayList<String>();
-				for (GameObject go : pool.find("character")) {
+				ArrayList names = new ArrayList();
+				for (java.util.Iterator _j14it351 = (pool.find("character")).iterator(); _j14it351.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it351.next();
 					names.add(go.getName());
 				}
 				Collections.sort(names);
@@ -970,7 +971,7 @@ public class QuestBuilderFrame extends JFrame {
 
 			public void edit() {
 				int selRow = locationTable.getSelectedRow();
-				QuestLocation loc = quest.getLocations().get(selRow);
+				QuestLocation loc = (QuestLocation) quest.getLocations().get(selRow);
 				String oldTag = loc.getTagName();
 				QuestLocationEditor editor = new QuestLocationEditor(QuestBuilderFrame.this, realmSpeakData, quest, loc);
 				editor.setVisible(true);
@@ -984,7 +985,7 @@ public class QuestBuilderFrame extends JFrame {
 
 			public void delete() {
 				int selRow = locationTable.getSelectedRow();
-				QuestLocation loc = quest.getLocations().get(selRow);
+				QuestLocation loc = (QuestLocation) quest.getLocations().get(selRow);
 				if (quest.usesLocationTag(loc.getTagName())) {
 					JOptionPane.showMessageDialog(QuestBuilderFrame.this, "Cannot delete a location that is in use.  Remove from description and/or steps before deleting.", "Location cannot be deleted.", JOptionPane.ERROR_MESSAGE);
 				}
@@ -1029,7 +1030,7 @@ public class QuestBuilderFrame extends JFrame {
 
 			public void edit() {
 				int selRow = minorCharacterTable.getSelectedRow();
-				QuestMinorCharacter mc = quest.getMinorCharacters().get(selRow);
+				QuestMinorCharacter mc = (QuestMinorCharacter) quest.getMinorCharacters().get(selRow);
 				MinorCharacterEditor editor = new MinorCharacterEditor(QuestBuilderFrame.this, realmSpeakData, quest, mc);
 				editor.setVisible(true);
 				minorCharacterTable.clearSelection();
@@ -1039,7 +1040,7 @@ public class QuestBuilderFrame extends JFrame {
 
 			public void delete() {
 				int selRow = minorCharacterTable.getSelectedRow();
-				QuestMinorCharacter mc = quest.getMinorCharacters().get(selRow);
+				QuestMinorCharacter mc = (QuestMinorCharacter) quest.getMinorCharacters().get(selRow);
 				if (quest.usesMinorCharacter(mc)) {
 					JOptionPane.showMessageDialog(QuestBuilderFrame.this, "Cannot delete a minor character that is in use.  Remove from rewards before deleting.", "Minor Character cannot be deleted.", JOptionPane.ERROR_MESSAGE);
 				}
@@ -1084,7 +1085,7 @@ public class QuestBuilderFrame extends JFrame {
 
 			public void edit() {
 				int selRow = counterTable.getSelectedRow();
-				QuestCounter counter = quest.getCounters().get(selRow);
+				QuestCounter counter = (QuestCounter) quest.getCounters().get(selRow);
 				String oldTag = counter.getTagName();
 				QuestCounterEditor editor = new QuestCounterEditor(QuestBuilderFrame.this, realmSpeakData, quest, counter);
 				editor.setVisible(true);
@@ -1098,7 +1099,7 @@ public class QuestBuilderFrame extends JFrame {
 
 			public void delete() {
 				int selRow = counterTable.getSelectedRow();
-				QuestCounter counter = quest.getCounters().get(selRow);
+				QuestCounter counter = (QuestCounter) quest.getCounters().get(selRow);
 				if (quest.usesCounterTag(counter.getTagName())) {
 					JOptionPane.showMessageDialog(QuestBuilderFrame.this, "Cannot delete a counter that is in use.  Remove from description and/or steps before deleting.", "Counter cannot be deleted.", JOptionPane.ERROR_MESSAGE);
 				}
@@ -1122,7 +1123,8 @@ public class QuestBuilderFrame extends JFrame {
 			quest.setDescription(desc);
 			questDescription.setText(desc);
 		}
-		for (QuestStep step : quest.getSteps()) {
+		for (java.util.Iterator _j14it352 = (quest.getSteps()).iterator(); _j14it352.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it352.next();
 			desc = step.getDescription();
 			if (desc != null) {
 				desc = StringUtilities.findAndReplace(desc, oldTagName, newTagName);
@@ -1137,7 +1139,9 @@ public class QuestBuilderFrame extends JFrame {
 		questStepView.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent ev) {
 				QuestStep selected = questStepView.getSelectedStep();
-				for (Component c : questSteps.getComponents()) {
+				Component[] _j14arr353 = questSteps.getComponents();
+				for (int _j14i353 = 0; _j14i353 < _j14arr353.length; _j14i353++) {
+				  Component c = _j14arr353[_j14i353];
 					QuestStepPanel panel = (QuestStepPanel) c;
 					if (panel.getStep() == selected) {
 						questSteps.setSelectedComponent(c);

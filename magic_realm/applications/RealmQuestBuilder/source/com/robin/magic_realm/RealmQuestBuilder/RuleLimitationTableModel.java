@@ -14,23 +14,25 @@ public class RuleLimitationTableModel extends DefaultTableModel {
 	private static String[] RuleLimitationHeader = { "On", "Off", "Rule Name" };
 	private static Class[] RuleLimitationClass = { Boolean.class, Boolean.class, String.class };
 
-	ArrayList<String> keys;
-	Hashtable<String, String> descriptions;
+	ArrayList keys;
+	Hashtable descriptions;
 
 	Quest quest;
 
 	public RuleLimitationTableModel(Quest quest, GameData realmSpeakData) {
 		this.quest = quest;
 
-		keys = new ArrayList<String>();
-		descriptions = new Hashtable<String, String>();
+		keys = new ArrayList();
+		descriptions = new Hashtable();
 
 		HostGameSetupDialog dialog = new HostGameSetupDialog(null, null, realmSpeakData);
 		GameOptionPane gop = dialog.getGameOptionPane();
-		for (String key : gop.getGameOptionKeys()) {
+		for (java.util.Iterator _j14it342 = (gop.getGameOptionKeys()).iterator(); _j14it342.hasNext(); ) {
+		  String key = (String) _j14it342.next();
 			keys.add(key);
 		}
-		for (String key : keys) {
+		for (java.util.Iterator _j14it343 = (keys).iterator(); _j14it343.hasNext(); ) {
+		  String key = (String) _j14it343.next();
 			GameOption go = gop.getGameOption(key);
 			if (go != null) {
 				descriptions.put(key, go.getDescription());
@@ -61,7 +63,7 @@ public class RuleLimitationTableModel extends DefaultTableModel {
 
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		if (rowIndex < getRowCount()) {
-			String key = keys.get(rowIndex);
+			String key = (String) keys.get(rowIndex);
 			switch (columnIndex) {
 				// case 0:
 				// return loc.getName();

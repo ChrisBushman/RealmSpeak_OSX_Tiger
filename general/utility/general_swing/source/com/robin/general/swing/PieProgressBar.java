@@ -19,7 +19,7 @@ public class PieProgressBar extends JComponent {
 	private int wedges;
 	private boolean showDivisions;
 	
-	private Hashtable<Integer, Color> colorChange;
+	private Hashtable colorChange;
 
 	public PieProgressBar(int radius,int wedges,boolean showDivisions) {
 		this.wedges = wedges;
@@ -68,7 +68,7 @@ public class PieProgressBar extends JComponent {
 	}
 	public void setColor(int wedge,Color c) {
 		if (colorChange==null) {
-			colorChange = new Hashtable<Integer, Color>();
+			colorChange = new Hashtable();
 		}
 		colorChange.put(Integer.valueOf(wedge),c);
 	}
@@ -93,7 +93,7 @@ public class PieProgressBar extends JComponent {
 		arc = new Arc2D.Double(0f,0f,size.width,size.height,start,change,Arc2D.PIE);
 		Color wedgeColor = Color.blue;
 		if (colorChange!=null) {
-			Color c = colorChange.get(Integer.valueOf(currentWedge));
+			Color c = (Color) colorChange.get(Integer.valueOf(currentWedge));
 			if (c!=null) {
 				wedgeColor = c;
 			}

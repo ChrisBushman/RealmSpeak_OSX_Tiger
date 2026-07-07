@@ -7,12 +7,10 @@ public class ApplyClearingEffect implements ISpellEffect {
 		_effect = effect;
 	}
 	
-	@Override
 	public void apply(SpellEffectContext context) {
 		context.getClearingTarget().addSpellEffect(_effect);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		context.getClearingTarget().removeSpellEffect(_effect);
 	}

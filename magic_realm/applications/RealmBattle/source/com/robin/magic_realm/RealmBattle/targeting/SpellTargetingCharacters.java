@@ -19,8 +19,9 @@ public class SpellTargetingCharacters extends SpellTargetingMultiple {
 	}
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
-		ArrayList<RealmComponent> allCharacters = combatFrame.findCanBeSeen(battleModel.getAllParticipatingCharactersAsRc(),true);
-		for (RealmComponent rc : allCharacters) {
+		ArrayList allCharacters = combatFrame.findCanBeSeen(battleModel.getAllParticipatingCharactersAsRc(),true);
+		for (java.util.Iterator _j14it802 = (allCharacters).iterator(); _j14it802.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it802.next();
 			CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 			if (!character.hasMagicProtection() && (!lightOnly || !character.getVulnerability().strongerThan(new Strength("L")))) {
 				gameObjects.add(rc.getGameObject());

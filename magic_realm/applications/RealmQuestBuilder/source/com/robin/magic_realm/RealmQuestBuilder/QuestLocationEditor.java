@@ -20,7 +20,7 @@ public class QuestLocationEditor extends GenericEditor {
 	
 	private static final String INVALID = " <== INVALID";
 	
-	private static ArrayList<String> suggestionWords;
+	private static ArrayList suggestionWords;
 	
 	private JFrame parent;
 	private Quest quest;
@@ -41,10 +41,11 @@ public class QuestLocationEditor extends GenericEditor {
 	private static String [] travelers = null;
 	
 	private static String[] getAllCompanionNames() {
-		ArrayList<String> companions = new ArrayList<String>();
+		ArrayList companions = new ArrayList();
 		String[] people = CompanionEditPanel.COMPANIONS[3];
 			boolean first = true;
-			for (String name : people) {
+			for (int _j14i362 = 0; _j14i362 < people.length; _j14i362++) {
+			  String name = people[_j14i362];
 				// skip first every time
 				if (first) {
 					first = false;
@@ -53,17 +54,18 @@ public class QuestLocationEditor extends GenericEditor {
 				String[] ret = name.split(":");
 				companions.add(ret[0]);
 			}
-		return companions.toArray(new String[0]);
+		return (String[]) companions.toArray(new String[0]);
 	}
 	
 	private static String[] getAllTravelerNames(GameData realmSpeakData) {
-		ArrayList<String> travelers = new ArrayList<String>();
+		ArrayList travelers = new ArrayList();
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
-		ArrayList<GameObject> templates = pool.find(Constants.TRAVELER_TEMPLATE);
-		for (GameObject t : templates) {
+		ArrayList templates = pool.find(Constants.TRAVELER_TEMPLATE);
+		for (java.util.Iterator _j14it363 = (templates).iterator(); _j14it363.hasNext(); ) {
+		  GameObject t = (GameObject) _j14it363.next();
 			travelers.add(t.getName());
 		}
-		return travelers.toArray(new String[0]);
+		return (String[]) travelers.toArray(new String[0]);
 	}
 	
 	public QuestLocationEditor(JFrame parent,GameData realmSpeakData,Quest quest,QuestLocation location) {
@@ -80,7 +82,7 @@ public class QuestLocationEditor extends GenericEditor {
 	}
 	
 	private static void initSuggestionWords(GameData realmSpeakData) {
-		suggestionWords = new ArrayList<String>();
+		suggestionWords = new ArrayList();
 		travelers = getAllTravelerNames(realmSpeakData);
 		Collections.addAll(suggestionWords, QuestConstants.wolfs);
 		Collections.addAll(suggestionWords, QuestConstants.transforms);
@@ -88,11 +90,13 @@ public class QuestLocationEditor extends GenericEditor {
 		Collections.addAll(suggestionWords, travelers);
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
 		String query = "!part,!summon,!spell,!tile,!character_chit,!virtual_dwelling,!season,!test,!character";
-		for(GameObject go:pool.find(query)) {
+		for (java.util.Iterator _j14it364 = (pool.find(query)).iterator(); _j14it364.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it364.next();
 			if (suggestionWords.contains(go.getName())) continue;
 			suggestionWords.add(go.getName());
 		}
-		for(GameObject go:pool.find("tile")) {
+		for (java.util.Iterator _j14it365 = (pool.find("tile")).iterator(); _j14it365.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it365.next();
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
 			if (!suggestionWords.contains(tile.getTileCode())) {
 				suggestionWords.add(tile.getTileCode());
@@ -100,7 +104,8 @@ public class QuestLocationEditor extends GenericEditor {
 			if (!suggestionWords.contains(go.getName())) {
 				suggestionWords.add(go.getName());
 			}
-			for(ClearingDetail clearing:tile.getClearings()) {
+			for (java.util.Iterator _j14it366 = (tile.getClearings()).iterator(); _j14it366.hasNext(); ) {
+			  ClearingDetail clearing = (ClearingDetail) _j14it366.next();
 				String name = go.getName()+" "+clearing.getNum();
 				if (!suggestionWords.contains(name)) {
 					suggestionWords.add(name);
@@ -120,8 +125,9 @@ public class QuestLocationEditor extends GenericEditor {
 		sameClearing.setSelected(!location.isSameTile());
 		sameTile.setSelected(location.isSameTile());
 		if (location.getChoiceAddresses()!=null) {
-			StringBuilder sb = new StringBuilder();
-			for (String i : location.getChoiceAddresses()) {
+			StringBuffer sb = new StringBuffer();
+			for (java.util.Iterator _j14it367 = (location.getChoiceAddresses()).iterator(); _j14it367.hasNext(); ) {
+			  String i = (String) _j14it367.next();
 				if (sb.length()>0) {
 					sb.append("\n");
 				}
@@ -146,7 +152,8 @@ public class QuestLocationEditor extends GenericEditor {
 		location.setLocationTileSideType((LocationTileSideType)tileSideType.getSelectedItem());
 		location.setSameTile(sameTile.isSelected());
 		location.clearChoiceAddresses();
-		for (String token:getLocationList()) {
+		for (java.util.Iterator _j14it368 = (getLocationList()).iterator(); _j14it368.hasNext(); ) {
+		  String token = (String) _j14it368.next();
 			location.addChoiceAddresses(token);
 		}
 	}
@@ -157,23 +164,26 @@ public class QuestLocationEditor extends GenericEditor {
 		chooser.setVisible(true);
 		Vector list = chooser.getSelectedObjects();
 		if (list==null) return;
-		StringBuilder sb = new StringBuilder();
-		for (String token:getLocationList()) {
+		StringBuffer sb = new StringBuffer();
+		for (java.util.Iterator _j14it369 = (getLocationList()).iterator(); _j14it369.hasNext(); ) {
+		  String token = (String) _j14it369.next();
 			sb.append(token);
 			if (!QuestLocation.validLocation(realmSpeakData,token)) {
 				sb.append(INVALID);
 			}
 			sb.append("\n");
 		}
-		for(Object val:list) {
+		for (java.util.Iterator _j14it370 = (list).iterator(); _j14it370.hasNext(); ) {
+		  Object val = (Object) _j14it370.next();
 			sb.append(val.toString());
 			sb.append("\n");
 		}
 		locationList.setText(sb.toString());
 	}
 	private void verifyLocations() {
-		StringBuilder sb = new StringBuilder();
-		for (String token:getLocationList()) {
+		StringBuffer sb = new StringBuffer();
+		for (java.util.Iterator _j14it371 = (getLocationList()).iterator(); _j14it371.hasNext(); ) {
+		  String token = (String) _j14it371.next();
 			sb.append(token);
 			if (!Arrays.asList(QuestConstants.wolfs).contains(token) && !Arrays.asList(QuestConstants.transforms).contains(token) && !Arrays.asList(companions).contains(token) && !Arrays.asList(travelers).contains(token) && !QuestLocation.validLocation(realmSpeakData,token)) {
 				sb.append(INVALID);
@@ -182,8 +192,8 @@ public class QuestLocationEditor extends GenericEditor {
 		}
 		locationList.setText(sb.toString());
 	}
-	private ArrayList<String> getLocationList() {
-		ArrayList<String> list = new ArrayList<String>();
+	private ArrayList getLocationList() {
+		ArrayList list = new ArrayList();
 		String text = locationList.getText();
 		text = text.replaceAll(INVALID,"");
 		StringTokenizer tokens = new StringTokenizer(text,",;:\t\n\r\f");
@@ -204,7 +214,8 @@ public class QuestLocationEditor extends GenericEditor {
 	private void updateControls() {
 		String locName = name.getText();
 		boolean conflict = false;
-		for (QuestLocation loc:quest.getLocations()) {
+		for (java.util.Iterator _j14it372 = (quest.getLocations()).iterator(); _j14it372.hasNext(); ) {
+		  QuestLocation loc = (QuestLocation) _j14it372.next();
 			if (loc!=location && loc.getName().equals(locName)) {
 				conflict = true;
 				break;

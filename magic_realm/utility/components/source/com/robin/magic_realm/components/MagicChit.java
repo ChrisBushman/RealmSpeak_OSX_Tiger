@@ -15,7 +15,7 @@ public interface MagicChit {
 	public ColorMagic getColorMagic();
 	public void enchant(int magicNumber);
 	public void makeFatigued();
-	public ArrayList<Integer> getEnchantableNumbers();
+	public ArrayList getEnchantableNumbers();
 	public ImageIcon getIcon();
 	public boolean sameChitAttributes(MagicChit chit);
 	public String asKey();

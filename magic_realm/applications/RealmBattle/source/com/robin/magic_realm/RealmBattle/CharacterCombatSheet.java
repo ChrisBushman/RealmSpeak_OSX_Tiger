@@ -200,8 +200,8 @@ public class CharacterCombatSheet extends CombatSheet {
 	
 	private RealmComponent sheetOwnerShield;
 	
-	private ArrayList<Rectangle> spellRegions;
-	private Hashtable<Rectangle,SpellCardComponent> spellRegionHash;
+	private ArrayList spellRegions;
+	private Hashtable spellRegionHash;
 	
 	HostPrefWrapper hostPrefs;
 	
@@ -214,8 +214,8 @@ public class CharacterCombatSheet extends CombatSheet {
 	public CharacterCombatSheet(CombatFrame frame,BattleModel model,RealmComponent participant,boolean interactiveFrame, HostPrefWrapper hostPrefs) {
 		super(frame,model,participant,interactiveFrame,hostPrefs);
 		this.hostPrefs = hostPrefs;
-		spellRegions = new ArrayList<Rectangle>();
-		spellRegionHash = new Hashtable<Rectangle,SpellCardComponent>();
+		spellRegions = new ArrayList();
+		spellRegionHash = new Hashtable();
 		updateLayout();
 	}
 	
@@ -276,7 +276,7 @@ public class CharacterCombatSheet extends CombatSheet {
 		if (combatFrame.getActionState()==Constants.COMBAT_POSITIONING) {
 			switch(index) {
 				case POS_TARGET:
-					if (containsHorse(layoutHash.getList(POS_TARGET))) {
+					if (containsHorse(layoutHash.getList(new Integer(POS_TARGET)))) {
 						if (getAllBoxListFromLayout(POS_TARGET_BOX1).isEmpty()
 								&& getAllFromSingleBoxListFromLayout(POS_TARGET_CHARGE_SMASH).isEmpty()
 								&& getAllFromSingleBoxListFromLayout(POS_TARGET_CHARGE_SWING).isEmpty()
@@ -297,7 +297,7 @@ public class CharacterCombatSheet extends CombatSheet {
 				case POS_TARGET_DODGE_THRUST:
 				case POS_TARGET_DUCK_SWING:
 				case POS_TARGET_DUCK_THRUST:
-					if (containsHorse(layoutHash.getList(POS_TARGET))) return horseRiderSplit;
+					if (containsHorse(layoutHash.getList(new Integer(POS_TARGET)))) return horseRiderSplit;
 					break;
 			}
 		}
@@ -327,7 +327,7 @@ public class CharacterCombatSheet extends CombatSheet {
 				}
 			}
 		}
-		ArrayList<RealmComponent> attackers = model.getAttackersFor(combatFrame.getActiveParticipant());
+		ArrayList attackers = model.getAttackersFor(combatFrame.getActiveParticipant());
 		switch(combatFrame.getActionState()) {
 			case Constants.COMBAT_LURE:
 				if (!sheetOwner.isMistLike()) {
@@ -340,7 +340,7 @@ public class CharacterCombatSheet extends CombatSheet {
 				break;
 			case Constants.COMBAT_ASSIGN:
 				CharacterWrapper activeParticipantCharacter = new CharacterWrapper(combatFrame.getActiveParticipant().getGameObject());
-				ArrayList<WeaponChitComponent> weapons = activeParticipantCharacter.getActiveWeapons();
+				ArrayList weapons = activeParticipantCharacter.getActiveWeapons();
 				if ((spell==null || battleMage)
 						&& (combatFrame.getActiveParticipant().getTarget()==null
 						|| (combatFrame.getActiveParticipant().get2ndTarget()==null && combatFrame.getActiveParticipant().isCharacter()
@@ -420,7 +420,7 @@ public class CharacterCombatSheet extends CombatSheet {
 					}
 				}
 				// Have to have a target to attack!  (Not really:  see rule 22.4/2a)
-				ArrayList<RealmComponent> allSheetParticipants = new ArrayList<RealmComponent>(sheetParticipants);
+				ArrayList allSheetParticipants = new ArrayList(sheetParticipants);
 				allSheetParticipants.add(sheetOwner);
 				RealmComponent target = combatFrame.getActiveParticipant().getTarget();
 				RealmComponent target2 = combatFrame.getActiveParticipant().get2ndTarget();
@@ -493,9 +493,10 @@ public class CharacterCombatSheet extends CombatSheet {
 		}
 	}
 	protected boolean hasArmor(int index) {
-		ArrayList<RealmComponent> list = layoutHash.getList(Integer.valueOf(index));
+		ArrayList list = layoutHash.getList(Integer.valueOf(index));
 		if (list!=null) {
-			for (RealmComponent rc : list) {
+			for (java.util.Iterator _j14it515 = (list).iterator(); _j14it515.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it515.next();
 				ArmorType armorType = TreasureUtility.getArmorType(rc.getGameObject());
 				if (armorType!=ArmorType.None) {
 					return true;
@@ -524,10 +525,11 @@ public class CharacterCombatSheet extends CombatSheet {
 		 * Cycle through all monsters and natives (not characters) that are in the model, that
 		 * are targeting the sheetOwner.  (go into target boxes)
 		 */
-		sheetParticipants = new ArrayList<RealmComponent>();
-		ArrayList<RealmComponent> exclude = new ArrayList<RealmComponent>();
-		ArrayList<RealmComponent> all = model.getAllBattleParticipants(true);
-		for (RealmComponent rc : all) {
+		sheetParticipants = new ArrayList();
+		ArrayList exclude = new ArrayList();
+		ArrayList all = model.getAllBattleParticipants(true);
+		for (java.util.Iterator _j14it516 = (all).iterator(); _j14it516.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it516.next();
 			CombatWrapper rcCombat = new CombatWrapper(rc.getGameObject());
 			RealmComponent target = rc.getTarget();
 			RealmComponent target2 = rc.get2ndTarget();
@@ -541,7 +543,7 @@ public class CharacterCombatSheet extends CombatSheet {
 						CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 						int boxA = combat.getCombatBoxAttack();
 						int boxD = combat.getCombatBoxDefense();
-						layoutHash.put(getBoxIndexFromCombatBoxes(boxA,boxD),rc);
+						layoutHash.put(new Integer(getBoxIndexFromCombatBoxes(boxA,boxD)),rc);
 						sheetParticipants.add(rc);
 						if (rc.isMonster()) {
 							MonsterChitComponent monster = (MonsterChitComponent)rc;
@@ -553,7 +555,7 @@ public class CharacterCombatSheet extends CombatSheet {
 								boxD = combat.getCombatBoxDefense();
 								if (boxA>0) {
 									// only add monster weapon to layout if in a combat box!
-									layoutHash.put(getBoxIndexFromCombatBoxes(boxA,boxD),weapon);
+									layoutHash.put(new Integer(getBoxIndexFromCombatBoxes(boxA,boxD)),weapon);
 								}
 							}
 							RealmComponent horse = (RealmComponent)rc.getHorse();
@@ -563,7 +565,7 @@ public class CharacterCombatSheet extends CombatSheet {
 								boxD = combat.getCombatBoxDefense();
 								if (boxD>0) {
 									// only add horse to layout if in a combat box!
-									layoutHash.put(getBoxIndexFromCombatBoxes(boxA,boxD),horse);
+									layoutHash.put(new Integer(getBoxIndexFromCombatBoxes(boxA,boxD)),horse);
 									sheetParticipants.add(horse);
 								}
 							}
@@ -576,7 +578,7 @@ public class CharacterCombatSheet extends CombatSheet {
 								boxD = combat.getCombatBoxDefense();
 								if (boxD>0) {
 									// only add horse to layout if in a combat box!
-									layoutHash.put(getBoxIndexFromCombatBoxes(boxA,boxD),horse);
+									layoutHash.put(new Integer(getBoxIndexFromCombatBoxes(boxA,boxD)),horse);
 									sheetParticipants.add(horse);
 								}
 							}
@@ -604,7 +606,8 @@ public class CharacterCombatSheet extends CombatSheet {
 					}
 					
 					if (!character.isTransmorphed()) {
-						for (RealmComponent chit : character.getActiveFightChits()) {
+						for (java.util.Iterator _j14it517 = (character.getActiveFightChits()).iterator(); _j14it517.hasNext(); ) {
+						  RealmComponent chit = (RealmComponent) _j14it517.next();
 							CombatWrapper combat = new CombatWrapper(chit.getGameObject());
 							int box = combat.getCombatBoxDefense();
 							if (box>0 && this.sheetOwner.getGameObject().getStringId().equals(combat.getSheetOwnerId())) {
@@ -619,15 +622,17 @@ public class CharacterCombatSheet extends CombatSheet {
 								}
 							}
 						}
-						ArrayList<RealmComponent> allWeapons = new ArrayList<RealmComponent>();
-						ArrayList<WeaponChitComponent> weapons = character.getActiveWeapons();
+						ArrayList allWeapons = new ArrayList();
+						ArrayList weapons = character.getActiveWeapons();
 						if (weapons!=null) {
 							allWeapons.addAll(weapons);
 						}
-						for (GameObject treasure : character.getActiveTreasureWeaponObjects()) {
+						for (java.util.Iterator _j14it518 = (character.getActiveTreasureWeaponObjects()).iterator(); _j14it518.hasNext(); ) {
+						  GameObject treasure = (GameObject) _j14it518.next();
 							allWeapons.add(RealmComponent.getRealmComponent(treasure));
 						}
-						for (RealmComponent weapon : allWeapons) {
+						for (java.util.Iterator _j14it519 = (allWeapons).iterator(); _j14it519.hasNext(); ) {
+						  RealmComponent weapon = (RealmComponent) _j14it519.next();
 							CombatWrapper combat = new CombatWrapper(weapon.getGameObject());
 							int box = combat.getCombatBoxDefense();
 							if (box>0 && this.sheetOwner.getGameObject().getStringId().equals(combat.getSheetOwnerId())) {
@@ -645,7 +650,8 @@ public class CharacterCombatSheet extends CombatSheet {
 					}
 				}
 				
-				for (GameObject go : character.getActiveInventory()) {
+				for (java.util.Iterator _j14it520 = (character.getActiveInventory()).iterator(); _j14it520.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it520.next();
 					ArmorType armorType = TreasureUtility.getArmorType(go);
 					RealmComponent item = RealmComponent.getRealmComponent(go);
 					if (armorType!=ArmorType.None && armorType!=ArmorType.Special) {
@@ -706,15 +712,17 @@ public class CharacterCombatSheet extends CombatSheet {
 			CombatWrapper combat = new CombatWrapper(sheetOwner.getGameObject());
 			
 			// Add all charge chits to attackers
-			Collection<GameObject> chargeChits = combat.getChargeChits();
-			for (GameObject i : chargeChits) {
+			Collection chargeChits = combat.getChargeChits();
+			for (java.util.Iterator _j14it521 = (chargeChits).iterator(); _j14it521.hasNext(); ) {
+			  GameObject i = (GameObject) _j14it521.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(i);
 				layoutHash.put(Integer.valueOf(POS_CHARGECHITS),rc);
 			}
 			
 			// Add all used chits to used box
-			Collection<GameObject> usedChits = combat.getUsedChits();
-			for (GameObject i : usedChits) {
+			Collection usedChits = combat.getUsedChits();
+			for (java.util.Iterator _j14it522 = (usedChits).iterator(); _j14it522.hasNext(); ) {
+			  GameObject i = (GameObject) _j14it522.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(i);
 				if (!rc.isMonster() && !rc.isNative()) {
 					layoutHash.put(Integer.valueOf(POS_USEDCHITS),rc);
@@ -741,7 +749,7 @@ public class CharacterCombatSheet extends CombatSheet {
 		switch(index) {
 			case POS_OWNER:
 				if (combatFrame.getActionState()==Constants.COMBAT_ASSIGN) {
-					ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
+					ArrayList list = new ArrayList();
 					list.add(sheetOwner);
 					combatFrame.assignTarget(list);
 				}
@@ -767,15 +775,15 @@ public class CharacterCombatSheet extends CombatSheet {
 							|| layoutHash.get(Integer.valueOf(POS_TARGET_DUCK_SWING))!=null
 							|| layoutHash.get(Integer.valueOf(POS_TARGET_DUCK_THRUST))!=null) {
 						// reset ALL when targets have already been placed, and the target hotspot is clicked
-						ArrayList<RealmComponent> toReset = new ArrayList<RealmComponent>();
+						ArrayList toReset = new ArrayList();
 						for (int i=0;i<3;i++) {
-							ArrayList<RealmComponent> list = layoutHash.getList(Integer.valueOf(POS_TARGET_BOX1+i));
+							ArrayList list = layoutHash.getList(Integer.valueOf(POS_TARGET_BOX1+i));
 							if (list!=null) {
 								toReset.addAll(list);
 							}
 						}
 						
-						ArrayList<RealmComponent> listToAdd = new ArrayList<RealmComponent>();
+						ArrayList listToAdd = new ArrayList();
 						listToAdd=layoutHash.getList(Integer.valueOf(POS_TARGET_CHARGE_SMASH));
 						if (listToAdd!=null) {
 							toReset.addAll(listToAdd);
@@ -801,7 +809,8 @@ public class CharacterCombatSheet extends CombatSheet {
 							toReset.addAll(listToAdd);
 						}
 						
-						for (RealmComponent rc : toReset) {
+						for (java.util.Iterator _j14it523 = (toReset).iterator(); _j14it523.hasNext(); ) {
+						  RealmComponent rc = (RealmComponent) _j14it523.next();
 							if (!(rc instanceof EventSpellCardComponent)) {
 								CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 								combat.setCombatBoxAttack(0);
@@ -820,7 +829,7 @@ public class CharacterCombatSheet extends CombatSheet {
 			case POS_TARGET_BOX2:
 			case POS_TARGET_BOX3:
 				// Position targets
-				ArrayList<RealmComponent> list = layoutHash.getList(Integer.valueOf(POS_TARGET));
+				ArrayList list = layoutHash.getList(Integer.valueOf(POS_TARGET));
 				int box = index-POS_TARGET_BOX1+1;
 				combatFrame.positionTarget(box,box,list,false,swingConstant==SwingConstants.LEFT);
 				break;
@@ -830,7 +839,7 @@ public class CharacterCombatSheet extends CombatSheet {
 			case POS_TARGET_DODGE_THRUST:
 			case POS_TARGET_DUCK_SWING:
 			case POS_TARGET_DUCK_THRUST:
-				ArrayList<RealmComponent> listTargets = layoutHash.getList(Integer.valueOf(POS_TARGET));
+				ArrayList listTargets = layoutHash.getList(Integer.valueOf(POS_TARGET));
 				switch(index) {
 				case POS_TARGET_CHARGE_SMASH:
 					combatFrame.positionTarget(3,1,listTargets,false,swingConstant==SwingConstants.LEFT);
@@ -925,7 +934,7 @@ public class CharacterCombatSheet extends CombatSheet {
 	}
 	private void autoPositioning(int swingConstant) {
 		// auto-position
-		ArrayList<RealmComponent> list = layoutHash.getList(Integer.valueOf(POS_TARGET));
+		ArrayList list = layoutHash.getList(Integer.valueOf(POS_TARGET));
 		if (list==null) return;
 		Collections.sort(list);
 		int n=0;
@@ -935,7 +944,7 @@ public class CharacterCombatSheet extends CombatSheet {
 			m = RandomNumber.getRandom(3);
 		}
 		while(list.size()>0) {
-			RealmComponent rc = list.remove(0); // pop
+			RealmComponent rc = (RealmComponent) list.remove(0); // pop
 			if (rc.isMonster()) {
 				MonsterChitComponent monster = (MonsterChitComponent)rc;
 				RealmComponent weapon = monster.getWeapon();
@@ -1089,10 +1098,11 @@ public class CharacterCombatSheet extends CombatSheet {
 			
 			boolean isMe = GameClient.GetMostRecentClient()==null || character.getPlayerName().equals(GameClient.GetMostRecentClient().getClientName());
 			if (isMe && !alwaysSecret) {
-				ArrayList<SpellSet> spellSets = character.getCastableSpellSets();
+				ArrayList spellSets = character.getCastableSpellSets();
 				if (!spellSets.isEmpty()) {
-					ArrayList<SpellCardComponent> spells = new ArrayList<SpellCardComponent>();
-					for (SpellSet ss:spellSets) {
+					ArrayList spells = new ArrayList();
+					for (java.util.Iterator _j14it524 = (spellSets).iterator(); _j14it524.hasNext(); ) {
+					  SpellSet ss = (SpellSet) _j14it524.next();
 						SpellCardComponent spell = (SpellCardComponent)RealmComponent.getRealmComponent(ss.getSpell());
 						if (!spells.contains(spell)) {
 							spells.add(spell);
@@ -1113,7 +1123,8 @@ public class CharacterCombatSheet extends CombatSheet {
 					}
 					int x = center-(totalWidth>>1);
 					int y = 550;
-					for (SpellCardComponent spell:spells) {
+					for (java.util.Iterator _j14it525 = (spells).iterator(); _j14it525.hasNext(); ) {
+					  SpellCardComponent spell = (SpellCardComponent) _j14it525.next();
 						g.drawImage(spell.getMediumImage(),x,y,null);
 						Rectangle r = new Rectangle(x,y,CardComponent.getMediumCardImageWidth(),CardComponent.getMediumCardImageHeight());
 						spellRegions.add(0,r); // push the result, so the list is in reverse order
@@ -1144,10 +1155,11 @@ public class CharacterCombatSheet extends CombatSheet {
 		Point oldPoint = spellPoint;
 		spellPoint = null;
 		if (p!=null) {
-			for (Rectangle r:spellRegions) {
+			for (java.util.Iterator _j14it526 = (spellRegions).iterator(); _j14it526.hasNext(); ) {
+			  Rectangle r = (Rectangle) _j14it526.next();
 				if (r.contains(p)) {
 					spellPoint = new Point(p.x-CardComponent.CARD_WIDTH,p.y-CardComponent.CARD_HEIGHT);
-					spellCard = spellRegionHash.get(r);
+					spellCard = (SpellCardComponent) spellRegionHash.get(r);
 					repaint();
 					break;
 				}
@@ -1160,7 +1172,7 @@ public class CharacterCombatSheet extends CombatSheet {
 		oldPoint = tallyPoint;
 		tallyPoint = null;
 		if (p!=null) {
-			if (mouseHoverIndex!=null && mouseHoverIndex==POS_OWNER) {
+			if (mouseHoverIndex!=null && mouseHoverIndex.intValue()==POS_OWNER) {
 				tallyView = new CombatTallyView(getSheetOwner());
 				if (tallyView.isValid()) {
 					tallyPoint = new Point(p.x - tallyView.getWidth(),p.y - tallyView.getHeight());

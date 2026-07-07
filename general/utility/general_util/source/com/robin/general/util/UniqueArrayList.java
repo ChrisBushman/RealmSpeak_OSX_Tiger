@@ -5,7 +5,7 @@ import java.util.ArrayList;
 /**
  * This isn't a complete implementation, but works for what I want right now.
  */
-public class UniqueArrayList<T> extends ArrayList<T> {
+public class UniqueArrayList extends ArrayList {
 	private boolean allowNull;
 	
 	public UniqueArrayList() {
@@ -15,7 +15,7 @@ public class UniqueArrayList<T> extends ArrayList<T> {
 		super();
 		this.allowNull = allowNull;
 	}
-	public boolean add(T obj) {
+	public boolean add(Object obj) {
 		if ((allowNull || obj!=null) && !contains(obj)){
 			return super.add(obj);
 		}

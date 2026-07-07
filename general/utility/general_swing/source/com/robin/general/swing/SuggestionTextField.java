@@ -18,15 +18,33 @@ public class SuggestionTextField extends JTextField {
 
 	private static final String COMMIT_ACTION = "commit";
 
-	private static enum Mode {
-		INSERT, COMPLETION
+	private static final class Mode {
+		private final String _name;
+		private final int _ordinal;
+		private Mode(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final Mode INSERT = new Mode("INSERT", 0);
+		public static final Mode COMPLETION = new Mode("COMPLETION", 1);
+
+		private static final Mode[] _VALUES = { INSERT, COMPLETION };
+		public static Mode[] values() { Mode[] r = new Mode[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static Mode valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 
 	private Mode mode = Mode.INSERT;
 	private boolean lineModeOn = false;
 	private boolean autoSpace = true;
 
-	private ArrayList<String> words;
+	private ArrayList words;
 
 	public SuggestionTextField() {
 		super();
@@ -38,7 +56,7 @@ public class SuggestionTextField extends JTextField {
 		init();
 	}
 
-	public void setWords(ArrayList<String> words) {
+	public void setWords(ArrayList words) {
 		this.words = words;
 		Collections.sort(this.words);
 	}
@@ -109,7 +127,7 @@ public class SuggestionTextField extends JTextField {
 		String prefix = content.substring(wordStart + 1);
 		int n = Collections.binarySearch(words, prefix);
 		if (n < 0 && -n <= words.size()) {
-			String match = words.get(-n - 1);
+			String match = (String) words.get(-n - 1);
 			if (match.startsWith(prefix)) {
 				// A completion is found
 				String completion = match.substring(cursorPos - wordStart);
@@ -168,7 +186,7 @@ public class SuggestionTextField extends JTextField {
 	}
 
 	public static void main(String[] args) {
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList list = new ArrayList();
 		// list.add("DragonsLair");
 		// list.add("UndeadTown");
 		// list.add("DraconicTemple");

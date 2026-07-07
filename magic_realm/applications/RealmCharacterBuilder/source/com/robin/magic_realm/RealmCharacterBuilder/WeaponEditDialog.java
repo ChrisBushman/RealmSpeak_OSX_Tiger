@@ -42,7 +42,7 @@ public class WeaponEditDialog extends AggressiveDialog {
 	private ButtonPanel throwingOption;
 	private ButtonPanel twoHandedOption;
 	
-	private ArrayList<JRadioButton> slButtons;
+	private ArrayList slButtons;
 	
 	private FileManager graphicsManager;
 	
@@ -200,7 +200,7 @@ public class WeaponEditDialog extends AggressiveDialog {
 					weapon.setThisAttribute(Constants.WEAPON_START_LOCATION,button.getText());
 				}
 			};
-			slButtons = new ArrayList<JRadioButton>();
+			slButtons = new ArrayList();
 			for (int i=0;i<RealmCharacterConstants.STARTING_LOCATION_OPTION.length;i++) {
 				JRadioButton button = new JRadioButton(RealmCharacterConstants.STARTING_LOCATION_OPTION[i],i==0);
 				startingLocationPanel.add(button);
@@ -236,8 +236,9 @@ public class WeaponEditDialog extends AggressiveDialog {
 		pickButton = new JButton("Pick");
 		pickButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<String> list = TemplateLibrary.getSingleton().getAllWeaponNames();
-				for (String val:model.getAllWeaponNames()) {
+				ArrayList list = TemplateLibrary.getSingleton().getAllWeaponNames();
+				for (java.util.Iterator _j14it898 = (model.getAllWeaponNames()).iterator(); _j14it898.hasNext(); ) {
+				  String val = (String) _j14it898.next();
 					if (!list.contains(val)) {
 						list.add(val);
 					}
@@ -385,7 +386,8 @@ public class WeaponEditDialog extends AggressiveDialog {
 		}
 		String weaponStart = weapon.getThisAttribute(Constants.WEAPON_START_LOCATION);
 		if (weaponStart!=null) {
-			for (JRadioButton button:slButtons) {
+			for (java.util.Iterator _j14it899 = (slButtons).iterator(); _j14it899.hasNext(); ) {
+			  JRadioButton button = (JRadioButton) _j14it899.next();
 				if (weaponStart.equals(button.getText())) {
 					button.setSelected(true);
 					break;

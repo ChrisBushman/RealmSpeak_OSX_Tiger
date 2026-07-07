@@ -15,7 +15,7 @@ public class StopWatch {
     private boolean running = false;
 
     public String toString() {
-    	StringBuilder sb = new StringBuilder();
+    	StringBuffer sb = new StringBuffer();
     	sb.append(startTime);
     	sb.append(" to ");
     	sb.append(stopTime);

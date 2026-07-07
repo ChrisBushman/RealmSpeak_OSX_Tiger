@@ -16,7 +16,7 @@ public abstract class SpellTargeting {
 	protected CombatFrame combatFrame;
 	protected SpellWrapper spell;
 	
-	protected ArrayList<GameObject> gameObjects;
+	protected ArrayList gameObjects;
 	
 	public abstract boolean populate(BattleModel battleModel,RealmComponent activeParticipant);
 	public abstract boolean assign(HostPrefWrapper hostPrefs,CharacterWrapper activeCharacter);
@@ -25,7 +25,7 @@ public abstract class SpellTargeting {
 	protected SpellTargeting(CombatFrame combatFrame,SpellWrapper spell) {
 		this.combatFrame = combatFrame;
 		this.spell = spell;
-		gameObjects = new ArrayList<GameObject>();
+		gameObjects = new ArrayList();
 	}
 	protected boolean allowTargetingHirelings() {
 		return combatFrame.allowsTreachery() || (spell.isBenevolent() && combatFrame.getHostPrefs().hasPref(Constants.TE_BENEVOLENT_SPELLS)) || spell.isBenevolentForHirelings();
@@ -247,7 +247,7 @@ public abstract class SpellTargeting {
 		return targeting;
 	}
 	
-	public ArrayList<GameObject> getPossibleTargets() {
+	public ArrayList getPossibleTargets() {
 		return gameObjects;
 	}
 	

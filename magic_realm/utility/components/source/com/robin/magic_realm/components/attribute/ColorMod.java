@@ -8,18 +8,18 @@ import com.robin.general.util.HashLists;
 
 public class ColorMod {
 	
-	private HashLists<Integer,Integer> conversions;
+	private HashLists conversions;
 	
 	private ColorMod(String mod) {	
 		setMod(mod);
 	}
 	public boolean willAffect(ColorMagic cm) {
-		return conversions.containsKey(cm.getColorNumber());
+		return conversions.containsKey(Integer.valueOf(cm.getColorNumber()));
 	}
 	private void setMod(String mod) {
 		// Like 1.2;1.3 (means white->grey, white->gold)
 		boolean error = false;
-		conversions = new HashLists<Integer,Integer>();
+		conversions = new HashLists();
 		StringTokenizer changes = new StringTokenizer(mod,";");
 		try {
 			while(changes.hasMoreTokens()) {
@@ -27,7 +27,7 @@ public class ColorMod {
 				int dot = change.indexOf('.');
 				int fromColor = Integer.parseInt(change.substring(0,dot));
 				int toColor = Integer.parseInt(change.substring(dot+1));
-				conversions.put(fromColor,toColor);
+				conversions.put(Integer.valueOf(fromColor),Integer.valueOf(toColor));
 			}
 		}
 		catch(IndexOutOfBoundsException ex) {
@@ -42,20 +42,23 @@ public class ColorMod {
 	}
 	
 	public ColorMagic convertColor(ColorMagic cm) {
-		if (cm!=null && conversions.containsKey(cm.getColorNumber())) {
-			for (int toColorNumber:conversions.getList(cm.getColorNumber())) {
+		if (cm!=null && conversions.containsKey(Integer.valueOf(cm.getColorNumber()))) {
+			for (java.util.Iterator _j14it1461 = (conversions.getList(Integer.valueOf(cm.getColorNumber()))).iterator(); _j14it1461.hasNext(); ) {
+			  int toColorNumber = ((Integer) _j14it1461.next()).intValue();
 				return new ColorMagic(toColorNumber,cm.isInfinite()); // Just return the first in this case...
 			}
 		}
 		return null;
 	}
 	
-	public ArrayList<ColorMagic> getModifiedColors(ArrayList<ColorMagic> colors) {
-		ArrayList<ColorMagic> modColors = new ArrayList<ColorMagic>();
+	public ArrayList getModifiedColors(ArrayList colors) {
+		ArrayList modColors = new ArrayList();
 		
-		for (ColorMagic fromColor:colors) {
-			if (conversions.containsKey(fromColor.getColorNumber())) {
-				for (int toColorNumber:conversions.getList(fromColor.getColorNumber())) {
+		for (java.util.Iterator _j14it1462 = (colors).iterator(); _j14it1462.hasNext(); ) {
+		  ColorMagic fromColor = (ColorMagic) _j14it1462.next();
+			if (conversions.containsKey(Integer.valueOf(fromColor.getColorNumber()))) {
+				for (java.util.Iterator _j14it1463 = (conversions.getList(Integer.valueOf(fromColor.getColorNumber()))).iterator(); _j14it1463.hasNext(); ) {
+				  int toColorNumber = ((Integer) _j14it1463.next()).intValue();
 					modColors.add(new ColorMagic(toColorNumber,fromColor.isInfinite()));
 				}
 			}
@@ -63,37 +66,42 @@ public class ColorMod {
 		return modColors;
 	}
 
-	private ArrayList<ColorMagic> stripConvertedColors(ArrayList<ColorMagic> colors) {
-		ArrayList<ColorMagic> filteredColors = new ArrayList<ColorMagic>();
-		for(ColorMagic magic:colors) {
-			if (!conversions.containsKey(magic.getColorNumber())) {
+	private ArrayList stripConvertedColors(ArrayList colors) {
+		ArrayList filteredColors = new ArrayList();
+		for (java.util.Iterator _j14it1464 = (colors).iterator(); _j14it1464.hasNext(); ) {
+		  ColorMagic magic = (ColorMagic) _j14it1464.next();
+			if (!conversions.containsKey(Integer.valueOf(magic.getColorNumber()))) {
 				filteredColors.add(magic);
 			}
 		}
 		return filteredColors;
 	}
 	
-	public static ArrayList<ColorMagic> getConvertedColorsForThings(ArrayList<GameObject> things,ArrayList<ColorMagic> colors) {
-		ArrayList<ColorMod> list = createColorMods(things);
+	public static ArrayList getConvertedColorsForThings(ArrayList things,ArrayList colors) {
+		ArrayList list = createColorMods(things);
 		if (!list.isEmpty()) {
-			ArrayList<ColorMagic> modified = new ArrayList<ColorMagic>();
-			for (ColorMod mod:list) {
-				for (ColorMagic magic:mod.getModifiedColors(colors)) {
+			ArrayList modified = new ArrayList();
+			for (java.util.Iterator _j14it1465 = (list).iterator(); _j14it1465.hasNext(); ) {
+			  ColorMod mod = (ColorMod) _j14it1465.next();
+				for (java.util.Iterator _j14it1466 = (mod.getModifiedColors(colors)).iterator(); _j14it1466.hasNext(); ) {
+				  ColorMagic magic = (ColorMagic) _j14it1466.next();
 					if (!magic.isInfinite() || !modified.contains(magic)) {
 						modified.add(magic);
 					}
 				}
 			}
-			for (ColorMod mod:list) {
+			for (java.util.Iterator _j14it1467 = (list).iterator(); _j14it1467.hasNext(); ) {
+			  ColorMod mod = (ColorMod) _j14it1467.next();
 				colors = mod.stripConvertedColors(colors);
 			}
 			colors.addAll(modified);
 		}
 		return colors;
 	}
-	private static ArrayList<ColorMod> createColorMods(ArrayList<GameObject> things) {
-		ArrayList<ColorMod> list = new ArrayList<ColorMod>();
-		for (GameObject thing:things) {
+	private static ArrayList createColorMods(ArrayList things) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it1468 = (things).iterator(); _j14it1468.hasNext(); ) {
+		  GameObject thing = (GameObject) _j14it1468.next();
 			ColorMod mod = createColorMod(thing);
 			if (mod!=null) {
 				list.add(mod);

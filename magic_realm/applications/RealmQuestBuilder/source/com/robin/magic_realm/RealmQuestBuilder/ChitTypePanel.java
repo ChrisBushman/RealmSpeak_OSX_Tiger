@@ -15,34 +15,28 @@ public class ChitTypePanel extends JPanel {
 	JCheckBox sizeType;
 	JCheckBox horseType;
 	
-	public ChitTypePanel(ArrayList<String> types) {
+	public ChitTypePanel(ArrayList types) {
 		initComponents();
 		if (types==null) return;
-		for(String type:types) {
+		for (java.util.Iterator _j14it338 = (types).iterator(); _j14it338.hasNext(); ) {
+		  String type = (String) _j14it338.next();
 			ChitItemType cit = ChitItemType.valueOf(type);
-			switch(cit) {
-				case None:
-					treasureType.setSelected(false);
-					weaponType.setSelected(false);
-					armorType.setSelected(false);
-					sizeType.setSelected(false);
-					horseType.setSelected(false);
-					break;
-				case Treasure:
-					treasureType.setSelected(true);
-					break;
-				case Weapon:
-					weaponType.setSelected(true);
-					break;
-				case Armor:
-					armorType.setSelected(true);
-					break;
-				case Great:
-					sizeType.setSelected(true);
-					break;
-				case Horse:
-					horseType.setSelected(true);
-					break;
+			if (cit == ChitItemType.None) {
+				treasureType.setSelected(false);
+				weaponType.setSelected(false);
+				armorType.setSelected(false);
+				sizeType.setSelected(false);
+				horseType.setSelected(false);
+			} else if (cit == ChitItemType.Treasure) {
+				treasureType.setSelected(true);
+			} else if (cit == ChitItemType.Weapon) {
+				weaponType.setSelected(true);
+			} else if (cit == ChitItemType.Armor) {
+				armorType.setSelected(true);
+			} else if (cit == ChitItemType.Great) {
+				sizeType.setSelected(true);
+			} else if (cit == ChitItemType.Horse) {
+				horseType.setSelected(true);
 			}
 		}
 	}
@@ -60,9 +54,9 @@ public class ChitTypePanel extends JPanel {
 		add(sizeType);
 		setBorder(BorderFactory.createEtchedBorder());
 	}
-	public ArrayList<ChitItemType> getChitItemTypes() {
+	public ArrayList getChitItemTypes() {
 		boolean allUnchecked = !treasureType.isSelected() && !weaponType.isSelected() && !armorType.isSelected( )&& !sizeType.isSelected() && !horseType.isSelected();
-		ArrayList<ChitItemType> types = new ArrayList<ChitItemType>();
+		ArrayList types = new ArrayList();
 		if (allUnchecked) {
 			types.add(ChitItemType.None);
 		}
@@ -75,7 +69,7 @@ public class ChitTypePanel extends JPanel {
 		}
 		return types;
 	}
-	public ArrayList<String> getChitTypeList() {
+	public ArrayList getChitTypeList() {
 		return ChitItemType.listToStrings(getChitItemTypes());
 	}
 }

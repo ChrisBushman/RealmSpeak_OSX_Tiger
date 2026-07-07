@@ -47,7 +47,7 @@ public class VersionManager {
 				//	- extra_actions changes from a string attribute, to an attributeList
 				if (extraActions!=null) {
 					extraActions = extraActions.replace("SP", "E");
-					ArrayList<String> list = new ArrayList<String>();
+					ArrayList list = new ArrayList();
 					list.add(extraActions);
 					character.setAttributeList(levelKey,Constants.EXTRA_ACTIONS,list);
 				}
@@ -55,7 +55,7 @@ public class VersionManager {
 				// - translate demon_immunity into the more generic monster_immunity
 				if (character.hasAttribute(levelKey,"demon_immunity")) {
 					character.removeAttribute(levelKey,"demon_immunity");
-					ArrayList<String> demons = new ArrayList<String>();
+					ArrayList demons = new ArrayList();
 					demons.add("Demon");
 					demons.add("Flying Demon");
 					demons.add("Imp");
@@ -65,9 +65,9 @@ public class VersionManager {
 				
 				// - fix lost city, lost castle, and ruins diemods
 				if (character.hasAttribute(levelKey,Constants.DIEMOD)) {
-					ArrayList<String> list = character.getAttributeList(levelKey,Constants.DIEMOD);
+					ArrayList list = character.getAttributeList(levelKey,Constants.DIEMOD);
 					if (!list.isEmpty()) {
-						String val = list.get(0);
+						String val = (String) list.get(0);
 						StringUtilities.findAndReplace(val,"Lost City","Lost City%");
 						StringUtilities.findAndReplace(val,"Lost Castle","Lost Castle%");
 						StringUtilities.findAndReplace(val,"%ruins","%ruins%");
@@ -80,7 +80,8 @@ public class VersionManager {
 			character.setThisAttribute("start",start);
 			
 			// - fix character_chit to icon_type
-			for (GameObject item : character.getHold()) {
+			for (java.util.Iterator _j14it913 = (character.getHold()).iterator(); _j14it913.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it913.next();
 				if (item.hasThisAttribute("character_chit")) {
 					String iconType = item.getThisAttribute("character_chit");
 					item.setThisAttribute("icon_type",iconType);
@@ -98,7 +99,7 @@ public class VersionManager {
 			for (int i=1;i<=4;i++) {
 				String levelKey = "level_"+i;
 				if (character.hasAttribute(levelKey,"monster_immunity")) {
-					ArrayList<String> monsters = new ArrayList<String>(character.getAttributeList(levelKey,"monster_immunity"));
+					ArrayList monsters = new ArrayList(character.getAttributeList(levelKey,"monster_immunity"));
 					if (monsters.contains("Flying Demon")) {
 						monsters.remove("Flying Demon");
 						monsters.add("Winged Demon");

@@ -14,10 +14,12 @@ public class SpellTargetingOtherArtifact extends SpellTargetingSingle {
 	}
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {		
-		for (RealmComponent participant : combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true)) {
+		for (java.util.Iterator _j14it804 = (combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true)).iterator(); _j14it804.hasNext(); ) {
+		  RealmComponent participant = (RealmComponent) _j14it804.next();
 			if (!participant.isCharacter()) continue;
 			CharacterWrapper character = new CharacterWrapper(participant.getGameObject());
-			for (GameObject item : character.getInventory()) {
+			for (java.util.Iterator _j14it805 = (character.getInventory()).iterator(); _j14it805.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it805.next();
 				if (item.hasThisAttribute("artifact") || item.hasThisAttribute("book")) {
 					RealmComponent rc = RealmComponent.getRealmComponent(item);
 					if (!rc.isEnchanted()) {

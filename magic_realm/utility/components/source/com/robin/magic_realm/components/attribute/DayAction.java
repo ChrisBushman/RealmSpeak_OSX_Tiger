@@ -2,27 +2,44 @@ package com.robin.magic_realm.components.attribute;
 
 public class DayAction {
 	
-	public enum ActionId {
-		NoAction,
-		Hide,
-		Move,
-		Search,
-		Trade,
-		Rest,
-		Alert,
-		Hire,
-		Follow,
-		Spell,
-		SpellPrep,
-		EnhPeer,
-		Fly,
-		RemSpell,
-		Cache,
-		Heal,
-		Repair,
-		Fortify,
-		Steal,
-		Offroad
+	public static final class ActionId {
+		private final String _name;
+		private final int _ordinal;
+		private ActionId(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final ActionId NoAction = new ActionId("NoAction", 0);
+		public static final ActionId Hide = new ActionId("Hide", 1);
+		public static final ActionId Move = new ActionId("Move", 2);
+		public static final ActionId Search = new ActionId("Search", 3);
+		public static final ActionId Trade = new ActionId("Trade", 4);
+		public static final ActionId Rest = new ActionId("Rest", 5);
+		public static final ActionId Alert = new ActionId("Alert", 6);
+		public static final ActionId Hire = new ActionId("Hire", 7);
+		public static final ActionId Follow = new ActionId("Follow", 8);
+		public static final ActionId Spell = new ActionId("Spell", 9);
+		public static final ActionId SpellPrep = new ActionId("SpellPrep", 10);
+		public static final ActionId EnhPeer = new ActionId("EnhPeer", 11);
+		public static final ActionId Fly = new ActionId("Fly", 12);
+		public static final ActionId RemSpell = new ActionId("RemSpell", 13);
+		public static final ActionId Cache = new ActionId("Cache", 14);
+		public static final ActionId Heal = new ActionId("Heal", 15);
+		public static final ActionId Repair = new ActionId("Repair", 16);
+		public static final ActionId Fortify = new ActionId("Fortify", 17);
+		public static final ActionId Steal = new ActionId("Steal", 18);
+		public static final ActionId Offroad = new ActionId("Offroad", 19);
+
+		private static final ActionId[] _VALUES = { NoAction, Hide, Move, Search, Trade, Rest, Alert, Hire, Follow, Spell, SpellPrep, EnhPeer, Fly, RemSpell, Cache, Heal, Repair, Fortify, Steal, Offroad };
+		public static ActionId[] values() { ActionId[] r = new ActionId[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static ActionId valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	public static DayAction HIDE_ACTION = new DayAction(ActionId.Hide,"Hide","H","hide");

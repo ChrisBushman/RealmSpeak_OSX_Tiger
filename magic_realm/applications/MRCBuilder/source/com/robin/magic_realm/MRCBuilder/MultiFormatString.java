@@ -65,7 +65,7 @@ public class MultiFormatString {
 	}
 
 	private void init(String s) {
-		formattedStrings = new Vector<FormattedString>();
+		formattedStrings = new Vector();
 		addFormattedText(s);
 		initFonts();
 	}
@@ -97,7 +97,7 @@ public class MultiFormatString {
 		int i1 = 0;
 		int j1 = 0;
 		for (int k1 = 0; k1 < formattedStrings.size(); k1++) {
-			FormattedString formattedstring = formattedStrings.elementAt(k1);
+			FormattedString formattedstring = (FormattedString) formattedStrings.elementAt(k1);
 			g.setFont(getFont(formattedstring));
 			j1 = g.getFontMetrics().getAscent();
 			String s1;
@@ -210,7 +210,7 @@ public class MultiFormatString {
 	private void add(String s, int i) {
 		FormattedString formattedstring = null;
 		if (formattedStrings.size() > 0)
-			formattedstring = formattedStrings.lastElement();
+			formattedstring = (FormattedString) formattedStrings.lastElement();
 		if (formattedstring != null && formattedstring.sameType(i))
 			formattedstring.append(s);
 		else
@@ -218,7 +218,7 @@ public class MultiFormatString {
 	}
 
 	public static String[] breakupString(String s) {
-		Vector<String> vector = new Vector<String>();
+		Vector vector = new Vector();
 		String s1 = new String(s);
 		for (int i = s1.indexOf(" "); i >= 0; i = s1.indexOf(" ")) {
 			vector.addElement(s1.substring(0, i + 1));
@@ -240,7 +240,7 @@ public class MultiFormatString {
 	public String toString() {
 		StringBuffer stringbuffer = new StringBuffer("MultiFormatString:");
 		for (int i = 0; i < formattedStrings.size(); i++) {
-			FormattedString formattedstring = formattedStrings.elementAt(i);
+			FormattedString formattedstring = (FormattedString) formattedStrings.elementAt(i);
 			stringbuffer.append("  " + formattedstring.toString() + "\n");
 		}
 
@@ -252,5 +252,5 @@ public class MultiFormatString {
 	private Font italicFont;
 	private String fontName;
 	private int fontSize;
-	private Vector<FormattedString> formattedStrings;
+	private Vector formattedStrings;
 }

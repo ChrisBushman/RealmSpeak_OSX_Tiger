@@ -42,22 +42,23 @@ public class RealmCharacterBuilderModel {
 	private ImageIcon characterSymbol = null; // initially, it is defaulted to question.gif
 	private ImageIcon pictureIcon = null;
 	
-	private Hashtable<String,GameObject> weaponHash;
-	private Hashtable<String,GameObject> armorHash;
+	private Hashtable weaponHash;
+	private Hashtable armorHash;
 	
 	public RealmCharacterBuilderModel(GameData data) {
-		ArrayList<GameObject> list = new ArrayList<GameObject>(data.getGameObjects());
+		ArrayList list = new ArrayList(data.getGameObjects());
 		init(list);
 	}
 	
-	public RealmCharacterBuilderModel(Collection<GameObject> collection) {
+	public RealmCharacterBuilderModel(Collection collection) {
 		init(collection);
 	}
 	
-	private void init(Collection<GameObject> collection) {
+	private void init(Collection collection) {
 		chit = new GameObject[12];
 		int n=0;
-		for (GameObject go : collection) {
+		for (java.util.Iterator _j14it914 = (collection).iterator(); _j14it914.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it914.next();
 			String opt = go.getThisAttribute("optional");
 			if ("add".equals(opt)) {
 				continue;
@@ -73,15 +74,17 @@ public class RealmCharacterBuilderModel {
 				}
 			}
 		}
-		weaponHash = new Hashtable<String,GameObject>();
+		weaponHash = new Hashtable();
 		GamePool pool = new GamePool(character.getGameObject().getGameData().getGameObjects());
-		ArrayList<GameObject> weapons = pool.find(TemplateLibrary.WEAPON_QUERY);
-		for (GameObject go:weapons) {
+		ArrayList weapons = pool.find(TemplateLibrary.WEAPON_QUERY);
+		for (java.util.Iterator _j14it915 = (weapons).iterator(); _j14it915.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it915.next();
 			weaponHash.put(go.getName(),go);
 		}
-		armorHash = new Hashtable<String,GameObject>();
-		ArrayList<GameObject> armors = pool.find(TemplateLibrary.ARMOR_QUERY);
-		for (GameObject go:armors) {
+		armorHash = new Hashtable();
+		ArrayList armors = pool.find(TemplateLibrary.ARMOR_QUERY);
+		for (java.util.Iterator _j14it916 = (armors).iterator(); _j14it916.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it916.next();
 			armorHash.put(go.getName(),go);
 		}
 	}
@@ -109,15 +112,15 @@ public class RealmCharacterBuilderModel {
 	public CharacterChitComponent getCharacterToken() {
 		return characterToken;
 	}
-	public ArrayList<GameObject> getAllChits() {
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
+	public ArrayList getAllChits() {
+		ArrayList list = new ArrayList();
 		for (int i=1;i<=4;i++) {
 			list.addAll(getChits(i));
 		}
 		return list;
 	}
-	public ArrayList<GameObject> getChits(int level) {
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
+	public ArrayList getChits(int level) {
+		ArrayList list = new ArrayList();
 		int start = ((level-1)*3);
 		for (int i=start;i<start+3;i++) {
 			list.add(chit[i]);
@@ -171,7 +174,7 @@ public class RealmCharacterBuilderModel {
 		weaponHash.put(name,weapon);
 	}
 	public GameObject getWeapon(String name) {
-		return weaponHash.get(name);
+		return (GameObject) weaponHash.get(name);
 	}
 	public boolean hasWeapon(String name) {
 		return weaponHash.containsKey(name);
@@ -180,7 +183,7 @@ public class RealmCharacterBuilderModel {
 		armorHash.put(name,armor);
 	}
 	public GameObject getArmor(String name) {
-		return armorHash.get(name);
+		return (GameObject) armorHash.get(name);
 	}
 	public boolean hasArmor(String name) {
 		return armorHash.containsKey(name);
@@ -194,8 +197,8 @@ public class RealmCharacterBuilderModel {
 	/**
 	 * This will grab the item names from all four levels, and remove any GameObjects that are NOT used
 	 */
-	private void updateItemUsage(String itemType, String query, Hashtable<String,GameObject> hashtable) {
-		ArrayList<String> items = new ArrayList<String>();
+	private void updateItemUsage(String itemType, String query, Hashtable hashtable) {
+		ArrayList items = new ArrayList();
 		for (int i=1;i<=4;i++) {
 			String levelKey = "level_"+i;
 			String item = character.getGameObject().getAttribute(levelKey,itemType);
@@ -204,23 +207,25 @@ public class RealmCharacterBuilderModel {
 			}
 		}
 		GamePool pool = new GamePool(character.getGameObject().getGameData().getGameObjects());
-		ArrayList<GameObject> toRemove = new ArrayList<GameObject>();
-		ArrayList<GameObject> currentItems = pool.find(query);
-		for (GameObject go:currentItems) {
+		ArrayList toRemove = new ArrayList();
+		ArrayList currentItems = pool.find(query);
+		for (java.util.Iterator _j14it917 = (currentItems).iterator(); _j14it917.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it917.next();
 			if (!items.contains(go.getName())) {
 				toRemove.add(go);
 			}
 		}
-		for (GameObject go:toRemove) {
+		for (java.util.Iterator _j14it918 = (toRemove).iterator(); _j14it918.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it918.next();
 			hashtable.remove(go.getName());
 			character.getGameObject().getGameData().removeObject(go);
 		}
 	}
-	public ArrayList<String> getAllWeaponNames() {
-		return new ArrayList<String>(weaponHash.keySet());
+	public ArrayList getAllWeaponNames() {
+		return new ArrayList(weaponHash.keySet());
 	}
-	public ArrayList<String> getAllArmorNames() {
-		return new ArrayList<String>(armorHash.keySet());
+	public ArrayList getAllArmorNames() {
+		return new ArrayList(armorHash.keySet());
 	}
 	public boolean saveToFile(File file,boolean graphicsOnly) {
 		String name = character.getGameObject().getName().replace(' ','_');
@@ -248,7 +253,7 @@ public class RealmCharacterBuilderModel {
 				xmlFile.delete();
 			}
 			
-			ArrayList<File> fileList = new ArrayList<File>();
+			ArrayList fileList = new ArrayList();
 			fileList.add(xmlFile);
 			
 			// Save the images
@@ -264,8 +269,9 @@ public class RealmCharacterBuilderModel {
 				exportImage(symbolFile,getCharacterSymbol());
 				fileList.add(symbolFile);
 			}
-			ArrayList<String> weaponNames = getAllWeaponNames();
-			for (String weaponName:weaponNames) {
+			ArrayList weaponNames = getAllWeaponNames();
+			for (java.util.Iterator _j14it919 = (weaponNames).iterator(); _j14it919.hasNext(); ) {
+			  String weaponName = (String) _j14it919.next();
 				GameObject go = getWeapon(weaponName);
 				String iconFolder = go.getThisAttribute(Constants.ICON_FOLDER);
 				if (iconFolder.startsWith(RealmCharacterConstants.CUSTOM_ICON_BASE_PATH)) {
@@ -279,8 +285,9 @@ public class RealmCharacterBuilderModel {
 					fileList.add(weaponFile);
 				}
 			}
-			ArrayList<String> armorNames = getAllArmorNames();
-			for (String armorName:armorNames) {
+			ArrayList armorNames = getAllArmorNames();
+			for (java.util.Iterator _j14it920 = (armorNames).iterator(); _j14it920.hasNext(); ) {
+			  String armorName = (String) _j14it920.next();
 				GameObject go = getArmor(armorName);
 				String iconFolder = go.getThisAttribute(Constants.ICON_FOLDER);
 				if (iconFolder.startsWith(RealmCharacterConstants.CUSTOM_ICON_BASE_PATH)) {
@@ -309,8 +316,9 @@ public class RealmCharacterBuilderModel {
 			
 			if (!graphicsOnly) {
 				// Now zip it all up
-				ZipUtilities.zip(file,fileList.toArray(new File[fileList.size()]));
-				for (File del:fileList) {
+				ZipUtilities.zip(file,(File[]) fileList.toArray(new File[fileList.size()]));
+				for (java.util.Iterator _j14it921 = (fileList).iterator(); _j14it921.hasNext(); ) {
+				  File del = (File) _j14it921.next();
 					del.delete();
 				}
 			}
@@ -345,8 +353,8 @@ public class RealmCharacterBuilderModel {
 	public void setPictureIcon(ImageIcon pictureIcon) {
 		this.pictureIcon = pictureIcon;
 	}
-	public ArrayList<GameObject> getAllUniqueArmor(GameData magicRealmData) {
-		ArrayList<String> armorNames = new ArrayList<String>();
+	public ArrayList getAllUniqueArmor(GameData magicRealmData) {
+		ArrayList armorNames = new ArrayList();
 		for (int i=1;i<=4;i++) {
 			String armor = character.getGameObject().getAttribute("level_"+i,"armor");
 			if (armor!=null) {
@@ -359,9 +367,10 @@ public class RealmCharacterBuilderModel {
 				}
 			}
 		}
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
+		ArrayList list = new ArrayList();
 		GamePool pool = new GamePool(magicRealmData.getGameObjects());
-		for (String armorName:armorNames) {
+		for (java.util.Iterator _j14it922 = (armorNames).iterator(); _j14it922.hasNext(); ) {
+		  String armorName = (String) _j14it922.next();
 			GameObject template = pool.findFirst("!magic,Name="+armorName);
 			GameObject go = GameObject.createEmptyGameObject();
 			go.copyAttributesFrom(template);
@@ -369,47 +378,51 @@ public class RealmCharacterBuilderModel {
 		}
 		return list;
 	}
-	public ArrayList<GameObject> getAllUniqueWeapons() {
-		ArrayList<String> weaponNames = new ArrayList<String>();
+	public ArrayList getAllUniqueWeapons() {
+		ArrayList weaponNames = new ArrayList();
 		for (int i=1;i<=4;i++) {
 			String name = character.getGameObject().getAttribute("level_"+i,"weapon");
 			if (name!=null && !weaponNames.contains(name)) {
 				weaponNames.add(name);
 			}
 		}
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
-		for (String weaponName:weaponNames) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it923 = (weaponNames).iterator(); _j14it923.hasNext(); ) {
+		  String weaponName = (String) _j14it923.next();
 			GameObject go = getWeapon(weaponName);
 			list.add(go);
 		}
 		return list;
 	}
-	public ArrayList<GameObject> getAllUniqueArmor() {
-		ArrayList<String> armorNames = new ArrayList<String>();
+	public ArrayList getAllUniqueArmor() {
+		ArrayList armorNames = new ArrayList();
 		for (int i=1;i<=4;i++) {
 			String name = character.getGameObject().getAttribute("level_"+i,"custom_armor");
 			if (name!=null && !armorNames.contains(name)) {
 				armorNames.add(name);
 			}
 		}
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
-		for (String armorName:armorNames) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it924 = (armorNames).iterator(); _j14it924.hasNext(); ) {
+		  String armorName = (String) _j14it924.next();
 			GameObject go = getWeapon(armorName);
 			list.add(go);
 		}
 		return list;
 	}
-	public ArrayList<GameObject> getAllCompanions() {
-		ArrayList<String> companionNames = new ArrayList<String>();
+	public ArrayList getAllCompanions() {
+		ArrayList companionNames = new ArrayList();
 		for (int i=1;i<=4;i++) {
-			ArrayList<String> list = character.getGameObject().getAttributeList("level_"+i,Constants.COMPANION_NAME);
+			ArrayList list = character.getGameObject().getAttributeList("level_"+i,Constants.COMPANION_NAME);
 			if (list!=null) {
 				companionNames.addAll(list);
 			}
 		}
-		ArrayList<GameObject> ret = new ArrayList<GameObject>();
-		for (String name:companionNames) {
-			for (GameObject go : character.getGameObject().getGameData().getGameObjects()) {
+		ArrayList ret = new ArrayList();
+		for (java.util.Iterator _j14it925 = (companionNames).iterator(); _j14it925.hasNext(); ) {
+		  String name = (String) _j14it925.next();
+			for (java.util.Iterator _j14it926 = (character.getGameObject().getGameData().getGameObjects()).iterator(); _j14it926.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it926.next();
 				if (name.equals(go.getName())) {
 					ret.add(go);
 					if (go.getHoldCount()>0) {
@@ -422,8 +435,8 @@ public class RealmCharacterBuilderModel {
 		return ret;
 	}
 	
-	public ArrayList<GameObject> getAllExtraChits() {
-		ArrayList<GameObject> ret = new ArrayList<GameObject>();
+	public ArrayList getAllExtraChits() {
+		ArrayList ret = new ArrayList();
 		for (int n=1;n<=4;n++) {
 			String levelKey = "level_"+n;
 			String blockName = Constants.BONUS_CHIT+levelKey;
@@ -436,8 +449,8 @@ public class RealmCharacterBuilderModel {
 		return ret;
 	}
 	
-	public ArrayList<GameObject> getAllExtraInventory() {
-		ArrayList<GameObject> ret = new ArrayList<GameObject>();
+	public ArrayList getAllExtraInventory() {
+		ArrayList ret = new ArrayList();
 		for (int n=1;n<=4;n++) {
 			String levelKey = "level_"+n;
 			String blockName = Constants.BONUS_INVENTORY+levelKey;
@@ -500,14 +513,15 @@ public class RealmCharacterBuilderModel {
 		character.setThisAttribute(Constants.CUSTOM_CHARACTER);
 		
 		// Create all the chits
-		for (GameObject chitTemplate : template.getHold()) {
+		for (java.util.Iterator _j14it927 = (template.getHold()).iterator(); _j14it927.hasNext(); ) {
+		  GameObject chitTemplate = (GameObject) _j14it927.next();
 			GameObject chit = gameData.createNewObject();
 			chit.copyAttributesFrom(chitTemplate);
 			character.add(chit);
 		}
 		
 		// Create all the weapons
-		ArrayList<String> weaponNames = new ArrayList<String>();
+		ArrayList weaponNames = new ArrayList();
 		for (int i=1;i<=4;i++) {
 			String name = template.getAttribute("level_"+i,"weapon");
 			if (!weaponNames.contains(name)) {
@@ -516,9 +530,10 @@ public class RealmCharacterBuilderModel {
 		}
 		if (!weaponNames.isEmpty()) {
 			GamePool pool = new GamePool(template.getGameData().getGameObjects());
-			ArrayList<GameObject> allWeapons = pool.find(TemplateLibrary.WEAPON_QUERY);
-			ArrayList<String> createdWeapons = new ArrayList<String>();
-			for (GameObject go:allWeapons) {
+			ArrayList allWeapons = pool.find(TemplateLibrary.WEAPON_QUERY);
+			ArrayList createdWeapons = new ArrayList();
+			for (java.util.Iterator _j14it928 = (allWeapons).iterator(); _j14it928.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it928.next();
 				if (weaponNames.contains(go.getName())) {
 					weaponNames.remove(go.getName());
 				}
@@ -531,8 +546,9 @@ public class RealmCharacterBuilderModel {
 		}
 		
 		// Copy the relationships so they show
-		OrderedHashtable<String, Object> hash = character.getAttributeBlock(Constants.BASE_RELATIONSHIP);
-		for (String key : hash.keySet()) {
+		OrderedHashtable hash = character.getAttributeBlock(Constants.BASE_RELATIONSHIP);
+		for (java.util.Iterator _j14it929 = (hash.keySet()).iterator(); _j14it929.hasNext(); ) {
+		  String key = (String) _j14it929.next();
 			String val = (String)hash.get(key);
 			character.setAttribute(Constants.GAME_RELATIONSHIP,key,val);
 		}
@@ -634,7 +650,7 @@ public class RealmCharacterBuilderModel {
 		if (System.getProperty("customFolder")!=null) {
 			customFolderPath = System.getProperty("customFolder")+File.separator;
 		}
-		ArrayList<String> unknownChars = new ArrayList<String>();
+		ArrayList unknownChars = new ArrayList();
 		File customFolder = new File(customFolderPath);
 		if (customFolder.isDirectory() && customFolder.exists()) {
 			File[] charFile = customFolder.listFiles();
@@ -667,7 +683,8 @@ public class RealmCharacterBuilderModel {
 		if (unknownChars.size()>0) {
 			StringBuffer sb = new StringBuffer();
 			sb.append("Some custom character files were not loaded, because they were invalid:\n\n");
-			for (String file:unknownChars) {
+			for (java.util.Iterator _j14it930 = (unknownChars).iterator(); _j14it930.hasNext(); ) {
+			  String file = (String) _j14it930.next();
 				sb.append("     ");
 				sb.append(file);
 				sb.append("\n");
@@ -675,12 +692,12 @@ public class RealmCharacterBuilderModel {
 			JOptionPane.showMessageDialog(null,sb.toString(),"Invalid Custom Characters",JOptionPane.WARNING_MESSAGE);
 		}
 	}
-	public static ArrayList<ArrayList<String>> loadAllCustomCharacterCards() {
+	public static ArrayList loadAllCustomCharacterCards() {
 		String customFolderPath = "./characters/"; // default
 		if (System.getProperty("customFolder")!=null) {
 			customFolderPath = System.getProperty("customFolder")+File.separator;
 		}
-		ArrayList<ArrayList<String>> customCards = new ArrayList<ArrayList<String>>();
+		ArrayList customCards = new ArrayList();
 		File customFolder = new File(customFolderPath);
 		if (customFolder.isDirectory() && customFolder.exists()) {
 			File[] charFile = customFolder.listFiles();
@@ -690,7 +707,7 @@ public class RealmCharacterBuilderModel {
 						RealmCharacterBuilderModel model = RealmCharacterBuilderModel.createFromFile(charFile[i]);
 						if (model!=null) {
 							GameObject go = model.getCharacter().getGameObject();
-							ArrayList<String> temp = new ArrayList<String>();
+							ArrayList temp = new ArrayList();
 							temp.add(go.getName());
 							temp.add(go.getAttribute("level_4","name"));
 							String iconFolder = go.getThisAttribute(Constants.ICON_FOLDER);
@@ -710,7 +727,8 @@ public class RealmCharacterBuilderModel {
 		// Add all custom characters
 		hostPrefs.clearCharacterKeys();
 		CustomCharacterLibrary library = CustomCharacterLibrary.getSingleton();
-		for (String name:library.getCharacterTemplateNameList()) {
+		for (java.util.Iterator _j14it931 = (library.getCharacterTemplateNameList()).iterator(); _j14it931.hasNext(); ) {
+		  String name = (String) _j14it931.next();
 			hostPrefs.addCharacterKey(library.getCharacterUniqueKey(name));
 			
 			GameObject template = library.getCharacterTemplate(name);
@@ -718,7 +736,8 @@ public class RealmCharacterBuilderModel {
 			newChar.copyAttributesFrom(template);
 			newChar.setThisKeyVals(hostPrefs.getGameKeyVals());
 			RealmComponent.clearOwner(newChar);
-			for (GameObject go : template.getHold()) {
+			for (java.util.Iterator _j14it932 = (template.getHold()).iterator(); _j14it932.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it932.next();
 				if (go.hasThisAttribute("character_chit")) {
 					GameObject newChit = dataSource.createNewObject();
 					newChit.copyAttributesFrom(go);

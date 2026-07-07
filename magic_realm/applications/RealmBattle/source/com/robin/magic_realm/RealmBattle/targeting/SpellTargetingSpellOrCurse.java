@@ -23,7 +23,8 @@ public class SpellTargetingSpellOrCurse extends SpellTargetingSingle {
 		GameData gameData = spell.getGameObject().getGameData();
 		if (targetType.indexOf("spell")>=0) {
 			SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(gameData);
-			for (SpellWrapper targetSpell : sm.getAllSpellsInClearing(battleModel.getBattleLocation(),true)) {
+			for (java.util.Iterator _j14it859 = (sm.getAllSpellsInClearing(battleModel.getBattleLocation(),true)).iterator(); _j14it859.hasNext(); ) {
+			  SpellWrapper targetSpell = (SpellWrapper) _j14it859.next();
 				if (targetSpell.isAlive()) {
 					identifiers.add(targetSpell.getTargetsName());
 					gameObjects.add(targetSpell.getGameObject());
@@ -31,11 +32,13 @@ public class SpellTargetingSpellOrCurse extends SpellTargetingSingle {
 			}
 		}
 		if (targetType.indexOf("curse")>=0) {
-			for (RealmComponent rc : battleModel.getAllParticipatingCharacters()) {
+			for (java.util.Iterator _j14it860 = (battleModel.getAllParticipatingCharacters()).iterator(); _j14it860.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it860.next();
 				CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
-				Collection<String> curses = character.getAllCurses();
+				Collection curses = character.getAllCurses();
 				if (curses.size()>0) {
-					for (String curse : curses) {
+					for (java.util.Iterator _j14it861 = (curses).iterator(); _j14it861.hasNext(); ) {
+					  String curse = (String) _j14it861.next();
 						identifiers.add(curse);
 						gameObjects.add(rc.getGameObject());
 					}
@@ -43,9 +46,11 @@ public class SpellTargetingSpellOrCurse extends SpellTargetingSingle {
 			}
 		}
 		if (spell.getGameObject().hasThisAttribute(Constants.TARGETS_SITES_FREED_SPELL)) {
-			for (RealmComponent rc : battleModel.getBattleLocation().clearing.getClearingComponents()) {
+			for (java.util.Iterator _j14it862 = (battleModel.getBattleLocation().clearing.getClearingComponents()).iterator(); _j14it862.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it862.next();
 				if (rc.isTreasureLocation() && spell.getCaster().hasTreasureLocationDiscovery(rc.toString())) {
-					for (GameObject held : rc.getHold()) {
+					for (java.util.Iterator _j14it863 = (rc.getHold()).iterator(); _j14it863.hasNext(); ) {
+					  GameObject held = (GameObject) _j14it863.next();
 						if (held.hasThisAttribute(RealmComponent.SPELL)) {
 							gameObjects.add(rc.getGameObject());
 							break;

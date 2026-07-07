@@ -14,8 +14,9 @@ public class SpellTargetingBats extends SpellTargetingAll {
 		super(combatFrame, spell);
 	}
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
-		ArrayList<RealmComponent> allBattleParticipants = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
-		for (RealmComponent rc : allBattleParticipants) {
+		ArrayList allBattleParticipants = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
+		for (java.util.Iterator _j14it803 = (allBattleParticipants).iterator(); _j14it803.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it803.next();
 			if (rc.isMonster() && !rc.isPlayerControlledLeader() && !rc.hasMagicProtection() && !rc.hasMagicColorImmunity(spell)) {
 				if (rc.getGameObject().hasThisAttribute(Constants.BAT)) {
 					gameObjects.add(rc.getGameObject());

@@ -206,6 +206,8 @@ CLAUDE.md
 dist/
 build/
 !build/project-list.xml
+!build/irix/ecj.jar
+build/irix/rt.jar
 eggs/
 parts/
 var/

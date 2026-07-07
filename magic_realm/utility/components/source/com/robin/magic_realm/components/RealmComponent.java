@@ -134,7 +134,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		return d.width + d.height;
 	}
 
-	public Collection<GameObject> getHold() {
+	public Collection getHold() {
 		return gameObject.getHold();
 	}
 	
@@ -386,9 +386,10 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 			return false;
 		}
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList colors = new ArrayList();
 		colors.addAll((new CharacterWrapper(getGameObject()).getInfiniteColorSources()));
-		for (ColorMagic color : colors) {
+		for (java.util.Iterator _j14it1330 = (colors).iterator(); _j14it1330.hasNext(); ) {
+		  ColorMagic color = (ColorMagic) _j14it1330.next();
 			if ((cm!=null && !cm.sameColorAs(color)) || (protection.matches("prism") && !color.isPrismColor())) return false;
 		}
 		return true;
@@ -492,29 +493,32 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		}
 			
 		Integer pacifyType = null;
-		ArrayList<String> list = getGameObject().getThisAttributeList("pacifyBlocks");
+		ArrayList list = getGameObject().getThisAttributeList("pacifyBlocks");
 		if (list!=null) {
 			String testId = character.getGameObject().getStringId();
-			for (String pacifyBlock : list) {
+			for (java.util.Iterator _j14it1331 = (list).iterator(); _j14it1331.hasNext(); ) {
+			  String pacifyBlock = (String) _j14it1331.next();
 				String charId = getGameObject().getAttribute(pacifyBlock,"pacifyChar");
 				if (charId.equals(testId)) {
-					pacifyType = getGameObject().getInt(pacifyBlock,"pacifyType");
+					pacifyType = Integer.valueOf(getGameObject().getInt(pacifyBlock,"pacifyType"));
 				}
 			}
 		}
 		// Check character for automatic pacification (due to item or character attribute!)
 		if (isMonster()) {
-			ArrayList<GameObject> invWithPacify = character.getAllActiveInventoryThisKeyAndValue("pacifymonster",null);
+			ArrayList invWithPacify = character.getAllActiveInventoryThisKeyAndValue("pacifymonster",null);
 			if (character.getGameObject().hasThisAttribute("pacifymonster")) {
 				invWithPacify.add(character.getGameObject());
 			}
-			for (GameObject test:invWithPacify) {
+			for (java.util.Iterator _j14it1332 = (invWithPacify).iterator(); _j14it1332.hasNext(); ) {
+			  GameObject test = (GameObject) _j14it1332.next();
 				boolean pacified = false;
-				ArrayList<String> monsters = test.getThisAttributeList("pacifymonster");
+				ArrayList monsters = test.getThisAttributeList("pacifymonster");
 				if (monsters.contains(getGameObject().getName())) {
 					pacified = true;
 				} else {
-					for (String type : monsters) {
+					for (java.util.Iterator _j14it1333 = (monsters).iterator(); _j14it1333.hasNext(); ) {
+					  String type = (String) _j14it1333.next();
 						if (getGameObject().hasThisAttribute(type.toLowerCase())) {
 							pacified = true;
 							break;
@@ -523,8 +527,8 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 				}
 				if (pacified) {
 					int testPacify = test.getThisInt("pacifyType");
-					if (pacifyType==null || testPacify>pacifyType) { // use the BEST one
-						pacifyType = testPacify;
+					if (pacifyType==null || testPacify>pacifyType.intValue()) { // use the BEST one
+						pacifyType = Integer.valueOf(testPacify);
 					}
 				}
 			}
@@ -533,10 +537,11 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	}
 	
 	public SpellWrapper getPacificationSpell(CharacterWrapper character) {
-		ArrayList<String> list = getGameObject().getThisAttributeList("pacifyBlocks");
+		ArrayList list = getGameObject().getThisAttributeList("pacifyBlocks");
 		if (list!=null) {
 			String testId = character.getGameObject().getStringId();
-			for (String pacifyBlock : list) {
+			for (java.util.Iterator _j14it1334 = (list).iterator(); _j14it1334.hasNext(); ) {
+			  String pacifyBlock = (String) _j14it1334.next();
 				String charId = getGameObject().getAttribute(pacifyBlock,"pacifyChar");
 				if (charId.equals(testId)) {
 					GameObject theSpell = getGameObject().getGameData().getGameObject(Long.valueOf(pacifyBlock.substring(6)));
@@ -740,7 +745,8 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	}
 	
 	public BattleHorse getHorseIncludeDead() { // gets the horse, even if it is dead
-		for (GameObject go : gameObject.getHold()) {
+		for (java.util.Iterator _j14it1335 = (gameObject.getHold()).iterator(); _j14it1335.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1335.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc instanceof BattleHorse) {
 				return (BattleHorse) rc;
@@ -759,7 +765,8 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		return getHorse(checkLocation,-1);
 	}
 	public BattleHorse getHorse(boolean checkLocation,int attackOrderPos) {
-		for (GameObject go : gameObject.getHold()) {
+		for (java.util.Iterator _j14it1336 = (gameObject.getHold()).iterator(); _j14it1336.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1336.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc instanceof BattleHorse) {
 				BattleHorse bh = (BattleHorse)rc;
@@ -992,7 +999,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 			comp = new MinorCharacterChitComponent(obj);
 		}
 		if (comp != null && cache) {
-			Hashtable<Comparable, Serializable> componentHash = getComponentHash(obj);
+			Hashtable componentHash = getComponentHash(obj);
 			componentHash.put(Long.valueOf(obj.getId()), comp);
 		}
 		return comp;
@@ -1002,7 +1009,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		return createRealmComponent(go,false);
 	}
 
-	private static Hashtable<Comparable, Serializable> getComponentHash(GameObject go) {
+	private static Hashtable getComponentHash(GameObject go) {
 		return getComponentHash(go.getGameData());
 	}
 	
@@ -1023,14 +1030,14 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	 * @return			The Hashtable for the corresponding data object.  This is necessary to keep client and
 	 * 					host data separated when handling these objects!
 	 */
-	private static Hashtable<Comparable, Serializable> getComponentHash(GameData data) {
+	private static Hashtable getComponentHash(GameData data) {
 		if (dataComponentHash == null) {
-			dataComponentHash = new Hashtable<Long, Hashtable<Comparable<String>, Serializable>>();
+			dataComponentHash = new Hashtable();
 		}
 		Long dataid = Long.valueOf(data.getDataId());
 		Hashtable componentHash = (Hashtable) dataComponentHash.get(dataid);
 		if (componentHash == null) {
-			componentHash = new Hashtable<Comparable, Serializable>();
+			componentHash = new Hashtable();
 			dataComponentHash.put(dataid, componentHash);
 			
 			// Make sure there is a master object to handle things like a target index counter
@@ -1045,9 +1052,10 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		return componentHash;
 	}
 
-	public static ArrayList<RealmComponent> getRealmComponents(Collection<GameObject> objects) {
-		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
-		for (GameObject go: objects) {
+	public static ArrayList getRealmComponents(Collection objects) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it1337 = (objects).iterator(); _j14it1337.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1337.next();
 			list.add(RealmComponent.getRealmComponent(go));
 		}
 		return list;
@@ -1156,7 +1164,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 				return true;
 			}
 		}
-		ArrayList<String> list = getImmunities();
+		ArrayList list = getImmunities();
 		if (!list.isEmpty()) {
 			// Make sure we resolve to the monster, not the part!
 			if (rc.isMonsterPart()) {
@@ -1172,8 +1180,8 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		}
 		return false;
 	}
-	private ArrayList<String> getImmunities() {
-		ArrayList<String> immunities = new ArrayList<String>();
+	private ArrayList getImmunities() {
+		ArrayList immunities = new ArrayList();
 		if (getGameObject().hasThisAttribute(Constants.MONSTER_IMMUNITY)) {
 			immunities.addAll(getGameObject().getThisAttributeList(Constants.MONSTER_IMMUNITY));
 		}
@@ -1193,57 +1201,60 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		CharacterWrapper character = new CharacterWrapper(getGameObject());
 		return getGameObject().hasThisAttribute(Constants.MONSTER_CONTROL_ENHANCED) || !character.getActiveInventoryValuesForThisKey(Constants.MONSTER_CONTROL_ENHANCED,null).isEmpty();
 	}
-	public Hashtable<String,Integer[]> getControllableMonsters() {
+	public Hashtable getControllableMonsters() {
 		return getControllableMonsters(false);
 	}
-	public Hashtable<String,Integer[]> getControllableMonstersEnhanced() {
+	public Hashtable getControllableMonstersEnhanced() {
 		return getControllableMonsters(true);
 	}
-	public Hashtable<String,Integer[]> getControllableMonsters(boolean enhancedOnly) {
-		Hashtable<String,Integer[]> controls = new Hashtable<String,Integer[]>();
+	public Hashtable getControllableMonsters(boolean enhancedOnly) {
+		Hashtable controls = new Hashtable();
 		if (getGameObject().hasThisAttribute(Constants.MONSTER_CONTROL) && (!enhancedOnly || getGameObject().hasThisAttribute(Constants.MONSTER_CONTROL_ENHANCED))) {
 			int duration = getGameObject().getThisInt(Constants.MONSTER_CONTROL_DURATION);
 			int limit = getGameObject().getThisInt(Constants.MONSTER_CONTROL_LIMIT);
-			for (String type : getGameObject().getThisAttributeList(Constants.MONSTER_CONTROL)) {
-				controls.put(type,new Integer[] {duration,limit});
+			for (java.util.Iterator _j14it1338 = (getGameObject().getThisAttributeList(Constants.MONSTER_CONTROL)).iterator(); _j14it1338.hasNext(); ) {
+			  String type = (String) _j14it1338.next();
+				controls.put(type,new Integer[] {Integer.valueOf(duration),Integer.valueOf(limit)});
 			}
 		}
 		if (isCharacter()) {
 			CharacterWrapper character = new CharacterWrapper(getGameObject());
-			for (GameObject inventory : character.getActiveInventoryAndTravelers()) {
+			for (java.util.Iterator _j14it1339 = (character.getActiveInventoryAndTravelers()).iterator(); _j14it1339.hasNext(); ) {
+			  GameObject inventory = (GameObject) _j14it1339.next();
 				if (inventory.hasThisAttribute(Constants.MONSTER_CONTROL) && (!enhancedOnly || inventory.hasThisAttribute(Constants.MONSTER_CONTROL_ENHANCED))) {
 					int duration = inventory.getThisInt(Constants.MONSTER_CONTROL_DURATION);
 					int limit = inventory.getThisInt(Constants.MONSTER_CONTROL_LIMIT);
-					for (String type : inventory.getThisAttributeList(Constants.MONSTER_CONTROL)) {
-						Integer[] values = controls.get(type);
-						int durationCalc = values==null?duration:((values[0]==0||duration==0)?0:Math.max(values[0], duration));
-						int limitCalc = values==null?limit:((values[1]==0||limit==0)?0:values[1]+limit);
-						controls.put(type,new Integer[] {durationCalc,limitCalc});
+					for (java.util.Iterator _j14it1340 = (inventory.getThisAttributeList(Constants.MONSTER_CONTROL)).iterator(); _j14it1340.hasNext(); ) {
+					  String type = (String) _j14it1340.next();
+						Integer[] values = (Integer[]) controls.get(type);
+						int durationCalc = values==null?duration:((values[0].intValue()==0||duration==0)?0:Math.max(values[0].intValue(), duration));
+						int limitCalc = values==null?limit:((values[1].intValue()==0||limit==0)?0:values[1].intValue()+limit);
+						controls.put(type,new Integer[] {Integer.valueOf(durationCalc),Integer.valueOf(limitCalc)});
 					}
 				}
 			}
 		}
 		return controls;
 	}
-	public Set<String> getControllableMonsterNames(boolean enhancedOnly) {
+	public Set getControllableMonsterNames(boolean enhancedOnly) {
 		return getControllableMonsters(enhancedOnly).keySet();
 	}
 	public Integer getControllableMonsterDuration(boolean enhancedOnly,String monsterType) {
 		if (getControllableMonsters(enhancedOnly).get(monsterType)!=null) {
-			int duration = getControllableMonsters(enhancedOnly).get(monsterType)[0];
-			return duration==0?Constants.TEN_YEARS:duration;
+			int duration = ((Integer[]) getControllableMonsters(enhancedOnly).get(monsterType))[0].intValue();
+			return duration==0?Integer.valueOf(Constants.TEN_YEARS):Integer.valueOf(duration);
 		}
 		return null;
 	}
 	public Integer getControllableMonsterLimit(boolean enhancedOnly,String monsterType) {
 		if (getControllableMonsters(enhancedOnly).get(monsterType)!=null) {
-			int limit = getControllableMonsters(enhancedOnly).get(monsterType)[1];
-			return limit==0?999:limit;
+			int limit = ((Integer[]) getControllableMonsters(enhancedOnly).get(monsterType))[1].intValue();
+			return limit==0?Integer.valueOf(999):Integer.valueOf(limit);
 		}
 		return null;
 	}
 	public boolean fears(RealmComponent rc) {
-		ArrayList<String> list = getFears();
+		ArrayList list = getFears();
 		if (!list.isEmpty()) {
 			// Make sure we resolve to the monster, not the part!
 			if (rc.isMonsterPart()) {
@@ -1259,8 +1270,8 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		}
 		return false;
 	}
-	private ArrayList<String> getFears() {
-		ArrayList<String> fears = new ArrayList<String>();
+	private ArrayList getFears() {
+		ArrayList fears = new ArrayList();
 		if (getGameObject().hasThisAttribute(Constants.MONSTER_FEAR)) {
 			fears.addAll(getGameObject().getThisAttributeList(Constants.MONSTER_FEAR));
 		}

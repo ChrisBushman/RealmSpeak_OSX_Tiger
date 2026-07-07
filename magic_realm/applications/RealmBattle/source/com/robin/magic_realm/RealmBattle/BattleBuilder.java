@@ -58,7 +58,7 @@ public class BattleBuilder extends JFrame {
 	private JButton addDenizensButton;
 	private JButton removeDenizensButton;
 	
-	private ArrayList<CharacterBattleBuilderPanel> characterPanels;
+	private ArrayList characterPanels;
 	
 	private JButton cancelButton;
 	private JButton editOptionsButton;
@@ -71,7 +71,7 @@ public class BattleBuilder extends JFrame {
 	private boolean cancelled = false;
 	
 	public BattleBuilder() {
-		characterPanels = new ArrayList<CharacterBattleBuilderPanel>();
+		characterPanels = new ArrayList();
 		initComponents();
 	}
 	public boolean isCancelled() {
@@ -250,9 +250,9 @@ public class BattleBuilder extends JFrame {
 	public boolean initialize(GameData data) {
 		prefs = new PreferenceManager("BattleBuilder","BattleBuilder.cfg") {
 			protected void createDefaultPreferences(Properties props) {
-				props.put(BATTLE_BUILDER_CLEARING,defaultClearingNumber);
+				props.put(BATTLE_BUILDER_CLEARING,new Integer(defaultClearingNumber));
 				props.put(BATTLE_BUILDER_TILE,defaultTileName);
-				props.put(BATTLE_BUILDER_TILE_IS_ENCHANTED,true);
+				props.put(BATTLE_BUILDER_TILE_IS_ENCHANTED,new Boolean(true));
 			}
 		};
 		prefs.loadPreferences();
@@ -320,8 +320,9 @@ public class BattleBuilder extends JFrame {
 				}
 				if (hostPrefs.hasPref(Constants.OPT_POWER_OF_THE_PIT_ATTACK)) {
 					GamePool pool = new GamePool(gameData.getGameObjects());
-					ArrayList<GameObject> popSpells = pool.find("powerofthepit");
-					for (GameObject go:popSpells) {
+					ArrayList popSpells = pool.find("powerofthepit");
+					for (java.util.Iterator _j14it704 = (popSpells).iterator(); _j14it704.hasNext(); ) {
+					  GameObject go = (GameObject) _j14it704.next();
 						go.setThisAttribute("duration","attack");
 						go.setThisAttribute("strength","");
 					}
@@ -333,13 +334,15 @@ public class BattleBuilder extends JFrame {
 				RealmCharacterBuilderModel.addCustomCharacters(hostPrefs,gameData);
 						
 				// Some items require a spell be cast (Flying Carpet)
-				ArrayList<String> keyVals = new ArrayList<String>();
+				ArrayList keyVals = new ArrayList();
 				keyVals.add(hostPrefs.getGameKeyVals());
 				keyVals.add(Constants.CAST_SPELL_ON_INIT);
 				SpellMasterWrapper.getSpellMaster(gameData); // make sure SpellMaster is created
-				Collection<GameObject> needsSpellInit = pool.find(keyVals);
-				for (GameObject go : needsSpellInit) {
-					for (GameObject sgo : go.getHold()) {
+				Collection needsSpellInit = pool.find(keyVals);
+				for (java.util.Iterator _j14it705 = (needsSpellInit).iterator(); _j14it705.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it705.next();
+					for (java.util.Iterator _j14it706 = (go.getHold()).iterator(); _j14it706.hasNext(); ) {
+					  GameObject sgo = (GameObject) _j14it706.next();
 						if (sgo.hasThisAttribute("spell")) {
 							SpellWrapper spell = new SpellWrapper(sgo);
 							spell.castSpellNoEnhancedMagic(go);
@@ -352,15 +355,17 @@ public class BattleBuilder extends JFrame {
 				battleClearing.energizeItems();
 				
 				// Convert all traveler templates to travelers, so they can be tested here
-				ArrayList<GameObject> travelerChits = pool.find("traveler");
+				ArrayList travelerChits = pool.find("traveler");
 				if (travelerChits.size()>0) {
-					GameObject sample = travelerChits.get(0);
-					for (GameObject go:pool.find("traveler_template")) {
+					GameObject sample = (GameObject) travelerChits.get(0);
+					for (java.util.Iterator _j14it707 = (pool.find("traveler_template")).iterator(); _j14it707.hasNext(); ) {
+					  GameObject go = (GameObject) _j14it707.next();
 						go.copyAttributeBlockFrom(sample,"this");
 						go.setThisAttribute(Constants.TEMPLATE_ASSIGNED);
 						go.removeThisAttribute(Constants.TRAVELER_TEMPLATE);
 					}
-					for (GameObject go:travelerChits) {
+					for (java.util.Iterator _j14it708 = (travelerChits).iterator(); _j14it708.hasNext(); ) {
+					  GameObject go = (GameObject) _j14it708.next();
 						go.removeThisAttribute("traveler"); // nullify these!
 					}
 				}
@@ -391,22 +396,25 @@ public class BattleBuilder extends JFrame {
 	}
 	private void prepExpansionSpells(String spellKey, GameData data) {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> expansionSpells = pool.find("spell," + spellKey);
-		for (GameObject go:expansionSpells) {
+		ArrayList expansionSpells = pool.find("spell," + spellKey);
+		for (java.util.Iterator _j14it709 = (expansionSpells).iterator(); _j14it709.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it709.next();
 			go.setThisKeyVals(hostPrefs.getGameKeyVals());
 		}
 	}
 	private void removeSpells(String spellKey, GameData data){
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> toRemove = pool.find("spell," + spellKey);
-		for (GameObject go:toRemove) {
+		ArrayList toRemove = pool.find("spell," + spellKey);
+		for (java.util.Iterator _j14it710 = (toRemove).iterator(); _j14it710.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it710.next();
 			go.stripThisKeyVals(hostPrefs.getGameKeyVals());
 		}	
 	}
 	private static void alternateOgreWeaponLength(String length, GameData data) {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> ogres = pool.find(Constants.OGRE);
-		for (GameObject go:ogres) {
+		ArrayList ogres = pool.find(Constants.OGRE);
+		for (java.util.Iterator _j14it711 = (ogres).iterator(); _j14it711.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it711.next();
 			go.setAttribute("light","length",length);
 			go.setAttribute("dark","length",length);
 			go.setThisKeyVals(Constants.WEAPON_USE_CHIT);
@@ -414,8 +422,9 @@ public class BattleBuilder extends JFrame {
 	}
 	private void prepExpansionTreasures(String gameKey, GameData data) {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> expansionSpells = pool.find("!original_game,treasure,!treasure_within_treasure,!ts_section," + gameKey);
-		for (GameObject go:expansionSpells) {
+		ArrayList expansionSpells = pool.find("!original_game,treasure,!treasure_within_treasure,!ts_section," + gameKey);
+		for (java.util.Iterator _j14it712 = (expansionSpells).iterator(); _j14it712.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it712.next();
 			go.setThisKeyVals(hostPrefs.getGameKeyVals());
 		}
 	}
@@ -437,8 +446,9 @@ public class BattleBuilder extends JFrame {
 		// Denizens...
 		BattleGroup denGroup = model.getDenizenBattleGroup();
 		if (denGroup!=null) {
-			ArrayList<GameObject> toAdd = new ArrayList<GameObject>();
-			for (RealmComponent rc : denGroup.getBattleParticipants()) {
+			ArrayList toAdd = new ArrayList();
+			for (java.util.Iterator _j14it713 = (denGroup.getBattleParticipants()).iterator(); _j14it713.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it713.next();
 				GameObject go = rc.getGameObject();
 				go.setThisAttribute(BATTLE_BUILDER_KEY);
 				toAdd.add(go);
@@ -447,7 +457,8 @@ public class BattleBuilder extends JFrame {
 		}
 		
 		// Characters...
-		for (BattleGroup group : model.getAllBattleGroups(false)) {
+		for (java.util.Iterator _j14it714 = (model.getAllBattleGroups(false)).iterator(); _j14it714.hasNext(); ) {
+		  BattleGroup group = (BattleGroup) _j14it714.next();
 			RealmComponent rc = group.getOwningCharacter();
 			
 			// Add tab
@@ -461,7 +472,8 @@ public class BattleBuilder extends JFrame {
 			}
 			
 			// Tag everyone else
-			for (RealmComponent bp : group.getBattleParticipants()) {
+			for (java.util.Iterator _j14it715 = (group.getBattleParticipants()).iterator(); _j14it715.hasNext(); ) {
+			  RealmComponent bp = (RealmComponent) _j14it715.next();
 				if (bp!=rc) {
 					bp.getGameObject().setThisAttribute(BATTLE_BUILDER_KEY);
 				}
@@ -480,12 +492,13 @@ public class BattleBuilder extends JFrame {
 	}
 	private void changeClearing() {
 		// Choose a tile and clearing
-		Collection<GameObject> tiles = pool.find("tile,"+hostPrefs.getGameKeyVals());
-		Hashtable<String, GameObject> tileHash = new Hashtable<String, GameObject>();
-		for (GameObject tile : tiles) {
+		Collection tiles = pool.find("tile,"+hostPrefs.getGameKeyVals());
+		Hashtable tileHash = new Hashtable();
+		for (java.util.Iterator _j14it716 = (tiles).iterator(); _j14it716.hasNext(); ) {
+		  GameObject tile = (GameObject) _j14it716.next();
 			tileHash.put(tile.getName(),tile);
 		}
-		ArrayList<String> tileNames = new ArrayList<String>(tileHash.keySet());
+		ArrayList tileNames = new ArrayList(tileHash.keySet());
 		Collections.sort(tileNames);
 		String tileName = (String)JOptionPane.showInputDialog(
 				null,
@@ -499,7 +512,7 @@ public class BattleBuilder extends JFrame {
 		if (tileName==null) {
 			return;
 		}
-		GameObject selectedTile = tileHash.get(tileName);
+		GameObject selectedTile = (GameObject) tileHash.get(tileName);
 		
 		TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(selectedTile);
 		boolean enchanted = false;
@@ -511,8 +524,8 @@ public class BattleBuilder extends JFrame {
 			tile.setLightSideUp();
 		}
 		
-		ArrayList<String> clearingNames = new ArrayList<String>();
-		Hashtable<String, ClearingDetail> clearingHash = new Hashtable<String, ClearingDetail>();
+		ArrayList clearingNames = new ArrayList();
+		Hashtable clearingHash = new Hashtable();
 		for (int i=1;i<=6;i++) {
 			ClearingDetail clearing = tile.getClearing(i);
 			if (clearing!=null) {
@@ -532,18 +545,19 @@ public class BattleBuilder extends JFrame {
 			return;
 		}
 		
-		battleClearing = clearingHash.get(clearingName);
-		
-		prefs.set(BATTLE_BUILDER_CLEARING,clearingHash.get(clearingName).getNum());
+		battleClearing = (ClearingDetail) clearingHash.get(clearingName);
+
+		prefs.set(BATTLE_BUILDER_CLEARING,((ClearingDetail) clearingHash.get(clearingName)).getNum());
 		prefs.set(BATTLE_BUILDER_TILE,tileName);
 		prefs.set(BATTLE_BUILDER_TILE_IS_ENCHANTED,enchanted);
 		prefs.savePreferences();
 		
 		updateControls();
 	}
-	protected void checkHorses(Collection<GameObject> denizens) {
-		ArrayList<GameObject> horses = new ArrayList<GameObject>();
-		for (GameObject go : denizens) {
+	protected void checkHorses(Collection denizens) {
+		ArrayList horses = new ArrayList();
+		for (java.util.Iterator _j14it717 = (denizens).iterator(); _j14it717.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it717.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			BattleHorse horse = rc.getHorse();
 			if (horse!=null) {
@@ -554,7 +568,8 @@ public class BattleBuilder extends JFrame {
 		if (!horses.isEmpty()) {
 			int ret = JOptionPane.showConfirmDialog(this,"Include horses?","",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
 			boolean includeHorses = ret==JOptionPane.YES_OPTION;
-			for (GameObject go : horses) {
+			for (java.util.Iterator _j14it718 = (horses).iterator(); _j14it718.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it718.next();
 				if (includeHorses) {
 					go.removeThisAttribute(Constants.DEAD);
 				}
@@ -565,18 +580,19 @@ public class BattleBuilder extends JFrame {
 		}
 	}
 	private void addDenizens() {
-		Collection<GameObject> monsters = pool.find("monster,!part,!treasure,"+hostPrefs.getGameKeyVals()+",!"+BATTLE_BUILDER_KEY);
-		Collection<GameObject> natives = pool.find("native,!horse,!treasure,!dwelling,!virtual_dwelling"+hostPrefs.getGameKeyVals()+",!"+BATTLE_BUILDER_KEY);
+		Collection monsters = pool.find("monster,!part,!treasure,"+hostPrefs.getGameKeyVals()+",!"+BATTLE_BUILDER_KEY);
+		Collection natives = pool.find("native,!horse,!treasure,!dwelling,!virtual_dwelling"+hostPrefs.getGameKeyVals()+",!"+BATTLE_BUILDER_KEY);
 		RealmObjectChooser denizenChooser = new RealmObjectChooser("Choose Denizens to Add:",gameData,false);
 		denizenChooser.addObjectsToChoose(monsters);
 		denizenChooser.addObjectsToChoose(natives);
 		denizenChooser.setVisible(true);
 		if (denizenChooser.pressedOkay()) {
-			Collection<GameObject> chosenDenizens = denizenChooser.getChosenObjects();
+			Collection chosenDenizens = denizenChooser.getChosenObjects();
 			if (chosenDenizens!=null && chosenDenizens.size()>0) {
 				chosenDenizens = makeDuplicates(chosenDenizens); // only if the option is selected
 				checkHorses(chosenDenizens);
-				for (GameObject go : chosenDenizens) {
+				for (java.util.Iterator _j14it719 = (chosenDenizens).iterator(); _j14it719.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it719.next();
 					go.setThisAttribute(BATTLE_BUILDER_KEY);
 				}
 				denizenPanel.clearSelected();
@@ -585,12 +601,13 @@ public class BattleBuilder extends JFrame {
 			}
 		}
 	}
-	public Collection<GameObject> makeDuplicates(Collection<GameObject> in) {
+	public Collection makeDuplicates(Collection in) {
 		if (makeDuplicatesOption.isSelected()) {
-			ArrayList<GameObject> dups = new ArrayList<GameObject>();
-			for (GameObject go :  in) {
+			ArrayList dups = new ArrayList();
+			for (java.util.Iterator _j14it720 = (in).iterator(); _j14it720.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it720.next();
 				GameObject dup = gameData.createNewObject(go);
-				Collection<GameObject> hold = go.getHold();
+				Collection hold = go.getHold();
 				if (!hold.isEmpty()) {
 					// This recursive behavior will guarantee that the duplication goes deep
 					dup.addAll(makeDuplicates(hold));
@@ -605,8 +622,9 @@ public class BattleBuilder extends JFrame {
 	}
 	private void removeDenizens() {
 		ArrayList all = new ArrayList(Arrays.asList(denizenPanel.getComponents()));
-		Collection<RealmComponent> selDenizens = denizenPanel.getSelectedComponents();
-		for (RealmComponent rc : selDenizens) {
+		Collection selDenizens = denizenPanel.getSelectedComponents();
+		for (java.util.Iterator _j14it721 = (selDenizens).iterator(); _j14it721.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it721.next();
 			rc.getGameObject().removeThisAttribute(BATTLE_BUILDER_KEY);
 			all.remove(rc);
 			battleClearing.remove(rc.getGameObject());
@@ -619,14 +637,16 @@ public class BattleBuilder extends JFrame {
 	private void addCharacter() {
 		CharacterWrapper lastCharacter = null;
 		if (characterPanels.size()>0) {
-			CharacterBattleBuilderPanel panel = characterPanels.get(0);
+			CharacterBattleBuilderPanel panel = (CharacterBattleBuilderPanel) characterPanels.get(0);
 			lastCharacter = panel.getCharacter();
 		}
 		
-		ArrayList<GameObject> characters = pool.find("character,!"+CharacterWrapper.NAME_KEY+",!"+Constants.CUSTOM_CHARACTER);
+		ArrayList characters = pool.find("character,!"+CharacterWrapper.NAME_KEY+",!"+Constants.CUSTOM_CHARACTER);
 		characters.addAll(CustomCharacterLibrary.getSingleton().getCharacterTemplateList());
-		Collections.sort(characters,new Comparator<GameObject>() {
-			public int compare(GameObject go1,GameObject go2) {
+		Collections.sort(characters,new Comparator() {
+			public int compare(Object o1,Object o2) {
+				GameObject go1 = (GameObject) o1;
+				GameObject go2 = (GameObject) o2;
 				return go1.getName().compareTo(go2.getName());
 			}
 		});
@@ -641,7 +661,8 @@ public class BattleBuilder extends JFrame {
 				newChar.copyAttributesFrom(chosen);
 				RealmComponent.clearOwner(newChar);
 				newChar.setThisKeyVals(hostPrefs.getGameKeyVals());
-				for (GameObject go : chosen.getHold()) {
+				for (java.util.Iterator _j14it722 = (chosen.getHold()).iterator(); _j14it722.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it722.next();
 					if (go.hasThisAttribute("character_chit")) {
 						GameObject newChit = gameData.createNewObject();
 						newChit.copyAttributesFrom(go);
@@ -683,10 +704,11 @@ public class BattleBuilder extends JFrame {
 	}
 	private void updateDenizenPanel() {
 		denizenPanel.removeAll();
-		ArrayList<GameObject> denizens = new ArrayList<GameObject>();
+		ArrayList denizens = new ArrayList();
 		denizens.addAll(pool.find("monster,!part,"+hostPrefs.getGameKeyVals()+","+BATTLE_BUILDER_KEY));
 		denizens.addAll(pool.find("native,!horse,!treasure,"+hostPrefs.getGameKeyVals()+","+BATTLE_BUILDER_KEY));
-		for(GameObject denizen:denizens) {
+		for (java.util.Iterator _j14it723 = (denizens).iterator(); _j14it723.hasNext(); ) {
+		  GameObject denizen = (GameObject) _j14it723.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(denizen);
 			if (rc.getCurrentLocation()!=null) {
 				// absorbed!
@@ -737,7 +759,8 @@ public class BattleBuilder extends JFrame {
 			spell.unaffectTargets();
 			spell.makeInert();
 		}
-		for(CharacterBattleBuilderPanel panel:characterPanels) {
+		for (java.util.Iterator _j14it724 = (characterPanels).iterator(); _j14it724.hasNext(); ) {
+		  CharacterBattleBuilderPanel panel = (CharacterBattleBuilderPanel) _j14it724.next();
 			panel.refresh();
 		}
 		updateDenizenPanel();
@@ -745,9 +768,10 @@ public class BattleBuilder extends JFrame {
 		repaint();
 	}
 	private SpellWrapper querySpell() {
-		ArrayList<GameObject> spells = pool.find("spell,duration=permanent");
-		ArrayList<GameObject> toRemove = new ArrayList<GameObject>();
-		for (GameObject spell:spells) {
+		ArrayList spells = pool.find("spell,duration=permanent");
+		ArrayList toRemove = new ArrayList();
+		for (java.util.Iterator _j14it725 = (spells).iterator(); _j14it725.hasNext(); ) {
+		  GameObject spell = (GameObject) _j14it725.next();
 			String spellType = spell.getThisAttribute("spell").trim();
 			if (spellType.length()==0 || !"IIIVIII".contains(spellType)) {
 				toRemove.add(spell);
@@ -761,8 +785,10 @@ public class BattleBuilder extends JFrame {
 			}
 		}
 		spells.removeAll(toRemove);
-		Collections.sort(spells,new Comparator<GameObject>() {
-			public int compare(GameObject go1,GameObject go2) {
+		Collections.sort(spells,new Comparator() {
+			public int compare(Object o1,Object o2) {
+				GameObject go1 = (GameObject) o1;
+				GameObject go2 = (GameObject) o2;
 				return go1.getName().compareTo(go2.getName());
 			}
 		});
@@ -777,13 +803,15 @@ public class BattleBuilder extends JFrame {
 		return null;
 	}
 	private GameObject queryCaster(String spellType) {
-		ArrayList<GameObject> characters = pool.find("character,"+BATTLE_BUILDER_KEY);
+		ArrayList characters = pool.find("character,"+BATTLE_BUILDER_KEY);
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Caster:",true);
 		chooser.addOption("Other","Other");
-		for (GameObject character:characters) {
+		for (java.util.Iterator _j14it726 = (characters).iterator(); _j14it726.hasNext(); ) {
+		  GameObject character = (GameObject) _j14it726.next();
 			CharacterWrapper test = new CharacterWrapper(character);
 			boolean hasChits = false;
-			for(CharacterActionChitComponent chit:test.getActiveMagicChits()) {
+			for (java.util.Iterator _j14it727 = (test.getActiveMagicChits()).iterator(); _j14it727.hasNext(); ) {
+			  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it727.next();
 				if (spellType.equals(chit.getMagicType())) {
 					hasChits = true;
 					break;
@@ -809,7 +837,8 @@ public class BattleBuilder extends JFrame {
 		}
 		CharacterWrapper test = new CharacterWrapper(caster);
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(this,"Incantation:",true);
-		for(CharacterActionChitComponent chit:test.getActiveMagicChits()) {
+		for (java.util.Iterator _j14it728 = (test.getActiveMagicChits()).iterator(); _j14it728.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it728.next();
 			if (spellType.equals(chit.getMagicType())) {
 				chooser.addRealmComponent(chit);
 			}
@@ -822,7 +851,7 @@ public class BattleBuilder extends JFrame {
 		return null;
 	}
 	private RealmComponent queryTarget(String targetType) {
-		ArrayList<GameObject> choices = new ArrayList<GameObject>();
+		ArrayList choices = new ArrayList();
 		boolean individual = "individual".equals(targetType);
 		if (individual || "monster".equals(targetType)) {
 			choices.addAll(pool.find("monster,"+BATTLE_BUILDER_KEY));
@@ -863,8 +892,9 @@ public class BattleBuilder extends JFrame {
 		repaint();
 	}
 	private void doFinish() {
-		Collection<GameObject> everything = pool.find(BATTLE_BUILDER_KEY);
-		for (GameObject go : everything) {
+		Collection everything = pool.find(BATTLE_BUILDER_KEY);
+		for (java.util.Iterator _j14it729 = (everything).iterator(); _j14it729.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it729.next();
 			go.removeThisAttribute(BATTLE_BUILDER_KEY);
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc.isCharacter() && !rc.getGameObject().hasThisAttribute(CHARACTER_PRESENT)) {
@@ -884,14 +914,14 @@ public class BattleBuilder extends JFrame {
 	
 	public static GameObject getBattleClearingReferenceObject(GameData data) {
 		GamePool thePool = new GamePool(data.getGameObjects());
-		Collection<GameObject> bc = thePool.find(BATTLE_CLEARING_KEY);
+		Collection bc = thePool.find(BATTLE_CLEARING_KEY);
 		GameObject bcObj = null;
 		if (bc.isEmpty()) {
 			bcObj = data.createNewObject();
 			bcObj.setThisAttribute(BATTLE_CLEARING_KEY);
 		}
 		else {
-			bcObj = bc.iterator().next();
+			bcObj = (GameObject) bc.iterator().next();
 		}
 		return bcObj;
 	}

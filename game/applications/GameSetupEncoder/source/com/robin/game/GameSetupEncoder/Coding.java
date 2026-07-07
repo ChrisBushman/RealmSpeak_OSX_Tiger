@@ -19,8 +19,8 @@ public class Coding extends Properties {
 		this.codePrefix = codePrefix;
 		this.numLength = numLength;
 	}
-	public Collection<String> getKeyVals() {
-		ArrayList<String> keyVals = new ArrayList<String>();
+	public Collection getKeyVals() {
+		ArrayList keyVals = new ArrayList();
 		for (Enumeration e=keys();e.hasMoreElements();) {
 			String key = (String)e.nextElement();
 			String val = getProperty(key);
@@ -38,11 +38,12 @@ public class Coding extends Properties {
 		sb.append(Encoder.LINE_END);
 		sb.append(StringUtilities.getRepeatString("-",79));
 		sb.append(Encoder.LINE_END);
-		Collection<GameObject> c = pool.find(getKeyVals());
+		Collection c = pool.find(getKeyVals());
 		pool = new GamePool(c);
 		pool.shuffle();
 		int n=1;
-		for (GameObject object : pool) {
+		for (java.util.Iterator _j14it70 = (pool).iterator(); _j14it70.hasNext(); ) {
+		  GameObject object = (GameObject) _j14it70.next();
 			String paddedNum = ""+n;
 			while(paddedNum.length()<numLength) {
 				paddedNum = "0"+paddedNum;

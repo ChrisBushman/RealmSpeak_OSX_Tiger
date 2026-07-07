@@ -160,7 +160,7 @@ public class CharacterInfoCard {
 		g.drawString("Development:", 15, i);
 		i += 20;
 		StringBuffer startingEquipment = new StringBuffer();
-		ArrayList<CharacterActionChitComponent> actionChits = character.getAllActionChitsSorted(4);
+		ArrayList actionChits = character.getAllActionChitsSorted(4);
 		int startingGold = 10;
 		for (int level = 0; level < 4; level++) {
 			g.setFont(boldFont);
@@ -177,11 +177,11 @@ public class CharacterInfoCard {
 			
 			int spellCount = character.getGameObject().getInt(levelKey,"spellcount");
 			if (spellCount>0) {
-				ArrayList<String> list = character.getGameObject().getAttributeList(levelKey,"spelltypes");
-				Collections.sort(list,new Comparator<String>() {
-					public int compare(String s1,String s2) {
-						int n1 = CharacterActionChitComponent.getMagicNumber(s1);
-						int n2 = CharacterActionChitComponent.getMagicNumber(s2);
+				ArrayList list = character.getGameObject().getAttributeList(levelKey,"spelltypes");
+				Collections.sort(list,new Comparator() {
+					public int compare(Object o1,Object o2) {
+						int n1 = CharacterActionChitComponent.getMagicNumber((String)o1);
+						int n2 = CharacterActionChitComponent.getMagicNumber((String)o2);
 						return n1-n2;
 					}
 				});
@@ -225,7 +225,7 @@ public class CharacterInfoCard {
 			int baseStage = level * 3;
 			for (int index = 0; index < 3; index++) {
 				if (actionChits.size()>baseStage+index) {
-					addChitToImage(g,l,i-15,actionChits.get(baseStage+index));
+					addChitToImage(g,l,i-15,(CharacterActionChitComponent)actionChits.get(baseStage+index));
 					l += 58;
 				}
 			}
@@ -270,13 +270,14 @@ public class CharacterInfoCard {
 		i = addPoliticsToImage(g, "UNFRIENDLY", character.getRelationshipList(Constants.GAME_RELATIONSHIP,RelationshipType.UNFRIENDLY), i);
 		i = addPoliticsToImage(g, "ENEMY", character.getRelationshipList(Constants.GAME_RELATIONSHIP,RelationshipType.ENEMY), i);
 	}
-	private ArrayList<String> getAllLevelList(String key) {
-		ArrayList<String> allList = new ArrayList<String>();
+	private ArrayList getAllLevelList(String key) {
+		ArrayList allList = new ArrayList();
 		for (int n=1;n<=4;n++) {
 			String levelKey = "level_"+n;
-			ArrayList<String> list = character.getGameObject().getAttributeList(levelKey,key);
+			ArrayList list = character.getGameObject().getAttributeList(levelKey,key);
 			if (list!=null) {
-				for (String val : list) {
+				for (java.util.Iterator _j14it1307 = (list).iterator(); _j14it1307.hasNext(); ) {
+				  String val = (String) _j14it1307.next();
 					allList.add(val);
 				}
 			}
@@ -300,13 +301,14 @@ public class CharacterInfoCard {
 		g.drawString(s1, x + (45 - g.getFontMetrics().stringWidth(s1) >> 1), y + 22 + (g.getFontMetrics().getAscent() >> 1) + 4);
 		g.setClip(null);
 	}
-	public int addAdvantagesToImage(Graphics g, String s, ArrayList<String> advantages, int i) {
+	public int addAdvantagesToImage(Graphics g, String s, ArrayList advantages, int i) {
 		if (!advantages.isEmpty()) {
 			g.setFont(boldItalicFont);
 			g.drawString(s, 15, i);
 			i += 15;
 			int n = 0;
-			for (String advantage:advantages) {
+			for (java.util.Iterator _j14it1308 = (advantages).iterator(); _j14it1308.hasNext(); ) {
+			  String advantage = (String) _j14it1308.next();
 				g.setFont(boldFont);
 				String s1 = (Integer.valueOf(n + 1)).toString() + ".)";
 				g.drawString(s1, 15, i);
@@ -336,7 +338,7 @@ public class CharacterInfoCard {
 		return adv;
 	}
 
-	public int addPoliticsToImage(Graphics g, String s, ArrayList<String> list, int i) {
+	public int addPoliticsToImage(Graphics g, String s, ArrayList list, int i) {
 		if (!list.isEmpty()) {
 			g.setColor(Color.black);
 			MultiFormatString multiformatstring = new MultiFormatString("<b>" + s + ": </b>" + RealmUtility.getHTMLPoliticsString(list));

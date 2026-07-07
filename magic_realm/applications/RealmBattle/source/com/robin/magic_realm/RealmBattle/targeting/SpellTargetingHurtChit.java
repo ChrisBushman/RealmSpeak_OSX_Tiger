@@ -17,10 +17,11 @@ public class SpellTargetingHurtChit extends SpellTargetingMultiple {
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
 		// Assume that activeParticipant IS character
 		CharacterWrapper character = new CharacterWrapper(activeParticipant.getGameObject());
-		ArrayList<CharacterActionChitComponent> hurtChits = new ArrayList<CharacterActionChitComponent>();
+		ArrayList hurtChits = new ArrayList();
 		hurtChits.addAll(character.getFatiguedChits());
 		hurtChits.addAll(character.getWoundedChits());
-		for (CharacterActionChitComponent chit:hurtChits) {
+		for (java.util.Iterator _j14it829 = (hurtChits).iterator(); _j14it829.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it829.next();
 			gameObjects.add(chit.getGameObject());
 		}
 		return true;

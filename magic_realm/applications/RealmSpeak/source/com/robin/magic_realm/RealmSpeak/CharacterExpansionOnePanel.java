@@ -31,7 +31,7 @@ public class CharacterExpansionOnePanel extends CharacterFramePanel {
 
 		JPanel left = new JPanel(new GridLayout(1,2));
 			JPanel leftTop = new JPanel(new BorderLayout());
-				ArrayList<GameObject> gates = pool.find("gate");
+				ArrayList gates = pool.find("gate");
 				gateDiscoveryModel = new ChitDiscoveryModel("Gate",gates);
 				gateTable = new JTable(gateDiscoveryModel);
 				gateTable.setDefaultRenderer(String.class,new ChitDiscoveryRenderer(gates));
@@ -39,7 +39,7 @@ public class CharacterExpansionOnePanel extends CharacterFramePanel {
 			leftTop.add(new JScrollPane(gateTable),"Center");
 		left.add(leftTop);
 			JPanel leftBottom = new JPanel(new BorderLayout());
-				ArrayList<GameObject> guilds = pool.find("guild");
+				ArrayList guilds = pool.find("guild");
 				guildDiscoveryModel = new ChitDiscoveryModel("Guild",guilds);
 				guildTable = new JTable(guildDiscoveryModel);
 				guildTable.setDefaultRenderer(String.class,new ChitDiscoveryRenderer(guilds));
@@ -63,13 +63,14 @@ public class CharacterExpansionOnePanel extends CharacterFramePanel {
 	}
 	private class ChitDiscoveryModel extends AbstractTableModel {
 		private String name;
-		private ArrayList<GameObject> list;
-		private ArrayList<String> discoveryNamesList;
-		public ChitDiscoveryModel(String name,ArrayList<GameObject> list) {
+		private ArrayList list;
+		private ArrayList discoveryNamesList;
+		public ChitDiscoveryModel(String name,ArrayList list) {
 			this.name = name;
 			this.list = list;
-			discoveryNamesList = new ArrayList<String>();
-			for (GameObject go : list) {
+			discoveryNamesList = new ArrayList();
+			for (java.util.Iterator _j14it0 = (list).iterator(); _j14it0.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it0.next();
 				discoveryNamesList.add(go.getName());
 			}
 		}
@@ -93,7 +94,7 @@ public class CharacterExpansionOnePanel extends CharacterFramePanel {
 		}
 		public Object getValueAt(int row, int column) {
 			if (row<list.size()) {
-				GameObject go = list.get(row);
+				GameObject go = (GameObject) list.get(row);
 				switch(column) {
 					case 0:
 						String name = go.getName();
@@ -110,8 +111,8 @@ public class CharacterExpansionOnePanel extends CharacterFramePanel {
 		}
 	}
 	private class ChitDiscoveryRenderer extends DefaultTableCellRenderer {
-		private ArrayList<GameObject> list;
-		public ChitDiscoveryRenderer(ArrayList<GameObject> list) {
+		private ArrayList list;
+		public ChitDiscoveryRenderer(ArrayList list) {
 			this.list = list;
 		}
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSel, boolean hasFocus, int row, int column) {
@@ -119,7 +120,7 @@ public class CharacterExpansionOnePanel extends CharacterFramePanel {
 			setBackground(Color.white);
 			setText((String)value);
 			if (row<list.size()) {
-				GameObject go = list.get(row);
+				GameObject go = (GameObject) list.get(row);
 				if (getCharacter().hasOtherChitDiscovery(go.getName())) {
 					setBackground(MagicRealmColor.DISCOVERY_HIGHLIGHT_COLOR);
 				}
@@ -152,9 +153,9 @@ public class CharacterExpansionOnePanel extends CharacterFramePanel {
 		}
 
 		public Object getValueAt(int row, int col) {
-			ArrayList<GameObject> travelers = getGame().getTravelerKnowledge();
+			ArrayList travelers = getGame().getTravelerKnowledge();
 			if (row<travelers.size()) {
-				GameObject traveler = travelers.get(row);
+				GameObject traveler = (GameObject) travelers.get(row);
 				switch(col) {
 					case 0:
 						return traveler.getName();

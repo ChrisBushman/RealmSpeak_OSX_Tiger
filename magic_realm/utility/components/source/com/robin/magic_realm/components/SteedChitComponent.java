@@ -183,13 +183,13 @@ public class SteedChitComponent extends RoundChitComponent implements BattleHors
 			mod++;
 		}
 		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX1) && getManeuverCombatBox()==1) {
-			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX1);
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX1).intValue();
 		}
 		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX2) && getManeuverCombatBox()==2) {
-			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX2);
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX2).intValue();
 		}
 		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX3) && getManeuverCombatBox()==3) {
-			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX3);
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX3).intValue();
 		}
 		RealmComponent owner = getHeldBy();
 		if (getGameObject().hasThisAttribute("horse") && this.isActivated() && getStrength().strongerOrEqualTo(new Strength("M")) && owner!=null) {
@@ -228,8 +228,9 @@ public class SteedChitComponent extends RoundChitComponent implements BattleHors
 		GameObject go = getGameObject().getHeldBy();
 		if (go!=null && go.hasThisAttribute(CHARACTER)) {
 			CharacterWrapper character = new CharacterWrapper(go);
-			ArrayList<GameObject> list = character.getAllActiveInventoryThisKeyAndValue(Constants.HORSE_MOD,null);
-			for (GameObject item:list) {
+			ArrayList list = character.getAllActiveInventoryThisKeyAndValue(Constants.HORSE_MOD,null);
+			for (java.util.Iterator _j14it1356 = (list).iterator(); _j14it1356.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it1356.next();
 				mod += item.getThisInt(Constants.HORSE_MOD); // cumulative... though there's really only the Horse Trainer (Traveler) at this time
 			}
 		}
@@ -342,12 +343,13 @@ public class SteedChitComponent extends RoundChitComponent implements BattleHors
 		RealmComponent rider = getRider();
 		if (rider!=null) {
 			CombatWrapper combatRider = new CombatWrapper(rider.getGameObject());
-			ArrayList<SpellWrapper> holyShieldsRider = SpellUtility.getBewitchingSpellsWithKey(rider.getGameObject(),Constants.HOLY_SHIELD);
-			if ((holyShieldsRider!=null&&!holyShieldsRider.isEmpty()) || rider.affectedByKey(Constants.HOLY_SHIELD) || combatRider.hasHolyShield(attacker.getAttackSpeed(),attacker.getLength())) {
-				for (SpellWrapper spell : holyShieldsRider) {
+			ArrayList holyShieldsRider = SpellUtility.getBewitchingSpellsWithKey(rider.getGameObject(),Constants.HOLY_SHIELD);
+			if ((holyShieldsRider!=null&&!holyShieldsRider.isEmpty()) || rider.affectedByKey(Constants.HOLY_SHIELD) || combatRider.hasHolyShield(attacker.getAttackSpeed(),attacker.getLength().intValue())) {
+				for (java.util.Iterator _j14it1357 = (holyShieldsRider).iterator(); _j14it1357.hasNext(); ) {
+				  SpellWrapper spell = (SpellWrapper) _j14it1357.next();
 					spell.expireSpell();
 				}
-				combatRider.setHolyShield(attacker.getAttackSpeed(), attacker.getLength());
+				combatRider.setHolyShield(attacker.getAttackSpeed(), attacker.getLength().intValue());
 				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits Holy Shield and the attack is blocked.");
 				return false;
 			}

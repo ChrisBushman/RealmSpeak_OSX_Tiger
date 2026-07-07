@@ -25,7 +25,8 @@ public class SpellTargetingTile extends SpellTargetingSpecial {
 			validTarget = false;
 			String clearings = spell.getGameObject().getThisAttribute(Constants.TARGET_CLEARINGS);
 			if (clearings.matches("river") || clearings.matches("water")) {
-				for (ClearingDetail cl : loc.tile.getClearings()) {
+				for (java.util.Iterator _j14it852 = (loc.tile.getClearings()).iterator(); _j14it852.hasNext(); ) {
+				  ClearingDetail cl = (ClearingDetail) _j14it852.next();
 					if (cl.isWater() || cl.isFrozenWater()) {
 						validTarget = true;
 						break;
@@ -39,7 +40,8 @@ public class SpellTargetingTile extends SpellTargetingSpecial {
 			CombatFrame.broadcastMessage(activeParticipant.getGameObject().getName(),"Targets the "+loc.tile.getGameObject().getName());
 			JOptionPane.showMessageDialog(combatFrame,"The current tile was selected as the target.");
 			if (spell.getGameObject().hasThisAttribute(Constants.TARGET_ADJACENT_TILES)) {
-				for (TileComponent tile : loc.tile.getAllAdjacentTiles()) {
+				for (java.util.Iterator _j14it853 = (loc.tile.getAllAdjacentTiles()).iterator(); _j14it853.hasNext(); ) {
+				  TileComponent tile = (TileComponent) _j14it853.next();
 					gameObjects.add(tile.getGameObject());
 					spell.addTarget(combatFrame.getHostPrefs(),tile.getGameObject(),true);
 				}

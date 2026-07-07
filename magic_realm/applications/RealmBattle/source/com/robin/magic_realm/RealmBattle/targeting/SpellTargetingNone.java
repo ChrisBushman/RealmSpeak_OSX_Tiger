@@ -16,12 +16,10 @@ public class SpellTargetingNone extends SpellTargeting {
 		return true;
 	}
 
-	@Override
 	public boolean assign(HostPrefWrapper hostPrefs, CharacterWrapper activeCharacter) {
 		return true;
 	}
 
-	@Override
 	public boolean hasTargets() {
 		return true;
 	}

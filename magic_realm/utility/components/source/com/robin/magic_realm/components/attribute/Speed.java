@@ -30,6 +30,13 @@ public class Speed implements Comparable {
 			infinitelySlow = false;
 		}
 	}
+	public Speed(int val,int modifier) {
+		this(val);
+		if (!infinitelySlow) {
+			num += modifier;
+			num = Math.max(num, 0);
+		}
+	}
 	public Speed(Integer val,int modifier) {
 		this(val);
 		if (!infinitelySlow) {

@@ -19,7 +19,6 @@ public class VerticalLabelUI extends BasicLabelUI {
 		this.clockwise = clockwise;
 	}
 
-	@Override
 	public Dimension getPreferredSize(JComponent c) {
 		Dimension dim = super.getPreferredSize(c);
 		return new Dimension(dim.height, dim.width);
@@ -30,7 +29,6 @@ public class VerticalLabelUI extends BasicLabelUI {
 	private static Rectangle paintViewR = new Rectangle();
 	private static Insets paintViewInsets = new Insets(0, 0, 0, 0);
 
-	@Override
 	public void paint(Graphics g, JComponent c) {
 		JLabel label = (JLabel) c;
 		String text = label.getText();

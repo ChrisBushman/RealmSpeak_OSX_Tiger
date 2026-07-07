@@ -44,9 +44,9 @@ public class PhaseManager {
 	private int ponyMoves = 0;
 	private int extraCavePhase = 0; // These get added to basic when entering a cave
 	private int extraDwellingPhase = 0; // These get added to basic when entering a dwelling
-	private HashLists<String, GameObject> freeActions = new HashLists<String, GameObject>(false); // These key Strings to GameObjects, where the string is like "M" or "SP" or "H", etc.
-	private ArrayList<GameObject> allObjects = new ArrayList<GameObject>();
-	private ArrayList<GameObject> usedObjects = new ArrayList<GameObject>();
+	private HashLists freeActions = new HashLists(false); // These key Strings to GameObjects, where the string is like "M" or "SP" or "H", etc.
+	private ArrayList allObjects = new ArrayList();
+	private ArrayList usedObjects = new ArrayList();
 	
 	private boolean inactiveItemWarning = true;
 	
@@ -85,10 +85,10 @@ public class PhaseManager {
 		sb.append(extraDwellingPhase);
 		return sb.toString();
 	}
-	public ArrayList<GameObject> getUsedObjects() {
+	public ArrayList getUsedObjects() {
 		return usedObjects;
 	}
-	public ArrayList<GameObject> getAllObjects() {
+	public ArrayList getAllObjects() {
 		return allObjects;
 	}
 	/**
@@ -98,7 +98,8 @@ public class PhaseManager {
 		RealmComponent rc = RealmComponent.getRealmComponent(thing);
 		if (rc.isHorse()) {
 			// Make sure there isn't already a different horse used
-			for (GameObject go : usedObjects) {
+			for (java.util.Iterator _j14it1477 = (usedObjects).iterator(); _j14it1477.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it1477.next();
 				if (!go.equals(thing)) {
 					rc = RealmComponent.getRealmComponent(go);
 					if (rc.isHorse()) {
@@ -114,9 +115,10 @@ public class PhaseManager {
 	 */
 	public void updateNewActivatedTreasure(GameObject thing) {
 		if (!allObjects.contains(thing)) {
-			ArrayList<String> free = thing.getThisAttributeList(Constants.EXTRA_ACTIONS);
+			ArrayList free = thing.getThisAttributeList(Constants.EXTRA_ACTIONS);
 			if (free!=null) {
-				for (String freeAction : free) {
+				for (java.util.Iterator _j14it1478 = (free).iterator(); _j14it1478.hasNext(); ) {
+				  String freeAction = (String) _j14it1478.next();
 					freeAction = freeAction.replace("SP", "E");
 					addFreeAction(freeAction,thing);
 				}
@@ -139,8 +141,9 @@ public class PhaseManager {
 	}
 	public void updateInactiveThings() {
 		// Check to see if anything became inactive that needs to be removed from free actions
-		ArrayList<Requirement> toRemove = new ArrayList<Requirement>();
-		for (GameObject go : allObjects) {
+		ArrayList toRemove = new ArrayList();
+		for (java.util.Iterator _j14it1479 = (allObjects).iterator(); _j14it1479.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1479.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc.isItem() && !go.hasThisAttribute(Constants.ACTIVATED)) {
 				if (!usedObjects.contains(go)) {
@@ -149,16 +152,18 @@ public class PhaseManager {
 			}
 		}
 		allObjects.removeAll(toRemove);
-		ArrayList<String> freeToRemove = new ArrayList<String>();
-		for (String val : freeActions.keySet()) {
-			ArrayList<GameObject> list = freeActions.getList(val);
+		ArrayList freeToRemove = new ArrayList();
+		for (java.util.Iterator _j14it1480 = (freeActions.keySet()).iterator(); _j14it1480.hasNext(); ) {
+		  String val = (String) _j14it1480.next();
+			ArrayList list = freeActions.getList(val);
 			if (list.removeAll(toRemove)) {
 				if (list.isEmpty()) {
 					freeToRemove.add(val);
 				}
 			}
 		}
-		for (String val : freeToRemove) {
+		for (java.util.Iterator _j14it1481 = (freeToRemove).iterator(); _j14it1481.hasNext(); ) {
+		  String val = (String) _j14it1481.next();
 			freeActions.remove(val);
 		}
 	}
@@ -203,9 +208,10 @@ public class PhaseManager {
 		if (tl==null || !tl.isInClearing()) return;
 		
 		// Check the clearing itself!  (Blazing Light)
-		ArrayList<String> clist = tl.clearing.getFreeActions();
+		ArrayList clist = tl.clearing.getFreeActions();
 		if (clist!=null) {
-			for (String free  : clist) {
+			for (java.util.Iterator _j14it1482 = (clist).iterator(); _j14it1482.hasNext(); ) {
+			  String free = (String) _j14it1482.next();
 				if (Constants.EXTRA_CAVE_PHASE.equals(free)) {
 					GameObject go = tl.clearing.getFreeActionObject(free);
 					addExtraCavePhase(go);
@@ -230,7 +236,8 @@ public class PhaseManager {
 		if (isCurrent) {
 			removeLocationSpecificFreeActions(tl);
 		}
-		for (RealmComponent rc : tl.clearing.getClearingComponents()) {
+		for (java.util.Iterator _j14it1483 = (tl.clearing.getClearingComponents()).iterator(); _j14it1483.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1483.next();
 			String free = rc.getGameObject().getThisAttribute(Constants.EXTRA_ACTIONS_CLEARING);
 			if (free!=null) {
 				free = free.replace("SP", "E");
@@ -290,8 +297,8 @@ public class PhaseManager {
 		if (basic<=0 && sheltered<=0) {
 			// Convert detail action into plain action (M-CV3 becomes M)
 			phase = simplifyAction(phase);
-			ArrayList<GameObject> list = freeActions.getListAsNew(trimmedPhase(phase));
-			ArrayList<GameObject> nonMoveActions = null;
+			ArrayList list = freeActions.getListAsNew(trimmedPhase(phase));
+			ArrayList nonMoveActions = null;
 			boolean movePhase = "M".equals(phase) || "M!".equals(phase);
 			if (!movePhase) {
 				nonMoveActions = freeActions.getListAsNew(trimmedPhase("!M"));
@@ -357,8 +364,9 @@ public class PhaseManager {
 			if (ponyLock && ponyObject!=null) {
 				list.remove(ponyObject);
 			}
-			Collections.sort(list,new Comparator<Requirement>() {
-				public int compare(Requirement r1,Requirement r2) {
+			Collections.sort(list,new Comparator() {
+				public int compare(Object o1,Object o2) {
+				Requirement r1 = (Requirement)o1; Requirement r2 = (Requirement)o2;
 					int ret = 0;
 										
 					GameObject go1 = r1.getGameObject();
@@ -376,7 +384,7 @@ public class PhaseManager {
 		int regularPhases = getTotal();
 		if (regularPhases>0 && !phaseRequiresObject(phase)) {
 			if (list==null) {
-				list = new ArrayList<GameObject>();
+				list = new ArrayList();
 			}
 			for (int i=0;i<regularPhases;i++) {
 				list.add(REGULAR_PHASE); // this is added to the end of the list, because it is lowest priority
@@ -399,10 +407,10 @@ public class PhaseManager {
 	public GameObject getNextRequiredObject(String fullPhase,boolean ponyActive) {
 		// Convert detail action into plain action (M-CV3 becomes M)
 		String phase = simplifyAction(fullPhase);
-		Collection<GameObject> activeInventory = character.getActiveInventory();
-		Collection<GameObject> travelers = character.getFollowingTravelers();
-		Collection<GameObject> allSpells = character.getSpellExtraSources();
-		Collection<GameObject> clearingObjects = character.getCurrentClearingExtraActionObjects();
+		Collection activeInventory = character.getActiveInventory();
+		Collection travelers = character.getFollowingTravelers();
+		Collection allSpells = character.getSpellExtraSources();
+		Collection clearingObjects = character.getCurrentClearingExtraActionObjects();
 		
 		boolean movePhase = "M".equals(phase) || "M!".equals(phase);
 		TileLocation newLocation = null;
@@ -551,11 +559,13 @@ public class PhaseManager {
 	}
 	public void removeLocationSpecificFreeActions(TileLocation tl) {
 		// Moved, so make sure that any free actions gained by location are removed
-		ArrayList<String> removeKeys = new ArrayList<String>();
-		for (String key : freeActions.keySet()) {
-			ArrayList<Requirement> remove = new ArrayList<Requirement>();
-			List<GameObject> list = freeActions.getList(key);
-			for (Object o : list) {
+		ArrayList removeKeys = new ArrayList();
+		for (java.util.Iterator _j14it1484 = (freeActions.keySet()).iterator(); _j14it1484.hasNext(); ) {
+		  String key = (String) _j14it1484.next();
+			ArrayList remove = new ArrayList();
+			List list = freeActions.getList(key);
+			for (java.util.Iterator _j14it1485 = (list).iterator(); _j14it1485.hasNext(); ) {
+			  Object o = (Object) _j14it1485.next();
 				if (o instanceof Requirement) {
 					Requirement r = (Requirement)o;
 					if (!usedObjects.contains(r.getGameObject())) {
@@ -573,7 +583,8 @@ public class PhaseManager {
 				removeKeys.add(key);
 			}
 		}
-		for (String key:removeKeys) {
+		for (java.util.Iterator _j14it1486 = (removeKeys).iterator(); _j14it1486.hasNext(); ) {
+		  String key = (String) _j14it1486.next();
 			freeActions.remove(key);
 		}
 	}
@@ -598,8 +609,8 @@ public class PhaseManager {
 	public boolean canAddAction(String action,boolean pony) {
 		return canAddAction(action,pony,null);
 	}
-	private ArrayList<GameObject> active;
-	private ArrayList<GameObject> inactive;
+	private ArrayList active;
+	private ArrayList inactive;
 
 	public boolean canAddAction(String fullAction,boolean pony,JFrame parent) {
 		// First, count the actions
@@ -636,9 +647,9 @@ public class PhaseManager {
 		if (specialCaseOverride || (list!=null && list.size()>=count)) {
 			if (parent!=null) {
 				// Sort the strings from the gameobjects
-				ArrayList<String> strings = new ArrayList<String>();
-				ArrayList<GameObject> requiredObjects = new ArrayList<GameObject>();
-				Collection<GameObject> clearingObjects = character.getCurrentClearingExtraActionObjects();
+				ArrayList strings = new ArrayList();
+				ArrayList requiredObjects = new ArrayList();
+				Collection clearingObjects = character.getCurrentClearingExtraActionObjects();
 				refreshInventoryLists();
 				for (Iterator i=list.iterator();i.hasNext();) {
 					Object o = i.next();
@@ -654,8 +665,9 @@ public class PhaseManager {
 				if (requiredObjects.size()>0) {
 					// There are required items here!
 					GameObject toUse = null;
-					ArrayList<GameObject> needValidate = new ArrayList<GameObject>();
-					for (GameObject go:requiredObjects) {
+					ArrayList needValidate = new ArrayList();
+					for (java.util.Iterator _j14it1487 = (requiredObjects).iterator(); _j14it1487.hasNext(); ) {
+					  GameObject go = (GameObject) _j14it1487.next();
 						if (character.getGameObject().equals(go) || active.contains(go) || clearingObjects.contains(go)) {
 							return true;
 						}
@@ -669,7 +681,7 @@ public class PhaseManager {
 						if (needValidate.isEmpty()) {
 							return false;
 						}
-						validateRequirement(parent,strings,needValidate.get(0),true);
+						validateRequirement(parent,strings,(GameObject)needValidate.get(0),true);
 						return false;
 					}
 					
@@ -680,7 +692,7 @@ public class PhaseManager {
 		}
 		return false;
 	}
-	private boolean validateRequirement(JFrame parent,ArrayList<String> strings,GameObject go,boolean process) {
+	private boolean validateRequirement(JFrame parent,ArrayList strings,GameObject go,boolean process) {
 		RealmComponent rc = RealmComponent.getRealmComponent(go);
 		
 		if (rc.isSpell()) {
@@ -695,7 +707,7 @@ public class PhaseManager {
 		}
 		return true;
 	}
-	private boolean validateSpellRequirement(JFrame parent,ArrayList<String> strings,GameObject go,boolean process) {
+	private boolean validateSpellRequirement(JFrame parent,ArrayList strings,GameObject go,boolean process) {
 		RealmComponent rc = RealmComponent.getRealmComponent(go);
 		SpellWrapper spell = new SpellWrapper(go);
 		if (!spell.isAlive()) {
@@ -731,7 +743,7 @@ public class PhaseManager {
 		}
 		return true;
 	}
-	private boolean validateNonSpellRequirement(JFrame parent,ArrayList<String> strings,GameObject go,boolean process) {
+	private boolean validateNonSpellRequirement(JFrame parent,ArrayList strings,GameObject go,boolean process) {
 		RealmComponent rc = RealmComponent.getRealmComponent(go);
 		boolean transmorphed = character.isTransmorphed();
 		// Required Treasure
@@ -765,7 +777,7 @@ public class PhaseManager {
 		}
 		return true;
 	}
-	private boolean manageInactiveInventoryRequirement(JFrame parent,ArrayList<String> strings,GameObject go,boolean process) {
+	private boolean manageInactiveInventoryRequirement(JFrame parent,ArrayList strings,GameObject go,boolean process) {
 		RealmComponent rc = RealmComponent.getRealmComponent(go);
 		
 		// Okay, just need to reactivate it, if possible
@@ -941,7 +953,7 @@ public class PhaseManager {
 		GameData data = new GameData();
 		GameObject thing1 = data.createNewObject();
 		GameObject thing2 = data.createNewObject();
-		ArrayList<GameObject> activatedObjects = new ArrayList<GameObject>();
+		ArrayList activatedObjects = new ArrayList();
 		activatedObjects.add(thing1);
 //		activatedObjects.add(thing2);
 		

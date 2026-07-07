@@ -12,14 +12,14 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 public class ExtraActionEditPanel extends AdvantageEditPanel {
 	
 	private ButtonGroup group;
-	private Hashtable<String,JRadioButton> actionHash;
+	private Hashtable actionHash;
 
 	public ExtraActionEditPanel(CharacterWrapper pChar,String levelKey) {
 		super(pChar,levelKey);
 		setLayout(new GridLayout(12,1));
 		
 		group = new ButtonGroup();
-		actionHash = new Hashtable<String,JRadioButton>();
+		actionHash = new Hashtable();
 		addOption("HIDE","H",true); // default
 		addOption("MOVE","M");
 		addOption("SEARCH","S");
@@ -36,10 +36,11 @@ public class ExtraActionEditPanel extends AdvantageEditPanel {
 		addOption("OFFROAD","O");
 		
 		// Initialize, if you can
-		ArrayList<String> extra = getAttributeList(Constants.EXTRA_ACTIONS);
+		ArrayList extra = getAttributeList(Constants.EXTRA_ACTIONS);
 		if (extra!=null) {
-			for (String extraAction : extra) {
-				JRadioButton button = actionHash.get(extraAction);
+			for (java.util.Iterator _j14it936 = (extra).iterator(); _j14it936.hasNext(); ) {
+			  String extraAction = (String) _j14it936.next();
+				JRadioButton button = (JRadioButton) actionHash.get(extraAction);
 				button.setSelected(true);
 				break; // assume only ONE per list
 			}
@@ -61,10 +62,11 @@ public class ExtraActionEditPanel extends AdvantageEditPanel {
 		return hasAttribute(Constants.EXTRA_ACTIONS);
 	}
 	protected void applyAdvantage() {
-		for (String action:actionHash.keySet()) {
-			JRadioButton button = actionHash.get(action);
+		for (java.util.Iterator _j14it937 = (actionHash.keySet()).iterator(); _j14it937.hasNext(); ) {
+		  String action = (String) _j14it937.next();
+			JRadioButton button = (JRadioButton) actionHash.get(action);
 			if (button.isSelected()) {
-				ArrayList<String> list = new ArrayList<String>();
+				ArrayList list = new ArrayList();
 				list.add(action);
 				setAttributeList(Constants.EXTRA_ACTIONS,list);
 				break;
@@ -74,8 +76,9 @@ public class ExtraActionEditPanel extends AdvantageEditPanel {
 	public String getSuggestedDescription() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("Gets an extra ");
-		for (String action:actionHash.keySet()) {
-			JRadioButton button = actionHash.get(action);
+		for (java.util.Iterator _j14it938 = (actionHash.keySet()).iterator(); _j14it938.hasNext(); ) {
+		  String action = (String) _j14it938.next();
+			JRadioButton button = (JRadioButton) actionHash.get(action);
 			if (button.isSelected()) {
 				sb.append(button.getText().toUpperCase());
 			}

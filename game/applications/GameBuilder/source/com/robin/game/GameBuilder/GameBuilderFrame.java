@@ -36,14 +36,14 @@ public class GameBuilderFrame extends JFrame {
 		
 	protected JDesktopPane desktop;
 	protected int desktopWindowCount;
-	protected ArrayList<GameDataFrame> gameDataFrames;
-	protected ArrayList<String> openGameNames;
+	protected ArrayList gameDataFrames;
+	protected ArrayList openGameNames;
 	
 	protected File lastPath;
 	
 	public GameBuilderFrame() {
-		gameDataFrames = new ArrayList<GameDataFrame>();
-		openGameNames = new ArrayList<String>();
+		gameDataFrames = new ArrayList();
+		openGameNames = new ArrayList();
 		prefs = new PreferenceManager("GameBuilder","GameBuilder.cfg") {
 			protected void createDefaultPreferences(Properties props) {
 				props.put(LAST_DIR,System.getProperty("user.home"));
@@ -185,7 +185,7 @@ public class GameBuilderFrame extends JFrame {
 
 						if (setup==null) return;
 						StringBuffer result = new StringBuffer();
-						ArrayList<String> keyVals = new ArrayList<String>();
+						ArrayList keyVals = new ArrayList();
 						String game = (String)JOptionPane.showInputDialog(
 								GameBuilderFrame.this,
 								"Game Name",
@@ -288,7 +288,8 @@ public class GameBuilderFrame extends JFrame {
 		updateMenu();
 	}
 	public void saveAllGame() {
-		for (GameDataFrame frame : gameDataFrames) {
+		for (java.util.Iterator _j14it61 = (gameDataFrames).iterator(); _j14it61.hasNext(); ) {
+		  GameDataFrame frame = (GameDataFrame) _j14it61.next();
 			if (frame.isModified()) {
 				frame.save(this);
 			}
@@ -319,7 +320,8 @@ public class GameBuilderFrame extends JFrame {
 		System.exit(0);
 	}
 	public GameDataFrame getFrontDataFrame() {
-		for (GameDataFrame frame : gameDataFrames) {
+		for (java.util.Iterator _j14it62 = (gameDataFrames).iterator(); _j14it62.hasNext(); ) {
+		  GameDataFrame frame = (GameDataFrame) _j14it62.next();
 			if (frame.getLayer()==0) {
 				return frame;
 			}
@@ -350,7 +352,8 @@ public class GameBuilderFrame extends JFrame {
 		closeFile.setEnabled(activeDataFrame!=null);
 		saveFile.setEnabled(activeDataFrame!=null && activeDataFrame.isModified());
 		boolean foundModified = false;
-		for (GameDataFrame frame : gameDataFrames) {
+		for (java.util.Iterator _j14it63 = (gameDataFrames).iterator(); _j14it63.hasNext(); ) {
+		  GameDataFrame frame = (GameDataFrame) _j14it63.next();
 			if (frame.isModified()) {
 				// Only the first modified file is needed to set enabled status
 				foundModified = true;

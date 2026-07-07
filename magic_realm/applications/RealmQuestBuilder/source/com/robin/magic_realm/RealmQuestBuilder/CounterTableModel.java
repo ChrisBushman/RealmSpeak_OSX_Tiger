@@ -33,12 +33,12 @@ public class CounterTableModel extends AbstractTableModel {
 
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		if (rowIndex < getRowCount()) {
-			QuestCounter counter = quest.getCounters().get(rowIndex);
+			QuestCounter counter = (QuestCounter) quest.getCounters().get(rowIndex);
 			switch (columnIndex) {
 				case 0:
 					return counter.getName();
 				case 1:
-					return counter.getCount();
+					return new Integer(counter.getCount());
 			}
 		}
 		return null;

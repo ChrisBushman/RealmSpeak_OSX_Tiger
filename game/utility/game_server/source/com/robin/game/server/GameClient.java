@@ -40,7 +40,7 @@ public abstract class GameClient extends GameNet {
 	
 	private static final RequestObject IDLE_REQ_OBJ = new RequestObject(REQUEST_IDLE);
 	
-	protected ArrayList<RequestObject> requestQueue = new ArrayList<RequestObject>();
+	protected ArrayList requestQueue = new ArrayList();
 	
 	boolean clientDead = false;
 
@@ -59,7 +59,7 @@ public abstract class GameClient extends GameNet {
 	
 	protected boolean hosting = false;
 	
-	protected ArrayList<ChangeListener> changeListeners = null;
+	protected ArrayList changeListeners = null;
 	
 	public GameClient(String dataPath,String ipAddress,String clientName,String clientPass) {
 		this(dataPath,ipAddress,clientName,clientPass,GameHost.DEFAULT_PORT);
@@ -167,7 +167,8 @@ public abstract class GameClient extends GameNet {
 		if (changeListeners!=null) {
 			logger.finer("listenerCount="+changeListeners.size());
 			ChangeEvent event = new ChangeEvent(this);
-			for (ChangeListener listener : changeListeners) {
+			for (java.util.Iterator _j14it178 = (changeListeners).iterator(); _j14it178.hasNext(); ) {
+			  ChangeListener listener = (ChangeListener) _j14it178.next();
 				StateFireThread thread = new StateFireThread(listener,event);
 				thread.start();
 			}
@@ -194,7 +195,7 @@ public abstract class GameClient extends GameNet {
 	private RequestObject getNextInQueue() {
 		if (requestQueue.size()>0) {
 			// Get next
-			return requestQueue.remove(0);
+			return (RequestObject) requestQueue.remove(0);
 		}
 		return IDLE_REQ_OBJ;
 	}
@@ -215,7 +216,7 @@ public abstract class GameClient extends GameNet {
 	 * Handles
 	 */
 	private void handleResponse(RequestObject ro) throws SocketTimeoutException,Exception {
-		ArrayList<GameObjectChange> list;
+		ArrayList list;
 		if (!ro.isIdle()) logger.fine("handleResponse "+ro);
 		int response;
 		try {
@@ -232,7 +233,8 @@ public abstract class GameClient extends GameNet {
 							// Instead of loading all the objects, just load changes
 							list = readCollection();
 							logger.fine("Client received update: "+list.size()+" changes.");
-							for (GameObjectChange action : list) {
+							for (java.util.Iterator _j14it179 = (list).iterator(); _j14it179.hasNext(); ) {
+							  GameObjectChange action = (GameObjectChange) _j14it179.next();
 								logger.finer("   "+action);
 								action.applyChange(gameData);
 							}
@@ -422,7 +424,7 @@ public abstract class GameClient extends GameNet {
 			throw new RuntimeException("This client is DEAD!");
 		}
 		if (gameData.hasChanges()) {
-			ArrayList<GameObjectChange> list = gameData.popAndCommit();
+			ArrayList list = gameData.popAndCommit();
 			
 			logger.fine("GameClient "+clientName+": Queueing "+list.size()+" changes...");
 			if (list!=null && !list.isEmpty()) {
@@ -527,7 +529,7 @@ public abstract class GameClient extends GameNet {
 		System.out.println("Init host");
 		GameHost host = new GameHost("mr.xml","nettest","meat");
 		System.out.println("Do Setup");
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add("original_game");
 		host.getGameData().doSetup("standard_game",query);
 //		host.getGameData().getGameObject(0).setAttribute("this","test","1");

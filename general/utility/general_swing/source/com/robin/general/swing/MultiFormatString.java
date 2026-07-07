@@ -200,7 +200,7 @@ public class MultiFormatString {
 	}
 	
 	public static String[] breakupString(String text) {
-		Vector<String> v = new Vector<String>();
+		Vector v = new Vector();
 		String string = new String(text);
 		int space = string.indexOf(" ");
 		while(space>=0) {

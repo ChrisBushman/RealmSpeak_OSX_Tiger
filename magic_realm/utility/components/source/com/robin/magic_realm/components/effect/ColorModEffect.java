@@ -8,7 +8,6 @@ import com.robin.magic_realm.components.utility.SpellUtility;
 
 public class ColorModEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		ColorMod colorMod = ColorMod.createColorMod(context.Spell.getGameObject());
 		if (context.Target.isTile()) {
@@ -30,7 +29,6 @@ public class ColorModEffect implements ISpellEffect {
 
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		context.Target.getGameObject().removeThisAttribute(Constants.MOD_COLOR_SOURCE);
 	}

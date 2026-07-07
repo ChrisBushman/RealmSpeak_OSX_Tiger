@@ -160,8 +160,9 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 			
 			int small = 0;
 			int large = 0;
-			ArrayList<String> spellTypes = new ArrayList<String>();
-			for (GameObject go : getGameObject().getHold()) {
+			ArrayList spellTypes = new ArrayList();
+			for (java.util.Iterator _j14it1316 = (getGameObject().getHold()).iterator(); _j14it1316.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it1316.next();
 				String treasure = go.getThisAttribute("treasure");
 				if (treasure!=null) {
 					if ("large".equals(treasure)) {
@@ -197,7 +198,8 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 				text.append("Spells:");
 				text.append(rowContentStart);
 				StringBufferedList list = new StringBufferedList();
-				for (String val:spellTypes) {
+				for (java.util.Iterator _j14it1317 = (spellTypes).iterator(); _j14it1317.hasNext(); ) {
+				  String val = (String) _j14it1317.next();
 					list.append(val);
 				}
 				text.append(list.toString());
@@ -302,20 +304,21 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 			text.append(rowEnd);
 		}
 		// Partner
-		ArrayList<String> partner = getPartners();
+		ArrayList partner = getPartners();
 		if (!partner.isEmpty()) {
 			text.append("<tr><td valign=\"top\" align=\"right\" bgcolor=\"#33cc00\" rowspan=\"");
 			text.append(partner.size());
 			text.append("\"><b>");
 			text.append("Partner:");
 			text.append(rowContentStart);
-			for (String group : partner) {
+			for (java.util.Iterator _j14it1318 = (partner).iterator(); _j14it1318.hasNext(); ) {
+			  String group = (String) _j14it1318.next();
 				text.append(StringUtilities.capitalize(group));
 				text.append(rowEnd);
 			}
 		}
 		// Foe
-		ArrayList<String> foe = getFoes();
+		ArrayList foe = getFoes();
 		if (!foe.isEmpty()) {
 			text.append("<tr><td valign=\"top\" align=\"right\" bgcolor=\"#33cc00\" rowspan=\"");
 			text.append(foe.size());
@@ -323,7 +326,8 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 			text.append("Foe:");
 			text.append(rowContentStart);
 			int total = 0;
-			for (String group : foe) {
+			for (java.util.Iterator _j14it1319 = (foe).iterator(); _j14it1319.hasNext(); ) {
+			  String group = (String) _j14it1319.next();
 				text.append(group);
 				
 				if (hostPrefs!=null) {
@@ -364,14 +368,14 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 		
 		return text.toString();
 	}
-	public ArrayList<String> getPartners() {
+	public ArrayList getPartners() {
 		return getList("partner");
 	}
-	public ArrayList<String> getFoes() {
+	public ArrayList getFoes() {
 		return getList("foe");
 	}
-	private ArrayList<String> getList(String key) {
-		ArrayList<String> list = new ArrayList<String>();
+	private ArrayList getList(String key) {
+		ArrayList list = new ArrayList();
 		String val = getGameObject().getThisAttribute(key);
 		if (val!=null) {
 			StringTokenizer tokens = new StringTokenizer(val,",");
@@ -449,9 +453,10 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 			GameClient.broadcastClient(character.getGameObject().getName(),"Received "+reward+" gold as a reward.");
 		}
 
-		ArrayList<String> partners = getPartners();
+		ArrayList partners = getPartners();
 		if (partners!=null) {
-			for (String partner : partners) {
+			for (java.util.Iterator _j14it1320 = (partners).iterator(); _j14it1320.hasNext(); ) {
+			  String partner = (String) _j14it1320.next();
 				character.removeDamagedRelations(partner.toLowerCase());
 			}
 		}
@@ -507,9 +512,10 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 			GameData data = getGameObject().getGameData();
 			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
 			GamePool pool = new GamePool(data.getGameObjects());
-			ArrayList<String> foe = getFoes();
+			ArrayList foe = getFoes();
 			if (!foe.isEmpty()) {
-				for (String group : foe) {
+				for (java.util.Iterator _j14it1321 = (foe).iterator(); _j14it1321.hasNext(); ) {
+				  String group = (String) _j14it1321.next();
 					total += getFoeCount_OnMap(hostPrefs,group,pool);
 					total += getFoeCount_OnCard(hostPrefs,group,pool);
 				}
@@ -517,22 +523,24 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 			return total==0;
 		}
 		else if (getGameObject().hasThisAttribute(Constants.TASK)) {
-			List<String> requiredTreasureLocations = getGameObject().getThisAttributeList(Constants.TASK_SITES);
+			List requiredTreasureLocations = getGameObject().getThisAttributeList(Constants.TASK_SITES);
 			if (current.isInClearing()) {
-				Collection<RealmComponent> treasureLocations = current.clearing.getTreasureLocations();
-				Collection<String> visitedTreasureLocations;
+				Collection treasureLocations = current.clearing.getTreasureLocations();
+				Collection visitedTreasureLocations;
 				if (treasureLocations != null && !treasureLocations.isEmpty()) {
 					visitedTreasureLocations = character.getGameObject().getThisAttributeList(Constants.TASK_VISITED_SITES);
-					for (RealmComponent tl : treasureLocations) {
+					for (java.util.Iterator _j14it1322 = (treasureLocations).iterator(); _j14it1322.hasNext(); ) {
+					  RealmComponent tl = (RealmComponent) _j14it1322.next();
 						if (requiredTreasureLocations.contains(tl.toString().toLowerCase()) && (visitedTreasureLocations==null || !visitedTreasureLocations.contains(tl.toString().toLowerCase())))
 							character.getGameObject().addThisAttributeListItem(Constants.TASK_VISITED_SITES, tl.toString().toLowerCase());
 					}
 				}
 			}
 			
-			Collection<String> visitedTreasureLocations = character.getGameObject().getThisAttributeList(Constants.TASK_VISITED_SITES);
+			Collection visitedTreasureLocations = character.getGameObject().getThisAttributeList(Constants.TASK_VISITED_SITES);
 			if (visitedTreasureLocations!=null && !visitedTreasureLocations.isEmpty()) {
-				for (String requiredTl : requiredTreasureLocations) {
+				for (java.util.Iterator _j14it1323 = (requiredTreasureLocations).iterator(); _j14it1323.hasNext(); ) {
+				  String requiredTl = (String) _j14it1323.next();
 					if (!visitedTreasureLocations.contains(requiredTl.toLowerCase())) {
 						return false;
 					}
@@ -544,8 +552,8 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 		
 		return false;
 	}
-	private ArrayList<String> getBaseFoeQuery(HostPrefWrapper hostPrefs,String group) {
-		ArrayList<String> query = new ArrayList<String>();
+	private ArrayList getBaseFoeQuery(HostPrefWrapper hostPrefs,String group) {
+		ArrayList query = new ArrayList();
 		query.addAll(GamePool.makeKeyVals(hostPrefs.getGameKeyVals()));
 		if ("Quest".equals(getGameObject().getName())) {
 			query.add("monster");
@@ -567,19 +575,20 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 		return query;
 	}
 	private int getFoeCount_OnMap(HostPrefWrapper hostPrefs,String group,GamePool pool) {
-		ArrayList<String> query = getBaseFoeQuery(hostPrefs,group);
+		ArrayList query = getBaseFoeQuery(hostPrefs,group);
 		query.add("clearing");
 		return pool.find(query).size();
 	}
 	private int getFoeCount_OnCard(HostPrefWrapper hostPrefs,String group,GamePool pool) {
-		ArrayList<String> query = getBaseFoeQuery(hostPrefs,group);
+		ArrayList query = getBaseFoeQuery(hostPrefs,group);
 		query.add("!clearing");
 		query.add("!"+Constants.DEAD);
 		return getFoeExistCount(pool.find(query));
 	}
-	private static int getFoeExistCount(ArrayList<GameObject> foes) {
+	private static int getFoeExistCount(ArrayList foes) {
 		int count = 0;
-		for(GameObject foe:foes) {
+		for (java.util.Iterator _j14it1324 = (foes).iterator(); _j14it1324.hasNext(); ) {
+		  GameObject foe = (GameObject) _j14it1324.next();
 			if (foe.hasThisAttribute(Constants.SETUP_START_TILE_REQ)) {
 				TileLocation tl = ClearingUtility.getTileLocation(foe);
 				String tileType = tl.tile.getTileType();
@@ -609,13 +618,15 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 			String relBlock = RealmUtility.getRelationshipBlockFor(getGameObject());
 			
 			// Calculate change in friendliness, and apply (Partners ALL increase by 2)
-			for (String group : getPartners()) {
+			for (java.util.Iterator _j14it1325 = (getPartners()).iterator(); _j14it1325.hasNext(); ) {
+			  String group = (String) _j14it1325.next();
 				getGameObject().setAttribute("relationship",group.toLowerCase(),2);
 				character.changeRelationship(relBlock,group,2, false);
 			}
 			// (Foes move to ENEMY)
 			if (!"Quest".equals(getGameObject().getName()) || getGameObject().hasThisAttribute(Constants.BOUNTY_HUNTER)) {
-				for (String group : getFoes()) {
+				for (java.util.Iterator _j14it1326 = (getFoes()).iterator(); _j14it1326.hasNext(); ) {
+				  String group = (String) _j14it1326.next();
 					int current = character.getRelationship(relBlock,group);
 					int change = RelationshipType.ENEMY - current;
 					getGameObject().setAttribute("relationship",group.toLowerCase(),change);
@@ -636,13 +647,15 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 			
 			String relBlock = RealmUtility.getRelationshipBlockFor(getGameObject());
 			
-			for (String group : getPartners()) {
+			for (java.util.Iterator _j14it1327 = (getPartners()).iterator(); _j14it1327.hasNext(); ) {
+			  String group = (String) _j14it1327.next();
 				int val = getGameObject().getInt("relationship",group.toLowerCase());
 				character.changeRelationship(relBlock,group,-val, false);
 			}
 			// (Foes move to ENEMY)
 			if (!"Quest".equals(getGameObject().getName())) {
-				for (String group : getFoes()) {
+				for (java.util.Iterator _j14it1328 = (getFoes()).iterator(); _j14it1328.hasNext(); ) {
+				  String group = (String) _j14it1328.next();
 					int val = getGameObject().getInt("relationship",group.toLowerCase());
 					character.changeRelationship(relBlock,group,-val, false);
 				}
@@ -650,8 +663,9 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 			getGameObject().removeAttributeBlock("relationship");
 		}
 		else if (getGameObject().hasThisAttribute(Constants.TASK)) {
-			ArrayList<String> requiredTreasureLocations = getGameObject().getThisAttributeList(Constants.TASK_SITES);
-			for (String requiredTl : requiredTreasureLocations) {
+			ArrayList requiredTreasureLocations = getGameObject().getThisAttributeList(Constants.TASK_SITES);
+			for (java.util.Iterator _j14it1329 = (requiredTreasureLocations).iterator(); _j14it1329.hasNext(); ) {
+			  String requiredTl = (String) _j14it1329.next();
 				character.getGameObject().removeThisAttributeListItem(Constants.TASK_VISITED_SITES,requiredTl.toLowerCase());
 			}
 		}

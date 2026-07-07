@@ -24,18 +24,18 @@ public class CharacterEditRibbon extends JPanel {
 	private CharacterWrapper character;
 	private ChitBinPanel chitsPanel;
 	private RelationshipTable relationshipTable;
-	private ArrayList<String[]> relationshipNames;
+	private ArrayList relationshipNames;
 	
-	private ArrayList<GameObject> spellChoices;
+	private ArrayList spellChoices;
 		
 	private JList ownedSpellsList;
 	private OwnedSpellsListModel ownedSpellsListModel;
-	private ArrayList<SpellWrapper> ownedSpells;
+	private ArrayList ownedSpells;
 	
 	private JList breakableSpellsList;
 	private BreakableSpellsListModel breakableSpellsListModel;
-	private ArrayList<SpellWrapper> breakableSpells;
-	private ArrayList<StateChooser> stateChoosers = new ArrayList<StateChooser>();
+	private ArrayList breakableSpells;
+	private ArrayList stateChoosers = new ArrayList();
 
 	private JLabel notorietyAmount;
 	private JLabel fameAmount;
@@ -90,8 +90,9 @@ public class CharacterEditRibbon extends JPanel {
 		updatePanel();
 	}
 	private void updateOwnedSpells() {
-		ownedSpells = new ArrayList<SpellWrapper>();
-		for(GameObject go:character.getAllSpells()) {
+		ownedSpells = new ArrayList();
+		for (java.util.Iterator _j14it205 = (character.getAllSpells()).iterator(); _j14it205.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it205.next();
 			ownedSpells.add(new SpellWrapper(go));
 		}
 		ownedSpellsList.setModel(ownedSpellsListModel = new OwnedSpellsListModel());
@@ -99,9 +100,11 @@ public class CharacterEditRibbon extends JPanel {
 	private void updateBreakableSpells() {
 		SpellMasterWrapper spellMaster = SpellMasterWrapper.getSpellMaster(character.getGameData());
 		breakableSpells = spellMaster.getAffectingSpells(character.getGameObject());
-		for(SpellWrapper spell:character.getAliveSpells()) { // let's also add those spells that this character cast, but may not be bewitching the character.
+		for (java.util.Iterator _j14it206 = (character.getAliveSpells()).iterator(); _j14it206.hasNext(); ) {
+		  SpellWrapper spell = (SpellWrapper) _j14it206.next(); // let's also add those spells that this character cast, but may not be bewitching the character.
 			boolean found = false;
-			for(SpellWrapper bw:breakableSpells) {
+			for (java.util.Iterator _j14it207 = (breakableSpells).iterator(); _j14it207.hasNext(); ) {
+			  SpellWrapper bw = (SpellWrapper) _j14it207.next();
 				if (bw.getGameObject().getStringId().equals(spell.getGameObject().getStringId())) {
 					found = true;
 					break;
@@ -113,7 +116,8 @@ public class CharacterEditRibbon extends JPanel {
 	}
 	public void refresh() {
 		updatePanel();
-		for(StateChooser chooser:stateChoosers) {
+		for (java.util.Iterator _j14it208 = (stateChoosers).iterator(); _j14it208.hasNext(); ) {
+		  StateChooser chooser = (StateChooser) _j14it208.next();
 			chooser.revertToData();
 		}
 		repaint();
@@ -382,7 +386,7 @@ public class CharacterEditRibbon extends JPanel {
 	private GameObject getSelectedSpell() {
 		SpellSelector selector = new SpellSelector(parentFrame,character.getGameData(),spellChoices,1);
 		selector.setVisible(true);
-		return selector.getSpellSelection().get(0);
+		return (GameObject) selector.getSpellSelection().get(0);
 	}
 	private JComponent buildBreakableSpellsList() {
 		breakableSpellsList = new JList();
@@ -411,7 +415,7 @@ public class CharacterEditRibbon extends JPanel {
 		if (row>=0 && row<relationshipTable.getRowCount() && col>0 && col<relationshipTable.getColumnCount()) {
 			int rel = col-3;
 			//String name = RealmCharacterConstants.DEFAULT_RELATIONSHIPS[row][1].substring(1);
-			String[] relationshipName = relationshipNames.get(row);
+			String[] relationshipName = (String[]) relationshipNames.get(row);
 			setRelationship(relationshipName,rel);
 			repaint();
 		}
@@ -424,13 +428,14 @@ public class CharacterEditRibbon extends JPanel {
 			character.getGameObject().setAttribute(denizen[0],denizen[1].substring(1),rel);
 		}
 	}
-	private ArrayList<String[]> getRelationshipNames() {
-		ArrayList<String[]> relationshipNames = new ArrayList<String[]>();
-		ArrayList<String> keyVals = new ArrayList<String>();
+	private ArrayList getRelationshipNames() {
+		ArrayList relationshipNames = new ArrayList();
+		ArrayList keyVals = new ArrayList();
 		HostPrefWrapper	hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
 		keyVals.add(hostPrefs.getGameKeyVals());
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());
-		for (GameObject nativeLeader : pool.find("native,rank=HQ")) {
+		for (java.util.Iterator _j14it209 = (pool.find("native,rank=HQ")).iterator(); _j14it209.hasNext(); ) {
+		  GameObject nativeLeader = (GameObject) _j14it209.next();
 			String nativeName = nativeLeader.getThisAttribute("native");
 			String relBlock = RealmUtility.getRelationshipBlockFor(nativeLeader);
 			String[] ret = new String[3];
@@ -441,7 +446,8 @@ public class CharacterEditRibbon extends JPanel {
 			}
 			relationshipNames.add(ret);
 		}
-		for (GameObject visitor : pool.find(Constants.VISITOR)) {
+		for (java.util.Iterator _j14it210 = (pool.find(Constants.VISITOR)).iterator(); _j14it210.hasNext(); ) {
+		  GameObject visitor = (GameObject) _j14it210.next();
 			String visitorName = visitor.getThisAttribute(Constants.VISITOR);
 			String relBlock = RealmUtility.getRelationshipBlockFor(visitor);
 			String[] ret = new String[3];
@@ -452,8 +458,10 @@ public class CharacterEditRibbon extends JPanel {
 			}
 			relationshipNames.add(ret);
 		}
-		Collections.sort(relationshipNames, new Comparator<String[]>() {
-			public int compare(String[] o1, String[] o2) {
+		Collections.sort(relationshipNames, new Comparator() {
+			public int compare(Object obj1, Object obj2) {
+				String[] o1 = (String[]) obj1;
+				String[] o2 = (String[]) obj2;
 				int ret = o1[0].compareTo(o2[0]);
 				if (ret == 0) {
 					ret = o1[1].compareTo(o2[1]);
@@ -522,8 +530,9 @@ public class CharacterEditRibbon extends JPanel {
 		public boolean isAlive(SpellWrapper spell) {
 			boolean alive = spell.isAlive();
 			if (!alive) {
-				ArrayList<GameObject> vs = CharacterWrapper.getAllVirtualSpellsFor(spell.getGameObject());
-				for(GameObject go:vs) {
+				ArrayList vs = CharacterWrapper.getAllVirtualSpellsFor(spell.getGameObject());
+				for (java.util.Iterator _j14it211 = (vs).iterator(); _j14it211.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it211.next();
 					SpellWrapper virt = new SpellWrapper(go);
 					if (virt.isAlive()) {
 						alive = true;
@@ -536,7 +545,7 @@ public class CharacterEditRibbon extends JPanel {
 
 		public Object getElementAt(int index) {
 			if (index>=ownedSpells.size() || index<0) return null;
-			SpellWrapper spell = ownedSpells.get(index);
+			SpellWrapper spell = (SpellWrapper) ownedSpells.get(index);
 			boolean starting = character.isStartingSpell(spell.getGameObject());
 			boolean alive = isAlive(spell);
 			
@@ -545,7 +554,7 @@ public class CharacterEditRibbon extends JPanel {
 		
 		public SpellWrapper getSpellAt(int index) {
 			if (index>=ownedSpells.size() || index<0) return null;
-			return ownedSpells.get(index);
+			return (SpellWrapper) ownedSpells.get(index);
 		}
 	}
 	private class BreakableSpellsListModel extends AbstractListModel {
@@ -555,13 +564,13 @@ public class CharacterEditRibbon extends JPanel {
 
 		public Object getElementAt(int index) {
 			if (index>=breakableSpells.size() || index<0) return null;
-			SpellWrapper spell = breakableSpells.get(index);
+			SpellWrapper spell = (SpellWrapper) breakableSpells.get(index);
 			return spell.getName()+" cast by "+spell.getCaster().getName();
 		}
-		
+
 		public SpellWrapper getSpellAt(int index) {
 			if (index>=breakableSpells.size() || index<0) return null;
-			return breakableSpells.get(index);
+			return (SpellWrapper) breakableSpells.get(index);
 		}
 	}
 	private abstract class UpDownButton extends JPanel {

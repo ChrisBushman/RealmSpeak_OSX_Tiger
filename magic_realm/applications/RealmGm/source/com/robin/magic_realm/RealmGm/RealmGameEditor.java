@@ -36,19 +36,19 @@ public class RealmGameEditor extends JInternalFrame {
 	
 	private CenteredMapView map;
 	
-	private ArrayList<CharacterWrapper> characters;
-	private ArrayList<CharacterEditRibbon> characterPage = new ArrayList<CharacterEditRibbon>();
+	private ArrayList characters;
+	private ArrayList characterPage = new ArrayList();
 	private JTabbedPane characterTabs;
 	private JButton addCharacter;
 	private JButton removeCharacter;
 	private JButton killCharacter;
 	private JButton reviveCharacter;
-	private ArrayList<RealmComponent> thingsWithLocations;
-	private ArrayList<RealmComponent> thingsWithLocationsFiltered;
+	private ArrayList thingsWithLocations;
+	private ArrayList thingsWithLocationsFiltered;
 	private Box filterToolbar;
 	private JPanel locationEditToolbar;
-	private ArrayList<TileComponent> tiles;
-	private ArrayList<Quest> quests;
+	private ArrayList tiles;
+	private ArrayList quests;
 	
 	private JTable locationTable;
 	private JTable questTable;
@@ -95,7 +95,8 @@ public class RealmGameEditor extends JInternalFrame {
 		super(title,true,true,true,true);
 		
 		// before setting tracking changes here, make sure all character action chits are dark side up
-		for(GameObject go:gameData.getGameObjects()) {
+		for (java.util.Iterator _j14it213 = (gameData.getGameObjects()).iterator(); _j14it213.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it213.next();
 			if (go.hasThisAttribute("action")) {
 				go.setThisAttribute("facing","dark");
 			}
@@ -121,11 +122,12 @@ public class RealmGameEditor extends JInternalFrame {
 		return gameData;
 	}
 	private void readData() {
-		thingsWithLocations = new ArrayList<RealmComponent>();
-		thingsWithLocationsFiltered = new ArrayList<RealmComponent>();
-		characters = new ArrayList<CharacterWrapper>();
-		tiles = new ArrayList<TileComponent>();
-		for (GameObject go : gameData.getGameObjects()) {
+		thingsWithLocations = new ArrayList();
+		thingsWithLocationsFiltered = new ArrayList();
+		characters = new ArrayList();
+		tiles = new ArrayList();
+		for (java.util.Iterator _j14it214 = (gameData.getGameObjects()).iterator(); _j14it214.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it214.next();
 			if (go.hasThisAttribute(RealmComponent.CHARACTER) && !go.hasAttribute(RealmComponent.REALMCOMPONENT_BLOCK,RealmComponent.OWNER_ID)) {
 				continue;
 			}
@@ -160,8 +162,10 @@ public class RealmGameEditor extends JInternalFrame {
 				}
 			}
 		}
-		Collections.sort(characters,new Comparator<CharacterWrapper>() {
-			public int compare(CharacterWrapper c1,CharacterWrapper c2) {
+		Collections.sort(characters,new Comparator() {
+			public int compare(Object o1,Object o2) {
+				CharacterWrapper c1 = (CharacterWrapper) o1;
+				CharacterWrapper c2 = (CharacterWrapper) o2;
 				return c1.getName().compareTo(c2.getName());
 			}
 		});
@@ -172,8 +176,9 @@ public class RealmGameEditor extends JInternalFrame {
 		updateFilter(null);
 	}
 	private Box buildFilterToolbar() {
-		ArrayList<String> uniqueTypes = new ArrayList<String>();
-		for(RealmComponent rc:thingsWithLocations) {
+		ArrayList uniqueTypes = new ArrayList();
+		for (java.util.Iterator _j14it215 = (thingsWithLocations).iterator(); _j14it215.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it215.next();
 			String type = rc.getName();
 			if (uniqueTypes.contains(type)) continue;
 			uniqueTypes.add(type);
@@ -197,7 +202,8 @@ public class RealmGameEditor extends JInternalFrame {
 		group.add(toggle);
 		grid.add(toggle);
 		
-		for(String uniqueType:uniqueTypes) {
+		for (java.util.Iterator _j14it216 = (uniqueTypes).iterator(); _j14it216.hasNext(); ) {
+		  String uniqueType = (String) _j14it216.next();
 			toggle = new JToggleButton(uniqueType);
 			toggle.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
@@ -215,7 +221,8 @@ public class RealmGameEditor extends JInternalFrame {
 	}
 	private void updateFilter(String filterType) {
 		thingsWithLocationsFiltered.clear();
-		for(RealmComponent rc:thingsWithLocations) {
+		for (java.util.Iterator _j14it217 = (thingsWithLocations).iterator(); _j14it217.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it217.next();
 			if (filterType==null || rc.getName().equals(filterType)) {
 				thingsWithLocationsFiltered.add(rc);
 			}
@@ -262,7 +269,8 @@ public class RealmGameEditor extends JInternalFrame {
 				gameData.rollback();
 				locationTable.revalidate();
 				locationTable.repaint();
-				for(CharacterEditRibbon ribbon:characterPage) {
+				for (java.util.Iterator _j14it218 = (characterPage).iterator(); _j14it218.hasNext(); ) {
+				  CharacterEditRibbon ribbon = (CharacterEditRibbon) _j14it218.next();
 					ribbon.refresh();
 				}
 			}
@@ -272,8 +280,9 @@ public class RealmGameEditor extends JInternalFrame {
 		showChanges = new JButton("Show Changes");
 		showChanges.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				StringBuilder sb = new StringBuilder();
-				for(GameObjectChange change:gameData.getObjectChanges()) {
+				StringBuffer sb = new StringBuffer();
+				for (java.util.Iterator _j14it219 = (gameData.getObjectChanges()).iterator(); _j14it219.hasNext(); ) {
+				  GameObjectChange change = (GameObjectChange) _j14it219.next();
 					if (change instanceof GameBumpVersionChange) continue; // no need to see these
 					sb.append(change.toString());
 					sb.append("\n");
@@ -317,7 +326,8 @@ public class RealmGameEditor extends JInternalFrame {
 			public void actionPerformed(ActionEvent e) {
 				RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(parent,"Add Character",true);
 				GamePool pool = new GamePool(gameData.getGameObjects());
-				for (GameObject go:pool.find("character")) {
+				for (java.util.Iterator _j14it220 = (pool.find("character")).iterator(); _j14it220.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it220.next();
 					if (!CharacterWrapper.hasPlayerBlock(go)) {
 						chooser.addRealmComponent(RealmComponent.getRealmComponent(go));
 					}
@@ -349,7 +359,8 @@ public class RealmGameEditor extends JInternalFrame {
 					newChar.copyAttributesFrom(characterGo);
 					RealmComponent.clearOwner(newChar);
 					newChar.setThisKeyVals(hostPrefs.getGameKeyVals());
-					for (GameObject go : characterGo.getHold()) {
+					for (java.util.Iterator _j14it221 = (characterGo.getHold()).iterator(); _j14it221.hasNext(); ) {
+					  GameObject go = (GameObject) _j14it221.next();
 						if (go.hasThisAttribute("character_chit")) {
 							GameObject newChit = gameData.createNewObject();
 							newChit.copyAttributesFrom(go);
@@ -381,8 +392,10 @@ public class RealmGameEditor extends JInternalFrame {
 				character.applyMidnight();
 				character.calculateStartingWorth();
 				characters.add(character);
-				Collections.sort(characters,new Comparator<CharacterWrapper>() {
-					public int compare(CharacterWrapper c1,CharacterWrapper c2) {
+				Collections.sort(characters,new Comparator() {
+					public int compare(Object obj1,Object obj2) {
+						CharacterWrapper c1 = (CharacterWrapper) obj1;
+						CharacterWrapper c2 = (CharacterWrapper) obj2;
 						return c1.getName().compareTo(c2.getName());
 					}
 				});
@@ -400,7 +413,7 @@ public class RealmGameEditor extends JInternalFrame {
 			public void actionPerformed(ActionEvent e) {
 				int selectedRow = characterTabs.getSelectedIndex();
 				if (selectedRow < 0) return;
-				CharacterWrapper character = characters.get(selectedRow);
+				CharacterWrapper character = (CharacterWrapper) characters.get(selectedRow);
 				character.getGameObject().removeThisAttribute(Constants.DEAD);
 				
 				if (character.getGameObject().hasAttributeListItem("level_4", "advantages", level_9_advantage)) {
@@ -423,7 +436,7 @@ public class RealmGameEditor extends JInternalFrame {
 			public void actionPerformed(ActionEvent e) {
 				int selectedRow = characterTabs.getSelectedIndex();
 				if (selectedRow < 0) return;
-				CharacterWrapper character = characters.get(selectedRow);
+				CharacterWrapper character = (CharacterWrapper) characters.get(selectedRow);
 				TileLocation tl = ClearingUtility.getTileLocation(character.getGameObject());
 				if (tl!=null && tl.isInClearing()) {
 					RealmUtility.makeDead(RealmComponent.getRealmComponent(character.getGameObject()));
@@ -438,7 +451,7 @@ public class RealmGameEditor extends JInternalFrame {
 			public void actionPerformed(ActionEvent e) {
 				int selectedRow = characterTabs.getSelectedIndex();
 				if (selectedRow < 0) return;
-				CharacterWrapper character = characters.get(selectedRow);
+				CharacterWrapper character = (CharacterWrapper) characters.get(selectedRow);
 				character.getGameObject().removeThisAttribute(Constants.DEAD);
 				GameObject borderland = gameData.getGameObjectByName("Borderland");
 				TileComponent borderlandTile = (TileComponent)RealmComponent.getRealmComponent(borderland);
@@ -457,7 +470,7 @@ public class RealmGameEditor extends JInternalFrame {
 		int selectedRow = characterTabs.getSelectedIndex();
 		CharacterWrapper selectedCharacter = null;
 		if (selectedRow >= 0) {
-			selectedCharacter = characters.get(selectedRow);
+			selectedCharacter = (CharacterWrapper) characters.get(selectedRow);
 		}
 		addCharacter.setEnabled(true);
 		removeCharacter.setEnabled(selectedCharacter!=null);
@@ -467,7 +480,8 @@ public class RealmGameEditor extends JInternalFrame {
 	private void updateCharacterEditorTabs() {
 		characterPage.clear();
 		characterTabs.removeAll();
-		for(CharacterWrapper character:characters) {
+		for (java.util.Iterator _j14it222 = (characters).iterator(); _j14it222.hasNext(); ) {
+		  CharacterWrapper character = (CharacterWrapper) _j14it222.next();
 			CharacterEditRibbon ribbon = new CharacterEditRibbon(parent,character);
 			characterPage.add(ribbon);
 			characterTabs.add(character.getName(),ribbon);
@@ -498,10 +512,12 @@ public class RealmGameEditor extends JInternalFrame {
 		panel.add(new JScrollPane(locationTable),BorderLayout.CENTER);
 		return panel;
 	}
-	private ArrayList<RealmComponent> getSelectedComponents() {
-		ArrayList<RealmComponent> selected = new ArrayList<RealmComponent>();
+	private ArrayList getSelectedComponents() {
+		ArrayList selected = new ArrayList();
 		TableSorter sorter = TableSorter.getSorter(locationTable);
-		for (int viewRow:locationTable.getSelectedRows()) {
+		int[] _j14arr223 = locationTable.getSelectedRows();
+		for (int _j14i223 = 0; _j14i223 < _j14arr223.length; _j14i223++) {
+		  int viewRow = _j14arr223[_j14i223];
 			int index = sorter.convertRowIndexToModel(viewRow);
 			selected.add(thingsWithLocationsFiltered.get(index));
 		}
@@ -512,7 +528,8 @@ public class RealmGameEditor extends JInternalFrame {
 		box.add(new JLabel("Conditions:"));
 		makeDeadAction = new AbstractAction("Make Dead") {
 			public void actionPerformed(ActionEvent ev) {
-				for (RealmComponent rc:getSelectedComponents()) {
+				for (java.util.Iterator _j14it224 = (getSelectedComponents()).iterator(); _j14it224.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it224.next();
 					if (rc.isMonster() || rc.isNative() || rc.isCharacter()) {
 						TileLocation tl = ClearingUtility.getTileLocation(rc.getGameObject());
 						if (tl!=null && tl.isInClearing()) {
@@ -527,7 +544,8 @@ public class RealmGameEditor extends JInternalFrame {
 		box.add(new JButton(makeDeadAction));
 		toggleHiddenAction = new AbstractAction("Toggle Hidden") {
 			public void actionPerformed(ActionEvent ev) {
-				for (RealmComponent rc:getSelectedComponents()) {
+				for (java.util.Iterator _j14it225 = (getSelectedComponents()).iterator(); _j14it225.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it225.next();
 					if (rc.isMonster() || rc.isNative() || rc.isCharacter()) {
 						rc.setHidden(!rc.isHidden());
 					}
@@ -540,7 +558,8 @@ public class RealmGameEditor extends JInternalFrame {
 		box.add(new JButton(toggleHiddenAction));
 		toggleBlockedAction = new AbstractAction("Toggle Blocked") {
 			public void actionPerformed(ActionEvent ev) {
-				for (RealmComponent rc:getSelectedComponents()) {
+				for (java.util.Iterator _j14it226 = (getSelectedComponents()).iterator(); _j14it226.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it226.next();
 					if (CharacterWrapper.hasPlayerBlock(rc.getGameObject())) { // hired natives too
 						CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 						character.setBlocked(!character.isBlocked());
@@ -560,10 +579,11 @@ public class RealmGameEditor extends JInternalFrame {
 				RealmComponent leader = chooseLeader("Hire selections to which character?",true);
 				if (leader!=null) {
 					CharacterWrapper character = new CharacterWrapper(leader.getGameObject());
-					String val = JOptionPane.showInputDialog("Hire term (days)?",14);
+					String val = JOptionPane.showInputDialog("Hire term (days)?",new Integer(14));
 					if (val!=null) {
 						int term = Integer.parseInt(val);
-						for (RealmComponent rc:getSelectedComponents()) {
+						for (java.util.Iterator _j14it227 = (getSelectedComponents()).iterator(); _j14it227.hasNext(); ) {
+						  RealmComponent rc = (RealmComponent) _j14it227.next();
 							if (rc.isNative() || rc.isMonster()) {
 								SetupCardUtility.resetDenizen(rc.getGameObject());							
 								character.addHireling(rc.getGameObject(),term);
@@ -578,7 +598,8 @@ public class RealmGameEditor extends JInternalFrame {
 		box.add(new JButton(hireAction));
 		unhireAction = new AbstractAction("Clear Owner") {
 			public void actionPerformed(ActionEvent ev) {
-				for (RealmComponent rc:getSelectedComponents()) {
+				for (java.util.Iterator _j14it228 = (getSelectedComponents()).iterator(); _j14it228.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it228.next();
 					RealmComponent owner = rc.getOwner();
 					if (owner.isCharacter()) {
 						(new CharacterWrapper(owner.getGameObject())).removeHireling(rc.getGameObject());
@@ -591,7 +612,8 @@ public class RealmGameEditor extends JInternalFrame {
 		box.add(new JButton(unhireAction));
 		makePeaceAction = new AbstractAction("Make Peace") {
 			public void actionPerformed(ActionEvent ev) {
-				for (RealmComponent rc:getSelectedComponents()) {
+				for (java.util.Iterator _j14it229 = (getSelectedComponents()).iterator(); _j14it229.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it229.next();
 					if (isBattling(rc)) {
 						CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 						combat.setPeace(true);
@@ -683,7 +705,8 @@ public class RealmGameEditor extends JInternalFrame {
 			public void actionPerformed(ActionEvent ev) {
 				RealmComponent leader = chooseLeader("Which character dropped it?",true);
 				if (leader!=null) {
-					for (RealmComponent rc:getSelectedComponents()) {
+					for (java.util.Iterator _j14it230 = (getSelectedComponents()).iterator(); _j14it230.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it230.next();
 						if (rc.isItem()) {
 							rc.getGameObject().setThisAttribute(Constants.PLAIN_SIGHT);
 							rc.getGameObject().setThisAttribute(Constants.DROPPED_BY,leader.getGameObject().getStringId());
@@ -695,7 +718,8 @@ public class RealmGameEditor extends JInternalFrame {
 		box.add(new JButton(makeDropped));
 		makeAbandoned = new AbstractAction("Make Abandoned") {
 			public void actionPerformed(ActionEvent ev) {
-				for (RealmComponent rc:getSelectedComponents()) {
+				for (java.util.Iterator _j14it231 = (getSelectedComponents()).iterator(); _j14it231.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it231.next();
 					if (rc.isItem()) {
 						rc.getGameObject().removeThisAttribute(Constants.PLAIN_SIGHT);
 					}
@@ -705,7 +729,8 @@ public class RealmGameEditor extends JInternalFrame {
 		box.add(new JButton(makeAbandoned));
 		makeFaceDown = new AbstractAction("Make Face Down") {
 			public void actionPerformed(ActionEvent ev) {
-				for (RealmComponent rc:getSelectedComponents()) {
+				for (java.util.Iterator _j14it232 = (getSelectedComponents()).iterator(); _j14it232.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it232.next();
 					if (rc.isTreasure()) {
 						TreasureCardComponent treasure = (TreasureCardComponent)rc;
 						if (treasure.isFaceUp()) {
@@ -720,7 +745,8 @@ public class RealmGameEditor extends JInternalFrame {
 		box.add(new JButton(makeFaceDown));
 		makeFaceUp = new AbstractAction("Make Face Up") {
 			public void actionPerformed(ActionEvent ev) {
-				for (RealmComponent rc:getSelectedComponents()) {
+				for (java.util.Iterator _j14it233 = (getSelectedComponents()).iterator(); _j14it233.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it233.next();
 					if (rc.isTreasure()) {
 						TreasureCardComponent treasure = (TreasureCardComponent)rc;
 						if (!treasure.isFaceUp()) {
@@ -735,7 +761,8 @@ public class RealmGameEditor extends JInternalFrame {
 		box.add(new JButton(makeFaceUp));
 		makeDamaged = new AbstractAction("Make Damaged") {
 			public void actionPerformed(ActionEvent ev) {
-				for (RealmComponent rc:getSelectedComponents()) {
+				for (java.util.Iterator _j14it234 = (getSelectedComponents()).iterator(); _j14it234.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it234.next();
 					if (rc.isArmor()) {
 						ArmorChitComponent armor = (ArmorChitComponent)rc;
 						if (!armor.isDamaged()) armor.setIntact(false);
@@ -749,7 +776,8 @@ public class RealmGameEditor extends JInternalFrame {
 		box.add(new JButton(makeDamaged));
 		makeRepaired = new AbstractAction("Make Repaired") {
 			public void actionPerformed(ActionEvent ev) {
-				for (RealmComponent rc:getSelectedComponents()) {
+				for (java.util.Iterator _j14it235 = (getSelectedComponents()).iterator(); _j14it235.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it235.next();
 					if (rc.isArmor()) {
 						ArmorChitComponent armor = (ArmorChitComponent)rc;
 						if (armor.isDamaged()) armor.setIntact(true);
@@ -763,7 +791,8 @@ public class RealmGameEditor extends JInternalFrame {
 		box.add(new JButton(makeRepaired));
 		toggleAlerted = new AbstractAction("Toggle Alerted") {
 			public void actionPerformed(ActionEvent ev) {
-				for (RealmComponent rc:getSelectedComponents()) {
+				for (java.util.Iterator _j14it236 = (getSelectedComponents()).iterator(); _j14it236.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it236.next();
 					if (rc.isWeapon()) {
 						WeaponChitComponent weapon = (WeaponChitComponent)rc;
 						weapon.setAlerted(!weapon.isAlerted());
@@ -780,7 +809,8 @@ public class RealmGameEditor extends JInternalFrame {
 	private RealmComponent chooseLeader(String title,boolean charactersOnly) {
 		boolean found = false;
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(parent,title,true);
-		for(GameObject go:RealmObjectMaster.getRealmObjectMaster(gameData).getPlayerCharacterObjects()) {
+		for (java.util.Iterator _j14it237 = (RealmObjectMaster.getRealmObjectMaster(gameData).getPlayerCharacterObjects()).iterator(); _j14it237.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it237.next();
 			if (CharacterWrapper.hasPlayerBlock(go)) {
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (rc.getGameObject().hasThisAttribute(Constants.DEAD)) continue;
@@ -809,10 +839,11 @@ public class RealmGameEditor extends JInternalFrame {
 		return chooser.getSelectedLocation();
 	}
 	private void moveSelectionsToSetupCard() {
-		ArrayList<RealmComponent> denizens = new ArrayList<RealmComponent>();
-		ArrayList<RealmComponent> treasure = new ArrayList<RealmComponent>();
-		ArrayList<RealmComponent> other = new ArrayList<RealmComponent>();
-		for (RealmComponent rc:getSelectedComponents()) {
+		ArrayList denizens = new ArrayList();
+		ArrayList treasure = new ArrayList();
+		ArrayList other = new ArrayList();
+		for (java.util.Iterator _j14it238 = (getSelectedComponents()).iterator(); _j14it238.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it238.next();
 			if (rc.isMonster() || rc.isNative()) {
 				denizens.add(rc);
 			}
@@ -825,8 +856,9 @@ public class RealmGameEditor extends JInternalFrame {
 		}
 		if (treasure.size()>0) {
 			GamePool pool = new GamePool(gameData.getGameObjects());
-			Hashtable<String,GameObject> lookup = new Hashtable<String,GameObject>();
-			for (GameObject go:pool.find("ts_section,!treasure,!summon")) {
+			Hashtable lookup = new Hashtable();
+			for (java.util.Iterator _j14it239 = (pool.find("ts_section,!treasure,!summon")).iterator(); _j14it239.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it239.next();
 				lookup.put(go.getName(),go);
 			}
 			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(parent,"Which setup card location?",true);
@@ -834,16 +866,19 @@ public class RealmGameEditor extends JInternalFrame {
 			chooser.setVisible(true);
 			String selString = chooser.getSelectedText();
 			if (selString==null) return;
-			GameObject target = lookup.get(selString);
-			for (RealmComponent item:treasure) {
+			GameObject target = (GameObject) lookup.get(selString);
+			for (java.util.Iterator _j14it240 = (treasure).iterator(); _j14it240.hasNext(); ) {
+			  RealmComponent item = (RealmComponent) _j14it240.next();
 				item.getGameObject().removeThisAttribute(Constants.DEAD); // just in case
 				target.add(item.getGameObject());
 			}
 		}
-		for (RealmComponent denizen:denizens) {
+		for (java.util.Iterator _j14it241 = (denizens).iterator(); _j14it241.hasNext(); ) {
+		  RealmComponent denizen = (RealmComponent) _j14it241.next();
 			SetupCardUtility.resetDenizen(denizen.getGameObject());
 		}
-		for (RealmComponent rc:other) {
+		for (java.util.Iterator _j14it242 = (other).iterator(); _j14it242.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it242.next();
 			ClearingUtility.moveToLocation(rc.getGameObject(),null);
 		}
 		map.setReplot(true);
@@ -851,7 +886,8 @@ public class RealmGameEditor extends JInternalFrame {
 		locationTable.repaint();
 	}
 	private void moveSelectionsToLocation(TileLocation tl) {
-		for (RealmComponent rc:getSelectedComponents()) {
+		for (java.util.Iterator _j14it243 = (getSelectedComponents()).iterator(); _j14it243.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it243.next();
 			CombatWrapper.clearAllCombatInfo(rc.getGameObject());
 			rc.getGameObject().removeThisAttribute(Constants.DEAD); // just in case
 			ClearingUtility.moveToLocation(rc.getGameObject(),tl);
@@ -867,7 +903,8 @@ public class RealmGameEditor extends JInternalFrame {
 	private void moveSelectionsToLeader(RealmComponent leader) {
 		boolean didOne = false;
 		CharacterWrapper character = new CharacterWrapper(leader.getGameObject());
-		for (RealmComponent rc:getSelectedComponents()) {
+		for (java.util.Iterator _j14it244 = (getSelectedComponents()).iterator(); _j14it244.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it244.next();
 			if (rc.isAnyLeader()) continue;
 			if (rc.isDenizen()) continue;
 			if (rc.isStateChit()) continue;
@@ -893,7 +930,8 @@ public class RealmGameEditor extends JInternalFrame {
 		int armorCount = 0;
 		int weaponCount = 0;
 		
-		for (RealmComponent rc:getSelectedComponents()) {
+		for (java.util.Iterator _j14it245 = (getSelectedComponents()).iterator(); _j14it245.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it245.next();
 			if (rc.isItem()) itemCount++;
 			if (rc.isNative() || rc.isMonster() || rc.isCharacter()) faunaCount++;
 			if (rc.isTreasure()) treasureCount++;
@@ -933,12 +971,14 @@ public class RealmGameEditor extends JInternalFrame {
 		if (rc.isMonster()) {
 			// pacified or peaceful
 			MonsterChitComponent monster = (MonsterChitComponent)rc;
-			for(CharacterWrapper character:characters) {
+			for (java.util.Iterator _j14it246 = (characters).iterator(); _j14it246.hasNext(); ) {
+			  CharacterWrapper character = (CharacterWrapper) _j14it246.next();
 				if (!monster.isPacifiedBy(character)) return true;
 			}
 		}
 		else if (rc.isNative()) {
-			for(CharacterWrapper character:characters) {
+			for (java.util.Iterator _j14it247 = (characters).iterator(); _j14it247.hasNext(); ) {
+			  CharacterWrapper character = (CharacterWrapper) _j14it247.next();
 				if (character.isBattling(rc.getGameObject())) return true;
 			}
 		}
@@ -971,7 +1011,7 @@ public class RealmGameEditor extends JInternalFrame {
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			if (rowIndex<getRowCount()) {
-				RealmComponent chit = thingsWithLocationsFiltered.get(rowIndex);
+				RealmComponent chit = (RealmComponent) thingsWithLocationsFiltered.get(rowIndex);
 				GameObject held = chit.getGameObject().getHeldBy();
 				switch(columnIndex) {
 					case 0:
@@ -1022,7 +1062,7 @@ public class RealmGameEditor extends JInternalFrame {
 			return null;
 		}
 		private String getChitName(RealmComponent chit) {
-			StringBuilder sb = new StringBuilder();
+			StringBuffer sb = new StringBuffer();
 			sb.append(chit.getGameObject().getName());
 			if (chit.isHorse()) {
 				sb.append(" (");
@@ -1052,9 +1092,10 @@ public class RealmGameEditor extends JInternalFrame {
 	}
 	
 	private JPanel buildQuestTab(Constants.QuestDeckMode mode) {
-		ArrayList<Quest> quests = new ArrayList<Quest>();
+		ArrayList quests = new ArrayList();
 		GamePool pool = new GamePool(gameData.getGameObjects());
-    	for(GameObject go:pool.find("quest")) {
+    	for (java.util.Iterator _j14it248 = (pool.find("quest")).iterator(); _j14it248.hasNext(); ) {
+    	  GameObject go = (GameObject) _j14it248.next();
     		quests.add(new Quest(go));
     	}		
     	this.quests = quests;
@@ -1081,10 +1122,11 @@ public class RealmGameEditor extends JInternalFrame {
 		box.add(new JLabel("Actions:"));
 		addQuest = new AbstractAction("Add") {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<Quest> quests = QuestLoader.loadAllQuestsFromQuestFolder();
-				Hashtable<String, Quest> hash = new Hashtable<String, Quest>();
-				ArrayList<String> questList = new ArrayList<String>();
-					for (Quest quest : quests) {
+				ArrayList quests = QuestLoader.loadAllQuestsFromQuestFolder();
+				Hashtable hash = new Hashtable();
+				ArrayList questList = new ArrayList();
+					for (java.util.Iterator _j14it249 = (quests).iterator(); _j14it249.hasNext(); ) {
+					  Quest quest = (Quest) _j14it249.next();
 						questList.add(quest.getName());				
 						hash.put(quest.getName(), quest);
 					}
@@ -1093,9 +1135,9 @@ public class RealmGameEditor extends JInternalFrame {
 				chooser.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 				chooser.setLocationRelativeTo(parent);
 				chooser.setVisible(true);
-				Vector<Quest> v = chooser.getSelectedItems();
+				Vector v = chooser.getSelectedItems();
 				if (v == null || v.isEmpty()) return;
-				Quest selectedQuest = v.get(0);
+				Quest selectedQuest = (Quest) v.get(0);
 				gameData.createNewObject(selectedQuest.getGameObject());
 				updateQuestTable();
 			}
@@ -1103,8 +1145,9 @@ public class RealmGameEditor extends JInternalFrame {
 		box.add(new JButton(addQuest));
 		removeQuest = new AbstractAction("Remove") {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<Quest> quests = getSelectedQuest();
-				for (Quest quest : quests) {
+				ArrayList quests = getSelectedQuest();
+				for (java.util.Iterator _j14it250 = (quests).iterator(); _j14it250.hasNext(); ) {
+				  Quest quest = (Quest) _j14it250.next();
 					quest.unassign();
 					gameData.removeObject(quest.getGameObject());
 				}
@@ -1119,11 +1162,12 @@ public class RealmGameEditor extends JInternalFrame {
 				chooser.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 				chooser.setLocationRelativeTo(parent);
 				chooser.setVisible(true);
-				Vector<CharacterWrapper> v = chooser.getSelectedItems();
+				Vector v = chooser.getSelectedItems();
 				if (v == null || v.isEmpty()) return;
-				CharacterWrapper selectedCharacter = v.get(0);
-				ArrayList<Quest> quests = getSelectedQuest();
-				for (Quest quest : quests) {
+				CharacterWrapper selectedCharacter = (CharacterWrapper) v.get(0);
+				ArrayList quests = getSelectedQuest();
+				for (java.util.Iterator _j14it251 = (quests).iterator(); _j14it251.hasNext(); ) {
+				  Quest quest = (Quest) _j14it251.next();
 					quest.setOwner(selectedCharacter);
 				}
 				updateQuestTable();
@@ -1132,8 +1176,9 @@ public class RealmGameEditor extends JInternalFrame {
 		box.add(new JButton(assignQuest));
 		unassignQuest = new AbstractAction("Unassign") {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<Quest> quests = getSelectedQuest();
-				for (Quest quest : quests) {
+				ArrayList quests = getSelectedQuest();
+				for (java.util.Iterator _j14it252 = (quests).iterator(); _j14it252.hasNext(); ) {
+				  Quest quest = (Quest) _j14it252.next();
 					quest.unassign();
 				}
 				updateQuestTable();
@@ -1142,8 +1187,9 @@ public class RealmGameEditor extends JInternalFrame {
 		box.add(new JButton(unassignQuest));
 		resetQuest = new AbstractAction("Reset") {
 			public void actionPerformed(ActionEvent ev) {
-				ArrayList<Quest> quests = getSelectedQuest();
-				for (Quest quest : quests) {
+				ArrayList quests = getSelectedQuest();
+				for (java.util.Iterator _j14it253 = (quests).iterator(); _j14it253.hasNext(); ) {
+				  Quest quest = (Quest) _j14it253.next();
 					quest.reset();
 				}
 				updateQuestTable();
@@ -1153,9 +1199,10 @@ public class RealmGameEditor extends JInternalFrame {
 		return box;
 	}
 	private void updateQuestTable() {
-		ArrayList<Quest> quests = new ArrayList<Quest>();
+		ArrayList quests = new ArrayList();
 		GamePool pool = new GamePool(gameData.getGameObjects());
-    	for(GameObject go:pool.find("quest")) {
+    	for (java.util.Iterator _j14it254 = (pool.find("quest")).iterator(); _j14it254.hasNext(); ) {
+    	  GameObject go = (GameObject) _j14it254.next();
     		quests.add(new Quest(go));
     	}		
     	this.quests = quests;
@@ -1163,10 +1210,12 @@ public class RealmGameEditor extends JInternalFrame {
     	questTable.revalidate();
     	questTable.repaint();
 	}
-	private ArrayList<Quest> getSelectedQuest() {
-		ArrayList<Quest> selected = new ArrayList<Quest>();
+	private ArrayList getSelectedQuest() {
+		ArrayList selected = new ArrayList();
 		TableSorter sorter = TableSorter.getSorter(questTable);
-		for (int row:questTable.getSelectedRows()) {
+		int[] _j14arr255 = questTable.getSelectedRows();
+		for (int _j14i255 = 0; _j14i255 < _j14arr255.length; _j14i255++) {
+		  int row = _j14arr255[_j14i255];
 			int index = sorter.convertRowIndexToModel(row);
 			selected.add(quests.get(index));
 		}
@@ -1211,47 +1260,34 @@ public class RealmGameEditor extends JInternalFrame {
 			String.class
 		};
 		public int getColumnCount() {
-			switch (mode) {
-				default:
-				case QtR:
-				case SR:
-					return HEADER_QtR.length;
-				case GQ:
-				case BoQ:
-					return HEADER_BoQ.length;
+			if (mode == Constants.QuestDeckMode.GQ || mode == Constants.QuestDeckMode.BoQ) {
+				return HEADER_BoQ.length;
 			}
+			return HEADER_QtR.length;
 		}	
 		public Class getColumnClass(int col) {
 			return CLASS[col];
 		}
 		public String getColumnName(int col) {
-			switch (mode) {
-				default:
-				case QtR:
-				case SR:
-					return HEADER_QtR[col];
-				case GQ:
-				case BoQ:
-					return HEADER_BoQ[col];
-				}
+			if (mode == Constants.QuestDeckMode.GQ || mode == Constants.QuestDeckMode.BoQ) {
+				return HEADER_BoQ[col];
+			}
+			return HEADER_QtR[col];
 		}
 		public int getRowCount() {
 			return quests.size();
 		}
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			if (rowIndex<getRowCount()) {
-				Quest quest = quests.get(rowIndex);
+				Quest quest = (Quest) quests.get(rowIndex);
 				switch(columnIndex) {
 					case 0:		return quest.isTesting()?test:null;
 					case 1:		return quest.isBroken()?cross:null;
 					case 2:			
-						switch (mode) {
-							case QtR:
-							case SR:
-								return quest.isAllPlay()?check:null;
-							case GQ:
-							case BoQ:
-								return quest.isEvent()?check:null;
+						if (mode == Constants.QuestDeckMode.GQ || mode == Constants.QuestDeckMode.BoQ) {
+							return quest.isEvent()?check:null;
+						} else {
+							return quest.isAllPlay()?check:null;
 						}
 					case 3:		return quest.isActivateable()?plus:null;
 					case 4:		return quest.getName();

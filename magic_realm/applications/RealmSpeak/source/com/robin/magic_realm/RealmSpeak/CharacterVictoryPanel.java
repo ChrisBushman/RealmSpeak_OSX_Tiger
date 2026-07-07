@@ -31,7 +31,7 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 	
 	protected int focusRow = -1;
 	protected int focusColumn = -1;
-	protected ArrayList<Integer> calcColumns;
+	protected ArrayList calcColumns;
 	protected boolean doUpdate = false;
 	
 	protected JLabel earnedVpsLabel;
@@ -45,7 +45,7 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 	
 	public CharacterVictoryPanel(CharacterFrame parent) {
 		super(parent);
-		calcColumns = new ArrayList<Integer>();
+		calcColumns = new ArrayList();
 		init();
 	}
 	private void init() {
@@ -163,36 +163,33 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 			switch(focusColumn) {
 				case COL_NEED:
 					// Show POINTS times MULTIPLIER
-					calcColumns.add(COL_POINTS);
-					calcColumns.add(COL_MULTIPLIER);
+					calcColumns.add(new Integer(COL_POINTS));
+					calcColumns.add(new Integer(COL_MULTIPLIER));
 					viewPanel.add(getDescriptorBlock("POINTS",score.getAssignedVictoryPoints()));
 					viewPanel.add(getDescriptorBlock(" ","x "+score.getMultiplier()));
 					break;
 				case COL_RECORDED:
-					switch(row.rowType) {
- 						case Spells:
- 							viewPanel.add(getDescriptorBlock("LEARNED",score.getRecordedPoints()));
- 							break;
- 						case Fame:
- 							boolean disgust = getCharacter().hasCurse(Constants.DISGUST);
- 							viewPanel.add(getDescriptorBlock(disgust?"DISGUST":"FAME",score.getRecordedPoints()));
- 							break;
- 						case Notoriety:
- 							viewPanel.add(getDescriptorBlock("NOTORIETY",score.getRecordedPoints()));
- 							break;
- 						case Gold:
- 							boolean ashes = getCharacter().hasCurse(Constants.ASHES);
- 							viewPanel.add(getDescriptorBlock(ashes?"ASHES":"GOLD",score.getRecordedPoints()));
- 							break;
- 						default:
- 							break;
+					{
+						VictoryRowType rt = row.rowType;
+						if (rt == VictoryRowType.Spells) {
+							viewPanel.add(getDescriptorBlock("LEARNED",score.getRecordedPoints()));
+						} else if (rt == VictoryRowType.Fame) {
+							boolean disgust = getCharacter().hasCurse(Constants.DISGUST);
+							viewPanel.add(getDescriptorBlock(disgust?"DISGUST":"FAME",score.getRecordedPoints()));
+						} else if (rt == VictoryRowType.Notoriety) {
+							viewPanel.add(getDescriptorBlock("NOTORIETY",score.getRecordedPoints()));
+						} else if (rt == VictoryRowType.Gold) {
+							boolean ashes = getCharacter().hasCurse(Constants.ASHES);
+							viewPanel.add(getDescriptorBlock(ashes?"ASHES":"GOLD",score.getRecordedPoints()));
+						}
 					}
 					break;
 				case COL_OWNED:
 					if (score.getScoringGameObjects()!=null) {
 						// Show inventory and how it adds up
 						boolean first = true;
-						for (GameObject go:score.getScoringGameObjects()) {
+						for (java.util.Iterator _j14it1079 = (score.getScoringGameObjects()).iterator(); _j14it1079.hasNext(); ) {
+						  GameObject go = (GameObject) _j14it1079.next();
 							if (!first) {
 								viewPanel.add(getDescriptorBlock("","+"));
 							}
@@ -212,8 +209,8 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 					break;
 				case COL_TOTAL:
 					// Show RECORDED + OWNED
-					calcColumns.add(COL_RECORDED);
-					calcColumns.add(COL_OWNED);
+					calcColumns.add(new Integer(COL_RECORDED));
+					calcColumns.add(new Integer(COL_OWNED));
 					viewPanel.add(getDescriptorBlock("RECORDED",score.getRecordedPoints()));
 					viewPanel.add(getDescriptorBlock("","+"));
 					viewPanel.add(getDescriptorBlock("OWNED",score.getOwnedPoints()));
@@ -221,11 +218,11 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 				case COL_EARNED:
 					if (!isRestrictAssigned() || score.getAssignedVictoryPoints()>0) {
 						boolean excludeStartingWorth = row.rowType==VictoryRowType.Gold && victoryTableModel.getHostPrefs().hasPref(Constants.EXP_DEV_EXCLUDE_SW);
-						calcColumns.add(COL_MULTIPLIER);
-						calcColumns.add(COL_TOTAL);
+						calcColumns.add(new Integer(COL_MULTIPLIER));
+						calcColumns.add(new Integer(COL_TOTAL));
 						viewPanel.add(getDescriptorBlock("TOTAL",(excludeStartingWorth?"(":"")+score.getPoints()));
 						if (excludeStartingWorth) {
-							calcColumns.add(COL_OWNED);
+							calcColumns.add(new Integer(COL_OWNED));
 							viewPanel.add(getDescriptorBlock("","+"));
 							viewPanel.add(getDescriptorBlock("OWNED",-score.getOwnedPoints()+")"));
 						}
@@ -233,13 +230,13 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 						viewPanel.add(getDescriptorBlock("MULTIPLIER",score.getMultiplier()));
 					}
 					else {
-						calcColumns.add(COL_POINTS);
+						calcColumns.add(new Integer(COL_POINTS));
 					}
 					break;
 				case COL_SCORE:
 					// show TOTAL - NEED, with a x3 penalty if the result is negative
-					calcColumns.add(COL_TOTAL);
-					calcColumns.add(COL_NEED);
+					calcColumns.add(new Integer(COL_TOTAL));
+					calcColumns.add(new Integer(COL_NEED));
 					viewPanel.add(getDescriptorBlock("TOTAL",(score.hasPenalty()?"( ":"")+score.getPoints()));
 					viewPanel.add(getDescriptorBlock("","-"));
 					viewPanel.add(getDescriptorBlock("NEED",score.getRequired()+(score.hasPenalty()?" )":"")));
@@ -249,24 +246,24 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 					break;
 				case COL_BASIC:
 					// show SCORE / MULTIPLIER, rounded down
-					calcColumns.add(COL_SCORE);
-					calcColumns.add(COL_MULTIPLIER);
+					calcColumns.add(new Integer(COL_SCORE));
+					calcColumns.add(new Integer(COL_MULTIPLIER));
 					viewPanel.add(getDescriptorBlock("SCORE",score.getScore()));
 					viewPanel.add(getDescriptorBlock("","/"));
 					viewPanel.add(getDescriptorBlock("MULTIPLIER",score.getMultiplier()));
 					break;
 				case COL_BONUS:
 					// show POINTS * BASIC
-					calcColumns.add(COL_POINTS);
-					calcColumns.add(COL_BASIC);
+					calcColumns.add(new Integer(COL_POINTS));
+					calcColumns.add(new Integer(COL_BASIC));
 					viewPanel.add(getDescriptorBlock("POINTS",score.getAssignedVictoryPoints()));
 					viewPanel.add(getDescriptorBlock("","x"));
 					viewPanel.add(getDescriptorBlock("BASIC",score.getBasicScore()));
 					break;
 				case COL_FINAL:
 					// show BASIC + BONUS
-					calcColumns.add(COL_BASIC);
-					calcColumns.add(COL_BONUS);
+					calcColumns.add(new Integer(COL_BASIC));
+					calcColumns.add(new Integer(COL_BONUS));
 					viewPanel.add(getDescriptorBlock("BASIC",score.getBasicScore()));
 					viewPanel.add(getDescriptorBlock("","+"));
 					viewPanel.add(getDescriptorBlock("BONUS",score.getBonusScore()));
@@ -276,13 +273,11 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 		}
 	}
 	private static int getValueFromInventory(VictoryRowType rowType,GameObject go) {
-		switch(rowType) {
-			case GreatTreasures:	return 1;
-			case Fame:				return go.getThisInt("fame");
-			case Notoriety:			return go.getThisInt("notoriety");
-			case QuestPoints:		return go.getInt(Quest.QUEST_BLOCK,QuestConstants.VP_REWARD);
-			default:				return 0;
-		}
+		if (rowType == VictoryRowType.GreatTreasures) return 1;
+		if (rowType == VictoryRowType.Fame) return go.getThisInt("fame");
+		if (rowType == VictoryRowType.Notoriety) return go.getThisInt("notoriety");
+		if (rowType == VictoryRowType.QuestPoints) return go.getInt(Quest.QUEST_BLOCK,QuestConstants.VP_REWARD);
+		return 0;
 	}
 	private static JPanel getDescriptorBlock(String text,int val) {
 		return getDescriptorBlock(text,String.valueOf(val));
@@ -337,15 +332,31 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 		updateView();
 	}
 	
-	private enum VictoryRowType {
-		GreatTreasures,
-		Spells,
-		Fame,
-		Notoriety,
-		Gold,
-		QuestPoints,
-		Totals,
-		;
+	private static final class VictoryRowType {
+		private final String _name;
+		private final int _ordinal;
+		private VictoryRowType(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final VictoryRowType GreatTreasures = new VictoryRowType("GreatTreasures", 0);
+		public static final VictoryRowType Spells = new VictoryRowType("Spells", 1);
+		public static final VictoryRowType Fame = new VictoryRowType("Fame", 2);
+		public static final VictoryRowType Notoriety = new VictoryRowType("Notoriety", 3);
+		public static final VictoryRowType Gold = new VictoryRowType("Gold", 4);
+		public static final VictoryRowType QuestPoints = new VictoryRowType("QuestPoints", 5);
+		public static final VictoryRowType Totals = new VictoryRowType("Totals", 6);
+
+		private static final VictoryRowType[] _VALUES = { GreatTreasures, Spells, Fame, Notoriety, Gold, QuestPoints, Totals };
+		public static VictoryRowType[] values() { VictoryRowType[] r = new VictoryRowType[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static VictoryRowType valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	private static final int COL_CATEGORY = 0;
@@ -361,10 +372,10 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 	private static final int COL_BONUS = 10;
 	private static final int COL_FINAL = 11;
 	
-	private ArrayList<VictoryTableRow> tableRows;
+	private ArrayList tableRows;
 	private void initializeTableRows(HostPrefWrapper hostPrefs) {
 		boolean showQuestPoints = hostPrefs.hasPref(Constants.QST_QUEST_CARDS) || hostPrefs.hasPref(Constants.QST_SR_QUESTS);
-		tableRows = new ArrayList<VictoryTableRow>();
+		tableRows = new ArrayList();
 		if (showQuestPoints) {
 			tableRows.add(new ScoreRow(hostPrefs,"Quest Pts",VictoryRowType.QuestPoints) {
 				public Score getScore() {
@@ -429,7 +440,7 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 		}
 		public VictoryTableRow getTableRow(int row) {
 			if (row>=0 && row<tableRows.size()) {
-				return tableRows.get(row);
+				return (VictoryTableRow) tableRows.get(row);
 			}
 			return null;
 		}
@@ -473,10 +484,10 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 			}
 			boolean lastFocus = row==focusRow && column==focusColumn;
 			setBorder(lastFocus?SELECTED_BORDER:NO_BORDER);
-			if (row==focusRow && calcColumns.contains(column)) {
+			if (row==focusRow && calcColumns.contains(new Integer(column))) {
 				setBorder(CALC_BORDER);
 			}
-			VictoryTableRow tableRow = tableRows.get(row);
+			VictoryTableRow tableRow = (VictoryTableRow) tableRows.get(row);
 			if (tableRow instanceof ScoreRow) {
 				switch(column) {
 					case COL_CATEGORY:
@@ -559,18 +570,16 @@ public class CharacterVictoryPanel extends CharacterFramePanel {
 				return false;
 			}
 			
-			switch(rowType) {
-				case Fame:
-				case Notoriety:
-				case Gold:
-					return true;
-				case GreatTreasures:
-					return col!=COL_RECORDED;
-				case Spells:
-					return col!=COL_OWNED;
-				default:
-					return true;
+			if (rowType == VictoryRowType.Fame || rowType == VictoryRowType.Notoriety || rowType == VictoryRowType.Gold) {
+				return true;
 			}
+			if (rowType == VictoryRowType.GreatTreasures) {
+				return col!=COL_RECORDED;
+			}
+			if (rowType == VictoryRowType.Spells) {
+				return col!=COL_OWNED;
+			}
+			return true;
 		}
 		public Object getValue(int column) {
 			Score score = getScore();

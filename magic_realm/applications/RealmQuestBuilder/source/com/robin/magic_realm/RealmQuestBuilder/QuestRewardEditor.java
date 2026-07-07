@@ -41,40 +41,31 @@ public class QuestRewardEditor extends QuestBlockEditor {
 		return canceledEdit;
 	}
 
-	protected ArrayList<QuestPropertyBlock> createPropertyBlocks() {
-		ArrayList<QuestPropertyBlock> list = new ArrayList<QuestPropertyBlock>();
+	protected ArrayList createPropertyBlocks() {
+		ArrayList list = new ArrayList();
 		list.add(new QuestPropertyBlock(QuestReward.REWARD_GROUP, "Reward group", FieldType.StringSelector, RewardGroups));
-		switch (reward.getRewardType()) {
-			case ActivateQuest:
-				break;
-			case AlterBlock:
+		{
+			QuestReward.RewardType _rt = reward.getRewardType();
+			if (_rt == QuestReward.RewardType.AlterBlock) {
 				list.add(new QuestPropertyBlock(QuestRewardAlterBlock.GAIN_TYPE, "Block status", FieldType.StringSelector, GainType.values()));
-				break;
-			case AlterHide:
+			} else if (_rt == QuestReward.RewardType.AlterHide) {
 				list.add(new QuestPropertyBlock(QuestRewardAlterHide.GAIN_TYPE, "Hide status", FieldType.StringSelector, GainType.values()));
-				break;
-			case Attribute:
+			} else if (_rt == QuestReward.RewardType.Attribute) {
 				list.add(new QuestPropertyBlock(QuestRewardAttribute.ATTRIBUTE_TYPE, "Affected Attribute", FieldType.StringSelector, new Object[] { AttributeType.Fame, AttributeType.Notoriety, AttributeType.Gold }));
 				list.add(new QuestPropertyBlock(QuestRewardAttribute.GAIN_TYPE, "Gain or lose", FieldType.StringSelector, GainType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardAttribute.ATTRIBUTE_CHANGE, "Amount", FieldType.Number));
-				break;
-			case ChooseNextStep:
+			} else if (_rt == QuestReward.RewardType.ChooseNextStep) {
 				list.add(new QuestPropertyBlock(QuestRewardChooseNextStep.TEXT, "Text", FieldType.TextLine));
 				list.add(new QuestPropertyBlock(QuestRewardChooseNextStep.RANDOM, "Random choice", FieldType.Boolean));
-				break;
-			case ClonedQuestsComplete:
+			} else if (_rt == QuestReward.RewardType.ClonedQuestsComplete) {
 				list.add(new QuestPropertyBlock(QuestRewardClonedQuestsComplete.WIN_BOQ, "Win Book of Quests game with this 'Event'", FieldType.Boolean));
-				break;
-			case ClonedQuestsFailed:
-				break;
-			case ClonedQuestsCounter:
+			} else if (_rt == QuestReward.RewardType.ClonedQuestsCounter) {
 				list.add(new QuestPropertyBlock(QuestRewardClonedQuestsCounter.COUNTER, "Quest Counter", FieldType.GameObjectWrapperSelector, quest.getCounters().toArray()));
 				list.add(new QuestPropertyBlock(QuestRewardClonedQuestsCounter.SET_COUNT, "Set current count ("+QuestConstants.ALL_VALUE+"=no change)", FieldType.NumberAll));
 				list.add(new QuestPropertyBlock(QuestRewardClonedQuestsCounter.RANDOM, "Set current count to random number (1-100)", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardClonedQuestsCounter.INCREASE_COUNT, "Increase count", FieldType.NumberAll));
 				list.add(new QuestPropertyBlock(QuestRewardClonedQuestsCounter.DECREASE_COUNT, "Decrease count", FieldType.NumberAll));
-				break;
-			case Companion:
+			} else if (_rt == QuestReward.RewardType.Companion) {
 				list.add(new QuestPropertyBlock(QuestRewardCompanion.COMPANION_NAME, "Companion", FieldType.CompanionSelector, getAllCompanionKeyValues()));
 				list.add(new QuestPropertyBlock(QuestRewardCompanion.GAIN_TYPE, "Gain or lose", FieldType.StringSelector, GainType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardCompanion.COMPANION_STAYS_INGAME, "Leave companion in game (if lost)", FieldType.Boolean));
@@ -82,26 +73,22 @@ public class QuestRewardEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRewardCompanion.COMPANION_RENAME, "Rename companion", FieldType.TextLine));
 				list.add(new QuestPropertyBlock(QuestRewardCompanion.LOCATION_ONLY, "Appear in location", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardCompanion.LOCATION, "Location", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
-				break;
-			case Control:
+			} else if (_rt == QuestReward.RewardType.Control) {
 				list.add(new QuestPropertyBlock(QuestRewardControl.DENIZEN_REGEX, "Denizen name filter (regex)", FieldType.Regex, null, new String[] { Constants.DENIZEN }));
 				list.add(new QuestPropertyBlock(QuestRewardControl.REMOVE_CONTROL, "Remove control", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardControl.AMOUNT, "Number of denizens (0: unlimited)", FieldType.NumberAll));
 				list.add(new QuestPropertyBlock(QuestRewardControl.LOCATION_ONLY, "Control targets in location", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardControl.LOCATION, "Location", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
-				break;
-			case Counter:
+			} else if (_rt == QuestReward.RewardType.Counter) {
 				list.add(new QuestPropertyBlock(QuestRewardCounter.COUNTER, "Quest Counter", FieldType.GameObjectWrapperSelector, quest.getCounters().toArray()));
 				list.add(new QuestPropertyBlock(QuestRewardCounter.SET_COUNT, "Set current count ("+QuestConstants.ALL_VALUE+"=no change)", FieldType.NumberAll));
 				list.add(new QuestPropertyBlock(QuestRewardCounter.RANDOM, "Set current count to random number (1-100)", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardCounter.INCREASE_COUNT, "Increase count", FieldType.NumberAll));
 				list.add(new QuestPropertyBlock(QuestRewardCounter.DECREASE_COUNT, "Decrease count", FieldType.NumberAll));
-				break;
-			case Curse:
+			} else if (_rt == QuestReward.RewardType.Curse) {
 				list.add(new QuestPropertyBlock(QuestRewardCurse.DIE_ROLL, "Die roll", FieldType.StringSelector, DieRollType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardCurse.REMOVE_CURSES, "Remove all curses", FieldType.Boolean));
-				break;
-			case CustomTreasure:
+			} else if (_rt == QuestReward.RewardType.CustomTreasure) {
 				list.add(new QuestPropertyBlock(QuestRewardCustomTreasure.TREASURE_REGEX, "Treasure", FieldType.Regex, null, new String[] { RealmComponent.TREASURE }));
 				list.add(new QuestPropertyBlock(QuestRewardCustomTreasure.TREASURE_NAME, "Name", FieldType.TextLine));
 				list.add(new QuestPropertyBlock(QuestRewardCustomTreasure.TREASURE_PRICE, "Price ("+QuestConstants.ALL_VALUE+"=no change)", FieldType.NumberAll));
@@ -112,13 +99,11 @@ public class QuestRewardEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRewardCustomTreasure.TREASURE_GREAT, "Great?", FieldType.StringSelector, new String[] {QuestRewardCustomTreasure.NO_CHANGE,QuestRewardCustomTreasure.NOT_GREAT,QuestRewardCustomTreasure.GREAT}));
 				list.add(new QuestPropertyBlock(QuestRewardCustomTreasure.LOCATION_ONLY, "Appers in location", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardCustomTreasure.LOCATION, "Location", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
-				break;
-			case Damage:
+			} else if (_rt == QuestReward.RewardType.Damage) {
 				list.add(new QuestPropertyBlock(QuestRewardDamage.DAMAGE_TYPE, "Damage Type", FieldType.StringSelector, DamageType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardDamage.AMOUNT, "Amount", FieldType.Number));
 				list.add(new QuestPropertyBlock(QuestRewardDamage.INCLUDE_FOLLOWERS, "Include followers", FieldType.Boolean));
-				break;
-			case DamageChit:
+			} else if (_rt == QuestReward.RewardType.DamageChit) {
 				list.add(new QuestPropertyBlock(QuestRewardDamageChit.DAMAGE_TYPE, "Damage Type", FieldType.StringSelector, DamageType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardDamageChit.TYPE, "Chit type", FieldType.StringSelector, QuestRewardDamageChit.ChitType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardDamageChit.STRENGTH, "Strength of the chit", FieldType.StringSelector, VulnerabilityType.values()));
@@ -126,45 +111,29 @@ public class QuestRewardEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRewardDamageChit.MAGIC_COLOR, "Magic color (only for magic chit)", FieldType.StringSelector, new Object[] { "Any",ColorMagic.White,ColorMagic.Grey,ColorMagic.Gold,ColorMagic.Purple,ColorMagic.Black }));
 				list.add(new QuestPropertyBlock(QuestRewardDamageChit.MAGIC_TYPE, "Magic type (only for magic chit)", FieldType.Number));
 				list.add(new QuestPropertyBlock(QuestRewardDamageChit.ONLY_ACTIVE, "Chit must be active", FieldType.Boolean));
-				break;
-			case DeactivateQuest:
-				break;
-			case DeductVps:
+			} else if (_rt == QuestReward.RewardType.DeductVps) {
 				list.add(new QuestPropertyBlock(QuestRewardDeductVps.AMOUNT, "Amount", FieldType.NumberAll));
 				list.add(new QuestPropertyBlock(QuestRewardDeductVps.ADD_VPS, "Add VPs", FieldType.Boolean));
-				break;
-			case DiscardOption:
+			} else if (_rt == QuestReward.RewardType.DiscardOption) {
 				list.add(new QuestPropertyBlock(QuestRewardDiscardOption.OPTION, "Enable/Disable", FieldType.StringSelector, new String[] {QuestConstants.DISCARD_ALWAYS,QuestConstants.DISCARD_NORMAL,QuestConstants.DISCARD_NEVER} ));
-				break;
-			case DiscardQuest:
-				break;
-			case DiscoverTreasureSite:
+			} else if (_rt == QuestReward.RewardType.DiscoverTreasureSite) {
 				list.add(new QuestPropertyBlock(QuestRewardDiscoverTreasureSite.SITE_REGEX, "Treasure site", FieldType.Regex, null, new String[] { RealmComponent.TREASURE_LOCATION }));
-				break;
-			case DrawQuests:
-				break;
-			case EnchantTile:
+			} else if (_rt == QuestReward.RewardType.EnchantTile) {
 				list.add(new QuestPropertyBlock(QuestRewardEnchantTile.UNENCHANT, "Unenchant tiles", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardEnchantTile.CHARACTERS_TILE, "Affect characters tile", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardEnchantTile.AFFECT_LOCATION, "Affect location", FieldType.StringSelector, new String[] {QuestRewardEnchantTile.NONE,QuestRewardEnchantTile.RANDOM_TILE,QuestRewardEnchantTile.ALL_TILES} ));
 				list.add(new QuestPropertyBlock(QuestRewardEnchantTile.LOCATION, "Location", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
-				break;
-			case Exorcise:
+			} else if (_rt == QuestReward.RewardType.Exorcise) {
 				list.add(new QuestPropertyBlock(QuestRewardExorcise.LOCATION_ONLY, "Cast exorcise in location", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardExorcise.LOCATION, "Location", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
-				break;
-			case FindHiddenEnemies:
-				break;
-			case Guild:
+			} else if (_rt == QuestReward.RewardType.Guild) {
 				list.add(new QuestPropertyBlock(QuestRewardGuild.GUILD, "Guild", FieldType.StringSelector, getGuildNames()));
 				list.add(new QuestPropertyBlock(QuestRewardGuild.GUILD_RESET, "Reset Guild Level (0 or 1) if Guild changes", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardGuild.GUILD_CHANGE, "Change level", FieldType.StringSelector, QuestRewardGuild.GuildGainType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardGuild.GUILD_LEVEL, "Set guild level (0-3)", FieldType.Number));
-				break;
-			case Heal:
+			} else if (_rt == QuestReward.RewardType.Heal) {
 				list.add(new QuestPropertyBlock(QuestRewardHeal.HEAL, "Heal chits", FieldType.StringSelector, HealType.values()));
-				break;
-			case Hireling:
+			} else if (_rt == QuestReward.RewardType.Hireling) {
 				list.add(new QuestPropertyBlock(QuestRewardHireling.HIRELING_REGEX, "Native RegEx", FieldType.Regex, null, new String[] { "native,rank" }));
 				list.add(new QuestPropertyBlock(QuestRewardHireling.EXCLUDE_CLONED, "Exclude cloned hirelings in regex search", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardHireling.ACQUISITION_TYPE, "Method to acquire hireling", FieldType.StringSelector, ChitAcquisitionType.values()));
@@ -173,11 +142,9 @@ public class QuestRewardEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRewardHireling.HIRELING_RENAME, "Rename companion", FieldType.TextLine));
 				list.add(new QuestPropertyBlock(QuestRewardHireling.LOCATION_ONLY, "Appear in location", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardHireling.LOCATION, "Location", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
-				break;
-			case Information:
+			} else if (_rt == QuestReward.RewardType.Information) {
 				list.add(new QuestPropertyBlock(QuestRewardInformation.INFORMATION_TEXT, "Information to provide", FieldType.TextArea));
-				break;
-			case Item:
+			} else if (_rt == QuestReward.RewardType.Item) {
 				list.add(new QuestPropertyBlock(QuestRewardItem.GAIN_TYPE, "Gain or lose item", FieldType.StringSelector, ItemGainType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardItem.DAMAGED_ITEM, "Damaged item (if gained)", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardItem.ITEM_DESC, "Description", FieldType.TextLine));
@@ -188,13 +155,11 @@ public class QuestRewardEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRewardItem.FORCE_DEACTIVATION, "Force losing (e.g. cursed)", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardItem.MARK_ITEM, "Mark item", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardItem.REQ_MARK, "Requires mark", FieldType.Boolean));
-				break;
-			case Journal:
+			} else if (_rt == QuestReward.RewardType.Journal) {
 				list.add(new QuestPropertyBlock(QuestRewardJournal.JOURNAL_KEY, "Journal Key (no spaces)", FieldType.NoSpacesTextLine));
 				list.add(new QuestPropertyBlock(QuestRewardJournal.ENTRY_TYPE, "Entry type", FieldType.StringSelector, new String[] { QuestStepState.Pending.toString(), QuestStepState.Finished.toString(), QuestStepState.Failed.toString() }));
 				list.add(new QuestPropertyBlock(QuestRewardJournal.TEXT, "Text", FieldType.TextLine));
-				break;
-			case KillDenizen:
+			} else if (_rt == QuestReward.RewardType.KillDenizen) {
 				list.add(new QuestPropertyBlock(QuestRewardKillDenizen.DENIZEN_REGEX, "Denizen", FieldType.Regex, null, new String[] { "denizen" }));
 				list.add(new QuestPropertyBlock(QuestRewardKillDenizen.REWARD_CHARACTER, "Reward character", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardKillDenizen.AMOUNT, "Number of denizens (0: unlimited)", FieldType.NumberAll));
@@ -208,25 +173,17 @@ public class QuestRewardEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRewardKillDenizen.KILL_IN_CHAR_TILE, "Denizen must be in characters tile", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardKillDenizen.KILL_IN_LOCATION, "Denizen must be in location", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardKillDenizen.LOCATION, "Location", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
-				break;
-			case LostInventoryToDefault:
-				break;
-			case LostInventoryToLocation:
+			} else if (_rt == QuestReward.RewardType.LostInventoryToLocation) {
 				list.add(new QuestPropertyBlock(QuestRewardLostInventoryToLocation.LOCATION, "Send inventory to", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
-				break;
-			case MagicColor:
+			} else if (_rt == QuestReward.RewardType.MagicColor) {
 				list.add(new QuestPropertyBlock(QuestRewardMagicColor.COLOR, "Magic color", FieldType.StringSelector, Constants.MAGIC_COLORS));
 				list.add(new QuestPropertyBlock(QuestRewardMagicColor.REMOVE, "Remove color", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardMagicColor.AFFECT, "Target", FieldType.StringSelector, new String[] {QuestRewardMagicColor.CHARACTERS_CLEARING, QuestRewardMagicColor.CHARACTERS_TILE, QuestRewardMagicColor.LOC_RANDOM_CLEARING, QuestRewardMagicColor.LOC_RANDOM_TILE, QuestRewardMagicColor.LOC_ALL_TILES, QuestRewardMagicColor.ALL} ));
 				list.add(new QuestPropertyBlock(QuestRewardMagicColor.LOCATION, "Location", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
-				break;
-			case MakeWhole:
-				break;
-			case MarkDenizen:
+			} else if (_rt == QuestReward.RewardType.MarkDenizen) {
 				list.add(new QuestPropertyBlock(QuestRewardMarkDenizen.DENIZEN_REGEX, "Denizen name filter (regex)", FieldType.Regex, null, new String[] { Constants.DENIZEN }));
 				list.add(new QuestPropertyBlock(QuestRewardMarkDenizen.DENIZEN_AMOUNT, "Number of denizens (0: unlimited)", FieldType.NumberAll));
-				break;
-			case MarkItem:
+			} else if (_rt == QuestReward.RewardType.MarkItem) {
 				list.add(new QuestPropertyBlock(QuestRewardMarkItem.ITEM_REGEX, "Item RegEx", FieldType.Regex));
 				list.add(new QuestPropertyBlock(QuestRewardMarkItem.ITEM_CHITTYPES, "Item Type Restriction", FieldType.ChitType));
 				list.add(new QuestPropertyBlock(QuestRewardMarkItem.ITEM_INVENTORY, "In character's inventory", FieldType.Boolean));
@@ -234,27 +191,22 @@ public class QuestRewardEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRewardMarkItem.REMOVE, "Remove mark", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardMarkItem.ITEM_ACTIVE, "Must be activated?", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardMarkItem.ITEM_DEACTIVE, "Must be deactivated?", FieldType.Boolean));
-				break;
-			case MarkTraveler:
+			} else if (_rt == QuestReward.RewardType.MarkTraveler) {
 				list.add(new QuestPropertyBlock(QuestRewardMarkTraveler.TRAVELER_REGEX, "Traveler name filter (regex)", FieldType.Regex, null, new String[] { Constants.TRAVELER_TEMPLATE }));
 				list.add(new QuestPropertyBlock(QuestRewardMarkTraveler.RANDOM_TRAVELER, "Random traveler", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardMarkTraveler.CHARACTERS_CLEARING, "In characters tile only", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardMarkTraveler.REMOVE, "Remove mark", FieldType.Boolean));
-				break;
-			case MarkedView:
+			} else if (_rt == QuestReward.RewardType.MarkedView) {
 				list.add(new QuestPropertyBlock(QuestRewardMarkedView.OPTION, "Enable/Disable", FieldType.StringSelector, new String[] {QuestRewardMarkedView.ENABLE,QuestRewardMarkedView.DISABLE} ));
 				list.add(new QuestPropertyBlock(QuestRewardMarkedView.NO_SECRETS, "Show hidden things", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardMarkedView.TITLE, "Custom headline", FieldType.TextLine));
-				break;
-			case Mesmerize:
+			} else if (_rt == QuestReward.RewardType.Mesmerize) {
 				list.add(new QuestPropertyBlock(QuestRewardMesmerize.DIE_ROLL, "Die roll", FieldType.StringSelector, DieRollType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardMesmerize.REMOVE_CURSES, "Remove all curses", FieldType.Boolean));
-				break;
-			case MinorCharacter:
+			} else if (_rt == QuestReward.RewardType.MinorCharacter) {
 				list.add(new QuestPropertyBlock(QuestRewardMinorCharacter.MINOR_CHARACTER, "Minor character ", FieldType.SmartTextLine, quest.getMinorCharacters().toArray()));
 				list.add(new QuestPropertyBlock(QuestRewardMinorCharacter.GAIN_TYPE, "Gain or lose", FieldType.StringSelector, GainType.values()));
-				break;
-			case MoveDenizen:
+			} else if (_rt == QuestReward.RewardType.MoveDenizen) {
 				list.add(new QuestPropertyBlock(QuestRewardMoveDenizen.DENIZEN_REGEX, "Denizen", FieldType.Regex, null, new String[] { Constants.DENIZEN }));
 				list.add(new QuestPropertyBlock(QuestRewardMoveDenizen.MOVE_FROM_OPTION, "Move from", FieldType.StringSelector, QuestRewardMoveDenizen.MoveFromOption.values()));
 				list.add(new QuestPropertyBlock(QuestRewardMoveDenizen.MOVE_OPTION, "Move to", FieldType.StringSelector, QuestRewardMoveDenizen.MoveOption.values()));
@@ -267,94 +219,65 @@ public class QuestRewardEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRewardMoveDenizen.MOVE_SUMMONED, "Move summoned monsters", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardMoveDenizen.MOVE_TRAVELERS, "Move travelers", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardMoveDenizen.MOVE_LIMITED, "Move ONLY those (see above)", FieldType.Boolean));
-				break;
-			case NoCombat:
-				break;
-			case NoProwling:
-				break;
-			case NoSummoning:
-				break;
-			case Note:
+			} else if (_rt == QuestReward.RewardType.Note) {
 				list.add(new QuestPropertyBlock(QuestRewardNote.EVENT, "Event", FieldType.SmartTextLine));
 				list.add(new QuestPropertyBlock(QuestRewardNote.NOTE, "Text", FieldType.SmartTextArea));
-				break;
-			case PathsPassages:
+			} else if (_rt == QuestReward.RewardType.PathsPassages) {
 				list.add(new QuestPropertyBlock(QuestRewardPathsPassages.DISCOVERY_TYPE, "Road type to discover", FieldType.StringSelector, RoadDiscoveryType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardPathsPassages.DISCOVERY_SCOPE, "Scope of discovery", FieldType.StringSelector, MapScopeType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardPathsPassages.LOCATION_ONLY, "Only in location", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardPathsPassages.LOCATION, "Location", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
-				break;
-			case Phantasm:
+			} else if (_rt == QuestReward.RewardType.Phantasm) {
 				list.add(new QuestPropertyBlock(QuestRewardPhantasm.REMOVE, "Remove phantasm", FieldType.Boolean));
-				break;
-			case PowerOfThePit:
+			} else if (_rt == QuestReward.RewardType.PowerOfThePit) {
 				list.add(new QuestPropertyBlock(QuestRewardPowerOfThePit.DIE_ROLL, "Die roll", FieldType.StringSelector, DieRollType.values()));
-				break;
-			case RegenerateDenizen:
+			} else if (_rt == QuestReward.RewardType.RegenerateDenizen) {
 				list.add(new QuestPropertyBlock(QuestRewardRegenerateDenizen.DENIZEN_REGEX, "Denizen", FieldType.Regex, null, new String[] { Constants.DENIZEN }));
 				list.add(new QuestPropertyBlock(QuestRewardRegenerateDenizen.DENIZEN_AMOUNT, "Number of denizens (0: unlimited)", FieldType.NumberAll));
 				list.add(new QuestPropertyBlock(QuestRewardRegenerateDenizen.CHARACTERS_CLEARING, "In characters clearing only", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardRegenerateDenizen.CHARACTERS_TILE, "In characters tile only", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardRegenerateDenizen.REGENERATE_HIRELINGS, "Regenerate hirelings as well", FieldType.Boolean));
-				break;	
-			case RelationshipChange:
+			} else if (_rt == QuestReward.RewardType.RelationshipChange) {
 				list.add(new QuestPropertyBlock(QuestRewardRelationshipSet.NATIVE_GROUP, "Native group", FieldType.StringSelector, getRelationshipNames()));
 				list.add(new QuestPropertyBlock(QuestRewardRelationshipChange.GAIN_TYPE, "Gain or lose", FieldType.StringSelector, GainType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardRelationshipChange.RELATIONSHIP_CHANGE, "Levels of Friendliness", FieldType.Number));
-				break;
-			case RelationshipSet:
+			} else if (_rt == QuestReward.RewardType.RelationshipSet) {
 				list.add(new QuestPropertyBlock(QuestRewardRelationshipSet.NATIVE_GROUP, "Native group", FieldType.StringSelector, getRelationshipNames()));
 				list.add(new QuestPropertyBlock(QuestRewardRelationshipSet.RELATIONSHIP_SET, "Relationship to set", FieldType.StringSelector, RelationshipType.RelationshipNames));
-				break;
-			case Repair:
+			} else if (_rt == QuestReward.RewardType.Repair) {
 				list.add(new QuestPropertyBlock(QuestRewardRepair.ITEM, "Items (all if empty)", FieldType.Regex, null, new String[] { "armor,item" }));
-				break;
-			case ResetQuest:
+			} else if (_rt == QuestReward.RewardType.ResetQuest) {
 				list.add(new QuestPropertyBlock(QuestRewardResetQuest.NOT_RESET_FOR_LOCATIONS, "Don't reset locations", FieldType.Boolean));
-				break;
-			case ResetQuestLocations:
+			} else if (_rt == QuestReward.RewardType.ResetQuestLocations) {
 				list.add(new QuestPropertyBlock(QuestRewardResetQuestLocations.RESET_ALL_LOCATIONS, "Reset all locations", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardResetQuestLocations.LOCATION, "Location", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
-				break;
-			case ResetQuestSteps:
+			} else if (_rt == QuestReward.RewardType.ResetQuestSteps) {
 				list.add(new QuestPropertyBlock(QuestRewardResetQuestSteps.RESET_METHOD, "Reset mode", FieldType.StringSelector, QuestRewardResetQuestSteps.ResetMethod.values()));
 				list.add(new QuestPropertyBlock(QuestRewardResetQuestSteps.RESET_DEPENDENT_QUEST_STEPS, "Reset steps requiring resetted steps", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardResetQuestSteps.RESET_DEPENDENT_FAILED_QUEST_STEPS, "Reset steps requiring resetted steps as failed", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardResetQuestSteps.READY_RESETTED_STEPS, "Ready resetted steps", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardResetQuestSteps.QUEST_STEPS_DEPTH, "Cascade 'depth'", FieldType.NumberAll));
 				list.add(new QuestPropertyBlock(QuestRewardResetQuestSteps.QUEST_STEP_NAME, "Quest Step", FieldType.StringSelector, quest.getSteps().toArray()));
-				break;
-			case ResetQuestToDeck:
-				break;
-			case Rest:
+			} else if (_rt == QuestReward.RewardType.Rest) {
 				list.add(new QuestPropertyBlock(QuestRewardRest.AMOUNT, "Number of asterisks", FieldType.Number));
-				break;
-			case ScareMonsters:
-				break;
-			case SpellEffectOnCharacter:
+			} else if (_rt == QuestReward.RewardType.SpellEffectOnCharacter) {
 				list.add(new QuestPropertyBlock(QuestRewardSpellEffectOnCharacter.SPELL, "Spell", FieldType.StringSelector, QuestRewardSpellEffectOnCharacter.EffectOnCharacter.values()));
 				list.add(new QuestPropertyBlock(QuestRewardSpellEffectOnCharacter.REMOVE, "Remove spell", FieldType.Boolean));
-				break;
-			case SpellEffectOnClearing:
+			} else if (_rt == QuestReward.RewardType.SpellEffectOnClearing) {
 				list.add(new QuestPropertyBlock(QuestRewardSpellEffectOnClearing.SPELL, "Spell", FieldType.StringSelector, QuestRewardSpellEffectOnClearing.EffectOnClearing.values()));
 				list.add(new QuestPropertyBlock(QuestRewardSpellEffectOnClearing.REMOVE, "Remove spell", FieldType.Boolean));
-				break;
-			case SpellEffectOnTile:
+			} else if (_rt == QuestReward.RewardType.SpellEffectOnTile) {
 				list.add(new QuestPropertyBlock(QuestRewardSpellEffectOnTile.SPELL, "Spell", FieldType.StringSelector, QuestRewardSpellEffectOnTile.EffectOnTile.values()));
 				list.add(new QuestPropertyBlock(QuestRewardSpellEffectOnTile.REMOVE, "Remove spell", FieldType.Boolean));
-				break;
-			case SpellEffectSummon:
+			} else if (_rt == QuestReward.RewardType.SpellEffectSummon) {
 				list.add(new QuestPropertyBlock(QuestRewardSpellEffectSummon.SUMMON_TYPE, "Spell", FieldType.StringSelector, SpellUtility.SummonType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardSpellEffectSummon.REMOVE, "Unsummon creatures", FieldType.Boolean));
-				break;
-			case SpellFromSite:
+			} else if (_rt == QuestReward.RewardType.SpellFromSite) {
 				list.add(new QuestPropertyBlock(QuestRewardTreasureFromSite.SITE_REGEX, "Site RegEx", FieldType.Regex, null, new String[] { "spell_site","visitor,!name=Scholar","artifact","book,magic" }));
 				list.add(new QuestPropertyBlock(QuestRewardTreasureFromSite.DRAW_TYPE, "Draw Type", FieldType.StringSelector, DrawType.values()));
-				break;
-			case StripInventory:
+			} else if (_rt == QuestReward.RewardType.StripInventory) {
 				list.add(new QuestPropertyBlock(QuestRewardStripInventory.STRIP_GOLD, "Strip Gold", FieldType.Boolean));
-				break;
-			case SummonGeneratedMonster:
+			} else if (_rt == QuestReward.RewardType.SummonGeneratedMonster) {
 				list.add(new QuestPropertyBlock(QuestRewardSummonGeneratedMonster.MONSTER_TYPE, "Monster type", FieldType.StringSelector, QuestRewardSummonGeneratedMonster.MonsterType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardSummonGeneratedMonster.AMOUNT, "Amount", FieldType.Number));
 				list.add(new QuestPropertyBlock(QuestRewardSummonGeneratedMonster.RANDOM_CLEARING, "Random clearing of characters tile", FieldType.Boolean));
@@ -364,11 +287,9 @@ public class QuestRewardEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRewardSummonGeneratedMonster.CUSTOM_STATS, "Custom Stats", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardSummonGeneratedMonster.NOTORIETY, "Notoriety", FieldType.NumberAll));
 				list.add(new QuestPropertyBlock(QuestRewardSummonGeneratedMonster.FAME, "Fame", FieldType.NumberAll));
-				break;
-			case SummonGuardian:
+			} else if (_rt == QuestReward.RewardType.SummonGuardian) {
 				list.add(new QuestPropertyBlock(QuestRewardSummonGuardian.LOCATION, "Summon Guardian for ", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
-				break;
-			case SummonMonster:
+			} else if (_rt == QuestReward.RewardType.SummonMonster) {
 				list.add(new QuestPropertyBlock(QuestRewardSummonMonster.MONSTER_NAME, "Monster", FieldType.CompanionSelector, getAllCompanionKeyValues()));
 				list.add(new QuestPropertyBlock(QuestRewardSummonMonster.SUMMON_TYPE, "Summon type", FieldType.StringSelector, QuestRewardSummonMonster.SummonType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardSummonMonster.RANDOM_CLEARING, "Random clearing of characters tile", FieldType.Boolean));
@@ -376,8 +297,7 @@ public class QuestRewardEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRewardSummonMonster.RANDOM_LOCATION, "Random clearing of location", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardSummonMonster.LOCATION, "Location", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
 				list.add(new QuestPropertyBlock(QuestRewardSummonMonster.MARK, "Mark denizens", FieldType.Boolean));
-				break;
-			case SummonFromAppearanceToChit:
+			} else if (_rt == QuestReward.RewardType.SummonFromAppearanceToChit) {
 				list.add(new QuestPropertyBlock(QuestRewardSummonFromAppearanceToChit.CHIT, "Chit to summon to", FieldType.Regex, null, new String[] { "warning", "sound", "treasure_location", "dwelling" }));
 				list.add(new QuestPropertyBlock(QuestRewardSummonFromAppearanceToChit.DENIZEN, "Denizen (all if empty)", FieldType.Regex, null, new String[] { "vulnerability", "setup_start" }));
 				list.add(new QuestPropertyBlock(QuestRewardSummonFromAppearanceToChit.SUMMON_LIVING_DENIZENS, "Summon living denizens", FieldType.Boolean));
@@ -386,73 +306,59 @@ public class QuestRewardEditor extends QuestBlockEditor {
 				list.add(new QuestPropertyBlock(QuestRewardSummonFromAppearanceToChit.SUMMON_TO, "Chit location", FieldType.StringSelector, QuestRewardSummonFromAppearanceToChit.SummonTo.values()));
 				list.add(new QuestPropertyBlock(QuestRewardSummonFromAppearanceToChit.LOCATION, "Quest Location", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
 				list.add(new QuestPropertyBlock(QuestRewardSummonFromAppearanceToChit.MARK, "Mark denizens", FieldType.Boolean));
-				break;
-			case SummonRoll:
+			} else if (_rt == QuestReward.RewardType.SummonRoll) {
 				list.add(new QuestPropertyBlock(QuestRewardSummonRoll.DIE_ROLL, "Die roll", FieldType.StringSelector, DieRollType.values()));
-				break;
-			case SummonTraveler:
+			} else if (_rt == QuestReward.RewardType.SummonTraveler) {
 				list.add(new QuestPropertyBlock(QuestRewardSummonTraveler.TRAVELER_NAME, "Traveler", FieldType.Regex, null, new String[] { Constants.TRAVELER_TEMPLATE }));
 				list.add(new QuestPropertyBlock(QuestRewardSummonTraveler.RANDOM_TRAVELER, "Random traveler", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardSummonTraveler.RANDOM_CLEARING, "Random clearing of characters tile", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardSummonTraveler.SUMMON_TO_LOCATION, "Summon to location", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardSummonTraveler.LOCATION, "Location", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
 				list.add(new QuestPropertyBlock(QuestRewardSummonTraveler.MARK, "Mark travelers", FieldType.Boolean));
-				break;
-			case TalkToWiseBird:
-				break;
-			case Teleport:
+			} else if (_rt == QuestReward.RewardType.Teleport) {
 				list.add(new QuestPropertyBlock(QuestRewardTeleport.LOCATION, "Teleport to", FieldType.GameObjectWrapperSelector, quest.getLocations().toArray()));
-				break;
-			case TeleportChoose:
+			} else if (_rt == QuestReward.RewardType.TeleportChoose) {
 				list.add(new QuestPropertyBlock(QuestRewardTeleportChoose.TELEPORT_TYPE, "Tpye of choice", FieldType.StringSelector, SpellUtility.TeleportType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardTeleportChoose.REASON, "Reason in message", FieldType.TextLine));
-				break;
-			case Transmorph:
+			} else if (_rt == QuestReward.RewardType.Transmorph) {
 				list.add(new QuestPropertyBlock(QuestRewardTransmorph.TRANSMORPH_TYPE, "Transformation type", FieldType.StringSelector, QuestRewardTransmorph.TransmorphType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardTransmorph.DIE_ROLL, "Die roll (for Animal)", FieldType.StringSelector, DieRollType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardTransmorph.REVERT_TRANSFORMATION, "Revert transformation", FieldType.Boolean));
-				break;
-			case TreasureFromHq:
+			} else if (_rt == QuestReward.RewardType.TreasureFromHq) {
 				list.add(new QuestPropertyBlock(QuestRewardTreasureFromHq.HQ_REGEX, "HQ RegEx", FieldType.Regex, null, new String[] { "rank=HQ" }));
 				list.add(new QuestPropertyBlock(QuestRewardTreasureFromHq.DRAW_TYPE, "Draw Type", FieldType.StringSelector, DrawType.values()));
 				list.add(new QuestPropertyBlock(QuestRewardTreasureFromHq.CLEARING, "Character's clearing?", FieldType.Boolean));
-				break;
-			case TreasureFromSite:
+			} else if (_rt == QuestReward.RewardType.TreasureFromSite) {
 				list.add(new QuestPropertyBlock(QuestRewardTreasureFromSite.SITE_REGEX, "Site RegEx", FieldType.Regex, null, new String[] { "treasure_location,!treasure_within_treasure,!cannot_move","visitor=scholar","dwelling,!native" }));
 				list.add(new QuestPropertyBlock(QuestRewardTreasureFromSite.DRAW_TYPE, "Draw Type", FieldType.StringSelector, DrawType.values()));
-				break;
-			case QuestComplete:
+			} else if (_rt == QuestReward.RewardType.QuestComplete) {
 				list.add(new QuestPropertyBlock(QuestRewardComplete.WIN_BOQ, "Win Book of Quests game with this 'Event'", FieldType.Boolean));
-				break;
-			case QuestFailed:
-				break;
-			case QuestSticky:
+			} else if (_rt == QuestReward.RewardType.QuestSticky) {
 				list.add(new QuestPropertyBlock(QuestRewardQuestSticky.UNSTICKY, "Remove sticky?", FieldType.Boolean));
-				break;
-			case QuestVps:
+			} else if (_rt == QuestReward.RewardType.QuestVps) {
 				list.add(new QuestPropertyBlock(QuestRewardQuestVps.AMOUNT, "Amount", FieldType.Number));
 				list.add(new QuestPropertyBlock(QuestRewardQuestVps.SUBSTRACT, "Substract points?", FieldType.Boolean));
 				list.add(new QuestPropertyBlock(QuestRewardQuestVps.BONUS_VP, "Set Bonus Quest Vps?", FieldType.Boolean));
-				break;
-			case Visitor:
+			} else if (_rt == QuestReward.RewardType.Visitor) {
 				list.add(new QuestPropertyBlock(QuestRewardVisitor.VISITOR_REGEX, "Visitor RegEx", FieldType.Regex, null, new String[] { Constants.VISITOR }));
 				list.add(new QuestPropertyBlock(QuestRewardVisitor.ACQUISITION_TYPE, "Method to acquire hireling", FieldType.StringSelector, ChitAcquisitionType.values()));
-				break;
-			case Weather:
+			} else if (_rt == QuestReward.RewardType.Weather) {
 				list.add(new QuestPropertyBlock(QuestRewardWeather.WEATHER, "Weather", FieldType.StringSelector,  new String[] {RealmCalendar.WEATHER_CLEAR, RealmCalendar.WEATHER_SHOWERS, RealmCalendar.WEATHER_STORM, RealmCalendar.WEATHER_SPECIAL}));
-				break;
-			case Wish:
+			} else if (_rt == QuestReward.RewardType.Wish) {
 				list.add(new QuestPropertyBlock(QuestRewardWish.DIE_ROLL, "Die roll", FieldType.StringSelector, DieRollType.values()));
-				break;
+			}
 		}
 		return list;
 	}
 
 	private static KeyValuePair[] getAllCompanionKeyValues() {
-		ArrayList<KeyValuePair> companions = new ArrayList<KeyValuePair>();
-		for (String[] section : CompanionEditPanel.COMPANIONS) {
+		ArrayList companions = new ArrayList();
+		String[][] _j14arr306 = CompanionEditPanel.COMPANIONS;
+		for (int _j14i306 = 0; _j14i306 < _j14arr306.length; _j14i306++) {
+		  String[] section = _j14arr306[_j14i306];
 			boolean first = true;
-			for (String name : section) {
+			for (int _j14i307 = 0; _j14i307 < section.length; _j14i307++) {
+			  String name = section[_j14i307];
 				// skip first every time
 				if (first) {
 					first = false;
@@ -467,30 +373,33 @@ public class QuestRewardEditor extends QuestBlockEditor {
 				}
 			}
 		}
-		return companions.toArray(new KeyValuePair[0]);
+		return (KeyValuePair[]) companions.toArray(new KeyValuePair[0]);
 	}
 
 	private String[] getRelationshipNames() {
-		ArrayList<String> names = new ArrayList<String>();
+		ArrayList names = new ArrayList();
 		names.add("Clearing");
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
-		for (GameObject go : pool.find("native,rank=HQ")) {
+		for (java.util.Iterator _j14it308 = (pool.find("native,rank=HQ")).iterator(); _j14it308.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it308.next();
 			names.add(go.getThisAttribute("native"));
 		}
-		for (GameObject go : pool.find(Constants.VISITOR)) {
+		for (java.util.Iterator _j14it309 = (pool.find(Constants.VISITOR)).iterator(); _j14it309.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it309.next();
 			names.add(go.getThisAttribute(Constants.VISITOR));
 		}
-		return names.toArray(new String[0]);
+		return (String[]) names.toArray(new String[0]);
 	}
-	
+
 	private String[] getGuildNames() {
-		ArrayList<String> names = new ArrayList<String>();
+		ArrayList names = new ArrayList();
 		names.add(QuestConstants.CURRENT);
 		names.add(QuestConstants.REMOVE);
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
-		for (GameObject go : pool.find(Constants.GUILD)) {
+		for (java.util.Iterator _j14it310 = (pool.find(Constants.GUILD)).iterator(); _j14it310.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it310.next();
 			names.add(go.getThisAttribute(Constants.GUILD));
 		}
-		return names.toArray(new String[0]);
+		return (String[]) names.toArray(new String[0]);
 	}
 }

@@ -92,8 +92,8 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 	private String connectedIp = null;
 	private int connectedPort = 0;
 	
-	protected ArrayList<RealmSpeakInternalFrame> gameControlFrames;
-	protected ArrayList<CharacterFrame> characterFrames;
+	protected ArrayList gameControlFrames;
+	protected ArrayList characterFrames;
 	
 	protected Integer characterFrameForceLayout = null;
 	protected Integer mapForceLayout = null;
@@ -232,8 +232,8 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 	public RealmSpeakFrame() {
 		initComponents();
 		CustomUiUtility.initColors();
-		gameControlFrames = new ArrayList<RealmSpeakInternalFrame>();
-		characterFrames = new ArrayList<CharacterFrame>();
+		gameControlFrames = new ArrayList();
+		characterFrames = new ArrayList();
 		addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent e) {
 				int lastLayout = windowLayoutManager.getLastLayout();
@@ -1144,12 +1144,12 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 				}
 			viewMenu.add(characterMenuView);
 			
-			ArrayList<ArrayList<String>> customCharacterCards = RealmCharacterBuilderModel.loadAllCustomCharacterCards();
+			ArrayList customCharacterCards = RealmCharacterBuilderModel.loadAllCustomCharacterCards();
 			customCharacterMenuView = new JMenu("Custom Characters (1-24)");
 				int maxSize = Math.min(customCharacterCards.size(), 24);
 				customCharacterCardView = new JMenuItem[maxSize];
 				for (int i=0;i<maxSize;i++) {
-					customCharacterCardView[i] = new ShowCustomCharCardViewAction(customCharacterCards.get(i));
+					customCharacterCardView[i] = new ShowCustomCharCardViewAction((ArrayList)customCharacterCards.get(i));
 					customCharacterMenuView.add(customCharacterCardView[i]);
 				}
 			viewMenu.add(customCharacterMenuView);
@@ -1157,7 +1157,7 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 				maxSize = Math.min(customCharacterCards.size(), 48);
 				customCharacterCardView2 = new JMenuItem[maxSize];
 				for (int i=24;i<maxSize;i++) {
-					customCharacterCardView2[i] = new ShowCustomCharCardViewAction(customCharacterCards.get(i));
+					customCharacterCardView2[i] = new ShowCustomCharCardViewAction((ArrayList)customCharacterCards.get(i));
 					customCharacterMenuView2.add(customCharacterCardView2[i]);
 				}
 			viewMenu.add(customCharacterMenuView2);
@@ -1165,7 +1165,7 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 				maxSize = Math.min(customCharacterCards.size(), 72);
 				customCharacterCardView3 = new JMenuItem[maxSize];
 				for (int i=48;i<maxSize;i++) {
-					customCharacterCardView3[i] = new ShowCustomCharCardViewAction(customCharacterCards.get(i));
+					customCharacterCardView3[i] = new ShowCustomCharCardViewAction((ArrayList)customCharacterCards.get(i));
 					customCharacterMenuView3.add(customCharacterCardView3[i]);
 				}
 			viewMenu.add(customCharacterMenuView3);
@@ -1546,7 +1546,8 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 //						public void actionPerformed(ActionEvent ev) {
 //							if (gameHandler!=null) {
 //								StringBuffer sb = new StringBuffer();
-//								for (String note:gameHandler.getNotes()) {
+//								for (java.util.Iterator _j14it1080 = (gameHandler.getNotes()).iterator(); _j14it1080.hasNext(); ) {
+//  String note = (String) _j14it1080.next();
 //									sb.append(note);
 //									sb.append("\n");
 //								}
@@ -1703,8 +1704,8 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 	}
 	public void validateMap(GameData data) {
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
-		Hashtable<Point, Tile> mapGrid = MapBuilder.getMapGrid(data,hostPrefs);
-		Collection<String> keyVals = GamePool.makeKeyVals(hostPrefs.getGameKeyVals());
+		Hashtable mapGrid = MapBuilder.getMapGrid(data,hostPrefs);
+		Collection keyVals = GamePool.makeKeyVals(hostPrefs.getGameKeyVals());
 		Tile anchor = MapBuilder.findAnchorTile(MapBuilder.startTileList(data,keyVals));
 		
 		String text = "Validate adjacent tiles: ";
@@ -1828,16 +1829,18 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
 			String hostName = hostPrefs.getHostName();
 			GamePool pool = new GamePool(data.getGameObjects());
-			ArrayList<GameObject> characterGameObjects = pool.extract(CharacterWrapper.getKeyVals());
-			for (GameObject go : characterGameObjects) {
+			ArrayList characterGameObjects = pool.extract(CharacterWrapper.getKeyVals());
+			for (java.util.Iterator _j14it1081 = (characterGameObjects).iterator(); _j14it1081.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it1081.next();
 				CharacterWrapper character = new CharacterWrapper(go);
 				if (!character.getPlayerName().equals(hostName) && character.isActive()) {
 					if (netConnect) {
 						// Set missing in action (show as offline)
 						character.setMissingInAction(true);
-						Collection<GameObject> minions = character.getMinions();
+						Collection minions = character.getMinions();
 						if (minions!=null) {
-							for (GameObject minion : minions) {
+							for (java.util.Iterator _j14it1082 = (minions).iterator(); _j14it1082.hasNext(); ) {
+							  GameObject minion = (GameObject) _j14it1082.next();
 								CharacterWrapper lostMinion = new CharacterWrapper(minion);
 								lostMinion.setMissingInAction(true);
 							}
@@ -1863,8 +1866,9 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 			}
 			if (data.getScenarioRandomGoldSpecialPlacement()) {
 				RealmObjectMaster rom = RealmObjectMaster.getRealmObjectMaster(data);
-				ArrayList<GameObject> gs = rom.findObjects("gold_special,"+Constants.GOLD_SPECIAL_PLACED);
-				for (GameObject chit : gs) {
+				ArrayList gs = rom.findObjects("gold_special,"+Constants.GOLD_SPECIAL_PLACED);
+				for (java.util.Iterator _j14it1083 = (gs).iterator(); _j14it1083.hasNext(); ) {
+				  GameObject chit = (GameObject) _j14it1083.next();
 					chit.removeThisAttribute(Constants.GOLD_SPECIAL_PLACED);
 				}
 				gameHandler.randomGoldSpecialPlacement();
@@ -1883,8 +1887,9 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 				}
 			}
 			if (data.getScenarioRebuildQuestDeck()) {
-				ArrayList<GameObject> quests = pool.find("quest");
-				for (GameObject go : quests) {
+				ArrayList quests = pool.find("quest");
+				for (java.util.Iterator _j14it1084 = (quests).iterator(); _j14it1084.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it1084.next();
 					Quest quest = new Quest(go);
 					quest.unassign();
 					data.removeObject(quest.getGameObject());
@@ -1947,7 +1952,8 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 	}
 	public ICharacterFrame getCharacterFrame(CharacterWrapper character) {
 		if (characterFrames!=null && !characterFrames.isEmpty()) {
-			for (ICharacterFrame frame : characterFrames) {
+			for (java.util.Iterator _j14it1085 = (characterFrames).iterator(); _j14it1085.hasNext(); ) {
+			  ICharacterFrame frame = (ICharacterFrame) _j14it1085.next();
 				if (frame.getCharacter().equals(character)) {
 					return frame;
 				}
@@ -2008,7 +2014,8 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 		if (gameHandler!=null && gameHandler.getInspector()!=null) {
 			gameHandler.setForceWidth(characterFrameForceLayout);
 			gameHandler.getInspector().setForceWidth(mapForceLayout);
-			for (CharacterFrame frame:characterFrames) {
+			for (java.util.Iterator _j14it1086 = (characterFrames).iterator(); _j14it1086.hasNext(); ) {
+			  CharacterFrame frame = (CharacterFrame) _j14it1086.next();
 				frame.setForceWidth(characterFrameForceLayout);
 			}
 		}
@@ -2016,10 +2023,12 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 	private void organize() {
 		windowLayoutManager.clearLastLayout();
 		updateForceWidths();
-		for (RealmSpeakInternalFrame frame:gameControlFrames) {
+		for (java.util.Iterator _j14it1087 = (gameControlFrames).iterator(); _j14it1087.hasNext(); ) {
+		  RealmSpeakInternalFrame frame = (RealmSpeakInternalFrame) _j14it1087.next();
 			frame.organize(desktop);
 		}
-		for (CharacterFrame frame:characterFrames) {
+		for (java.util.Iterator _j14it1088 = (characterFrames).iterator(); _j14it1088.hasNext(); ) {
+		  CharacterFrame frame = (CharacterFrame) _j14it1088.next();
 			frame.organize(desktop);
 		}
 	}
@@ -2041,7 +2050,8 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 		
 		if (gameControlFrames!=null) {
 			windowMenu.add(new JSeparator());
-			for (RealmSpeakInternalFrame frame:gameControlFrames) {
+			for (java.util.Iterator _j14it1089 = (gameControlFrames).iterator(); _j14it1089.hasNext(); ) {
+			  RealmSpeakInternalFrame frame = (RealmSpeakInternalFrame) _j14it1089.next();
 				JMenuItem item = new JMenuItem(frame.getTitle());
 				item.addActionListener(new ShowFrameAction(frame));
 				windowMenu.add(item);
@@ -2052,7 +2062,8 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 			if (gameControlFrames.size()>0 && characterFrames.size()>0) {
 				windowMenu.add(new JSeparator());
 			}
-			for (CharacterFrame frame:characterFrames) {
+			for (java.util.Iterator _j14it1090 = (characterFrames).iterator(); _j14it1090.hasNext(); ) {
+			  CharacterFrame frame = (CharacterFrame) _j14it1090.next();
 				JMenuItem item = new JMenuItem(frame.getCharacter().getCharacterName(),frame.getCharacter().getIcon());
 				item.addActionListener(new ShowFrameAction(frame));
 				windowMenu.add(item);
@@ -2314,10 +2325,11 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 		}
 		return null;
 	}
-	public ArrayList<String> getAllServerNames() {
-		ArrayList<String> list = new ArrayList<String>();
+	public ArrayList getAllServerNames() {
+		ArrayList list = new ArrayList();
 		if (host!=null) {
-			for (GameServer server:host.getServers()) {
+			for (java.util.Iterator _j14it1091 = (host.getServers()).iterator(); _j14it1091.hasNext(); ) {
+			  GameServer server = (GameServer) _j14it1091.next();
 				list.add(server.getClientName());
 			}
 		}
@@ -2361,11 +2373,11 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 		private String name;
 		private String picturePath;
 		private String symbolPath;
-		public ShowCustomCharCardViewAction(ArrayList<String> input) {
-			super(input.get(0));
-			name = input.get(0);
-			picturePath = input.get(1);
-			symbolPath = input.get(2);
+		public ShowCustomCharCardViewAction(ArrayList input) {
+			super((String)input.get(0));
+			name = (String) input.get(0);
+			picturePath = (String) input.get(1);
+			symbolPath = (String) input.get(2);
 			setIcon(ImageCache.getIcon(symbolPath,20));
 			addActionListener(this);
 		}

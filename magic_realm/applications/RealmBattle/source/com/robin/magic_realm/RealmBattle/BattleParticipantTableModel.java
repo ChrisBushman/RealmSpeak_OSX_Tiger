@@ -42,7 +42,7 @@ public class BattleParticipantTableModel extends AbstractTableModel {
 			}
 			else {
 				row -= 1;
-				RealmComponent participant = parent.getAllParticipants().get(row);
+				RealmComponent participant = (RealmComponent) parent.getAllParticipants().get(row);
 				CombatWrapper combat = new CombatWrapper(participant.getGameObject());
 				RealmComponent owner = participant.getOwner();
 				switch(column) {
@@ -76,11 +76,12 @@ public class BattleParticipantTableModel extends AbstractTableModel {
 	private static ImageIcon getAttackersIcon(CombatWrapper combat) {
 		int attackerCount = combat.getAttackerCount();
 		if (attackerCount==1) {
-			return combat.getAttackersAsComponents().get(0).getMediumIcon();
+			return ((RealmComponent) combat.getAttackersAsComponents().get(0)).getMediumIcon();
 		}
 		else if (attackerCount>0 && attackerCount<=6) {
 			IconGroup group = new IconGroup(IconGroup.HORIZONTAL,1,100,0);
-			for (RealmComponent rc:combat.getAttackersAsComponents()) {
+			for (java.util.Iterator _j14it654 = (combat.getAttackersAsComponents()).iterator(); _j14it654.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it654.next();
 				group.addIcon(rc.getMediumIcon());
 			}
 			return group;
@@ -89,7 +90,8 @@ public class BattleParticipantTableModel extends AbstractTableModel {
 			IconGroup group = new IconGroup(IconGroup.VERTICAL,1,0,CombatFrame.PARTICIPANT_ROW_HEIGHT-4);
 			int rowCount = 0;
 			IconGroup iconRow = null;
-			for (RealmComponent rc:combat.getAttackersAsComponents()) {
+			for (java.util.Iterator _j14it655 = (combat.getAttackersAsComponents()).iterator(); _j14it655.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it655.next();
 				if (iconRow==null) {
 					iconRow = new IconGroup(IconGroup.HORIZONTAL,1,100-4,0);
 					rowCount=0;

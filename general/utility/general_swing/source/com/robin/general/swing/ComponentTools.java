@@ -25,11 +25,13 @@ public class ComponentTools {
 	}
 	public static void setNimbusLookAndFeel() {
 		try {
-			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+			UIManager.LookAndFeelInfo[] _lafs = UIManager.getInstalledLookAndFeels();
+			for (int _i42 = 0; _i42 < _lafs.length; _i42++) {
+			  LookAndFeelInfo info = _lafs[_i42];
 		        if ("Nimbus".equals(info.getName())) {
 		            UIManager.setLookAndFeel(info.getClassName());
 		            UIDefaults defaults = UIManager.getLookAndFeelDefaults();
-		            defaults.put("Table.showGrid", true);
+		            defaults.put("Table.showGrid", Boolean.TRUE);
 		            defaults.put("Table.gridColor", new Color (214,217,223));
 		            break;
 		        }

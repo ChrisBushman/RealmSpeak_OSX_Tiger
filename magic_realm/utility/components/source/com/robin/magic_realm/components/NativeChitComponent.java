@@ -298,10 +298,10 @@ public class NativeChitComponent extends SquareChitComponent implements BattleCh
 			String textTypeLength = statColor;
 			if (RealmComponent.displayColoredStats) {
 				Integer defaultLength = getFaceAttributeInteger("length");
-				if (defaultLength==null) defaultLength = 0;
-				if (length>defaultLength) {
+				if (defaultLength==null) defaultLength = Integer.valueOf(0);
+				if (length.intValue()>defaultLength.intValue()) {
 					textTypeLength = "STAT_BLUE";
-				} else if(defaultLength>length) {
+				} else if(defaultLength.intValue()>length.intValue()) {
 					textTypeLength = "STAT_RED";
 				}
 			}
@@ -409,7 +409,7 @@ public class NativeChitComponent extends SquareChitComponent implements BattleCh
 		NativeSteedChitComponent horse = (NativeSteedChitComponent)getHorse(false);
 		if (horse!=null) {
 			String[] ret = horse.getFolderAndType();
-			int horseSize = ret[2]==null?20:40*Integer.valueOf(ret[2]);
+			int horseSize = ret[2]==null?20:40*Integer.valueOf(ret[2]).intValue();
 			ImageIcon icon = ImageCache.getIcon(ret[0]+"/"+ret[1],horseSize);
 			g.drawImage(icon.getImage(),size-icon.getIconWidth()-2,(size>>1),null);
 		}
@@ -426,10 +426,11 @@ public class NativeChitComponent extends SquareChitComponent implements BattleCh
 		if (getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON_LENGTH)) {
 			return Integer.valueOf(getGameObject().getThisAttribute(Constants.ENCHANTED_WEAPON_LENGTH));
 		}
-		Integer length = getFaceAttributeInteger("length");
-		if (length == null) {
-			length = Integer.valueOf(0);
+		Integer lengthObj = getFaceAttributeInteger("length");
+		if (lengthObj == null) {
+			lengthObj = Integer.valueOf(0);
 		}
+		int length = lengthObj.intValue();
 		if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT)) {
 			int difference = (new Strength(gameObject.getThisAttribute(Constants.ALTER_WEIGHT))).getLevels()-(new Strength((getWeightWithoutModifiers("L")))).getLevels();
 			length = length + difference;
@@ -440,9 +441,9 @@ public class NativeChitComponent extends SquareChitComponent implements BattleCh
 		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) {
 			length++;
 		}
-		if (length<=0) return 0;
-		if (length>=18) return 18;
-		return length;
+		if (length<=0) return Integer.valueOf(0);
+		if (length>=18) return Integer.valueOf(18);
+		return Integer.valueOf(length);
 	}
 
 	public Speed getMoveSpeed() {
@@ -470,7 +471,7 @@ public class NativeChitComponent extends SquareChitComponent implements BattleCh
 		}
 		int baseMoveSpeed = 6;
 		if (hasFaceAttribute("move_speed")) {
-			baseMoveSpeed = getFaceAttributeInteger("move_speed");
+			baseMoveSpeed = getFaceAttributeInteger("move_speed").intValue();
 		}
 		Speed speed = new Speed(baseMoveSpeed,mod);
 		if (getGameObject().hasThisAttribute(Constants.GROW_WINGS) && (new Speed(Constants.GROW_WINGS_SPEED)).fasterThan(speed)) {
@@ -602,16 +603,17 @@ public class NativeChitComponent extends SquareChitComponent implements BattleCh
 			}
 		}
 		
-		ArrayList<SpellWrapper> holyShields = SpellUtility.getBewitchingSpellsWithKey(getGameObject(),Constants.HOLY_SHIELD);
-		if ((holyShields!=null&&!holyShields.isEmpty()) || affectedByKey(Constants.HOLY_SHIELD) || combat.hasHolyShield(attacker.getAttackSpeed(),attacker.getLength())) {
-			for (SpellWrapper spell : holyShields) {
+		ArrayList holyShields = SpellUtility.getBewitchingSpellsWithKey(getGameObject(),Constants.HOLY_SHIELD);
+		if ((holyShields!=null&&!holyShields.isEmpty()) || affectedByKey(Constants.HOLY_SHIELD) || combat.hasHolyShield(attacker.getAttackSpeed(),attacker.getLength().intValue())) {
+			for (java.util.Iterator _j14it1348 = (holyShields).iterator(); _j14it1348.hasNext(); ) {
+			  SpellWrapper spell = (SpellWrapper) _j14it1348.next();
 				spell.expireSpell();
 			}
-			combat.setHolyShield(attacker.getAttackSpeed(), attacker.getLength());
+			combat.setHolyShield(attacker.getAttackSpeed(), attacker.getLength().intValue());
 			RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits Holy Shield and the attack is blocked.");
 			return false;
 		}
-		
+
 		Harm harm = new Harm(attackerHarm);
 		Strength vulnerability = getVulnerability();
 		boolean armorPiercing = attacker.getGameObject().hasThisAttribute(Constants.ARMOR_PIERCING) || (attacker.isCharacter() && (new CharacterWrapper(attacker.getGameObject())).affectedByKey(Constants.ARMOR_PIERCING));
@@ -759,13 +761,13 @@ public class NativeChitComponent extends SquareChitComponent implements BattleCh
 			mod++;
 		}
 		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX1) && getManeuverCombatBox()==1) {
-			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX1);
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX1).intValue();
 		}
 		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX2) && getManeuverCombatBox()==2) {
-			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX2);
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX2).intValue();
 		}
 		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX3) && getManeuverCombatBox()==3) {
-			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX3);
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX3).intValue();
 		}
 		return mod;
 	}

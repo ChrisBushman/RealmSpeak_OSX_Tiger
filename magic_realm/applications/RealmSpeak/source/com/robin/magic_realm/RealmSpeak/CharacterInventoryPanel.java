@@ -165,7 +165,7 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 	private static final Font queryFont = new Font("Dialog",Font.BOLD,14);
 	private void showAwakenedSpells(GameObject go) {
 		if (go!=null && go.hasThisAttribute("treasure") && (go.hasThisAttribute("magic") || go.hasThisAttribute("book"))) {
-			Collection<GameObject> c = SpellUtility.getSpells(go,Boolean.TRUE,false,true);
+			Collection c = SpellUtility.getSpells(go,Boolean.TRUE,false,true);
 			if (c.size()>0) {
 				JPanel panel = new JPanel(new BorderLayout());
 				queryPanel = new RealmObjectPanel();
@@ -200,11 +200,12 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 		// Find all characters in the clearing
 		TileLocation tl = getCharacter().getCurrentLocation();
 		if (tl!=null && tl.isInClearing()) {
-			ArrayList<CharacterWrapper> allCharacters = new ArrayList<CharacterWrapper>();
+			ArrayList allCharacters = new ArrayList();
 			double allGold = 0.0;
-			ArrayList<GameObject> allInventory = new ArrayList<GameObject>();
-			ArrayList<RealmComponent> c = tl.clearing.getClearingComponents(false);
-			for (RealmComponent rc:c) {
+			ArrayList allInventory = new ArrayList();
+			ArrayList c = tl.clearing.getClearingComponents(false);
+			for (java.util.Iterator _j14it1147 = (c).iterator(); _j14it1147.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it1147.next();
 				if (rc.isPlayerControlledLeader()) {
 					CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 					if (!character.hasCurse(Constants.ASHES)) {
@@ -223,16 +224,18 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 				getGameHandler().submitChanges();
 				
 				// Now, cycle through characters, and give them all the inventory and gold one at a time, and evaluate development levels
-				Hashtable<GameObject,DevelopmentProgress> hash = new Hashtable<GameObject,DevelopmentProgress>();
-				for (CharacterWrapper character:allCharacters) {
+				Hashtable hash = new Hashtable();
+				for (java.util.Iterator _j14it1148 = (allCharacters).iterator(); _j14it1148.hasNext(); ) {
+				  CharacterWrapper character = (CharacterWrapper) _j14it1148.next();
 					character.setGold(allGold);
-					for (GameObject item:allInventory) {
+					for (java.util.Iterator _j14it1149 = (allInventory).iterator(); _j14it1149.hasNext(); ) {
+					  GameObject item = (GameObject) _j14it1149.next();
 						item.removeThisAttribute(Constants.ACTIVATED);
 						character.getGameObject().add(item);
 						// boots are a special case, because they can determine whether or not you score points for heavy items
 						if (item.hasThisAttribute("boots")) {
 							// Make sure character is not prohibited from wearing boots (only affects custom characters)
-							ArrayList<String> list = character.getGameObject().getThisAttributeList(Constants.ITEM_RESTRICTIONS);
+							ArrayList list = character.getGameObject().getThisAttributeList(Constants.ITEM_RESTRICTIONS);
 							if (list==null || !list.contains("Boots")) {
 								// Note:  shouldn't have to worry about boots that are too small for a character, because it wont affect them in any case!
 								item.setThisAttribute(Constants.ACTIVATED);
@@ -248,9 +251,10 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 				
 				// Finally, reapply the development progress to all characters and submit
 				StringBuffer sb = new StringBuffer();
-				for (CharacterWrapper character:allCharacters) {
+				for (java.util.Iterator _j14it1150 = (allCharacters).iterator(); _j14it1150.hasNext(); ) {
+				  CharacterWrapper character = (CharacterWrapper) _j14it1150.next();
 					boolean gain = false;
-					DevelopmentProgress dp = hash.get(character.getGameObject());
+					DevelopmentProgress dp = (DevelopmentProgress) hash.get(character.getGameObject());
 					sb.append(character.getGameObject().getName());
 					sb.append(": ");
 					if (dp.getHighestVps()>character.getHighestEarnedVps()) {
@@ -463,7 +467,8 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 		TileLocation loc = getCharacter().getCurrentLocation();
 		if (loc==null || !loc.hasClearing()) return;
 		String groupName = credit.getThisAttribute(RealmComponent.CREDIT);
-		for (RealmComponent rc : loc.clearing.getClearingComponents()) {
+		for (java.util.Iterator _j14it1151 = (loc.clearing.getClearingComponents()).iterator(); _j14it1151.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1151.next();
 			if (rc.isNativeLeader() && rc.getGameObject().getThisAttribute(RealmComponent.NATIVE).toLowerCase().matches(groupName.toLowerCase())) {
 				int price = credit.getThisInt("base_price");
 				if (getCharacter().getGold()<price) {
@@ -482,9 +487,10 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 	
 	public void updatePanel() {
 		boolean hiredLeader = getCharacter().isHiredLeader();
-		ArrayList<GameObject> activeInv = new ArrayList<GameObject>();
-		ArrayList<GameObject> inactiveInv = new ArrayList<GameObject>();
-		for (GameObject item : getCharacter().getInventory()) {
+		ArrayList activeInv = new ArrayList();
+		ArrayList inactiveInv = new ArrayList();
+		for (java.util.Iterator _j14it1152 = (getCharacter().getInventory()).iterator(); _j14it1152.hasNext(); ) {
+		  GameObject item = (GameObject) _j14it1152.next();
 			if (!item.hasThisAttribute(Constants.DEAD)) { // Native horses!
 				RealmComponent rc = RealmComponent.getRealmComponent(item);
 				if (hiredLeader) {
@@ -494,7 +500,8 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 							inactiveInv.add(item);
 							if (item.hasThisAttribute(Constants.BREAK_CONTROL_WHEN_INACTIVE)) {
 								SpellMasterWrapper spellmaster = SpellMasterWrapper.getSpellMaster(getCharacter().getGameData());
-								for (SpellWrapper spell : spellmaster.getAffectingSpells(item)) {
+								for (java.util.Iterator _j14it1153 = (spellmaster.getAffectingSpells(item)).iterator(); _j14it1153.hasNext(); ) {
+								  SpellWrapper spell = (SpellWrapper) _j14it1153.next();
 									if (spell.isControlHorseSpell()) spell.expireSpell();
 								}
 							}

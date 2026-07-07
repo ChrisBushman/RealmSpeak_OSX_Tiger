@@ -18,9 +18,9 @@ public class GameObjectTableModel extends AbstractTableModel implements ColumnSi
 		"Holds"
 	};
 	
-	protected ArrayList<GameObject> data;
+	protected ArrayList data;
 
-	public GameObjectTableModel(ArrayList<GameObject> data) {
+	public GameObjectTableModel(ArrayList data) {
 		this.data = data;
 	}
 	public int getRowCount() {
@@ -44,7 +44,7 @@ public class GameObjectTableModel extends AbstractTableModel implements ColumnSi
 	}
 	public Object getValueAt(int row,int col) {
 		if (row<data.size()) {
-			GameObject obj = data.get(row);
+			GameObject obj = (GameObject) data.get(row);
 			switch(col) {
 				case 0:
 					return Long.valueOf(obj.getId());

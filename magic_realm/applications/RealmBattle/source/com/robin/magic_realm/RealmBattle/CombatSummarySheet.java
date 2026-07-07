@@ -35,7 +35,7 @@ public class CombatSummarySheet extends JPanel {
 		"Disengage",
 	};
 	
-	private ArrayList<CharacterWrapper> characters;
+	private ArrayList characters;
 	private BattleModel battleModel;
 	private CombatFrame combatFrame;
 	
@@ -43,13 +43,16 @@ public class CombatSummarySheet extends JPanel {
 		super();
 		this.battleModel = combatFrame.getBattleModel();
 		this.combatFrame = combatFrame;
-		ArrayList<CharacterWrapper> characters = new ArrayList<CharacterWrapper>();
-		for (RealmComponent rc : battleModel.getAllParticipatingCharacters()) {
+		ArrayList characters = new ArrayList();
+		for (java.util.Iterator _j14it696 = (battleModel.getAllParticipatingCharacters()).iterator(); _j14it696.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it696.next();
 			characters.add(new CharacterWrapper(rc.getGameObject()));
 		}
 		this.characters = characters;
-		Collections.sort(characters,new Comparator<CharacterWrapper>() {
-			public int compare(CharacterWrapper c1,CharacterWrapper c2) {
+		Collections.sort(characters,new Comparator() {
+			public int compare(Object o1,Object o2) {
+				CharacterWrapper c1 = (CharacterWrapper) o1;
+				CharacterWrapper c2 = (CharacterWrapper) o2;
 				int ret = 0;
 				ret = c1.getCombatPlayOrder()-c2.getCombatPlayOrder();
 				if (ret==0) {
@@ -89,7 +92,8 @@ public class CombatSummarySheet extends JPanel {
 		g.setColor(Color.black);
 		x = 10;
 		y = 180;
-		for (CharacterWrapper character : characters) {
+		for (java.util.Iterator _j14it697 = (characters).iterator(); _j14it697.hasNext(); ) {
+		  CharacterWrapper character = (CharacterWrapper) _j14it697.next();
 			String name = character.getGameObject().getName();
 			g.drawString(name,x,y);
 			y += 30;
@@ -121,7 +125,7 @@ public class CombatSummarySheet extends JPanel {
 		Stroke normalStroke = g.getStroke();
 		
 		for (int r=0;r<characters.size();r++) {
-			CharacterWrapper character = characters.get(r);
+			CharacterWrapper character = (CharacterWrapper) characters.get(r);
 			boolean active = true;
 			int stage = character.getCombatStatus();
 			if (stage>Constants.COMBAT_WAIT) {
@@ -164,8 +168,10 @@ public class CombatSummarySheet extends JPanel {
 		x = 5;
 		y = listBottom;
 		g.setColor(Color.black);
-		for (CharacterWrapper character : characters) {
-			for (String groupName : character.getBattlingNativeGroups()) {
+		for (java.util.Iterator _j14it698 = (characters).iterator(); _j14it698.hasNext(); ) {
+		  CharacterWrapper character = (CharacterWrapper) _j14it698.next();
+			for (java.util.Iterator _j14it699 = (character.getBattlingNativeGroups()).iterator(); _j14it699.hasNext(); ) {
+			  String groupName = (String) _j14it699.next();
 				StringBuffer sb = new StringBuffer();
 				sb.append("The ");
 				sb.append(StringUtilities.capitalize(groupName));
@@ -184,7 +190,8 @@ public class CombatSummarySheet extends JPanel {
 		g.drawString("ATTACKERS",x+200,y);
 		y -= 45;
 		int row=0;
-		for (final RealmComponent battleParticipant : combatFrame.getAllParticipants()) {
+		for (java.util.Iterator _j14it700 = (combatFrame.getAllParticipants()).iterator(); _j14it700.hasNext(); ) {
+		  final RealmComponent battleParticipant = (RealmComponent) _j14it700.next();
 			CombatWrapper cr = new CombatWrapper(battleParticipant.getGameObject());
 			row+=1;
 			y += 90;
@@ -248,7 +255,8 @@ public class CombatSummarySheet extends JPanel {
 			
 			int xAttacker = x+110;
 			int attackerCount = 0;
-			for (GameObject attacker : cr.getAttackers()) {
+			for (java.util.Iterator _j14it701 = (cr.getAttackers()).iterator(); _j14it701.hasNext(); ) {
+			  GameObject attacker = (GameObject) _j14it701.next();
 				if (attackerCount != 0 && attackerCount % 4 == 0) {
 					y += 90;
 					xAttacker = x+110;
@@ -266,7 +274,8 @@ public class CombatSummarySheet extends JPanel {
 		y += 50;
 		int xUnassigned = x;
 		int unassignedCount = 0;
-		for (RealmComponent battleParticipant : battleModel.getAllBattleParticipants(true)) {
+		for (java.util.Iterator _j14it702 = (battleModel.getAllBattleParticipants(true)).iterator(); _j14it702.hasNext(); ) {
+		  RealmComponent battleParticipant = (RealmComponent) _j14it702.next();
 			if (unassignedCount != 0 && unassignedCount % 6 == 0) {
 				y += 90;
 				xUnassigned = x;

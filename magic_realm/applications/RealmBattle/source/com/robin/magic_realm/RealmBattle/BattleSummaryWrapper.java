@@ -20,15 +20,17 @@ public class BattleSummaryWrapper extends GameObjectWrapper {
 	public String getBlockName() {
 		return "_BSUM_";
 	}
-	public void initFromBattleChits(ArrayList<BattleChit> battleChits) {
+	public void initFromBattleChits(ArrayList battleChits) {
 		clearBattleSummary();
 		
-		ArrayList<GameObject> battleChitsAdded = new ArrayList<GameObject>();
-		for (BattleChit bp : battleChits) {
+		ArrayList battleChitsAdded = new ArrayList();
+		for (java.util.Iterator _j14it373 = (battleChits).iterator(); _j14it373.hasNext(); ) {
+		  BattleChit bp = (BattleChit) _j14it373.next();
 			if (battleChitsAdded.contains(bp.getGameObject())) continue;
 			if (bp instanceof SpellWrapper) {
 				SpellWrapper spell = (SpellWrapper)bp;
-				for (RealmComponent rc : spell.getTargets()) {
+				for (java.util.Iterator _j14it374 = (spell.getTargets()).iterator(); _j14it374.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it374.next();
 					BattleChit target = (BattleChit)rc;
 					addBattleSummaryKill(bp.getGameObject(),target.getGameObject());
 				}
@@ -55,15 +57,15 @@ public class BattleSummaryWrapper extends GameObjectWrapper {
 	}
 	public BattleSummary getBattleSummary() {
 		BattleSummary bs = new BattleSummary();
-		ArrayList<String> attackers = getList(ATTACKERS);
-		ArrayList<String> targets = getList(TARGETS);
+		ArrayList attackers = getList(ATTACKERS);
+		ArrayList targets = getList(TARGETS);
 		GameData data = getGameObject().getGameData();
 		if (attackers!=null && attackers.size()>0) {
-			Iterator<String> k = attackers.iterator();
-			Iterator<String> d = targets.iterator();
+			Iterator k = attackers.iterator();
+			Iterator d = targets.iterator();
 			while(k.hasNext()) {
-				String kid = k.next();
-				String did = d.next();
+				String kid = (String) k.next();
+				String did = (String) d.next();
 				GameObject kGo = data.getGameObject(Long.valueOf(kid));
 				GameObject dGo = data.getGameObject(Long.valueOf(did));
 				bs.addAttackerTarget(kGo,dGo);

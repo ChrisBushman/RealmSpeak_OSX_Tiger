@@ -16,12 +16,12 @@ public abstract class GameCommand extends ModifyableObject implements Serializab
 	protected String value;
 	protected int count=0;
 	protected int transferType=GamePool.RANDOM;
-	protected ArrayList<String> keyVals = new ArrayList<String>();
+	protected ArrayList keyVals = new ArrayList();
 
 	protected GameSetup parent;
 	
 	public abstract String getTypeName();
-	protected abstract String process(ArrayList<GameObject> allGameObjects);
+	protected abstract String process(ArrayList allGameObjects);
 	
 	public GameCommand(GameSetup setup) {
 		parent = setup;
@@ -150,15 +150,16 @@ public abstract class GameCommand extends ModifyableObject implements Serializab
 	public void addKeyVal(String key,String val) {
 		keyVals.add(key+"="+val);
 	}
-	public void setKeyVals(ArrayList<String> val) {
+	public void setKeyVals(ArrayList val) {
 		keyVals = val;
 	}
-	public ArrayList<String> getKeyVals() {
+	public ArrayList getKeyVals() {
 		return keyVals;
 	}
 	public String getKeyValString() {
 		StringBuffer sb = new StringBuffer();
-		for (String keyVal:keyVals) {
+		for (java.util.Iterator _j14it77 = (keyVals).iterator(); _j14it77.hasNext(); ) {
+		  String keyVal = (String) _j14it77.next();
 			if (sb.length()>0) {
 				sb.append(",");
 			}
@@ -168,7 +169,7 @@ public abstract class GameCommand extends ModifyableObject implements Serializab
 	}
 	public void setKeyValString(String string) {
 		StringTokenizer tokens = new StringTokenizer(string,",");
-		keyVals = new ArrayList<String>();
+		keyVals = new ArrayList();
 		while(tokens.hasMoreElements()) {
 			keyVals.add(tokens.nextToken().trim());
 		}
@@ -176,7 +177,7 @@ public abstract class GameCommand extends ModifyableObject implements Serializab
 	/**
 	 * Processes the command, and returns a result string (for debugging setups)
 	 */
-	public String doCommand(ArrayList<GameObject> allGameObjects) {
+	public String doCommand(ArrayList allGameObjects) {
 		StringBuffer result = new StringBuffer();
 		result.append("---> "+toString()+"\n");
 		result.append(process(allGameObjects));
@@ -191,7 +192,7 @@ public abstract class GameCommand extends ModifyableObject implements Serializab
 		setValue(command.getValue());
 		setCount(command.getCount());
 		setTransferType(command.getTransferType());
-		setKeyVals(new ArrayList<String>(command.getKeyVals()));
+		setKeyVals(new ArrayList(command.getKeyVals()));
 	}
 	public Element getXML() {
 		Element element = new Element(getTypeName());

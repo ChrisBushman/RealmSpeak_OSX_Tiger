@@ -28,8 +28,8 @@ public class ScrollingText extends JComponent implements ActionListener {
 	private Point mouseDragStart;
 	private int currentScrollAtDragStart;
 	
-	private ArrayList<ScrollLine> lines;
-	private ArrayList<HyperlinkListener> listeners;
+	private ArrayList lines;
+	private ArrayList listeners;
 	
 	public ScrollingText(ImageIcon backgroundImage,Insets insets) {
 		this(backgroundImage.getIconWidth(),backgroundImage.getIconHeight(),null);
@@ -39,7 +39,7 @@ public class ScrollingText extends JComponent implements ActionListener {
 	}
 	
 	public ScrollingText(int width,int height,Color backgroundColor) {
-		lines = new ArrayList<ScrollLine>();
+		lines = new ArrayList();
 		size = new Dimension(width,height);
 		setPreferredSize(size);
 		this.backgroundColor = backgroundColor;
@@ -97,7 +97,7 @@ public class ScrollingText extends JComponent implements ActionListener {
 	}
 	public void addHyperlinkListener(HyperlinkListener listener) {
 		if (listeners == null) {
-			listeners = new ArrayList<HyperlinkListener>();
+			listeners = new ArrayList();
 		}
 		if (!listeners.contains(listener)) {
 			listeners.add(listener);
@@ -116,7 +116,8 @@ public class ScrollingText extends JComponent implements ActionListener {
 		try {
 			URL url = new URL(link);
 			HyperlinkEvent ev = new HyperlinkEvent(this,EventType.ACTIVATED,url);
-			for (HyperlinkListener listener:listeners) {
+			for (java.util.Iterator _j14it24 = (listeners).iterator(); _j14it24.hasNext(); ) {
+			  HyperlinkListener listener = (HyperlinkListener) _j14it24.next();
 				listener.hyperlinkUpdate(ev);
 			}
 		}
@@ -154,7 +155,8 @@ public class ScrollingText extends JComponent implements ActionListener {
 	
 	public String getLinkUrl(Point p) {
 		if (p!=null) {
-			for (ScrollLine line:lines) {
+			for (java.util.Iterator _j14it25 = (lines).iterator(); _j14it25.hasNext(); ) {
+			  ScrollLine line = (ScrollLine) _j14it25.next();
 				String link = line.linkAtPoint(p);
 				if (link!=null) return link;
 			}
@@ -180,9 +182,10 @@ public class ScrollingText extends JComponent implements ActionListener {
 			g = (Graphics2D)g.create(insets.left,insets.top,width,height);
 		}
 		
-		int extra = lines.size()>0?lines.get(0).getHeight(g):0;
+		int extra = lines.size()>0?((ScrollLine)lines.get(0)).getHeight(g):0;
 		int y = height + extra - currentScroll;
-		for (ScrollLine line:lines) {
+		for (java.util.Iterator _j14it26 = (lines).iterator(); _j14it26.hasNext(); ) {
+		  ScrollLine line = (ScrollLine) _j14it26.next();
 			line.draw(g,line.getLeftInset(g,width),y);
 			y += line.getHeight(g);
 			if (y>height+extra) break;

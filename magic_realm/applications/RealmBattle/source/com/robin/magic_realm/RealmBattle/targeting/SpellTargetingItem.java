@@ -27,8 +27,9 @@ public class SpellTargetingItem extends SpellTargetingSingle {
 	}
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
-		for (RealmComponent participant : combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true)) {
-			ArrayList<GameObject> items = new ArrayList<GameObject>();
+		for (java.util.Iterator _j14it774 = (combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true)).iterator(); _j14it774.hasNext(); ) {
+		  RealmComponent participant = (RealmComponent) _j14it774.next();
+			ArrayList items = new ArrayList();
 			if (participant.isCharacter()) {
 				CharacterWrapper character = new CharacterWrapper(participant.getGameObject());
 				if (character.isMistLike()) continue;
@@ -38,17 +39,20 @@ public class SpellTargetingItem extends SpellTargetingSingle {
 				if (inactive) {
 					items.addAll(character.getInactiveInventory());
 				}
-				for (GameObject go:items) {
+				for (java.util.Iterator _j14it775 = (items).iterator(); _j14it775.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it775.next();
 					RealmComponent itemRc = RealmComponent.getRealmComponent(go);
 					if (isAddable(itemRc)) {
 						gameObjects.add(go);
 					}
 				}
-				for (StateChitComponent chit : character.getFlyChits()) {
+				for (java.util.Iterator _j14it776 = (character.getFlyChits()).iterator(); _j14it776.hasNext(); ) {
+				  StateChitComponent chit = (StateChitComponent) _j14it776.next();
 					if (chit.getGameObject().hasThisAttribute(Constants.BROOMSTICK)) gameObjects.add(chit.getGameObject());
 				}
 			} else if (participant.isMonster() || participant.isNative()) {
-				for (GameObject held : participant.getHold()) {
+				for (java.util.Iterator _j14it777 = (participant.getHold()).iterator(); _j14it777.hasNext(); ) {
+				  GameObject held = (GameObject) _j14it777.next();
 					if (held.hasThisAttribute(Constants.MONSTER_WEAPON)
 							|| held.hasThisAttribute(Constants.SHIELD)
 							|| held.hasThisAttribute(Constants.GIANT_CLUB)

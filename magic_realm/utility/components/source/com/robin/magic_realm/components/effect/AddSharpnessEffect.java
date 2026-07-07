@@ -12,7 +12,6 @@ public class AddSharpnessEffect implements ISpellEffect {
 	}
 
 	
-	@Override
 	public void apply(SpellEffectContext context) {
 		if (context.Target.getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON)) {
 			context.Spell.cancelSpell();
@@ -22,7 +21,6 @@ public class AddSharpnessEffect implements ISpellEffect {
 		context.Target.getGameObject().setThisAttribute(Constants.ADD_SHARPNESS,val);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		// Decrement sharpness by one
 		int val = context.Target.getGameObject().getThisInt(Constants.ADD_SHARPNESS) - magnatude;

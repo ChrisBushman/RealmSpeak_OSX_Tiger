@@ -6,18 +6,18 @@ import java.util.*;
  * A Hashtable class that guarantees the order of the keys and values added
  * to it.
  */
-public class OrderedHashtable<T,U> extends Hashtable<T,U> {
-	protected ArrayList<T> orderedKeys = new ArrayList<T>();
-	
+public class OrderedHashtable extends Hashtable {
+	protected ArrayList orderedKeys = new ArrayList();
+
 	// overrides
 	public void clear() {
 		super.clear();
 		orderedKeys.clear();
 	}
-	public U put(T key,U value) {
-		U ret = super.put(key,value);
+	public Object put(Object key, Object value) {
+		Object ret = super.put(key, value);
 		if (orderedKeys==null) {
-			orderedKeys = new ArrayList<T>();
+			orderedKeys = new ArrayList();
 		}
 		if (!orderedKeys.contains(key)) {
 			orderedKeys.add(key);
@@ -26,31 +26,32 @@ public class OrderedHashtable<T,U> extends Hashtable<T,U> {
 	}
 	public void putAll(Map map) {
 		for (int i=0;i<orderedKeys.size();i++) {
-			T key = orderedKeys.get(i);
-			U val = (U)map.get(key);
+			Object key = orderedKeys.get(i);
+			Object val = map.get(key);
 			put(key,val);
 		}
 	}
-	public Set<T> keySet() {
-		return new LinkedHashSet<T>(orderedKeys);
+	public Set keySet() {
+		return new LinkedHashSet(orderedKeys);
 	}
-	public Collection<U> values() {
-		ArrayList<U> vals = new ArrayList<U>();
+	public Collection values() {
+		ArrayList vals = new ArrayList();
 		if (orderedKeys==null) {
-			orderedKeys = new ArrayList<T>();
+			orderedKeys = new ArrayList();
 		}
-		for (T key:orderedKeys) {
+		for (java.util.Iterator _j14it44 = (orderedKeys).iterator(); _j14it44.hasNext(); ) {
+		  Object key = _j14it44.next();
 			vals.add(get(key));
 		}
 		return vals;
 	}
-	public U remove(Object key) {
-		U ret = super.remove(key);
+	public Object remove(Object key) {
+		Object ret = super.remove(key);
 		orderedKeys.remove(key);
 		return ret;
 	}
-	
-	// custom	
+
+	// custom
 	public Object remove(int index) {
 		String key = (String)orderedKeys.get(index);
 		return remove(key);
@@ -64,11 +65,11 @@ public class OrderedHashtable<T,U> extends Hashtable<T,U> {
 	public int indexOf(Object key) {
 		return orderedKeys.indexOf(key);
 	}
-	public ArrayList<T> orderedKeys() {
+	public ArrayList orderedKeys() {
 		return orderedKeys;
 	}
-	public Object insert(int index,T key,U val) {
-		ArrayList<T> newOrderedKeys = new ArrayList<T>();
+	public Object insert(int index, Object key, Object val) {
+		ArrayList newOrderedKeys = new ArrayList();
 		for (int i=0;i<orderedKeys.size();i++) {
 			if (i==index) {
 				newOrderedKeys.add(key);
@@ -78,8 +79,8 @@ public class OrderedHashtable<T,U> extends Hashtable<T,U> {
 		orderedKeys = newOrderedKeys;
 		return this.put(key,val);
 	}
-	public Object replace(int index,T key,U val) {
-		ArrayList<T> newOrderedKeys = new ArrayList<T>();
+	public Object replace(int index, Object key, Object val) {
+		ArrayList newOrderedKeys = new ArrayList();
 		for (int i=0;i<orderedKeys.size();i++) {
 			String currentKey = (String)orderedKeys.get(i);
 			if (i==index) {
@@ -93,7 +94,7 @@ public class OrderedHashtable<T,U> extends Hashtable<T,U> {
 		orderedKeys = newOrderedKeys;
 		return this.put(key,val);
 	}
-	public void sortKeys(Comparator<T> comparator) {
+	public void sortKeys(Comparator comparator) {
 		Collections.sort(orderedKeys, comparator);
 	}
 }

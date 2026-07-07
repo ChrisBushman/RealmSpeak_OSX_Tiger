@@ -15,9 +15,10 @@ public class SpellTargetingUndead extends SpellTargetingMultiple {
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
 		BattleGroup bg = battleModel.getParticipantsBattleGroup(activeParticipant);
-		ArrayList<RealmComponent> otherOpponents = combatFrame.findCanBeSeen(battleModel.getAllOtherBattleParticipants(bg,true,combatFrame.allowsTreachery()),true);
+		ArrayList otherOpponents = combatFrame.findCanBeSeen(battleModel.getAllOtherBattleParticipants(bg,true,combatFrame.allowsTreachery()),true);
 		otherOpponents = CombatSheet.filterNativeFriendly(activeParticipant, otherOpponents);
-		for (RealmComponent rc : otherOpponents) {
+		for (java.util.Iterator _j14it888 = (otherOpponents).iterator(); _j14it888.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it888.next();
 			if (rc.isMonster() && rc.getGameObject().hasThisAttribute(Constants.UNDEAD) && !rc.hasMagicProtection() && !rc.hasMagicColorImmunity(spell)) {
 				gameObjects.add(rc.getGameObject());
 			}

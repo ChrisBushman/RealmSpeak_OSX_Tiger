@@ -17,9 +17,10 @@ public class SpellTargetingIndividualHorseHound extends SpellTargetingSingle {
 	}
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
-		ArrayList<RealmComponent> potentialTargets = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
+		ArrayList potentialTargets = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
 		potentialTargets = CombatSheet.filterNativeFriendly(activeParticipant, potentialTargets);
-		for (RealmComponent participant:potentialTargets) {
+		for (java.util.Iterator _j14it834 = (potentialTargets).iterator(); _j14it834.hasNext(); ) {
+		  RealmComponent participant = (RealmComponent) _j14it834.next();
 			if (participant.getGameObject().hasThisAttribute(Constants.HOUND) && !participant.hasMagicColorImmunity(spell)) {
 				gameObjects.add(participant.getGameObject());
 				continue;
@@ -31,7 +32,8 @@ public class SpellTargetingIndividualHorseHound extends SpellTargetingSingle {
 				if (!participant.hasMagicProtection() && !participant.hasMagicColorImmunity(spell)) {
 					gameObjects.add(participant.getGameObject());
 				}
-				for (GameObject go:character.getInventory()) {
+				for (java.util.Iterator _j14it835 = (character.getInventory()).iterator(); _j14it835.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it835.next();
 					RealmComponent itemRc = RealmComponent.getRealmComponent(go);
 					if ((itemRc.isHorse() || itemRc.isNativeHorse()) && itemRc.isActivated()) {
 						gameObjects.add(go);

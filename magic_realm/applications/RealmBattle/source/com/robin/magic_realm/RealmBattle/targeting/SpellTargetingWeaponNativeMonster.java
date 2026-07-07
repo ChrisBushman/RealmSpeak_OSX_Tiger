@@ -15,16 +15,18 @@ public class SpellTargetingWeaponNativeMonster extends SpellTargetingSingle {
 	}
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
-		ArrayList<RealmComponent> potentialTargets = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
+		ArrayList potentialTargets = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
 		potentialTargets = CombatSheet.filterNativeFriendly(activeParticipant, potentialTargets);
-		for (RealmComponent rc:potentialTargets) {
+		for (java.util.Iterator _j14it889 = (potentialTargets).iterator(); _j14it889.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it889.next();
 			if ((rc.isNative() || rc.isMonster())
 			 && !rc.hasMagicProtection() && !rc.hasMagicColorImmunity(spell)
 			 && !rc.getGameObject().hasThisAttribute(Constants.ANOMALY) && !rc.getGameObject().hasThisAttribute(Constants.TITAN)) {
 				gameObjects.add(rc.getGameObject());
 			}
 			if (rc.isCharacter()) {
-				for (GameObject go : rc.getHold()) {
+				for (java.util.Iterator _j14it890 = (rc.getHold()).iterator(); _j14it890.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it890.next();
 					if (RealmComponent.getRealmComponent(go).isWeapon() || (RealmComponent.getRealmComponent(go).isTreasure() && go.hasThisAttribute(RealmComponent.WEAPON) && !spell.getGameObject().hasThisAttribute(NON_TREASURE_WEAPON))) {
 						gameObjects.add(go);
 					}

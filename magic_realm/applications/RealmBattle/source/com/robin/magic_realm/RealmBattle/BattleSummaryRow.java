@@ -19,7 +19,7 @@ import com.robin.magic_realm.components.attribute.Speed;
 import com.robin.magic_realm.components.utility.*;
 import com.robin.magic_realm.components.wrapper.*;
 
-public class BattleSummaryRow implements Comparable<BattleSummaryRow> {
+public class BattleSummaryRow implements Comparable {
 	public static final int WIDTH = 580;
 	public static final int HEIGHT = 110;
 	
@@ -73,8 +73,8 @@ public class BattleSummaryRow implements Comparable<BattleSummaryRow> {
 		}
 		
 		Integer hitTypeId = attackerCombat.getHitType(target);
-		if (hitTypeId==null) hitTypeId = BattleModel.NO_ATTACK;
-		switch(hitTypeId) {
+		if (hitTypeId==null) hitTypeId = new Integer(BattleModel.NO_ATTACK);
+		switch(hitTypeId.intValue()) {
 			case BattleModel.ATTACK_CANCELLED:
 				resolution = RESOLUTION_NOATTACK;
 				hitType = "'s attack was cancelled";
@@ -136,22 +136,22 @@ public class BattleSummaryRow implements Comparable<BattleSummaryRow> {
 		rollType = null;
 		
 		// Check fumble rolls
-		ArrayList<String> fumbleRolls = combat.getFumbleRolls();
+		ArrayList fumbleRolls = combat.getFumbleRolls();
 		if (fumbleRolls!=null && fumbleRolls.size()>0) {
-			Iterator<String> r = fumbleRolls.iterator();
-			Iterator<String> s = combat.getFumbleRollSubtitles().iterator();
-			Iterator<String> t = combat.getFumbleRollTargetIds().iterator();
+			Iterator r = fumbleRolls.iterator();
+			Iterator s = combat.getFumbleRollSubtitles().iterator();
+			Iterator t = combat.getFumbleRollTargetIds().iterator();
 			rollType = "fumble";
 			readLists(targetId,r,s,t);
 		}
 		
 		if (rollType==null) {
 			// Check missile rolls
-			ArrayList<String> missileRolls = combat.getMissileRolls();
+			ArrayList missileRolls = combat.getMissileRolls();
 			if (missileRolls!=null && missileRolls.size()>0) {
-				Iterator<String> r = missileRolls.iterator();
-				Iterator<String> s = combat.getMissileRollSubtitles().iterator();
-				Iterator<String> t = combat.getMissileRollTargetIds().iterator();
+				Iterator r = missileRolls.iterator();
+				Iterator s = combat.getMissileRollSubtitles().iterator();
+				Iterator t = combat.getMissileRollTargetIds().iterator();
 				rollType = "missile";
 				readLists(targetId,r,s,t);
 			}
@@ -189,18 +189,19 @@ public class BattleSummaryRow implements Comparable<BattleSummaryRow> {
 	public String getSubtitle() {
 		return subtitle;
 	}
-	private void readLists(String id,Iterator<String> r,Iterator<String> s,Iterator<String> t) {
+	private void readLists(String id,Iterator r,Iterator s,Iterator t) {
 		while(t.hasNext()) {
-			String rollString = r.next();
-			String subtitleString = s.next();
-			String targetId = t.next();
+			String rollString = (String) r.next();
+			String subtitleString = (String) s.next();
+			String targetId = (String) t.next();
 			if (id.equals(targetId)) {
 				roller = new DieRoller(rollString,25,6);
 				subtitle = subtitleString;
 			}
 		}
 	}
-	public int compareTo(BattleSummaryRow row) {
+	public int compareTo(Object obj) {
+		BattleSummaryRow row = (BattleSummaryRow) obj;
 		return row.hitOrder;
 	}
 	
@@ -240,9 +241,10 @@ public class BattleSummaryRow implements Comparable<BattleSummaryRow> {
 				CharacterChitComponent charChit = (CharacterChitComponent)rc;
 				if (attacker) {
 					RealmComponent weapon = null;
-					ArrayList<GameObject> wgos = charChit.getActiveWeaponsObjects();
+					ArrayList wgos = charChit.getActiveWeaponsObjects();
 					if (wgos!=null) {
-						for (GameObject wgo : wgos) {
+						for (java.util.Iterator _j14it703 = (wgos).iterator(); _j14it703.hasNext(); ) {
+						  GameObject wgo = (GameObject) _j14it703.next();
 							weapon = RealmComponent.getRealmComponent(wgo);
 							ImageIcon wicon = weapon.getIcon();
 							yoff = ChitComponent.T_CHIT_SIZE - wicon.getIconHeight();
@@ -254,9 +256,9 @@ public class BattleSummaryRow implements Comparable<BattleSummaryRow> {
 					if (attackChit == null) {
 						GameObject transmorph = character.getTransmorph();
 						if (transmorph == null) {
-							ArrayList<RealmComponent> attackChits = BattleUtility.findFightComponentsWithCombatBox(character.getFightSpeedOptions(new Speed(), true));
+							ArrayList attackChits = BattleUtility.findFightComponentsWithCombatBox(character.getFightSpeedOptions(new Speed(), true));
 							if (attackChits != null && attackChits.size() == 1) {
-								attackChit = attackChits.get(0);
+								attackChit = (RealmComponent) attackChits.get(0);
 							}
 						}
 					}

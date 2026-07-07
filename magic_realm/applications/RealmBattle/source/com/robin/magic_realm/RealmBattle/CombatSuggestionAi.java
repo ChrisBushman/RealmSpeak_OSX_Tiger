@@ -83,7 +83,8 @@ public class CombatSuggestionAi {
 		boolean denizens = combatFrame.getBattleModel().areDenizens();
 		if (denizens) {
 			boolean enemyNatives = false;
-			for (RealmComponent rc : combatFrame.getBattleModel().getDenizenBattleGroup().getBattleParticipants()) {
+			for (java.util.Iterator _j14it686 = (combatFrame.getBattleModel().getDenizenBattleGroup().getBattleParticipants()).iterator(); _j14it686.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it686.next();
 				if (rc.isNative()) {
 					enemyNatives = true;
 					break;
@@ -95,9 +96,10 @@ public class CombatSuggestionAi {
 				if (activeCharacter.isHidden()) {
 					suggestion.append("No need to do anything, unless you want to\nprotect another character by luring an enemy.");
 					if (combatFrame.getHostPrefs().hasPref(Constants.ADV_AMBUSHES)) {
-						ArrayList<GameObject> gos = cc.getActiveWeaponsObjects();
+						ArrayList gos = cc.getActiveWeaponsObjects();
 						if (gos!=null) {
-							for (GameObject go : gos) {
+							for (java.util.Iterator _j14it687 = (gos).iterator(); _j14it687.hasNext(); ) {
+							  GameObject go = (GameObject) _j14it687.next();
 								 if (go.hasThisAttribute("missile")) {
 									RealmComponent rc = RealmComponent.getRealmComponent(go);
 									iconGroup = new IconGroup(rc.getIcon(),IconGroup.VERTICAL,4);
@@ -182,28 +184,30 @@ public class CombatSuggestionAi {
 	private void testAlert() {
 		if (combatFrame.getActiveCharacterIsHere()) {
 			CharacterWrapper activeCharacter = combatFrame.getActiveCharacter();
-			ArrayList<SpellSet> castableSets = activeCharacter.getCastableSpellSets();
+			ArrayList castableSets = activeCharacter.getCastableSpellSets();
 			
 			boolean threat = combatFrame.getBattleModel().areDenizens();
 			if (threat) {
-				ArrayList<WeaponChitComponent> weapons = activeCharacter.getActiveWeapons();
+				ArrayList weapons = activeCharacter.getActiveWeapons();
 				if (weapons!=null) {
-					for (WeaponChitComponent weapon : weapons) {
+					for (java.util.Iterator _j14it688 = (weapons).iterator(); _j14it688.hasNext(); ) {
+					  WeaponChitComponent weapon = (WeaponChitComponent) _j14it688.next();
 						if (!weapon.isAlerted() && weapon.hasAlertAdvantage()) {
 							// Should check to see if you have a chit to do this
 							MoveActivator activator = new MoveActivator(combatFrame);
 							Speed fastest = activator.getFastestAttackerMoveSpeed();
 							
 							// Find all playable options
-							Collection<RealmComponent> fightSpeedOptions = activeCharacter.getFightSpeedOptions(fastest,true);
-							Collection<RealmComponent> availableFightOptions = combatFrame.getAvailableFightOptions(0);
+							Collection fightSpeedOptions = activeCharacter.getFightSpeedOptions(fastest,true);
+							Collection availableFightOptions = combatFrame.getAvailableFightOptions(0);
 							fightSpeedOptions.retainAll(availableFightOptions); // Intersection between the two
 							if (!fightSpeedOptions.isEmpty()) {
 								// Find the least effort (first) and then the lightest/slowest
 								int minEffort = Integer.MAX_VALUE;
 								Strength lightest = new Strength("T");
 								RealmComponent option = null;
-								for (RealmComponent rc : fightSpeedOptions) {
+								for (java.util.Iterator _j14it689 = (fightSpeedOptions).iterator(); _j14it689.hasNext(); ) {
+								  RealmComponent rc = (RealmComponent) _j14it689.next();
 									int effort = rc.getGameObject().getThisInt("effort");
 									if (effort<minEffort) {
 										minEffort = effort;
@@ -231,7 +235,8 @@ public class CombatSuggestionAi {
 				if (castableSets.size()>0) {
 					// Should highlight attack spells here
 					SpellSet best = null;
-					for (SpellSet set:castableSets) {
+					for (java.util.Iterator _j14it690 = (castableSets).iterator(); _j14it690.hasNext(); ) {
+					  SpellSet set = (SpellSet) _j14it690.next();
 						if (set.isAttackSpell()) {
 							// Get the fastest
 							if (best==null || set.getSpeed().fasterThanOrEqual(best.getSpeed())) {
@@ -249,10 +254,11 @@ public class CombatSuggestionAi {
 					if (best!=null) {
 						RealmComponent spell = RealmComponent.getRealmComponent(best.getSpell());
 						iconGroup = new IconGroup(spell.getIcon(),IconGroup.VERTICAL,4);
-						ArrayList<GameObject> types =  best.getValidTypeObjects();
+						ArrayList types =  best.getValidTypeObjects();
 						Speed bestSpeed = null;
 						RealmComponent rcType = null;
-						for (GameObject type:types) {
+						for (java.util.Iterator _j14it691 = (types).iterator(); _j14it691.hasNext(); ) {
+						  GameObject type = (GameObject) _j14it691.next();
 							Speed speed = SpellSet.getSpeedForType(type);
 							if (bestSpeed==null || speed.fasterThan(bestSpeed)) {
 								bestSpeed = speed;
@@ -263,7 +269,7 @@ public class CombatSuggestionAi {
 							iconGroup.addIcon(rcType.getIcon());
 						}
 						if (best.getInfiniteSource()==null) {
-							MagicChit color = best.getValidColorChits().get(0);
+							MagicChit color = (MagicChit) best.getValidColorChits().get(0);
 							iconGroup.addIcon(color.getIcon());
 						}
 						suggestion.append("You should cast an attack spell.");
@@ -278,7 +284,8 @@ public class CombatSuggestionAi {
 		if (battleModel.areDenizens()) {
 			boolean denizensOnSheets = false;
 			boolean unassignedDenizens = false;
-			for (RealmComponent rc : battleModel.getDenizenBattleGroup().getBattleParticipants()) {
+			for (java.util.Iterator _j14it692 = (battleModel.getDenizenBattleGroup().getBattleParticipants()).iterator(); _j14it692.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it692.next();
 				if (rc.getTarget()!=null || rc.get2ndTarget()!=null) {
 					denizensOnSheets = true;
 				}
@@ -288,10 +295,11 @@ public class CombatSuggestionAi {
 			}
 			
 			BattleGroup battleGroup = battleModel.getParticipantsBattleGroup(combatFrame.getActiveParticipant());
-			for (RealmComponent participant : battleGroup.getBattleParticipants()) {
+			for (java.util.Iterator _j14it693 = (battleGroup.getBattleParticipants()).iterator(); _j14it693.hasNext(); ) {
+			  RealmComponent participant = (RealmComponent) _j14it693.next();
 				CombatWrapper combat = new CombatWrapper(participant.getGameObject());
 				if (combat.isSheetOwner() && participant.getTarget()==null && participant.get2ndTarget()==null) {
-					ArrayList<RealmComponent> attackers = combat.getAttackersAsComponents();
+					ArrayList attackers = combat.getAttackersAsComponents();
 					if (!attackers.isEmpty()) {
 						iconGroup = new IconGroup(participant.getIcon(),IconGroup.VERTICAL,4);
 						suggestion.append("You should assign a target for the "+participant.getGameObject().getName());
@@ -373,9 +381,10 @@ public class CombatSuggestionAi {
 				}
 				boolean ignoreSpeed = false;
 				RealmComponent wrc = null;
-				ArrayList<GameObject> gos = cc.getActiveWeaponsObjects();
+				ArrayList gos = cc.getActiveWeaponsObjects();
 				if (gos!=null) {
-					for (GameObject go : gos) {
+					for (java.util.Iterator _j14it694 = (gos).iterator(); _j14it694.hasNext(); ) {
+					  GameObject go = (GameObject) _j14it694.next();
 						wrc = RealmComponent.getRealmComponent(go);
 						if (wrc.isWeapon()) {
 							WeaponChitComponent weapon = (WeaponChitComponent)wrc;

@@ -28,7 +28,7 @@ public class MonsterInteractionEditPanel extends AdvantageEditPanel {
 		{"Elementals","Earth Elemental","Air Elemental","Fire Elemental","Water Elemental","Prism Anomaly","Purple Anomaly","Gold Anomaly","Grey Anomaly","Golem","Titan","Colossus"},
 	};
 
-	private Hashtable<String,JCheckBox> hash;
+	private Hashtable hash;
 	private String selection;
 	private String duration;
 	private String limit;
@@ -42,7 +42,7 @@ public class MonsterInteractionEditPanel extends AdvantageEditPanel {
 		this.selection = selected;
 		setBorder(BorderFactory.createTitledBorder(toString())); // update name
 		
-		hash = new Hashtable<String,JCheckBox>();
+		hash = new Hashtable();
 		setLayout(new BorderLayout());
 		
 		if (controlSelected()) {
@@ -125,7 +125,7 @@ public class MonsterInteractionEditPanel extends AdvantageEditPanel {
 	}
 	
 	private void updateSelection() {
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList list = new ArrayList();
 		if (immunitySelected()) {
 			list = getAttributeList(Constants.MONSTER_IMMUNITY);
 		}
@@ -140,8 +140,9 @@ public class MonsterInteractionEditPanel extends AdvantageEditPanel {
 		}
 		
 		if (list!=null) {
-			for (String name : list) {
-				JCheckBox option = hash.get(name);
+			for (java.util.Iterator _j14it951 = (list).iterator(); _j14it951.hasNext(); ) {
+			  String name = (String) _j14it951.next();
+				JCheckBox option = (JCheckBox) hash.get(name);
 				if (option!=null) {
 					option.setSelected(true);
 				}
@@ -162,9 +163,10 @@ public class MonsterInteractionEditPanel extends AdvantageEditPanel {
 	}
 
 	protected void applyAdvantage() {
-		ArrayList<String> list = new ArrayList<String>();
-		for (String name:hash.keySet()) {
-			JCheckBox option = hash.get(name);
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it952 = (hash.keySet()).iterator(); _j14it952.hasNext(); ) {
+		  String name = (String) _j14it952.next();
+			JCheckBox option = (JCheckBox) hash.get(name);
 			if (option.isSelected()) {
 				list.add(name);
 			}
@@ -210,8 +212,9 @@ public class MonsterInteractionEditPanel extends AdvantageEditPanel {
 			sb.append("Cannot attack the ");
 		}
 		StringBufferedList list = new StringBufferedList(", ","and ");
-		for (String name:hash.keySet()) {
-			JCheckBox option = hash.get(name);
+		for (java.util.Iterator _j14it953 = (hash.keySet()).iterator(); _j14it953.hasNext(); ) {
+		  String name = (String) _j14it953.next();
+			JCheckBox option = (JCheckBox) hash.get(name);
 			if (option.isSelected()) {
 				list.append(option.getText());
 			}

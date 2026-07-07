@@ -26,14 +26,15 @@ public class SpellTargetingMyItem extends SpellTargetingSingle {
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
 		CharacterWrapper caster = spell.getCaster();
-		ArrayList<GameObject> inv = new ArrayList<GameObject>();
+		ArrayList inv = new ArrayList();
 		if (active) {
 			inv.addAll(caster.getActiveInventory());
 		}
 		if (inactive) {
 			inv.addAll(caster.getInactiveInventory());
 		}
-		for (GameObject go:inv) {
+		for (java.util.Iterator _j14it858 = (inv).iterator(); _j14it858.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it858.next();
 			RealmComponent itemRc = RealmComponent.getRealmComponent(go);
 			if (isAddable(itemRc)) {
 				gameObjects.add(go);

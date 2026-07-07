@@ -17,11 +17,12 @@ public class MapRating {
 		
 		ClearingUtility.initAdjacentTiles(data);
 		
-		ArrayList<GameObject> tiles = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
+		ArrayList tiles = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
 		GamePool pool = new GamePool(tiles);
-		ArrayList<GameObject> valleyTiles = pool.find("tile,tile_type=V");
+		ArrayList valleyTiles = pool.find("tile,tile_type=V");
 		int rating = Integer.MAX_VALUE;
-		for (GameObject go:valleyTiles) {
+		for (java.util.Iterator _j14it954 = (valleyTiles).iterator(); _j14it954.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it954.next();
 			rating = Math.min(rating,getTileRating(go));
 		}
 		
@@ -30,15 +31,17 @@ public class MapRating {
 	private static int getTileRating(GameObject go) {
 		TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
 		int clearingNum = ClearingUtility.recommendedClearing(go);
-		ArrayList<ClearingDetail> search = new ArrayList<ClearingDetail>();
+		ArrayList search = new ArrayList();
 		search.add(tile.getClearing(clearingNum)); // seed clearing
 		
 		// First, find ALL connected clearings to the start point
-		ArrayList<ClearingDetail> found = new ArrayList<ClearingDetail>();
+		ArrayList found = new ArrayList();
 		while(!search.isEmpty()) {
-			ArrayList<ClearingDetail> next = new ArrayList<ClearingDetail>();
-			for (ClearingDetail clearing:search) {
-				for (PathDetail path:clearing.getAllConnectedPaths()) {
+			ArrayList next = new ArrayList();
+			for (java.util.Iterator _j14it955 = (search).iterator(); _j14it955.hasNext(); ) {
+			  ClearingDetail clearing = (ClearingDetail) _j14it955.next();
+				for (java.util.Iterator _j14it956 = (clearing.getAllConnectedPaths()).iterator(); _j14it956.hasNext(); ) {
+				  PathDetail path = (PathDetail) _j14it956.next();
 					if (path.isHidden() || path.isSecret()) continue;
 					ClearingDetail otherEnd = path.findConnection(clearing);
 					if (otherEnd==null || otherEnd.isCave() || otherEnd.isWater() || otherEnd.isEdge() || found.contains(otherEnd)) continue;
@@ -51,8 +54,9 @@ public class MapRating {
 		}
 		
 		// Now, count the number of individual tiles involved
-		ArrayList<TileComponent> connectedTiles = new ArrayList<TileComponent>();
-		for (ClearingDetail clearing:found) {
+		ArrayList connectedTiles = new ArrayList();
+		for (java.util.Iterator _j14it957 = (found).iterator(); _j14it957.hasNext(); ) {
+		  ClearingDetail clearing = (ClearingDetail) _j14it957.next();
 			if (!connectedTiles.contains(clearing.getParent())) {
 				connectedTiles.add(clearing.getParent());
 			}

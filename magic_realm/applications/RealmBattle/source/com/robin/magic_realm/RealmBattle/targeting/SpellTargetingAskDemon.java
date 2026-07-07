@@ -30,10 +30,11 @@ public class SpellTargetingAskDemon extends SpellTargetingSpecial {
 	}
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
-		ArrayList<RealmComponent> allDenizens = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
-		ArrayList<RealmComponent> allParticipantsSansDenizens = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(false),true);
+		ArrayList allDenizens = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
+		ArrayList allParticipantsSansDenizens = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(false),true);
 		allDenizens.removeAll(allParticipantsSansDenizens);
-		for (RealmComponent rc : allDenizens) {
+		for (java.util.Iterator _j14it824 = (allDenizens).iterator(); _j14it824.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it824.next();
 			if (rc.isMonster() && !rc.hasMagicProtection() && !rc.hasMagicColorImmunity(spell)) {
 				if ((rc.getGameObject().hasThisAttribute(Constants.DEMON) || rc.getGameObject().hasThisAttribute(Constants.DEVIL)) && !rc.getGameObject().hasThisAttribute(Constants.IMP)) {
 					gameObjects.add(rc.getGameObject());
@@ -55,9 +56,10 @@ public class SpellTargetingAskDemon extends SpellTargetingSpecial {
 		
 		// Pick a Player
 		GamePool pool = new GamePool(RealmObjectMaster.getRealmObjectMaster(battleModel.getGameData()).getPlayerCharacterObjects());
-		ArrayList<String> playerNames = new ArrayList<String>();
-		ArrayList<GameObject> list = pool.find(CharacterWrapper.NAME_KEY);
-		for (GameObject go:list) {
+		ArrayList playerNames = new ArrayList();
+		ArrayList list = pool.find(CharacterWrapper.NAME_KEY);
+		for (java.util.Iterator _j14it825 = (list).iterator(); _j14it825.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it825.next();
 			CharacterWrapper character = new CharacterWrapper(go);
 			String name = character.getPlayerName();
 			if (!playerNames.contains(name)) {
@@ -129,10 +131,12 @@ public class SpellTargetingAskDemon extends SpellTargetingSpecial {
 		if (choice==Constants.ASK_DEMON_PEEK_BOX) {
 			GamePool boxPool = new GamePool(activeParticipant.getGameObject().getGameData().getGameObjects());
 			RealmComponentOptionChooser boxChooser = new RealmComponentOptionChooser(combatFrame, "Select a box", true);
-			for (GameObject box : boxPool.find(RealmComponent.VIRTUAL_DWELLING)) {
+			for (java.util.Iterator _j14it826 = (boxPool.find(RealmComponent.VIRTUAL_DWELLING)).iterator(); _j14it826.hasNext(); ) {
+			  GameObject box = (GameObject) _j14it826.next();
 				boxChooser.addRealmComponent(RealmComponent.getRealmComponent(box), true);
 			}
-			for (GameObject box : boxPool.find(RealmComponent.TREASURE_LOCATION+",!"+RealmComponent.TREASURE_WITHIN_TREASURE)) {
+			for (java.util.Iterator _j14it827 = (boxPool.find(RealmComponent.TREASURE_LOCATION+",!"+RealmComponent.TREASURE_WITHIN_TREASURE)).iterator(); _j14it827.hasNext(); ) {
+			  GameObject box = (GameObject) _j14it827.next();
 				boxChooser.addRealmComponent(RealmComponent.getRealmComponent(box), true);
 			}
 			boxChooser.setVisible(true);
@@ -146,9 +150,10 @@ public class SpellTargetingAskDemon extends SpellTargetingSpecial {
 		}
 		
 		if (choice==Constants.ASK_DEMON_PEEK_QUEST_CARDS) {
-			ArrayList<GameObject> players = pool.find(CharacterWrapper.NAME_KEY+",!"+Constants.DEAD);
+			ArrayList players = pool.find(CharacterWrapper.NAME_KEY+",!"+Constants.DEAD);
 			RealmComponentOptionChooser playerChooser = new RealmComponentOptionChooser(combatFrame, "Which player do you want to peek the Quest cards from?", true);
-			for (GameObject player : players) {
+			for (java.util.Iterator _j14it828 = (players).iterator(); _j14it828.hasNext(); ) {
+			  GameObject player = (GameObject) _j14it828.next();
 				playerChooser.addRealmComponent(RealmComponent.getRealmComponent(player), true);
 			}
 			playerChooser.setVisible(true);

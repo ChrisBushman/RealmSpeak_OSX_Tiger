@@ -41,7 +41,7 @@ public class GameQueryTest {
 	@Test
 	public void testQueryFirstObjectByKey() {
 		// SETUP
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
+		ArrayList list = new ArrayList();
 		list.add(createGameObject("this","foo","1"));
 		list.add(createGameObject("this","bar","1"));
 		
@@ -56,7 +56,7 @@ public class GameQueryTest {
 	@Test
 	public void testQueryFirstObjectByKeyAndValue() {
 		// SETUP
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
+		ArrayList list = new ArrayList();
 		list.add(createGameObject("this","bar","1"));
 		list.add(createGameObject("this","bar","2"));
 		list.add(createGameObject("this","bar","3"));
@@ -72,7 +72,7 @@ public class GameQueryTest {
 	@Test
 	public void testQueryAllObjects() {
 		// SETUP
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
+		ArrayList list = new ArrayList();
 		list.add(createGameObject("this","bar","1"));
 		list.add(createGameObject("this","bar","2"));
 		list.add(createGameObject("this","bar","2"));

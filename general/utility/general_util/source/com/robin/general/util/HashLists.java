@@ -6,42 +6,43 @@ import java.util.*;
  * A utility class for handling and populating lists of objects hashed by key.  Multiple objects can be added
  * for a single key.  Note that the lists are uniqued by default, unless specified otherwise.
  */
-public class HashLists<K,T> implements Map {
-    
+public class HashLists implements Map {
+
 	private boolean forceUnique;
-    private Hashtable<K,ArrayList<T>> hash;
-    
+    private Hashtable hash;
+
 	public HashLists() {
 		this(true);
 	}
 	public HashLists(boolean forceUnique) {
 		this.forceUnique = forceUnique;
-	    hash = new Hashtable<K,ArrayList<T>>();
+	    hash = new Hashtable();
 	}
 	public Object put(Object key,Object val) {
-	    ArrayList<T> list = getList(key);
+	    ArrayList list = getList(key);
 	    if (list==null) {
-	        list = new ArrayList<T>();
-	        hash.put((K)key,list);
+	        list = new ArrayList();
+	        hash.put(key,list);
 	    }
 	    if (!forceUnique || !list.contains(val)) {
-		    list.add((T)val);
+		    list.add(val);
 	    }
 	    return null;
 	}
-	public void putList(K key,ArrayList<T> list) {
+	public void putList(Object key,ArrayList list) {
 		hash.put(key,list);
 	}
 	public Object get(Object key) {
 	    return hash.get(key);
 	}
-	public ArrayList<T> getList(Object key) {
-	    return hash.get(key);
+	public ArrayList getList(Object key) {
+	    Object val = hash.get(key);
+	    return val == null ? null : (ArrayList) val;
 	}
-	public ArrayList<T> getListAsNew(Object key) {
-		ArrayList<T> list = getList(key);
+	public ArrayList getListAsNew(Object key) {
+		ArrayList list = getList(key);
 		if (list!=null) {
-			return new ArrayList<T>(list);
+			return new ArrayList(list);
 		}
 		return null;
 	}
@@ -55,7 +56,8 @@ public class HashLists<K,T> implements Map {
 	    return hash.containsKey(key);
 	}
 	public boolean containsValue(Object val) {
-	    for (ArrayList<T> list : hash.values()) {
+	    for (java.util.Iterator _j14it51 = (hash.values()).iterator(); _j14it51.hasNext(); ) {
+	      ArrayList list = (ArrayList) _j14it51.next();
 	        if (list.contains(val)) {
 	            return true;
 	        }
@@ -65,11 +67,12 @@ public class HashLists<K,T> implements Map {
 	public boolean isEmpty() {
 	    return hash.isEmpty();
 	}
-	public Set<K> keySet() {
+	public Set keySet() {
 	    return hash.keySet();
 	}
 	public void putAll(Map map) {
-	    for (Object key : map.keySet()) {
+	    for (java.util.Iterator _j14it52 = (map.keySet()).iterator(); _j14it52.hasNext(); ) {
+	      Object key = _j14it52.next();
 	        ArrayList list = getList(key);
 	        Object val = map.get(key);
 	        if (val instanceof Collection) {
@@ -98,13 +101,14 @@ public class HashLists<K,T> implements Map {
 		}
 	}
 	public void removeValue(Object val) {
-	    for (ArrayList<T> list : hash.values()) {
+	    for (java.util.Iterator _j14it53 = (hash.values()).iterator(); _j14it53.hasNext(); ) {
+	      ArrayList list = (ArrayList) _j14it53.next();
 	        if (list.contains(val)) {
 	            list.remove(val);
 	        }
 	    }
 	}
-	public Collection<ArrayList<T>> values() {
+	public Collection values() {
 	    return hash.values();
 	}
 }

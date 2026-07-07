@@ -14,8 +14,9 @@ public class SpellTargetingOrcsGoblins extends SpellTargetingAll {
 		super(combatFrame, spell);
 	}
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
-		ArrayList<RealmComponent> allBattleParticipants = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
-		for (RealmComponent rc : allBattleParticipants) {
+		ArrayList allBattleParticipants = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
+		for (java.util.Iterator _j14it781 = (allBattleParticipants).iterator(); _j14it781.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it781.next();
 			if (rc.isMonster() && !rc.isPlayerControlledLeader() && !rc.hasMagicProtection() && !rc.hasMagicColorImmunity(spell)) {
 				if (rc.getGameObject().hasThisAttribute(Constants.ORC) || rc.getGameObject().hasThisAttribute(Constants.GOBLIN)) {
 					gameObjects.add(rc.getGameObject());

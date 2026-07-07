@@ -21,7 +21,7 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 	
 	private boolean alteredAttackSpeed = false;
 	private boolean alteredMoveSpeed = false;
-	private static Hashtable<Integer,ImageIcon> dieIconHash;
+	private static Hashtable dieIconHash;
 	
 	public TravelerChitComponent(GameObject obj) {
 		super(obj);
@@ -59,12 +59,12 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 	public void assignTravelerTemplate() {
 		if (getGameObject().hasThisAttribute(Constants.TEMPLATE_ASSIGNED)) return;
 		GamePool pool = new GamePool(getGameObject().getGameData().getGameObjects());
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add(Constants.TRAVELER_TEMPLATE);
 		query.add("!"+Constants.USED);
 		query.add("!notready");
 		query.add("test");
-		ArrayList<GameObject> list = pool.find(query);
+		ArrayList list = pool.find(query);
 		if (list.isEmpty()) { // if there are no more "test" templates
 			query.remove("test");
 			list = pool.find(query);
@@ -76,7 +76,7 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 		
 		 // assume there are ALWAYS enough templates
 		int r = RandomNumber.getRandom(list.size());
-		GameObject template = list.get(r);
+		GameObject template = (GameObject) list.get(r);
 		assignTravelerTemplate(template);
 	}
 	public void assignTravelerTemplate(GameObject template) {
@@ -89,14 +89,14 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 	}
 	private static ImageIcon getDieIcon(int val){
 		if (dieIconHash==null) {
-			dieIconHash = new Hashtable<Integer,ImageIcon>();
+			dieIconHash = new Hashtable();
 			for (int i=1;i<=6;i++) {
 				DieRoller dr = new DieRoller(String.valueOf(i),16,4);
 				dr.setAllRed();
 				dieIconHash.put(Integer.valueOf(i),dr.getIcon());
 			}
 		}
-		return dieIconHash.get(Integer.valueOf(val));
+		return (ImageIcon) dieIconHash.get(Integer.valueOf(val));
 	}
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -231,12 +231,13 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 	public boolean applyHit(GameWrapper game, HostPrefWrapper hostPrefs, BattleChit attacker, int box, Harm attackerHarm, int attackOrderPos) {
 		CombatWrapper combat = new CombatWrapper(getGameObject());
 		
-		ArrayList<SpellWrapper> holyShields = SpellUtility.getBewitchingSpellsWithKey(getGameObject(),Constants.HOLY_SHIELD);
-		if ((holyShields!=null&&!holyShields.isEmpty()) || affectedByKey(Constants.HOLY_SHIELD) || combat.hasHolyShield(attacker.getAttackSpeed(),attacker.getLength())) {
-			for (SpellWrapper spell : holyShields) {
+		ArrayList holyShields = SpellUtility.getBewitchingSpellsWithKey(getGameObject(),Constants.HOLY_SHIELD);
+		if ((holyShields!=null&&!holyShields.isEmpty()) || affectedByKey(Constants.HOLY_SHIELD) || combat.hasHolyShield(attacker.getAttackSpeed(),attacker.getLength().intValue())) {
+			for (java.util.Iterator _j14it1342 = (holyShields).iterator(); _j14it1342.hasNext(); ) {
+			  SpellWrapper spell = (SpellWrapper) _j14it1342.next();
 				spell.expireSpell();
 			}
-			combat.setHolyShield(attacker.getAttackSpeed(), attacker.getLength());
+			combat.setHolyShield(attacker.getAttackSpeed(), attacker.getLength().intValue());
 			RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits Holy Shield and the attack is blocked.");
 			return false;
 		}
@@ -434,7 +435,8 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 		GamePool pool = new GamePool(loader.getData().getGameObjects());
 		String delim = "\t";
 		int n=1;
-		for (GameObject go:pool.find("traveler_template")) {
+		for (java.util.Iterator _j14it1343 = (pool.find("traveler_template")).iterator(); _j14it1343.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1343.next();
 			System.out.println((n++)+delim+getInfo(delim,go));
 		}
 	}

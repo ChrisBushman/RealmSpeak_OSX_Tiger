@@ -9,15 +9,14 @@ public class ApplyNamedEffectWithValues implements ISpellEffect {
 		_effectName = effectName;
 	}
 	
-	@Override
 	public void apply(SpellEffectContext context) {
 		SpellUtility.ApplyNamedSpellEffectWithValuesToTarget(_effectName, context.Target.getGameObject(), context.Spell, context.Spell.getGameObject().getThisAttributeList(_effectName));
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		if(context.Target.getGameObject().hasThisAttribute(_effectName)){
-			for (String value : context.Spell.getGameObject().getThisAttributeList(_effectName)) {
+			for (java.util.Iterator _j14it2051 = (context.Spell.getGameObject().getThisAttributeList(_effectName)).iterator(); _j14it2051.hasNext(); ) {
+			  String value = (String) _j14it2051.next();
 				context.Target.getGameObject().removeThisAttributeListItem(_effectName, value);
 			}
 			if (context.Target.getGameObject().getThisAttributeList(_effectName).isEmpty()) {

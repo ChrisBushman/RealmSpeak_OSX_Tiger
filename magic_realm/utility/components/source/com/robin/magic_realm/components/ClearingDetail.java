@@ -40,7 +40,7 @@ public class ClearingDetail {
 	private boolean marked = false;
 	protected Color markColor = DEFAULT_MARK_COLOR;
 	
-	private ArrayList<String> extras;
+	private ArrayList extras;
 	
 	/**
 	 * Use this constructor for edges
@@ -56,7 +56,7 @@ public class ClearingDetail {
 		this.magic = new boolean[6];
 		this.side = side;
 		Arrays.fill(magic,false);
-		extras = new ArrayList<String>();
+		extras = new ArrayList();
 	}
 	public TileLocation getTileLocation() {
 		return new TileLocation(this);
@@ -158,7 +158,8 @@ public class ClearingDetail {
 	}
 	public boolean isLighted() {
 		if (!parent.getGameObject().hasThisAttribute(Constants.LIGHTED)) return false;
-		for (String clearing : parent.getGameObject().getThisAttributeList(Constants.LIGHTED)) {
+		for (java.util.Iterator _j14it1429 = (parent.getGameObject().getThisAttributeList(Constants.LIGHTED)).iterator(); _j14it1429.hasNext(); ) {
+		  String clearing = (String) _j14it1429.next();
 			if (clearing.matches(String.valueOf(num))) return true;
 		}
 		return false;
@@ -187,7 +188,7 @@ public class ClearingDetail {
 			if (character.affectedByKey(Constants.WATER_MOVE_ADJ)) val--;
 			if (!character.isTransmorphed() && currentLocation.clearing!=null && currentLocation.clearing.isWater()) {
 				GamePool pool = new GamePool(this.parent.getGameObject().getGameData().getGameObjects());
-				ArrayList<GameObject> waterSources = pool.find("tile,water_source_clearing");
+				ArrayList waterSources = pool.find("tile,water_source_clearing");
 				if (!waterSources.isEmpty()) {
 					if (this.distanceToWaterSource(waterSources)>=currentLocation.clearing.distanceToWaterSource(waterSources)) {
 						if (currentLocation.isBetweenClearings()) {
@@ -233,9 +234,10 @@ public class ClearingDetail {
 			sb.append(type);
 			sb.append(")");
 		}
-		Collection<ColorMagic> c = getClearingColorMagic();
+		Collection c = getClearingColorMagic();
 		if (c.size()>0) {
-			for (ColorMagic cm : c) {
+			for (java.util.Iterator _j14it1430 = (c).iterator(); _j14it1430.hasNext(); ) {
+			  ColorMagic cm = (ColorMagic) _j14it1430.next();
 				sb.append(" ");
 				sb.append(cm.getColorName());
 			}
@@ -283,28 +285,30 @@ public class ClearingDetail {
 		}
 		return sb.toString();
 	}
-	private int distanceToWaterSource(Collection<GameObject> waterSources) {
+	private int distanceToWaterSource(Collection waterSources) {
 		int distance = 0;
-		ArrayList<ClearingDetail> touchedWaterClearings = new ArrayList<ClearingDetail>();
+		ArrayList touchedWaterClearings = new ArrayList();
 		touchedWaterClearings.add(this);
 		if (this.parent.getGameObject().hasThisAttribute("water_source_clearing") && this.parent.getGameObject().getThisAttribute("water_source_clearing").matches(this.getNumString())) {
 			return distance;
 		}
 		
 		boolean foundNewClearings = true;
-		ArrayList<ClearingDetail> newWaterClearings = new ArrayList<ClearingDetail>();
+		ArrayList newWaterClearings = new ArrayList();
 		newWaterClearings.add(this);
-		ArrayList<ClearingDetail> waterClearingsToCheck = new ArrayList<ClearingDetail>();
+		ArrayList waterClearingsToCheck = new ArrayList();
 		while (foundNewClearings) {
 			foundNewClearings = false;
 			distance++;
 			waterClearingsToCheck.clear();
 			waterClearingsToCheck.addAll(newWaterClearings);
 			newWaterClearings.clear();
-			for (ClearingDetail clearing : waterClearingsToCheck) {
-				Collection<PathDetail> c = clearing.getConnectedPathsWithDirection();
+			for (java.util.Iterator _j14it1431 = (waterClearingsToCheck).iterator(); _j14it1431.hasNext(); ) {
+			  ClearingDetail clearing = (ClearingDetail) _j14it1431.next();
+				Collection c = clearing.getConnectedPathsWithDirection();
 				if (c!=null) {
-					for (PathDetail path : c) {
+					for (java.util.Iterator _j14it1432 = (c).iterator(); _j14it1432.hasNext(); ) {
+					  PathDetail path = (PathDetail) _j14it1432.next();
 						if (!path.connectsToAnEdge()) {
 							if (path.getTo().isWater() && path.getType().matches("river") && !touchedWaterClearings.contains(path.getTo())) {
 								if (path.getTo().parent.getGameObject().hasThisAttribute("water_source_clearing") && path.getTo().parent.getGameObject().getThisAttribute("water_source_clearing").matches(path.getTo().getNumString())) {
@@ -339,9 +343,10 @@ public class ClearingDetail {
 		if (other.isEdge()) {
 			return parent.getEdgePath(Tile.convertEdge(other.getType(),parent.getRotation()));
 		}
-		ArrayList<PathDetail> paths = getConnectedPaths();
+		ArrayList paths = getConnectedPaths();
 		if (paths!=null) { // might be null if this clearing is not connected to any other
-			for (PathDetail path : paths) {
+			for (java.util.Iterator _j14it1433 = (paths).iterator(); _j14it1433.hasNext(); ) {
+			  PathDetail path = (PathDetail) _j14it1433.next();
 				if (path.findConnection(this)==other) {
 					return path;
 				}
@@ -349,11 +354,12 @@ public class ClearingDetail {
 		}
 		return null;
 	}
-	public ArrayList<PathDetail> getConnectedPathsWithDirection() {
-		ArrayList<PathDetail> paths = parent.findConnections(this);
+	public ArrayList getConnectedPathsWithDirection() {
+		ArrayList paths = parent.findConnections(this);
 		if (paths==null) return null;
-		ArrayList<PathDetail> pathsDirected = new ArrayList<PathDetail>(); 
-		for (PathDetail path : paths) {
+		ArrayList pathsDirected = new ArrayList(); 
+		for (java.util.Iterator _j14it1434 = (paths).iterator(); _j14it1434.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it1434.next();
 			if (path.getFrom().equals(this)) pathsDirected.add(path);
 			else {
 				PathDetail newPath = new PathDetail(path.parent,path.num,path.to,path.from,path.c2,path.c1,path.arc,path.type,path.tileSideName);
@@ -362,15 +368,15 @@ public class ClearingDetail {
 		}
 		return pathsDirected;
 	}
-	public ArrayList<PathDetail> getConnectedPaths() {
+	public ArrayList getConnectedPaths() {
 		return parent.findConnections(this);
 	}
-	public ArrayList<PathDetail> getConnectedMapEdges() {
+	public ArrayList getConnectedMapEdges() {
 		return parent.findConnectedMapEdges(this);
 	}
-	public ArrayList<PathDetail> getAllConnectedPaths() {
-		ArrayList<PathDetail> p;
-		ArrayList<PathDetail> allPaths = new ArrayList<PathDetail>();
+	public ArrayList getAllConnectedPaths() {
+		ArrayList p;
+		ArrayList allPaths = new ArrayList();
 		p = getConnectedPaths();
 		if (p!=null) allPaths.addAll(p);
 		p = getConnectedMapEdges();
@@ -389,11 +395,12 @@ public class ClearingDetail {
 		}
 		return this;
 	}
-	public ArrayList<RealmComponent> getClearingComponentsInPlainSight(CharacterWrapper character) {
+	public ArrayList getClearingComponentsInPlainSight(CharacterWrapper character) {
 		boolean hidden = character.isHidden();
-		ArrayList<RealmComponent> plainSight = new ArrayList<RealmComponent>();
-		ArrayList<RealmComponent> list = getClearingComponents(false);
-		for(RealmComponent item:list) {
+		ArrayList plainSight = new ArrayList();
+		ArrayList list = getClearingComponents(false);
+		for (java.util.Iterator _j14it1435 = (list).iterator(); _j14it1435.hasNext(); ) {
+		  RealmComponent item = (RealmComponent) _j14it1435.next();
 			if (item.isPlainSight()) {
 				if (!hidden || item.isAtYourFeet(character)) {
 					plainSight.add(item);
@@ -406,7 +413,7 @@ public class ClearingDetail {
 	 * Returns a collection of all RealmComponents in this clearing.  It does not directly return objects contained
 	 * by other objects.  This includes face-up site cards which are in the clearing.
 	 */
-	public ArrayList<RealmComponent> getClearingComponents() {
+	public ArrayList getClearingComponents() {
 		return getClearingComponents(true);
 	}
 	/**
@@ -415,14 +422,16 @@ public class ClearingDetail {
 	 * 
 	 * @param includeSites		If true, then all treasure locations in the clearing are searched for face-up site cards, which are included.
 	 */
-	public ArrayList<RealmComponent> getClearingComponents(boolean includeSites) {
-		ArrayList<RealmComponent> c = getParent().getRealmComponentsAt(getNum());
+	public ArrayList getClearingComponents(boolean includeSites) {
+		ArrayList c = getParent().getRealmComponentsAt(getNum());
 		if (includeSites) {
-			ArrayList<RealmComponent> more = new ArrayList<RealmComponent>();
-			for (RealmComponent rc : c) {
+			ArrayList more = new ArrayList();
+			for (java.util.Iterator _j14it1436 = (c).iterator(); _j14it1436.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it1436.next();
 				if (rc.isTreasureLocation() && !rc.isCacheChit()) {
 					// Check TLs for face up SITE CARDS, cuz those should be painted too
-					for (GameObject thing : rc.getGameObject().getHold()) {
+					for (java.util.Iterator _j14it1437 = (rc.getGameObject().getHold()).iterator(); _j14it1437.hasNext(); ) {
+					  GameObject thing = (GameObject) _j14it1437.next();
 						RealmComponent trc = RealmComponent.getRealmComponent(thing);
 						if (trc.isTreasure()) {
 							TreasureCardComponent treasure = (TreasureCardComponent)trc;
@@ -441,40 +450,44 @@ public class ClearingDetail {
 		}
 		return c;
 	}
-	public ArrayList<RealmComponent> getTreasureLocations() {
-		ArrayList<RealmComponent> c = getParent().getRealmComponentsAt(getNum());
-		ArrayList<RealmComponent> sites = new ArrayList<RealmComponent>();
-		for (RealmComponent rc : c) {
+	public ArrayList getTreasureLocations() {
+		ArrayList c = getParent().getRealmComponentsAt(getNum());
+		ArrayList sites = new ArrayList();
+		for (java.util.Iterator _j14it1438 = (c).iterator(); _j14it1438.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1438.next();
 			if (rc.isTreasureLocation() && !rc.isCacheChit()) {
 				sites.add(rc);
 			}
 		}
 		return sites;
 	}
-	public ArrayList<RealmComponent> getTreasureLocationsAndRedSpecialsAndDwellings() {
-		ArrayList<RealmComponent> c = getParent().getRealmComponentsAt(getNum());
-		ArrayList<RealmComponent> sites = new ArrayList<RealmComponent>();
-		for (RealmComponent rc : c) {
+	public ArrayList getTreasureLocationsAndRedSpecialsAndDwellings() {
+		ArrayList c = getParent().getRealmComponentsAt(getNum());
+		ArrayList sites = new ArrayList();
+		for (java.util.Iterator _j14it1439 = (c).iterator(); _j14it1439.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1439.next();
 			if ((rc.isTreasureLocation() || rc.isRedSpecial() || rc.isDwelling()) && !rc.isCacheChit()) {
 				sites.add(rc);
 			}
 		}
 		return sites;
 	}
-	public ArrayList<RealmComponent> getSounds() {
-		ArrayList<RealmComponent> c = getParent().getRealmComponentsAt(getNum());
-		ArrayList<RealmComponent> sounds = new ArrayList<RealmComponent>();
-		for (RealmComponent rc : c) {
+	public ArrayList getSounds() {
+		ArrayList c = getParent().getRealmComponentsAt(getNum());
+		ArrayList sounds = new ArrayList();
+		for (java.util.Iterator _j14it1440 = (c).iterator(); _j14it1440.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1440.next();
 			if (rc.isSound()) {
 				sounds.add(rc);
 			}
 		}
 		return sounds;
 	}
-	public ArrayList<RealmComponent> getSoundsAndWarnings() {
-		ArrayList<RealmComponent> c = getParent().getRealmComponentsAt(getNum());
-		ArrayList<RealmComponent> chits = new ArrayList<RealmComponent>();
-		for (RealmComponent rc : c) {
+	public ArrayList getSoundsAndWarnings() {
+		ArrayList c = getParent().getRealmComponentsAt(getNum());
+		ArrayList chits = new ArrayList();
+		for (java.util.Iterator _j14it1441 = (c).iterator(); _j14it1441.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1441.next();
 			if (rc.isSound() || rc.isWarning()) {
 				chits.add(rc);
 			}
@@ -485,12 +498,14 @@ public class ClearingDetail {
 	 * Returns a complete collection of all RealmComponents in the clearing, including those that are held by
 	 * other objects.  In fact, this will get all objects, regardless of depth.
 	 */
-	public ArrayList<RealmComponent> getDeepClearingComponents() {
-		ArrayList<RealmComponent> found = new ArrayList<RealmComponent>();
-		for (RealmComponent rc : getParent().getRealmComponentsAt(getNum())) {
+	public ArrayList getDeepClearingComponents() {
+		ArrayList found = new ArrayList();
+		for (java.util.Iterator _j14it1442 = (getParent().getRealmComponentsAt(getNum())).iterator(); _j14it1442.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1442.next();
 			found.add(rc);
-			Collection<GameObject> gos = RealmUtility.getAllGameObjectsIn(rc.getGameObject(),true);
-			for (GameObject go : gos) {
+			Collection gos = RealmUtility.getAllGameObjectsIn(rc.getGameObject(),true);
+			for (java.util.Iterator _j14it1443 = (gos).iterator(); _j14it1443.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it1443.next();
 				RealmComponent inrc = RealmComponent.getRealmComponent(go);
 				if (!found.contains(inrc)) {
 					found.add(inrc);
@@ -504,8 +519,8 @@ public class ClearingDetail {
 	 * @return		The ColorMagic for this clearing NOT including items/chits/characters/treasures/etc.  (JUST the
 	 * 				clearing's own color magic)
 	 */
-	public ArrayList<ColorMagic> getClearingColorMagic() {
-		ArrayList<ColorMagic> list = new ArrayList<ColorMagic>();
+	public ArrayList getClearingColorMagic() {
+		ArrayList list = new ArrayList();
 		if (magic[MAGIC_WHITE]) {
 			list.add(new ColorMagic(ColorMagic.WHITE,true));
 		}
@@ -573,15 +588,17 @@ public class ClearingDetail {
 	/**
 	 * Returns all sources of magic in this clearing, available to everyone.
 	 */
-	public ArrayList<ColorMagic> getAllSourcesOfColor(boolean checkForColorMods) {
-		ArrayList<ColorMagic> list = new ArrayList<ColorMagic>();
-		for (RealmComponent rc:getClearingComponents()) {
+	public ArrayList getAllSourcesOfColor(boolean checkForColorMods) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it1444 = (getClearingComponents()).iterator(); _j14it1444.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1444.next();
 			list.addAll(SpellUtility.getSourcesOfColor(rc));
 		}
 		list.addAll(getClearingColorMagic());
 		
-		ArrayList<ColorMagic> uniqueList = new ArrayList<ColorMagic>();
-		for (ColorMagic cm:list) {
+		ArrayList uniqueList = new ArrayList();
+		for (java.util.Iterator _j14it1445 = (list).iterator(); _j14it1445.hasNext(); ) {
+		  ColorMagic cm = (ColorMagic) _j14it1445.next();
 			if (!uniqueList.contains(cm)) {
 				uniqueList.add(cm);
 			}
@@ -595,10 +612,12 @@ public class ClearingDetail {
 		
 		return uniqueList;
 	}
-	public ArrayList<GameObject> getAllActivatedStuff() {
-		ArrayList<GameObject> stuff = new ArrayList<GameObject>();
-		for (RealmComponent rc:getClearingComponents()) {
-			for (RealmComponent seen:ClearingUtility.dissolveIntoSeenStuff(rc)) {
+	public ArrayList getAllActivatedStuff() {
+		ArrayList stuff = new ArrayList();
+		for (java.util.Iterator _j14it1446 = (getClearingComponents()).iterator(); _j14it1446.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1446.next();
+			for (java.util.Iterator _j14it1447 = (ClearingUtility.dissolveIntoSeenStuff(rc)).iterator(); _j14it1447.hasNext(); ) {
+			  RealmComponent seen = (RealmComponent) _j14it1447.next();
 				GameObject thing = seen.getGameObject();
 				if (thing.hasThisAttribute(Constants.ACTIVATED)) {
 					stuff.add(thing);
@@ -617,7 +636,8 @@ public class ClearingDetail {
 		this.absolutePosition = absolutePosition;
 	}
 	public RealmComponent getDwellingWitShelter() {
-		for (RealmComponent rc : getClearingComponents()) {
+		for (java.util.Iterator _j14it1448 = (getClearingComponents()).iterator(); _j14it1448.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1448.next();
 			if (rc.isDwelling() && !rc.getGameObject().hasThisAttribute(Constants.NO_SHELTER)) {
 				return rc;
 			}
@@ -625,7 +645,8 @@ public class ClearingDetail {
 		return null;
 	}
 	public RealmComponent getDwelling() {
-		for (RealmComponent rc : getClearingComponents()) {
+		for (java.util.Iterator _j14it1449 = (getClearingComponents()).iterator(); _j14it1449.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1449.next();
 			if (rc.isDwelling()) {
 				return rc;
 			}
@@ -633,16 +654,18 @@ public class ClearingDetail {
 		return null;
 	}
 	public RealmComponent getGuild() {
-		for (RealmComponent rc : getClearingComponents()) {
+		for (java.util.Iterator _j14it1450 = (getClearingComponents()).iterator(); _j14it1450.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1450.next();
 			if (rc.isGuild()) {
 				return rc;
 			}
 		}
 		return null;
 	}
-	public ArrayList<RealmComponent> getRedSpecials() {
-		ArrayList<RealmComponent> reds = new ArrayList<RealmComponent>();
-		for (RealmComponent rc : getClearingComponents()) {
+	public ArrayList getRedSpecials() {
+		ArrayList reds = new ArrayList();
+		for (java.util.Iterator _j14it1451 = (getClearingComponents()).iterator(); _j14it1451.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1451.next();
 			if (rc.isRedSpecial()) {
 				reds.add(rc);
 			}
@@ -659,7 +682,8 @@ public class ClearingDetail {
 		return getGuild()!=null;
 	}
 	public boolean holdsRedSpecial() {
-		for (RealmComponent rc : getClearingComponents()) {
+		for (java.util.Iterator _j14it1452 = (getClearingComponents()).iterator(); _j14it1452.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1452.next();
 			if (rc.isRedSpecial()) {
 				return true;
 			}
@@ -671,7 +695,8 @@ public class ClearingDetail {
 	 * Visitor, or if the chit is a 2nd campaign chit (characters can only carry ONE campaign chit at a time)
 	 */
 	public boolean holdsGoldSpecial(String currentCampaign) {
-		for (RealmComponent rc : getClearingComponents()) {
+		for (java.util.Iterator _j14it1453 = (getClearingComponents()).iterator(); _j14it1453.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1453.next();
 			if (rc.isGoldSpecial() && !rc.getGameObject().hasThisAttribute(Constants.VISITOR) && !rc.getGameObject().hasThisAttribute(Constants.NOMAD) && !rc.getGameObject().hasThisAttribute(Constants.DRAW_BACKSIDE)) {
 				if (currentCampaign==null || !rc.getGameObject().hasThisAttribute(Constants.CAMPAIGN)) {
 					return true;
@@ -691,12 +716,12 @@ public class ClearingDetail {
 		getParent().getGameObject().addThisAttributeListItem(freeActionObjectKey(),go.getStringId());
 	}
 	public boolean removeFreeAction(String action) {
-		ArrayList<String> list = getParent().getGameObject().getThisAttributeList(freeActionKey());
+		ArrayList list = getParent().getGameObject().getThisAttributeList(freeActionKey());
 		if (list!=null) {
 			int index = list.indexOf(action);
 			if (index>=0) {
 				list.remove(index);
-				ArrayList<String> objectList = getParent().getGameObject().getThisAttributeList(freeActionObjectKey());
+				ArrayList objectList = getParent().getGameObject().getThisAttributeList(freeActionObjectKey());
 				objectList.remove(index);
 				if (list.isEmpty()) {
 					getParent().getGameObject().removeThisAttribute(freeActionKey());
@@ -711,16 +736,16 @@ public class ClearingDetail {
 		}
 		return false;
 	}
-	public ArrayList<String> getFreeActions() {
+	public ArrayList getFreeActions() {
 		return getParent().getGameObject().getThisAttributeList(freeActionKey());
 	}
 	public GameObject getFreeActionObject(String action) {
-		ArrayList<String> list = getParent().getGameObject().getThisAttributeList(freeActionKey());
+		ArrayList list = getParent().getGameObject().getThisAttributeList(freeActionKey());
 		if (list!=null) {
 			int index = list.indexOf(action);
 			if (index>=0) {
-				ArrayList<String> objectList = getParent().getGameObject().getThisAttributeList(freeActionObjectKey());
-				String id = objectList.get(index);
+				ArrayList objectList = getParent().getGameObject().getThisAttributeList(freeActionObjectKey());
+				String id = (String) objectList.get(index);
 				return parent.getGameObject().getGameData().getGameObject(Long.valueOf(id));
 			}
 		}
@@ -733,7 +758,7 @@ public class ClearingDetail {
 		getParent().getGameObject().addThisAttributeListItem(spellEffectKey(),effect);
 	}
 	public boolean removeSpellEffect(String effect) {
-		ArrayList<String> list = getParent().getGameObject().getThisAttributeList(spellEffectKey());
+		ArrayList list = getParent().getGameObject().getThisAttributeList(spellEffectKey());
 		if (list!=null) {
 			int index = list.indexOf(effect);
 			if (index>=0) {
@@ -757,7 +782,8 @@ public class ClearingDetail {
 	}
 	public boolean hasKnownGate(CharacterWrapper character) {
 		boolean usableGate = false;
-		for (RealmComponent rc:getDeepClearingComponents()) {
+		for (java.util.Iterator _j14it1454 = (getDeepClearingComponents()).iterator(); _j14it1454.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1454.next();
 			if (rc.isGate()) {
 				if (character.hasOtherChitDiscovery(rc.getGameObject().getName()) || character.affectedByKey(Constants.ALL_GATE)) {
 					usableGate = true;
@@ -785,22 +811,25 @@ public class ClearingDetail {
 	}
 	
 	public void energizeItems() {
-		ArrayList<ColorMagic> colors = getAllSourcesOfColor(true);
-		for (RealmComponent rc : getClearingComponents()) {
+		ArrayList colors = getAllSourcesOfColor(true);
+		for (java.util.Iterator _j14it1455 = (getClearingComponents()).iterator(); _j14it1455.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1455.next();
 			if (rc.isItem()) {
 				energizeItem(rc.getGameObject(),colors);
 			}
 			if (rc.isCharacter()) {
-				for (GameObject go : (new CharacterWrapper(rc.getGameObject()).getInventory())) {
+				for (java.util.Iterator _j14it1456 = ((new CharacterWrapper(rc.getGameObject()).getInventory())).iterator(); _j14it1456.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it1456.next();
 					energizeItem(go,colors);
 				}
 			}
 		}
 	}
-	private static void energizeItem(GameObject item, Collection<ColorMagic> colors) {
+	private static void energizeItem(GameObject item, Collection colors) {
 		if (item.hasThisAttribute(Constants.MAGIC_COLOR_BONUS)) {
 			ColorMagic requiredColor = ColorMagic.makeColorMagic(item.getThisAttribute(Constants.MAGIC_COLOR_BONUS),true);
-			for (ColorMagic c : colors) {
+			for (java.util.Iterator _j14it1457 = (colors).iterator(); _j14it1457.hasNext(); ) {
+			  ColorMagic c = (ColorMagic) _j14it1457.next();
 				if (c.sameColorAs(requiredColor)) item.setThisAttribute(Constants.MAGIC_COLOR_BONUS_ACTIVE);
 				break;
 			}
@@ -808,14 +837,16 @@ public class ClearingDetail {
 		if (item.hasThisAttribute(Constants.REENERGIZE)) {
 			boolean energized = false;
 			ColorMagic requiredColor = ColorMagic.makeColorMagic(item.getThisAttribute("magic_color"),true);
-			for (ColorMagic c : colors) {
+			for (java.util.Iterator _j14it1458 = (colors).iterator(); _j14it1458.hasNext(); ) {
+			  ColorMagic c = (ColorMagic) _j14it1458.next();
 				if (c.sameColorAs(requiredColor)) {
 					energized = true;
 					break;
 				}
 			}
 
-			for (GameObject spell : item.getHold()) {
+			for (java.util.Iterator _j14it1459 = (item.getHold()).iterator(); _j14it1459.hasNext(); ) {
+			  GameObject spell = (GameObject) _j14it1459.next();
 				if (spell.hasThisAttribute("spell")) {
 					SpellWrapper spellWrapper = new SpellWrapper(spell);
 					if (energized) {
@@ -849,10 +880,11 @@ public class ClearingDetail {
 		}
 		if (tile.equals(otherTile)) {
 			if (tile.getGameObject().hasThisAttribute(Constants.THORNS)) {
-				ArrayList<String> allThorns = tile.getGameObject().getThisAttributeList(Constants.THORNS);
+				ArrayList allThorns = tile.getGameObject().getThisAttributeList(Constants.THORNS);
 				String num1 = this.isEdge()?this.toString():this.getNumString();
 				String num2 = other.isEdge()?other.toString():other.getNumString();
-				for (String thorns : allThorns) {
+				for (java.util.Iterator _j14it1460 = (allThorns).iterator(); _j14it1460.hasNext(); ) {
+				  String thorns = (String) _j14it1460.next();
 					if (thorns.matches(num1+"_"+num2)) return true;
 					if (thorns.matches(num2+"_"+num1)) return true;
 				}
@@ -865,8 +897,8 @@ public class ClearingDetail {
 			String edgeName2 = ClearingUtility.getEdgeNameBetweenClearings(clearing2,clearing1);
 			String string1 = clearing1.getNum()+"_"+edgeName1;
 			String string2 = clearing2.getNum()+"_"+edgeName2;
-			ArrayList<String> list1 = tile.getGameObject().getThisAttributeList(Constants.THORNS);
-			ArrayList<String> list2 = otherTile.getGameObject().getThisAttributeList(Constants.THORNS);
+			ArrayList list1 = tile.getGameObject().getThisAttributeList(Constants.THORNS);
+			ArrayList list2 = otherTile.getGameObject().getThisAttributeList(Constants.THORNS);
 			if (list1!=null && list1.contains(string1)) return true;
 			if (list2!=null && list2.contains(string2)) return true;
 		}

@@ -287,7 +287,8 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 				}
 				if (isFight() && character.getGameObject().hasThisAttribute(Constants.FIT)) {
 					CombatWrapper cw = new CombatWrapper(getGameObject());
-					for (String attackBox : character.getGameObject().getThisAttributeList(Constants.FIT)) {
+					for (java.util.Iterator _j14it1358 = (character.getGameObject().getThisAttributeList(Constants.FIT)).iterator(); _j14it1358.hasNext(); ) {
+					  String attackBox = (String) _j14it1358.next();
 						if (cw.getCombatBoxAttack()==Integer.parseInt(attackBox)) {
 							mod++;
 							break;
@@ -859,9 +860,9 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 		return 0; // NOT A MAGIC CHIT
 	}
 	
-	public ArrayList<Integer> getEnchantableNumbers() {
-		ArrayList<Integer> list = new ArrayList<Integer>();
-		list.add(getMagicNumber());
+	public ArrayList getEnchantableNumbers() {
+		ArrayList list = new ArrayList();
+		list.add(Integer.valueOf(getMagicNumber()));
 		return list;
 	}
 	public void enchant() {
@@ -1098,7 +1099,8 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 	public boolean expireMoveSpells() {
 		boolean expiredOne = false;
 		SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(getGameObject().getGameData());
-		for (SpellWrapper spell:sm.getAffectingSpells(getGameObject())) {
+		for (java.util.Iterator _j14it1359 = (sm.getAffectingSpells(getGameObject())).iterator(); _j14it1359.hasNext(); ) {
+		  SpellWrapper spell = (SpellWrapper) _j14it1359.next();
 			if (spell.isMoveSpell()) {
 				spell.expireSpell();
 				expiredOne = true;

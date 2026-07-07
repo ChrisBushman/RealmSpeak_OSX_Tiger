@@ -35,9 +35,9 @@ public class RealmViewer extends JFrame {
 	private static CenteredMapView map;
 	protected JTabbedPane tabbedPanels;
 	protected GameData data;
-	protected ArrayList<String> keyVals;
+	protected ArrayList keyVals;
 	
-	public RealmViewer(GameData data,ArrayList<String> keyVals) {
+	public RealmViewer(GameData data,ArrayList keyVals) {
 		this.data = data;
 		this.keyVals = keyVals;
 		initComponents();
@@ -56,7 +56,7 @@ public class RealmViewer extends JFrame {
 	}
 	private void addData() {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> list = new ArrayList<GameObject>(pool.find(keyVals));
+		ArrayList list = new ArrayList(pool.find(keyVals));
 		
 		// Add the summonables
 		JFrame dummy = new JFrame();
@@ -70,9 +70,10 @@ public class RealmViewer extends JFrame {
 		list.add(SetupCardUtility.createBlob(mc,data));
 		list.add(SetupCardUtility.createWasp(mc,data));
 		
-		ArrayList<GameObject> treasureList = new ArrayList<GameObject>();
-		ArrayList<GameObject> spellList = new ArrayList<GameObject>();
-		for (GameObject obj:list) {
+		ArrayList treasureList = new ArrayList();
+		ArrayList spellList = new ArrayList();
+		for (java.util.Iterator _j14it1253 = (list).iterator(); _j14it1253.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it1253.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(obj);
 			if (rc!=null) {
 				boolean notready = rc.getGameObject().hasThisAttribute("notready");
@@ -106,15 +107,19 @@ public class RealmViewer extends JFrame {
 			}
 		}
 		
-		Collections.sort(treasureList,new Comparator<GameObject>() {
-			public int compare(GameObject o1, GameObject o2) {
+		Collections.sort(treasureList,new Comparator() {
+			public int compare(Object obj1, Object obj2) {
+				GameObject o1 = (GameObject) obj1;
+				GameObject o2 = (GameObject) obj2;
 				return o1.getName().compareTo(o2.getName());
 			}
 		});
 		treasureViewPanel.addObjects(treasureList);
 		
-		Collections.sort(spellList,new Comparator<GameObject>() {
-			public int compare(GameObject o1, GameObject o2) {
+		Collections.sort(spellList,new Comparator() {
+			public int compare(Object obj1, Object obj2) {
+				GameObject o1 = (GameObject) obj1;
+				GameObject o2 = (GameObject) obj2;
 				String m1 = o1.getThisAttribute("spell");
 				String m2 = o2.getThisAttribute("spell");
 				int ret = m1.compareTo(m2);
@@ -126,7 +131,8 @@ public class RealmViewer extends JFrame {
 		});
 		spellViewPanel.addObjects(spellList);
 		
-		for (Quest quest:QuestLoader.loadAllQuestsFromQuestFolder()) {
+		for (java.util.Iterator _j14it1254 = (QuestLoader.loadAllQuestsFromQuestFolder()).iterator(); _j14it1254.hasNext(); ) {
+		  Quest quest = (Quest) _j14it1254.next();
 			questViewPanel.addObject(quest.getGameObject());
 		}
 		
@@ -171,14 +177,15 @@ public class RealmViewer extends JFrame {
 		RealmLoader loader = new RealmLoader();
 		GameData data = loader.getData();
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> expansions = pool.find("!original_game,!ts_section,!tile,rw_expansion_1");
+		ArrayList expansions = pool.find("!original_game,!ts_section,!tile,rw_expansion_1");
 		expansions.addAll(pool.find("spell,new_spells_1"));
 		expansions.addAll(pool.find("spell,new_spells_2"));
-		for (GameObject go:expansions) {
+		for (java.util.Iterator _j14it1255 = (expansions).iterator(); _j14it1255.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1255.next();
 			go.setThisKeyVals("super_realm");
 		}
 		
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		StringBuffer result = new StringBuffer();
 		query.add("super_realm");
 		HostPrefWrapper hostPrefs = new HostPrefWrapper(data.createNewObject());
@@ -186,7 +193,7 @@ public class RealmViewer extends JFrame {
 		hostPrefs.setGameKeyVals("super_realm");
 		hostPrefs.setStartingSeason("No Seasons");
 		data.doSetup(result,"super_realm_setup",query);
-		ArrayList<String> keyVals = new ArrayList<String>();
+		ArrayList keyVals = new ArrayList();
 		keyVals.add("super_realm");
 		while(!MapBuilder.autoBuildMap(data,keyVals));
 		

@@ -23,7 +23,7 @@ public class SpellViewer extends JPanel {
 	private SpellListModel spellListModel;
 	private JCheckBox typeOption;
 	
-	private ArrayList<GameObject> spells;
+	private ArrayList spells;
 	
 	public SpellViewer(GameData data) {
 		initComponents();
@@ -61,8 +61,10 @@ public class SpellViewer extends JPanel {
 	}
 	private void resortList() {
 		spellList.clearSelection();
-		Collections.sort(spells,new Comparator<GameObject>() {
-			public int compare(GameObject go1,GameObject go2) {
+		Collections.sort(spells,new Comparator() {
+			public int compare(Object obj1,Object obj2) {
+				GameObject go1 = (GameObject) obj1;
+				GameObject go2 = (GameObject) obj2;
 				return spellNaming(go1).compareTo(spellNaming(go2));
 			}
 		});
@@ -71,7 +73,7 @@ public class SpellViewer extends JPanel {
 	private void updateView() {
 		int sel = spellList.getSelectedIndex();
 		if (sel>=0) {
-			GameObject go = spells.get(sel);
+			GameObject go = (GameObject) spells.get(sel);
 			spellIcon.setIcon(RealmComponent.getRealmComponent(go).getFaceUpIcon());
 			spellDetail.setText(SpellUtility.getSpellDetail(go));
 			spellDetail.setCaretPosition(0);
@@ -99,10 +101,11 @@ public class SpellViewer extends JPanel {
 	}
 	private void initView(GameData data) {
 		GamePool pool = new GamePool(data.getGameObjects());
-		spells = new ArrayList<GameObject>();
-		ArrayList<String> spellNames = new ArrayList<String>();
+		spells = new ArrayList();
+		ArrayList spellNames = new ArrayList();
 		
-		for (GameObject go:pool.find("spell")) {
+		for (java.util.Iterator _j14it1304 = (pool.find("spell")).iterator(); _j14it1304.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1304.next();
 			String type = go.getThisAttribute("spell");
 			if (type.length()>0 && !type.equals("*") && !spellNames.contains(go.getName())) {
 				spells.add(go);
@@ -121,7 +124,7 @@ public class SpellViewer extends JPanel {
 	private class SpellListModel extends AbstractListModel {
 
 		public Object getElementAt(int index) {
-			return spellNaming(spells.get(index));
+			return spellNaming((GameObject) spells.get(index));
 		}
 
 		public int getSize() {

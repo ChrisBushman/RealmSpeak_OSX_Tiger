@@ -115,9 +115,10 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 	
 	public MonsterPartChitComponent getWeapon(boolean ignoreWeight) {
 		if (!getGameObject().hasThisAttribute("animal") && !getGameObject().hasThisAttribute("statue")) { // as long as the monster isn't transformed!
-			ArrayList<GameObject> list = getGameObject().getHold();
+			ArrayList list = getGameObject().getHold();
 			if (list != null && list.size() > 0) {
-				for (GameObject weapon : list) {
+				for (java.util.Iterator _j14it1344 = (list).iterator(); _j14it1344.hasNext(); ) {
+				  GameObject weapon = (GameObject) _j14it1344.next();
 					RealmComponent rc = RealmComponent.getRealmComponent(weapon);
 					if (rc.isMonsterPart()) { // Might be a Hurricane Winds FLY chit
 						MonsterPartChitComponent monsterPart = (MonsterPartChitComponent) rc;
@@ -216,10 +217,10 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 				String textTypeLength = statColor;
 				if (RealmComponent.displayColoredStats) {
 					Integer defaultLength = getFaceAttributeInteger("length");
-					if (defaultLength==null) defaultLength = 0;
-					if (length>defaultLength) {
+					if (defaultLength==null) defaultLength = Integer.valueOf(0);
+					if (length.intValue()>defaultLength.intValue()) {
 						textTypeLength = "STAT_BLUE";
-					} else if(defaultLength>length) {
+					} else if(defaultLength.intValue()>length.intValue()) {
 						textTypeLength = "STAT_RED";
 					}
 				}
@@ -506,7 +507,7 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 		NativeSteedChitComponent horse = (NativeSteedChitComponent)getHorse(false);
 		if (horse!=null) {
 			String[] ret = horse.getFolderAndType();
-			int horseSize = ret[2]==null?20:40*Integer.valueOf(ret[2]);
+			int horseSize = ret[2]==null?20:40*Integer.valueOf(ret[2]).intValue();
 			ImageIcon icon = ImageCache.getIcon(ret[0]+"/"+ret[1],horseSize);
 			g.drawImage(icon.getImage(),size-icon.getIconWidth()-2,(size>>1),null);
 		}
@@ -530,11 +531,12 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 				return Integer.valueOf(getGameObject().getThisAttribute(Constants.ENCHANTED_WEAPON_LENGTH));
 			}
 		}
-		Integer length = getFaceAttributeInteger("length");
-		if (length == null) {
-			length = Integer.valueOf(0); // tooth and claw
+		Integer lengthObj = getFaceAttributeInteger("length");
+		if (lengthObj == null) {
+			lengthObj = Integer.valueOf(0); // tooth and claw
 		}
-		
+		int length = lengthObj.intValue();
+
 		if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT)) {
 			int difference = (new Strength(gameObject.getThisAttribute(Constants.ALTER_WEIGHT))).getLevels()-(new Strength((getWeightWithoutModifiers("L")))).getLevels();
 			length = length + difference;
@@ -545,9 +547,9 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) {
 			length++;
 		}
-		if (length<=0) return 0;
-		if (length>=18) return 18;
-		return length;
+		if (length<=0) return Integer.valueOf(0);
+		if (length>=18) return Integer.valueOf(18);
+		return Integer.valueOf(length);
 	}
 
 	public Speed getMoveSpeed() {
@@ -575,7 +577,7 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 		}
 		int baseMoveSpeed = 6;
 		if (hasFaceAttribute("move_speed")) {
-			baseMoveSpeed = getFaceAttributeInteger("move_speed");
+			baseMoveSpeed = getFaceAttributeInteger("move_speed").intValue();
 		}
 		Speed speed = new Speed(baseMoveSpeed,mod);
 		if (getGameObject().hasThisAttribute(Constants.GROW_WINGS) && (new Speed(Constants.GROW_WINGS_SPEED)).fasterThan(speed)) {
@@ -635,13 +637,13 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 			mod++;
 		}
 		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX1) && getManeuverCombatBox()==1) {
-			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX1);
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX1).intValue();
 		}
 		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX2) && getManeuverCombatBox()==2) {
-			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX2);
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX2).intValue();
 		}
 		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX3) && getManeuverCombatBox()==3) {
-			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX3);
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX3).intValue();
 		}
 		return mod;
 	}
@@ -824,8 +826,9 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 	}
 	
 	public boolean hasActiveShield() {
-		ArrayList<GameObject> hold = getGameObject().getHold();
-		for (GameObject item : hold) {
+		ArrayList hold = getGameObject().getHold();
+		for (java.util.Iterator _j14it1345 = (hold).iterator(); _j14it1345.hasNext(); ) {
+		  GameObject item = (GameObject) _j14it1345.next();
 			if (item.hasThisAttribute(Constants.SHIELD) && !item.hasThisAttribute(Constants.DESTROYED)
 			&& this.getMoveStrength().strongerOrEqualTo((RealmComponent.getRealmComponent(item).getWeight()))) {
 				return true;
@@ -835,8 +838,9 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 	}
 	
 	public MonsterPartChitComponent getShield() {
-		ArrayList<GameObject> hold = getGameObject().getHold();
-		for (GameObject item : hold) {
+		ArrayList hold = getGameObject().getHold();
+		for (java.util.Iterator _j14it1346 = (hold).iterator(); _j14it1346.hasNext(); ) {
+		  GameObject item = (GameObject) _j14it1346.next();
 			if (item.hasThisAttribute(Constants.SHIELD)) {
 				return (MonsterPartChitComponent) RealmComponent.getRealmComponent(item);
 			}
@@ -883,12 +887,13 @@ public class MonsterChitComponent extends SquareChitComponent implements BattleC
 			}
 		}
 		
-		ArrayList<SpellWrapper> holyShields = SpellUtility.getBewitchingSpellsWithKey(getGameObject(),Constants.HOLY_SHIELD);
-		if ((holyShields!=null&&!holyShields.isEmpty()) || affectedByKey(Constants.HOLY_SHIELD) || combat.hasHolyShield(attacker.getAttackSpeed(),attacker.getLength())) {
-			for (SpellWrapper spell : holyShields) {
+		ArrayList holyShields = SpellUtility.getBewitchingSpellsWithKey(getGameObject(),Constants.HOLY_SHIELD);
+		if ((holyShields!=null&&!holyShields.isEmpty()) || affectedByKey(Constants.HOLY_SHIELD) || combat.hasHolyShield(attacker.getAttackSpeed(),attacker.getLength().intValue())) {
+			for (java.util.Iterator _j14it1347 = (holyShields).iterator(); _j14it1347.hasNext(); ) {
+			  SpellWrapper spell = (SpellWrapper) _j14it1347.next();
 				spell.expireSpell();
 			}
-			combat.setHolyShield(attacker.getAttackSpeed(), attacker.getLength());
+			combat.setHolyShield(attacker.getAttackSpeed(), attacker.getLength().intValue());
 			RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits Holy Shield and the attack is blocked.");
 			return false;
 		}

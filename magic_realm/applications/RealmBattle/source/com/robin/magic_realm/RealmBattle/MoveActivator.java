@@ -15,10 +15,27 @@ import com.robin.magic_realm.components.wrapper.*;
 
 public class MoveActivator {
 	
-	public enum MoveActionResult {
-		NO_MOVE_POSSIBLE,
-		SUCCESSFUL,
-		UNSUCCESSFUL,
+	public static final class MoveActionResult {
+		private final String _name;
+		private final int _ordinal;
+		private MoveActionResult(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final MoveActionResult NO_MOVE_POSSIBLE = new MoveActionResult("NO_MOVE_POSSIBLE", 0);
+		public static final MoveActionResult SUCCESSFUL = new MoveActionResult("SUCCESSFUL", 1);
+		public static final MoveActionResult UNSUCCESSFUL = new MoveActionResult("UNSUCCESSFUL", 2);
+
+		private static final MoveActionResult[] _VALUES = { NO_MOVE_POSSIBLE, SUCCESSFUL, UNSUCCESSFUL };
+		public static MoveActionResult[] values() { MoveActionResult[] r = new MoveActionResult[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static MoveActionResult valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	public static final String FLIP_SIDE_TEXT = "(back)";
@@ -32,7 +49,7 @@ public class MoveActivator {
 	private RealmComponent selectedMoveChit;
 	
 	private Fly fly = null;
-	private ArrayList<RealmComponent> attackers;
+	private ArrayList attackers;
 	
 	public MoveActivator(CombatFrame combatFrame) {
 		this.combatFrame = combatFrame;
@@ -41,7 +58,7 @@ public class MoveActivator {
 		activeCharacter = combatFrame.getActiveCharacter();
 		hostPrefs = combatFrame.getHostPrefs();
 	}
-	public ArrayList<RealmComponent> getAttackers() {
+	public ArrayList getAttackers() {
 		return attackers;
 	}
 	public RealmComponent getSelectedMoveChit() {
@@ -56,9 +73,10 @@ public class MoveActivator {
 	/**
 	 * Takes a collection of BattleChits, and returns only the flyers.
 	 */
-	private Collection<RealmComponent> filterFlyers(Collection<RealmComponent> in) {
-		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
-		for (RealmComponent rc : in) {
+	private Collection filterFlyers(Collection in) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it375 = (in).iterator(); _j14it375.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it375.next();
 			RealmComponent target = rc.getTarget();
 			if (target!=null && target.equals(activeParticipant)) {
 				// As long as the character is not immune to this monster type, include it
@@ -73,14 +91,15 @@ public class MoveActivator {
 		}
 		return list;
 	}
-	private Collection<RealmComponent> getFlyingAttackersOnActive() {
+	private Collection getFlyingAttackersOnActive() {
 		return filterFlyers(battleModel.getAllBattleParticipants(true));
 	}
 	private Speed getFastestAttackerFlySpeed() {
-		Collection<RealmComponent> c = getFlyingAttackersOnActive();
+		Collection c = getFlyingAttackersOnActive();
 		// Find fastest attacker fly speed on your sheet
 		Speed fastest = new Speed(); // infinitely slow
-		for (RealmComponent i : c) {
+		for (java.util.Iterator _j14it376 = (c).iterator(); _j14it376.hasNext(); ) {
+		  RealmComponent i = (RealmComponent) _j14it376.next();
 			BattleChit chit = (BattleChit)i;
 			Speed speed = chit.getFlySpeed();
 			if (speed!=null && speed.fasterThan(fastest)) {
@@ -92,7 +111,8 @@ public class MoveActivator {
 	public Speed getFastestAttackerMoveSpeed() {
 		// Find fastest attacker move speed on your sheet
 		Speed fastest = new Speed(); // infinitely slow
-		for (RealmComponent rc : battleModel.getAllBattleParticipants(true)) {
+		for (java.util.Iterator _j14it377 = (battleModel.getAllBattleParticipants(true)).iterator(); _j14it377.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it377.next();
 			RealmComponent target = rc.getTarget();
 			if (target!=null && target.equals(activeParticipant)) {
 				String magicImmunity = rc.getGameObject().getThisAttribute(Constants.MAGIC_IMMUNITY);
@@ -110,7 +130,8 @@ public class MoveActivator {
 		// Don't forget to check charge chits!!
 		if (activeParticipant.isCharacter() && !activeParticipant.getGameObject().hasThisAttribute(Constants.BLINDING_LIGHT)) {
 			CombatWrapper combat = new CombatWrapper(activeParticipant.getGameObject());
-			for (GameObject go : combat.getChargeChits()) {
+			for (java.util.Iterator _j14it378 = (combat.getChargeChits()).iterator(); _j14it378.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it378.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (rc.isActionChit()) {
 					CharacterActionChitComponent chit = (CharacterActionChitComponent)rc;
@@ -140,8 +161,9 @@ public class MoveActivator {
 		
 		// Also check charge chits (if any)
 		CombatWrapper chargeCombat = new CombatWrapper(activeParticipant.getGameObject());
-		Collection<GameObject> chargeChits = chargeCombat.getChargeChits();
-		for (GameObject go : chargeChits) {		
+		Collection chargeChits = chargeCombat.getChargeChits();
+		for (java.util.Iterator _j14it379 = (chargeChits).iterator(); _j14it379.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it379.next();		
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			attackers.add(rc);
 			if (rc.isActionChit()) {
@@ -162,15 +184,16 @@ public class MoveActivator {
 		
 		// Find all playable options
 		Speed speedToBeat = hostPrefs.hasPref(Constants.OPT_STUMBLE)?new Speed():fastest; // Stumble allows any move chit
-		Collection<RealmComponent> moveSpeedOptions = activeCharacter.getMoveSpeedOptions(speedToBeat,true,true);
-		Collection<RealmComponent> availableManeuverOptions = combatFrame.getAvailableManeuverOptions(0,true); // if running away, then the red-side-up check has already been done
+		Collection moveSpeedOptions = activeCharacter.getMoveSpeedOptions(speedToBeat,true,true);
+		Collection availableManeuverOptions = combatFrame.getAvailableManeuverOptions(0,true); // if running away, then the red-side-up check has already been done
 		moveSpeedOptions.retainAll(availableManeuverOptions); // Intersection between the two
 		
 		TileLocation currentCombatLocation = battleModel.getBattleLocation();
 		//Remove flying chits if affected by Violent Winds
 		if (currentCombatLocation.clearing.isAffectedByViolentWinds()) {
-			Collection<RealmComponent> nonFlyingOptions = new ArrayList<RealmComponent>();
-			for (RealmComponent option : moveSpeedOptions) {	
+			Collection nonFlyingOptions = new ArrayList();
+			for (java.util.Iterator _j14it380 = (moveSpeedOptions).iterator(); _j14it380.hasNext(); ) {
+			  RealmComponent option = (RealmComponent) _j14it380.next();	
 				if (!option.isFlyChit()) {
 					nonFlyingOptions.add(option);
 				}
@@ -179,9 +202,10 @@ public class MoveActivator {
 		}
 		
 		// Check for flying possibilities
-		ArrayList<StrengthChit> flyChits = activeCharacter.getFlyStrengthChits(false);;
+		ArrayList flyChits = activeCharacter.getFlyStrengthChits(false);;
 		
-		for (GameObject item:activeCharacter.getActiveInventory()) {
+		for (java.util.Iterator _j14it381 = (activeCharacter.getActiveInventory()).iterator(); _j14it381.hasNext(); ) {
+		  GameObject item = (GameObject) _j14it381.next();
 			RealmComponent itemRc = RealmComponent.getRealmComponent(item);
 			if ((itemRc.isHorse() && ((SteedChitComponent)itemRc).flies()) || (itemRc.isNativeHorse() && ((NativeSteedChitComponent)itemRc).flies())) {
 				flyChits.add(new StrengthChit(
@@ -198,7 +222,8 @@ public class MoveActivator {
 			Strength needed = activeCharacter.getNeededSupportWeight();
 			if (currentCombatLocation.hasClearing() && !currentCombatLocation.clearing.isAffectedByViolentWinds()) {
 				// Filter out those flyChits that aren't strong enough or fast enough
-				for (StrengthChit sc:flyChits) {
+				for (java.util.Iterator _j14it382 = (flyChits).iterator(); _j14it382.hasNext(); ) {
+				  StrengthChit sc = (StrengthChit) _j14it382.next();
 					if (sc.getSpeed().fasterThan(flyingSpeedToBeat) && sc.getStrength().strongerOrEqualTo(needed)) {
 						RealmComponent rc = sc.getRealmComponent();
 						if (rc.isMonster()) {
@@ -215,9 +240,10 @@ public class MoveActivator {
 		if (moveSpeedOptions.size()>0) {
 			if (hostPrefs.hasPref(Constants.OPT_RIDING_HORSES)) {
 				// Check for a horse in the move options.  If there is one, that's the ONLY option!
-				for (RealmComponent rc : moveSpeedOptions) {
+				for (java.util.Iterator _j14it383 = (moveSpeedOptions).iterator(); _j14it383.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it383.next();
 					if (rc.isHorse()) {
-						moveSpeedOptions = new ArrayList<RealmComponent>();
+						moveSpeedOptions = new ArrayList();
 						moveSpeedOptions.add(rc);
 						break;
 					}
@@ -254,7 +280,7 @@ public class MoveActivator {
 				if (fly!=null) {
 					// Flying away?  Make some adjustments here...
 					fastest = fastestFlyer;
-					attackers = new ArrayList<RealmComponent>(filterFlyers(attackers));
+					attackers = new ArrayList(filterFlyers(attackers));
 				}
 					
 				if (checkStumble && !fastest.isInfinitelySlow() && hostPrefs.hasPref(Constants.OPT_STUMBLE)) {
@@ -264,7 +290,8 @@ public class MoveActivator {
 					int stumbleModifier = speed.getNum()-fastest.getNum();
 					
 					// Include all attackers, EXCEPT monster weapons
-					for (RealmComponent attacker : attackers) {
+					for (java.util.Iterator _j14it384 = (attackers).iterator(); _j14it384.hasNext(); ) {
+					  RealmComponent attacker = (RealmComponent) _j14it384.next();
 						if (!attacker.isMonsterPart()) {
 							stumbleModifier++;
 						}
@@ -300,7 +327,7 @@ public class MoveActivator {
 			tileCombat.setWasFatigue(true);
 		}
 	}
-	public static RealmComponentOptionChooser getChooserForMoveOptions(JFrame frame,CharacterWrapper activeCharacter,Collection<RealmComponent> moveOptions,boolean includeHorseFlip) {
+	public static RealmComponentOptionChooser getChooserForMoveOptions(JFrame frame,CharacterWrapper activeCharacter,Collection moveOptions,boolean includeHorseFlip) {
 		CombatWrapper combat = new CombatWrapper(activeCharacter.getGameObject());
 		boolean canGallop = !combat.hasGalloped();
 		TileLocation loc = activeCharacter.getCurrentLocation();
@@ -311,7 +338,8 @@ public class MoveActivator {
 		Strength heaviestInv = activeCharacter.getNeededSupportWeight();
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,"Select Maneuver:",true);
 		int keyN = 0;
-		for (RealmComponent rc : moveOptions) {
+		for (java.util.Iterator _j14it385 = (moveOptions).iterator(); _j14it385.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it385.next();
 			String key = "C"+(keyN++);
 			if (includeHorseFlip && rc.isHorse()) {
 				SteedChitComponent horse = (SteedChitComponent)rc;

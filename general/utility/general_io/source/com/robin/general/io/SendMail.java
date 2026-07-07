@@ -29,7 +29,7 @@ public class SendMail {
 	private String subject;
 	private String message;
 	
-	private ArrayList<MimeBodyPart> bodyParts;
+	private ArrayList bodyParts;
 	
 	private String SMTP_Host;
 	
@@ -45,7 +45,7 @@ public class SendMail {
 		config.put(TO_KEY,inTo);
 		parseProperties(config);
 	}
-	public SendMail(String host,String from,Collection<String> to,Collection<String> cc,Collection<String> bcc) {
+	public SendMail(String host,String from,Collection to,Collection cc,Collection bcc) {
 		Properties config = new Properties();
 		config.put(SMTP_KEY,host);
 		config.put(FROM_KEY,from);
@@ -54,10 +54,11 @@ public class SendMail {
 		config.put(BCC_KEY,makeCommaList(bcc));
 		parseProperties(config);
 	}
-	private static String makeCommaList(Collection<String> list) {
+	private static String makeCommaList(Collection list) {
 		StringBuffer sb = new StringBuffer();
 		if (list!=null) {
-			for (String val : list) {
+			for (java.util.Iterator _j14it3 = (list).iterator(); _j14it3.hasNext(); ) {
+			  String val = (String) _j14it3.next();
 				if (sb.length()>0) {
 					sb.append(",");
 				}
@@ -148,12 +149,12 @@ public class SendMail {
 		}
 	}
 	private static String[] addRecipient(String[] recipients,String newRecipient) {
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList list = new ArrayList();
 		if (recipients!=null && recipients.length>0) {
 			list.addAll(Arrays.asList(recipients));
 		}
 		list.add(newRecipient);
-		return list.toArray(new String[list.size()]);
+		return (String[]) list.toArray(new String[list.size()]);
 	}
 	public void addTO(String newRecipient) {
 		recipientsTO = addRecipient(recipientsTO,newRecipient);
@@ -203,7 +204,8 @@ public class SendMail {
 			messageBodyPart.setContent(message, htmlEnabled?"text/html":"text/plain");
 			multipart.addBodyPart(messageBodyPart);
 			// add attachments
-			for (MimeBodyPart bodyPart : bodyParts) {
+			for (java.util.Iterator _j14it4 = (bodyParts).iterator(); _j14it4.hasNext(); ) {
+			  MimeBodyPart bodyPart = (MimeBodyPart) _j14it4.next();
 				multipart.addBodyPart(bodyPart);
 			}
 			msg.setContent(multipart);
@@ -238,7 +240,7 @@ public class SendMail {
 			attachmentBodyPart.setFileName(attachmentFilePath.substring(lastSeparator + 1));
 		}
 		if (bodyParts == null) {
-			bodyParts = new ArrayList<MimeBodyPart>();
+			bodyParts = new ArrayList();
 		}
 		bodyParts.add(attachmentBodyPart);
 		return true;
@@ -262,7 +264,7 @@ public class SendMail {
 		attachmentBodyPart.setDisposition("attachment");
 		attachmentBodyPart.setFileName(attachmentFileName);
 		if (bodyParts == null) {
-			bodyParts = new ArrayList<MimeBodyPart>();
+			bodyParts = new ArrayList();
 		}
 		bodyParts.add(attachmentBodyPart);
 		return true;

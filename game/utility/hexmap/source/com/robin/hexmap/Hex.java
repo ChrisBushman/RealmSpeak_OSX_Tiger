@@ -39,7 +39,7 @@ public class Hex {
 	private int cwTurns = 0;
 	private Color idColor = Color.white;
 	
-	private ArrayList<String> keywords;
+	private ArrayList keywords;
 	
 	public Hex(String id,String name) {
 		this(id,name,false);
@@ -51,7 +51,7 @@ public class Hex {
 		this.icon = ImageCache.getIcon(name);
 		this.suppressID = suppressID;
 		this.label = null;
-		keywords = new ArrayList<String>();
+		keywords = new ArrayList();
 		resetWalls();
 	}
 	private static long _newHexId() {
@@ -95,7 +95,7 @@ public class Hex {
 	public boolean hasKeyword(String val) {
 		String check = val.toUpperCase();
 		for (int i=0;i<keywords.size();i++) {
-			String keyword = keywords.get(i);
+			String keyword = (String) keywords.get(i);
 			if (keyword.equals(check)) {
 				return true;
 			}
@@ -105,7 +105,7 @@ public class Hex {
 	public boolean hasKeywordStartWith(String val) {
 		String check = val.toUpperCase();
 		for (int i=0;i<keywords.size();i++) {
-			String keyword = keywords.get(i);
+			String keyword = (String) keywords.get(i);
 			if (keyword.toUpperCase().startsWith(check)) {
 				return true;
 			}
@@ -115,7 +115,7 @@ public class Hex {
 	public boolean hasKeywordContains(String val) {
 		String check = val.toUpperCase();
 		for (int i=0;i<keywords.size();i++) {
-			String keyword = keywords.get(i);
+			String keyword = (String) keywords.get(i);
 			if (keyword.toUpperCase().indexOf(check)>=0) {
 				return true;
 			}
@@ -141,7 +141,7 @@ public class Hex {
 	 * would indicate no walls.
 	 */
 	public int[] getWallPositions() {
-		ArrayList<Integer> walls = new ArrayList<Integer>();
+		ArrayList walls = new ArrayList();
 		
 		for (int i=0;i<wallPosition.length;i++) {
 			if (wallPosition[i]==true) {
@@ -151,7 +151,7 @@ public class Hex {
 		
 		int[] ret = new int[walls.size()];
 		for (int i=0;i<ret.length;i++) {
-			Integer index = walls.get(i);
+			Integer index = (Integer) walls.get(i);
 			ret[i] = index.intValue();
 		}
 		return ret;

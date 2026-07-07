@@ -5,7 +5,7 @@ import com.robin.game.objects.GameObjectChange;
 
 public class RequestObject {
 	private Object obj;
-	private ArrayList<GameObjectChange> list;
+	private ArrayList list;
 	private int request;
 	public RequestObject(int val) {
 		request = val;
@@ -22,10 +22,10 @@ public class RequestObject {
 		obj = o;
 		list = null;
 	}
-	public RequestObject(int val,ArrayList<GameObjectChange> l) {
+	public RequestObject(int val,ArrayList l) {
 		request = val;
 		obj = null;
-		list = new ArrayList<GameObjectChange>();
+		list = new ArrayList();
 		if (l!=null) {
 			list.addAll(l);
 		}

@@ -16,8 +16,8 @@ import com.robin.magic_realm.components.utility.Constants;
 public class CharacterRelationshipPanel extends CharacterFramePanel {
 
 	protected RelationshipTable relationshipTable;
-	protected Hashtable<String, JCheckBox> charIdBoxHash; // id:JCheckBox hash for characters
-	protected Hashtable<String, GameObject> charNameObjectHash; // name:GameObject hash for characters
+	protected Hashtable charIdBoxHash; // id:JCheckBox hash for characters
+	protected Hashtable charNameObjectHash; // name:GameObject hash for characters
 	
 	public CharacterRelationshipPanel(CharacterFrame parent) {
 		super(parent);
@@ -38,12 +38,14 @@ public class CharacterRelationshipPanel extends CharacterFramePanel {
 		add(sp);
 		
 		// one checkbox for every character
-		charIdBoxHash = new Hashtable<String, JCheckBox>();
-		charNameObjectHash = new Hashtable<String, GameObject>();
+		charIdBoxHash = new Hashtable();
+		charNameObjectHash = new Hashtable();
 		GamePool pool = getGameHandler().getGamePool();
-		ArrayList<GameObject> allChars = pool.find("character");
-		Collections.sort(allChars,new Comparator<GameObject>() {
-			public int compare(GameObject go1,GameObject go2) {
+		ArrayList allChars = pool.find("character");
+		Collections.sort(allChars,new Comparator() {
+			public int compare(Object obj1,Object obj2) {
+				GameObject go1 = (GameObject) obj1;
+				GameObject go2 = (GameObject) obj2;
 				return go1.getName().compareTo(go2.getName());
 			}
 		});
@@ -59,7 +61,8 @@ public class CharacterRelationshipPanel extends CharacterFramePanel {
 		JButton noneButton = new JButton("none");
 		noneButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				for (GameObject otherCharacter : charNameObjectHash.values()) {
+				for (java.util.Iterator _j14it989 = (charNameObjectHash.values()).iterator(); _j14it989.hasNext(); ) {
+				  GameObject otherCharacter = (GameObject) _j14it989.next();
 					if(!otherCharacter.equals(getCharacter().getGameObject())) {
 						getCharacter().setEnemyCharacter(otherCharacter,false);
 					}
@@ -71,7 +74,8 @@ public class CharacterRelationshipPanel extends CharacterFramePanel {
 		JButton allButton = new JButton("all");
 		allButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
-				for (GameObject otherCharacter : charNameObjectHash.values()) {
+				for (java.util.Iterator _j14it990 = (charNameObjectHash.values()).iterator(); _j14it990.hasNext(); ) {
+				  GameObject otherCharacter = (GameObject) _j14it990.next();
 					if(!otherCharacter.equals(getCharacter().getGameObject())) {
 						getCharacter().setEnemyCharacter(otherCharacter,true);
 					}
@@ -80,7 +84,8 @@ public class CharacterRelationshipPanel extends CharacterFramePanel {
 			}
 		});
 		enemyPanel.add(allButton);
-		for (GameObject aChar : allChars) {
+		for (java.util.Iterator _j14it991 = (allChars).iterator(); _j14it991.hasNext(); ) {
+		  GameObject aChar = (GameObject) _j14it991.next();
 			if (!aChar.equals(getCharacter().getGameObject())) { // no checkbox option for self
 				if (aChar.hasThisAttribute(Constants.CUSTOM_CHARACTER) && !customCharacters) {
 					continue;
@@ -92,7 +97,7 @@ public class CharacterRelationshipPanel extends CharacterFramePanel {
 					public void actionPerformed(ActionEvent ev) {
 						JCheckBox thisCb = (JCheckBox)ev.getSource();
 						boolean enemy = thisCb.isSelected();
-						GameObject theChar = charNameObjectHash.get(thisCb.getText());
+						GameObject theChar = (GameObject) charNameObjectHash.get(thisCb.getText());
 						getCharacter().setEnemyCharacter(theChar,enemy);
 					}
 				});
@@ -106,8 +111,9 @@ public class CharacterRelationshipPanel extends CharacterFramePanel {
 		add(sp);
 	}
 	public void updatePanel() {
-		for (GameObject aChar : charNameObjectHash.values()) {
-			JCheckBox cb = charIdBoxHash.get(aChar.getStringId());
+		for (java.util.Iterator _j14it992 = (charNameObjectHash.values()).iterator(); _j14it992.hasNext(); ) {
+		  GameObject aChar = (GameObject) _j14it992.next();
+			JCheckBox cb = (JCheckBox) charIdBoxHash.get(aChar.getStringId());
 			cb.setSelected(getCharacter().isEnemy(aChar));
 		}
 		relationshipTable.fireTableDataChanged();

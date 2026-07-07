@@ -40,9 +40,9 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	protected boolean updatingList = false;
 	protected JTable characterTable;
 	protected CharacterTableModel characterTableModel;
-	protected ArrayList<CharacterWrapper> characterList;
-	protected Hashtable<String, CharacterFrame> characterFrames;
-	protected ArrayList<String> characterFrameOrder;
+	protected ArrayList characterList;
+	protected Hashtable characterFrames;
+	protected ArrayList characterFrameOrder;
 
 	protected JLabel connectionStatus;
 	protected GameClient client;
@@ -84,7 +84,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	protected GameWrapper game;
 	protected TreasureSetupCardView[] treasureSetupCardView;
 
-	protected ArrayList<String[]> relationshipNames = null;
+	protected ArrayList relationshipNames = null;
 
 	protected CharacterTradeFrame characterTradeFrame = null;
 
@@ -94,7 +94,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	protected String lastWeather = null;
 	private String clientPlayerPass;
 	private String clientEmail;
-	private ArrayList<String> playerWarned = new ArrayList<String>();
+	private ArrayList playerWarned = new ArrayList();
 	private boolean addCharacterButtonEnabled = true;
 
 	// Update listener
@@ -133,7 +133,8 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	}
 
 	public void removeAllCharacterFrames() {
-		for (CharacterFrame frame : characterFrames.values()) {
+		for (java.util.Iterator _j14it1038 = (characterFrames.values()).iterator(); _j14it1038.hasNext(); ) {
+		  CharacterFrame frame = (CharacterFrame) _j14it1038.next();
 			parent.removeFrameFromDesktop(frame);
 		}
 		characterFrames.clear();
@@ -146,9 +147,9 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		setSize(500, 400);
 		setLocation(200, 100);
 		setContentPane(new JPanel(new BorderLayout()));
-		characterList = new ArrayList<CharacterWrapper>();
-		characterFrames = new Hashtable<String, CharacterFrame>();
-		characterFrameOrder = new ArrayList<String>();
+		characterList = new ArrayList();
+		characterFrames = new Hashtable();
+		characterFrameOrder = new ArrayList();
 		characterTableModel = new CharacterTableModel();
 		characterTable = new JTable(characterTableModel);
 		characterTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -163,7 +164,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 				CharacterWrapper character = getSelectedCharacter();
 				if (character != null && !character.isDead()) {
 					String id = character.getGameObject().getStringId();
-					CharacterFrame frame = characterFrames.get(id);
+					CharacterFrame frame = (CharacterFrame) characterFrames.get(id);
 					if (frame != null) {
 						frame.toFront();
 						if (isOption(RealmSpeakOptions.MAP_CENTER_ON_CHARACTER)) {
@@ -420,15 +421,17 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		CharacterWrapper character = getSelectedCharacter();
 		RealmComponent rc = RealmComponent.getRealmComponent(character.getGameObject());
 		if (character != null && character.isActive()) {
-			ArrayList<String> playerNames = new ArrayList<String>();
+			ArrayList playerNames = new ArrayList();
 			playerNames.add(client.getClientName());
-			for (String name : getMainFrame().getAllServerNames()) {
+			for (java.util.Iterator _j14it1039 = (getMainFrame().getAllServerNames()).iterator(); _j14it1039.hasNext(); ) {
+			  String name = (String) _j14it1039.next();
 				if (!playerNames.contains(name)) {
 					playerNames.add(name);
 				}
 			}
 			GamePool pool = new GamePool(client.getGameData().getGameObjects());
-			for (GameObject go : pool.find("character," + CharacterWrapper.NAME_KEY)) {
+			for (java.util.Iterator _j14it1040 = (pool.find("character," + CharacterWrapper.NAME_KEY)).iterator(); _j14it1040.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it1040.next();
 				CharacterWrapper guy = new CharacterWrapper(go);
 				if (!playerNames.contains(guy.getPlayerName())) {
 					playerNames.add(guy.getPlayerName());
@@ -437,13 +440,13 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 			ButtonOptionDialog dialog = new ButtonOptionDialog(getMainFrame(), rc.getIcon(), "Transfer to which player?", "Transfer Character");
 			dialog.addSelectionObjects(playerNames);
-			dialog.addSelectionObject(new StringBuilder("Other Player"));
+			dialog.addSelectionObject(new StringBuffer("Other Player"));
 			dialog.setVisible(true);
 
 			String newPlayerName = null;
 			Object obj = dialog.getSelectedObject();
 			if (obj != null) {
-				if (obj instanceof StringBuilder) {
+				if (obj instanceof StringBuffer) {
 					newPlayerName = JOptionPane.showInputDialog(getMainFrame(), "Transfer to which player? (case-sensitive)");
 				}
 				else {
@@ -455,7 +458,8 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 				doCharacterTransfer(character, newPlayerName);
 
 				String id = character.getGameObject().getStringId();
-				for (GameObject go : pool.find("owner_id=" + id)) {
+				for (java.util.Iterator _j14it1041 = (pool.find("owner_id=" + id)).iterator(); _j14it1041.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it1041.next();
 					if (go.getStringId().equals(id))
 						continue;
 					if (go.hasAttributeBlock(CharacterWrapper.PLAYER_BLOCK)) {
@@ -476,7 +480,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		character.setPlayerEmail("");
 
 		// Remove frame
-		CharacterFrame frame = characterFrames.get(character.getGameObject().getStringId());
+		CharacterFrame frame = (CharacterFrame) characterFrames.get(character.getGameObject().getStringId());
 		if (frame != null) {
 			characterTable.clearSelection();
 			String id = character.getGameObject().getStringId();
@@ -527,22 +531,25 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 		// Penalize any mission/campaign chit carriers
 		GamePool pool = new GamePool(getClient().getGameData().getGameObjects());
-		ArrayList<GameObject> gs = pool.find(RealmComponent.GOLD_SPECIAL);
-		for (GameObject go : gs) {
+		ArrayList gs = pool.find(RealmComponent.GOLD_SPECIAL);
+		for (java.util.Iterator _j14it1042 = (gs).iterator(); _j14it1042.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1042.next();
 			GoldSpecialChitComponent chit = (GoldSpecialChitComponent) RealmComponent.getRealmComponent(go);
 			if (chit.stillInPlay()) {
 				// Set it to one day, so that the next midnight will cause it to expire
 				chit.getGameObject().setThisAttribute("daysLeft", 1);
 			}
 		}
-		ArrayList<GameObject> characters = pool.find(CharacterWrapper.NAME_KEY);
-		for (GameObject character : characters) {
+		ArrayList characters = pool.find(CharacterWrapper.NAME_KEY);
+		for (java.util.Iterator _j14it1043 = (characters).iterator(); _j14it1043.hasNext(); ) {
+		  GameObject character = (GameObject) _j14it1043.next();
 			CharacterWrapper ch = new CharacterWrapper(character);
 			ch.setGameOver(true);
 			
 			if (hostPrefs.hasPref(Constants.SR_END_GAME_SCORING)) {
 				boolean meltIntoMistAvailable = false;
-				for (SpellSet spellSet : ch.getPotentialCastableSpellSets()) {
+				for (java.util.Iterator _j14it1044 = (ch.getPotentialCastableSpellSets()).iterator(); _j14it1044.hasNext(); ) {
+				  SpellSet spellSet = (SpellSet) _j14it1044.next();
 					if (spellSet.getSpell().getName().toLowerCase().matches("melt into mist")) {
 						meltIntoMistAvailable = true;
 						break;
@@ -550,14 +557,16 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 				}
 				if (!meltIntoMistAvailable) {
 					Speed slowestSpeed = new Speed();
-					for (CharacterActionChitComponent chit : ch.getAllChits()) {
+					for (java.util.Iterator _j14it1045 = (ch.getAllChits()).iterator(); _j14it1045.hasNext(); ) {
+					  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it1045.next();
 						chit.makeActive();
 						if ((chit.isMove() || chit.isFight()) && slowestSpeed.fasterThan(chit.getSpeed())) {
 							slowestSpeed = chit.getSpeed();
 						}
 					}
 					Strength unleashPowerStrength = null;
-					for (SpellSet spellSet : ch.getCastableSpellSets()) {
+					for (java.util.Iterator _j14it1046 = (ch.getCastableSpellSets()).iterator(); _j14it1046.hasNext(); ) {
+					  SpellSet spellSet = (SpellSet) _j14it1046.next();
 						if (spellSet.getSpell().hasThisAttribute("action_change")) {
 							unleashPowerStrength = new Strength(spellSet.getSpell().getThisAttribute(slowestSpeed.toString()));
 							break;
@@ -569,7 +578,8 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 						moveStrength = unleashPowerStrength;
 					}
 					TileLocation loc = ch.getCurrentLocation();
-					for (GameObject item : ch.getInventory()) {
+					for (java.util.Iterator _j14it1047 = (ch.getInventory()).iterator(); _j14it1047.hasNext(); ) {
+					  GameObject item = (GameObject) _j14it1047.next();
 						if (RealmComponent.getRealmComponent(item).getWeight().strongerThan(moveStrength)) {
 							if (loc.clearing!=null) {
 								loc.clearing.add(item, ch);
@@ -628,7 +638,8 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			game.setState(GameWrapper.GAME_STATE_RECORDING);
 			
 			// Return all characters to playing
-			for (GameObject go : data.getGameObjects()) {
+			for (java.util.Iterator _j14it1048 = (data.getGameObjects()).iterator(); _j14it1048.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it1048.next();
 				if (go.hasAttributeBlock(CharacterWrapper.PLAYER_BLOCK)) { // was in the game at some point
 					CharacterWrapper character = new CharacterWrapper(go);
 					if (character.isActive()) {
@@ -660,7 +671,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	}
 
 	private void startGoldSpecialPlacement() {
-		ArrayList<CharacterWrapper> chars = new ArrayList<CharacterWrapper>(characterList);
+		ArrayList chars = new ArrayList(characterList);
 		if (chars.isEmpty()) {
 			randomGoldSpecialPlacement();
 			startGame();
@@ -676,14 +687,14 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		// Place the 6 gold specials randomly
 		GameData data = client.getGameData();
 		RealmObjectMaster rom = RealmObjectMaster.getRealmObjectMaster(data);
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add("!" + Constants.GOLD_SPECIAL_PLACED);
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
 		if (hostPrefs.hasPref(Constants.HOUSE2_IGNORE_CAMPAIGNS)) {
 			query.add("!campaign");
 		}
-		ArrayList<GameObject> gs = new ArrayList<GameObject>(rom.findObjects("gold_special", query));
-		ArrayList<GameObject> gt = new ArrayList<GameObject>(rom.findObjects("gold_special_target", query));
+		ArrayList gs = new ArrayList(rom.findObjects("gold_special", query));
+		ArrayList gt = new ArrayList(rom.findObjects("gold_special_target", query));
 		GameObject[] chit = new GameObject[2];
 		if (gs.isEmpty()) {
 			broadcast("host", "No Visitor/Mission/Campaign chits to place.");
@@ -692,7 +703,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		while (SetupCardUtility.stillChitsToPlace(hostPrefs)) {
 			int r = RandomNumber.getRandom(gs.size());
 			int s = hostPrefs.hasPref(Constants.HOUSE2_NO_MISSION_VISITOR_FLIPSIDE)||hostPrefs.usesSuperRealm() ? 0 : RandomNumber.getRandom(2);
-			chit[0] = gs.remove(r);
+			chit[0] = (GameObject) gs.remove(r);
 			if (!hostPrefs.usesSuperRealm()) {
 				chit[1] = chit[0].getGameObjectFromThisAttribute("pairid");
 			}
@@ -701,7 +712,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			}
 
 			int t = RandomNumber.getRandom(gt.size());
-			GameObject target = gt.remove(t);
+			GameObject target = (GameObject) gt.remove(t);
 			target.add(chit[s]);
 			chit[s].setThisAttribute(Constants.GOLD_SPECIAL_PLACED);
 			if (!hostPrefs.hasPref(Constants.HOUSE2_NO_MISSION_VISITOR_FLIPSIDE)&&!hostPrefs.usesSuperRealm()) {
@@ -714,9 +725,10 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		}
 
 		// Need to also guarantee that no characters have the place visitor button
-		ArrayList<CharacterWrapper> chars = new ArrayList<CharacterWrapper>(characterList);
+		ArrayList chars = new ArrayList(characterList);
 		if (!chars.isEmpty()) {
-			for (CharacterWrapper c : chars) {
+			for (java.util.Iterator _j14it1049 = (chars).iterator(); _j14it1049.hasNext(); ) {
+			  CharacterWrapper c = (CharacterWrapper) _j14it1049.next();
 				if (c.isCharacter()) {
 					c.setNeedsChooseGoldSpecial(false);
 				}
@@ -725,18 +737,21 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	}
 
 	public void incrementCharacterToPlace() {
-		ArrayList<CharacterWrapper> chars = new ArrayList<CharacterWrapper>(characterList);
+		ArrayList chars = new ArrayList(characterList);
 		if (!chars.isEmpty()) {
 			// Sort by join order
-			Collections.sort(chars, new Comparator<CharacterWrapper>() {
-				public int compare(CharacterWrapper c1, CharacterWrapper c2) {
+			Collections.sort(chars, new Comparator() {
+				public int compare(Object obj1, Object obj2) {
+					CharacterWrapper c1 = (CharacterWrapper) obj1;
+					CharacterWrapper c2 = (CharacterWrapper) obj2;
 					int ret = c1.getCharacterJoinOrder() - c2.getCharacterJoinOrder();
 					return ret;
 				}
 			});
 			boolean incremented = false;
 			boolean selectNext = false;
-			for (CharacterWrapper c : chars) {
+			for (java.util.Iterator _j14it1050 = (chars).iterator(); _j14it1050.hasNext(); ) {
+			  CharacterWrapper c = (CharacterWrapper) _j14it1050.next();
 				if (c.isCharacter()) {
 					if (selectNext) {
 						incremented = true;
@@ -754,7 +769,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			}
 			if (!incremented) {
 				incremented = true;
-				CharacterWrapper first = chars.iterator().next();
+				CharacterWrapper first = (CharacterWrapper) chars.iterator().next();
 				first.setNeedsChooseGoldSpecial(true);
 			}
 			submitChanges();
@@ -764,7 +779,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 	public void startMapBuilding() {
 		// Find all players
-		ArrayList<String> playerNames = parent.realmHostFrame.getPlayerNames();
+		ArrayList playerNames = parent.realmHostFrame.getPlayerNames();
 
 		if (playerNames.size() > 0) {
 			// Randomize playerNames here
@@ -772,12 +787,12 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 			// If more than one player, then assign tiles randomly to each player
 			// Find player with borderland, and activate (how?) for placing tiles
-			ArrayList<GameObject> tileObjects = new ArrayList<GameObject>(RealmObjectMaster.getRealmObjectMaster(client.getGameData()).getTileObjects());
+			ArrayList tileObjects = new ArrayList(RealmObjectMaster.getRealmObjectMaster(client.getGameData()).getTileObjects());
 			int nameIndex = 0;
-			String playerName = playerNames.get(nameIndex);
+			String playerName = (String) playerNames.get(nameIndex);
 			while (!tileObjects.isEmpty()) {
 				int r = RandomNumber.getRandom(tileObjects.size());
-				GameObject tile = tileObjects.remove(r);
+				GameObject tile = (GameObject) tileObjects.remove(r);
 
 				// Just in case this is a "remake"
 				tile.removeAttribute("mapGrid", "mapPosition");
@@ -788,14 +803,14 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 				}
 				tile.setThisAttribute(Constants.PLAYER_TO_PLACE, playerName);
 				nameIndex = (nameIndex + 1) % playerNames.size();
-				playerName = playerNames.get(nameIndex);
+				playerName = (String) playerNames.get(nameIndex);
 				tile.setThisAttribute(Constants.PLAYER_TO_PLACE_NEXT, playerName);
 			}
 		}
 		else {
 			// If a single player, assign no tiles, and activate.
 			// An active player with no tiles, but tiles left to place, will get a random tile.
-			game.setGameMapBuilder(playerNames.iterator().next());
+			game.setGameMapBuilder((String) playerNames.iterator().next());
 		}
 
 		submitChanges();
@@ -806,19 +821,19 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		game.setPlaceGoldSpecials(false);
 		game.setGameStarted(true);
 		if (hostPrefs.hasPref(Constants.OPT_SUSPICIOUS_CHARACTERS)) {
-			ArrayList<GameObject> allChars = RealmUtility.getLivingCharacters(client.getGameData());
+			ArrayList allChars = RealmUtility.getLivingCharacters(client.getGameData());
 			for (int i = 0; i < allChars.size(); i++) {
-				CharacterWrapper cw1 = new CharacterWrapper(allChars.get(i));
+				CharacterWrapper cw1 = new CharacterWrapper((GameObject) allChars.get(i));
 				if (cw1.isMinion()) continue;
 				cw1.setBlocking(true);
 				cw1.setKeepBlocking(true);
 				cw1.setWantsCombat(true);
 				cw1.setWantsDayEndTrades(true);
 				for (int j = i + 1; j < allChars.size(); j++) {
-					CharacterWrapper cw2 = new CharacterWrapper(allChars.get(j));
+					CharacterWrapper cw2 = new CharacterWrapper((GameObject) allChars.get(j));
 					if (cw2.isMinion()) continue;
-					cw1.setEnemyCharacter(allChars.get(j), true);
-					cw2.setEnemyCharacter(allChars.get(i), true);
+					cw1.setEnemyCharacter((GameObject) allChars.get(j), true);
+					cw2.setEnemyCharacter((GameObject) allChars.get(i), true);
 				}
 			}
 		}
@@ -887,12 +902,12 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 	public CharacterTradeFrame createCharacterTradeFrame(CharacterWrapper active, CharacterWrapper include) {
 		if (characterTradeFrame == null) {
-			CharacterFrame activeCharFrame = characterFrames.get(active.getGameObject().getStringId());
+			CharacterFrame activeCharFrame = (CharacterFrame) characterFrames.get(active.getGameObject().getStringId());
 			CharacterInventoryPanel activeInv = null;
 			if (activeCharFrame != null) {
 				activeInv = activeCharFrame.inventoryPanel;
 			}
-			CharacterFrame includeCharFrame = characterFrames.get(include.getGameObject().getStringId());
+			CharacterFrame includeCharFrame = (CharacterFrame) characterFrames.get(include.getGameObject().getStringId());
 			CharacterInventoryPanel includeInv = null;
 			if (includeCharFrame != null) {
 				includeInv = includeCharFrame.inventoryPanel;
@@ -924,10 +939,10 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		String command = info.getCommand();
 		if (RealmDirectInfoHolder.HOST_DETAIL_LOG.equals(command)) {
 			RealmLogWindow.getSingleton().clearLog();
-			ArrayList<String> list = info.getStrings();
+			ArrayList list = info.getStrings();
 			while (list.size() >= 2) {
-				String key = list.remove(0);
-				String val = list.remove(0);
+				String key = (String) list.remove(0);
+				String val = (String) list.remove(0);
 				RealmLogWindow.getSingleton().addMessage(key, val);
 			}
 		}
@@ -985,7 +1000,8 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			killCharacterTradeFrame();
 		}
 		else if (RealmDirectInfoHolder.SPELL_AFFECT_TARGETS.equals(command)) {
-			for (GameObject spellObject : info.getGameObjects()) {
+			for (java.util.Iterator _j14it1051 = (info.getGameObjects()).iterator(); _j14it1051.hasNext(); ) {
+			  GameObject spellObject = (GameObject) _j14it1051.next();
 				SpellWrapper spell = new SpellWrapper(spellObject);
 				spell.affectTargets(CombatFrame.getSingleton(), game, false, null);
 			}
@@ -998,7 +1014,8 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			// does not stall the GameClient thread and cause the server to time out
 			SwingUtilities.invokeLater(new Runnable() { public void run() {
 				boolean teleported = false;
-				for (GameObject spellObject : info.getGameObjects()) {
+				for (java.util.Iterator _j14it1052 = (info.getGameObjects()).iterator(); _j14it1052.hasNext(); ) {
+				  GameObject spellObject = (GameObject) _j14it1052.next();
 					SpellWrapper spell = new SpellWrapper(spellObject);
 					TileLocation before = spell.getCurrentLocation();
 					spell.affectTargets(CombatFrame.getSingleton(), game, true, null); // this is STILL happening in a thread...
@@ -1160,7 +1177,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		sew.addSummaryEvent(message);
 	}
 
-	public ArrayList<String> getNotes() {
+	public ArrayList getNotes() {
 		SummaryEventWrapper sew = SummaryEventWrapper.getSummaryEventWrapper(client.getGameData());
 		return sew.getSummaryEvents();
 	}
@@ -1298,11 +1315,12 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 				// Load host prefs
 				hostPrefs = HostPrefWrapper.findHostPrefs(client.getGameData());
-				ArrayList<String> missing = CustomCharacterLibrary.getSingleton().getMissingCharacterNames(hostPrefs.getAllCharacterKeys());
+				ArrayList missing = CustomCharacterLibrary.getSingleton().getMissingCharacterNames(hostPrefs.getAllCharacterKeys());
 				if (missing.size() > 0 && !DebugUtility.isIgnoreChars()) {
 					StringBuffer sb = new StringBuffer();
 					sb.append("You are missing custom characters.  Contact the host, and get files for:");
-					for (String name : missing) {
+					for (java.util.Iterator _j14it1053 = (missing).iterator(); _j14it1053.hasNext(); ) {
+					  String name = (String) _j14it1053.next();
 						sb.append("\n   ");
 						sb.append(name);
 					}
@@ -1356,10 +1374,11 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 				}
 				
 				if (hostPrefs.hasPref(Constants.SR_EVENTS)) {
-					ArrayList<IEvent> events = RealmEvents.getCurrentEvents(getClient().getGameData());
+					ArrayList events = RealmEvents.getCurrentEvents(getClient().getGameData());
 					if (events!=null && !events.isEmpty()) {
 						inspector.getMap().clearMapAttentionMessage2();
-						for (IEvent event : events) {
+						for (java.util.Iterator _j14it1054 = (events).iterator(); _j14it1054.hasNext(); ) {
+						  IEvent event = (IEvent) _j14it1054.next();
 							inspector.getMap().addMapAttentionMessage2(event.getTitle());
 							inspector.getMap().addMapAttentionMessage2(event.getDescription(getClient().getGameData()));
 						}
@@ -1379,8 +1398,8 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	private CharacterFrame getTopmostFrame() {
 		if (characterFrameOrder.size() > 0) {
 			try {
-				String topmostId = characterFrameOrder.get(0);
-				return characterFrames.get(topmostId);
+				String topmostId = (String) characterFrameOrder.get(0);
+				return (CharacterFrame) characterFrames.get(topmostId);
 			}
 			catch (IndexOutOfBoundsException ex) {
 				// Ignore this exception
@@ -1430,11 +1449,12 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		}
 	}
 
-	public ArrayList<String[]> getRelationshipNames() {
+	public ArrayList getRelationshipNames() {
 		if (relationshipNames == null) {
 			GamePool pool = getGamePool();
-			relationshipNames = new ArrayList<String[]>();
-			for (GameObject nativeLeader : pool.find("native,rank=HQ")) {
+			relationshipNames = new ArrayList();
+			for (java.util.Iterator _j14it1055 = (pool.find("native,rank=HQ")).iterator(); _j14it1055.hasNext(); ) {
+			  GameObject nativeLeader = (GameObject) _j14it1055.next();
 				String nativeName = nativeLeader.getThisAttribute("native");
 				String relBlock = RealmUtility.getRelationshipBlockFor(nativeLeader);
 				String[] ret = new String[3];
@@ -1445,7 +1465,8 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 				}
 				relationshipNames.add(ret);
 			}
-			for (GameObject visitor : pool.find(Constants.VISITOR)) {
+			for (java.util.Iterator _j14it1056 = (pool.find(Constants.VISITOR)).iterator(); _j14it1056.hasNext(); ) {
+			  GameObject visitor = (GameObject) _j14it1056.next();
 				String visitorName = visitor.getThisAttribute(Constants.VISITOR);
 				String relBlock = RealmUtility.getRelationshipBlockFor(visitor);
 				String[] ret = new String[3];
@@ -1456,7 +1477,8 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 				}
 				relationshipNames.add(ret);
 			}
-			for (GameObject guild : pool.find(Constants.GUILD)) {
+			for (java.util.Iterator _j14it1057 = (pool.find(Constants.GUILD)).iterator(); _j14it1057.hasNext(); ) {
+			  GameObject guild = (GameObject) _j14it1057.next();
 				String guildNmae = guild.getThisAttribute(Constants.GUILD);
 				String relBlock = RealmUtility.getRelationshipBlockFor(guild);
 				String[] ret = new String[4];
@@ -1466,8 +1488,10 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 				ret[3] = Constants.GUILD;
 				relationshipNames.add(ret);
 			}
-			Collections.sort(relationshipNames, new Comparator<String[]>() {
-				public int compare(String[] o1, String[] o2) {
+			Collections.sort(relationshipNames, new Comparator() {
+				public int compare(Object obj1, Object obj2) {
+					String[] o1 = (String[]) obj1;
+					String[] o2 = (String[]) obj2;
 					int ret = o1[0].compareTo(o2[0]);
 					if (ret == 0) {
 						ret = o1[1].compareTo(o2[1]);
@@ -1492,7 +1516,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	 * objects for the current game
 	 */
 	public GamePool getGamePool() {
-		ArrayList<String> keyVals = new ArrayList<String>();
+		ArrayList keyVals = new ArrayList();
 		if (hostPrefs == null) { // this only happens when running the character
 									// frame standalone
 			hostPrefs = HostPrefWrapper.findHostPrefs(client.getGameData());
@@ -1573,9 +1597,11 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		logger.fine("Done");
 
 		GamePool pool = getGamePool();
-		ArrayList<GameObject> characters = pool.find("character,!" + CharacterWrapper.NAME_KEY);
-		Collections.sort(characters, new Comparator<GameObject>() {
-			public int compare(GameObject go1, GameObject go2) {
+		ArrayList characters = pool.find("character,!" + CharacterWrapper.NAME_KEY);
+		Collections.sort(characters, new Comparator() {
+			public int compare(Object obj1, Object obj2) {
+				GameObject go1 = (GameObject) obj1;
+				GameObject go2 = (GameObject) obj2;
 				return go1.getName().compareTo(go2.getName());
 			}
 		});
@@ -1652,7 +1678,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 					character.initChits();
 					// Allow player to pick bonus chits
 					for (int i = 0; i < bonusChits; i++) {
-						ArrayList<CharacterActionChitComponent> list = character.getAdvancementChits();
+						ArrayList list = character.getAdvancementChits();
 						if (!list.isEmpty()) {
 							RealmComponentOptionChooser chitChooser = new RealmComponentOptionChooser(getMainFrame(), "Choose a Bonus Chit", true);
 							chitChooser.addRealmComponents(list, false);
@@ -1675,7 +1701,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 					// 1) Find the dwelling or ghost gameObject
 					if (!hostPrefs.hasPref(Constants.EXP_NO_DWELLING_START)) {
 						String starting = dialog.getChosenStartName().toLowerCase();
-						ArrayList<String> dwellingKeyVals = new ArrayList<String>();
+						ArrayList dwellingKeyVals = new ArrayList();
 						if (starting.equals("ghost")) {
 							dwellingKeyVals.add("monster");
 							dwellingKeyVals.add("ghost");
@@ -1692,9 +1718,9 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 								dwellingKeyVals.add("!" + Constants.BOARD_NUMBER);
 							}
 						}
-						Collection<GameObject> startingChits = pool.find(dwellingKeyVals);
+						Collection startingChits = pool.find(dwellingKeyVals);
 						if (startingChits != null && !startingChits.isEmpty()) {
-							GameObject startingChit = startingChits.iterator().next();
+							GameObject startingChit = (GameObject) startingChits.iterator().next();
 							// 2) Get the heldBy (tile)
 							GameObject tile = startingChit.getHeldBy();
 
@@ -1763,8 +1789,9 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 						character.setKeepBlocking(true);
 						character.setWantsCombat(true);
 						character.setWantsDayEndTrades(true);
-						ArrayList<GameObject> livingCharacters = RealmUtility.getLivingCharacters(client.getGameData());
-						for (GameObject existing : livingCharacters) {
+						ArrayList livingCharacters = RealmUtility.getLivingCharacters(client.getGameData());
+						for (java.util.Iterator _j14it1058 = (livingCharacters).iterator(); _j14it1058.hasNext(); ) {
+						  GameObject existing = (GameObject) _j14it1058.next();
 							if (!existing.equals(character.getGameObject())) {
 								CharacterWrapper existingWrapper = new CharacterWrapper(existing);
 								if (existingWrapper.isMinion()) continue;
@@ -1810,12 +1837,14 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	protected void doPickTreasure(CharacterWrapper character) {
 		// Find all native leaders that have treasure cards
 		GamePool pool = getGamePool();
-		ArrayList<GameObject> leaders = pool.find("rank=HQ");
-		Hashtable<GameObject, ArrayList<GameObject>> hash = new Hashtable<GameObject, ArrayList<GameObject>>();
-		for (GameObject leader : leaders) {
+		ArrayList leaders = pool.find("rank=HQ");
+		Hashtable hash = new Hashtable();
+		for (java.util.Iterator _j14it1059 = (leaders).iterator(); _j14it1059.hasNext(); ) {
+		  GameObject leader = (GameObject) _j14it1059.next();
 			GameObject dwelling = SetupCardUtility.getDenizenHolder(leader);
-			ArrayList<GameObject> treasures = new ArrayList<GameObject>();
-			for (GameObject item : dwelling.getHold()) {
+			ArrayList treasures = new ArrayList();
+			for (java.util.Iterator _j14it1060 = (dwelling.getHold()).iterator(); _j14it1060.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it1060.next();
 				if (item.hasThisAttribute("treasure")) {
 					treasures.add(item);
 				}
@@ -1827,17 +1856,18 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 		if (!hash.isEmpty()) {
 			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(getMainFrame(), "Level Bonus - Select a native group:", false);
-			for (GameObject leader : hash.keySet()) {
-				ArrayList<GameObject> treasures = hash.get(leader);
+			for (java.util.Iterator _j14it1061 = (hash.keySet()).iterator(); _j14it1061.hasNext(); ) {
+			  GameObject leader = (GameObject) _j14it1061.next();
+				ArrayList treasures = (ArrayList) hash.get(leader);
 				int n = treasures.size();
 				String option = chooser.generateOption(n + " treasure" + (n == 1 ? "" : "s"));
 				chooser.addGameObjectToOption(option, leader);
 			}
 			chooser.setVisible(true);
 			GameObject chosenLeader = chooser.getFirstSelectedComponent().getGameObject();
-			ArrayList<GameObject> treasures = hash.get(chosenLeader);
+			ArrayList treasures = (ArrayList) hash.get(chosenLeader);
 			int r = RandomNumber.getRandom(treasures.size());
-			GameObject randomTreasure = treasures.get(r);
+			GameObject randomTreasure = (GameObject) treasures.get(r);
 			CardComponent card = (CardComponent) RealmComponent.getRealmComponent(randomTreasure);
 			card.setFaceUp();
 			JOptionPane.showMessageDialog(getMainFrame(), "You received the " + randomTreasure.getName(), "Level Bonus", JOptionPane.PLAIN_MESSAGE, card.getIcon());
@@ -1852,11 +1882,13 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	protected void doPickHorse(CharacterWrapper character) {
 		// Find all available horses
 		GamePool pool = getGamePool();
-		ArrayList<GameObject> leaders = pool.find("rank=HQ");
-		ArrayList<GameObject> horses = new ArrayList<GameObject>();
-		for (GameObject leader : leaders) {
+		ArrayList leaders = pool.find("rank=HQ");
+		ArrayList horses = new ArrayList();
+		for (java.util.Iterator _j14it1062 = (leaders).iterator(); _j14it1062.hasNext(); ) {
+		  GameObject leader = (GameObject) _j14it1062.next();
 			GameObject dwelling = SetupCardUtility.getDenizenHolder(leader);
-			for (GameObject item : dwelling.getHold()) {
+			for (java.util.Iterator _j14it1063 = (dwelling.getHold()).iterator(); _j14it1063.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it1063.next();
 				if (item.hasThisAttribute("horse")) {
 					horses.add(item);
 				}
@@ -1901,9 +1933,10 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	protected boolean doPickSpell(CharacterWrapper character) {
 		// Record one extra spell of any type
 		GamePool pool = getGamePool();
-		ArrayList<GameObject> spells = pool.find("spell");
-		ArrayList<GameObject> learnable = new ArrayList<GameObject>();
-		for (GameObject go : spells) {
+		ArrayList spells = pool.find("spell");
+		ArrayList learnable = new ArrayList();
+		for (java.util.Iterator _j14it1064 = (spells).iterator(); _j14it1064.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1064.next();
 			String spellType = go.getThisAttribute("spell");
 			boolean instance = go.hasThisAttribute("Instance");
 			if (!character.hasAlreadyLearned(go) && (spellType != null && spellType.trim().length() > 0 && !spellType.trim().equals("*") && !instance)) {
@@ -1931,11 +1964,13 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	protected boolean doPickCounter(CharacterWrapper character) {
 		// Take one weapon or armor counter from any native group
 		GamePool pool = getGamePool();
-		ArrayList<GameObject> leaders = pool.find("rank=HQ");
-		ArrayList<GameObject> counters = new ArrayList<GameObject>();
-		for (GameObject leader : leaders) {
+		ArrayList leaders = pool.find("rank=HQ");
+		ArrayList counters = new ArrayList();
+		for (java.util.Iterator _j14it1065 = (leaders).iterator(); _j14it1065.hasNext(); ) {
+		  GameObject leader = (GameObject) _j14it1065.next();
 			GameObject dwelling = SetupCardUtility.getDenizenHolder(leader);
-			for (GameObject item : dwelling.getHold()) {
+			for (java.util.Iterator _j14it1066 = (dwelling.getHold()).iterator(); _j14it1066.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it1066.next();
 				if (!item.hasThisAttribute(RealmComponent.TREASURE)) {
 					if (item.hasThisAttribute(RealmComponent.WEAPON) || item.hasThisAttribute(RealmComponent.ARMOR)) {
 						counters.add(item);
@@ -1975,9 +2010,9 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 	private GameWrapper findGame() {
 		GamePool pool = new GamePool(client.getGameData().getGameObjects());
-		Collection<GameObject> mrGameObjects = pool.extract(GameWrapper.getKeyVals());
+		Collection mrGameObjects = pool.extract(GameWrapper.getKeyVals());
 		if (mrGameObjects.size() == 1) {
-			GameObject go = mrGameObjects.iterator().next();
+			GameObject go = (GameObject) mrGameObjects.iterator().next();
 			return new GameWrapper(go);
 		}
 		return null;
@@ -2057,27 +2092,32 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		spellMaster.energizePermanentSpells(getMainFrame(), game);
 
 		GamePool pool = new GamePool(RealmObjectMaster.getRealmObjectMaster(client.getGameData()).getPlayerCharacterObjects());
-		ArrayList<GameObject> characterGameObjects = pool.extract(CharacterWrapper.getKeyVals());
+		ArrayList characterGameObjects = pool.extract(CharacterWrapper.getKeyVals());
 		if (hostPrefs!=null && hostPrefs.hasPref(Constants.HOUSE_CHARACTERLIST_SORTING_BY_PLAY_ORDER)) { 
-			Collections.sort(characterGameObjects,new Comparator<GameObject>() {
-				public int compare(GameObject g1,GameObject g2) {
+			Collections.sort(characterGameObjects,new Comparator() {
+				public int compare(Object obj1,Object obj2) {
+					GameObject g1 = (GameObject) obj1;
+					GameObject g2 = (GameObject) obj2;
 					return new CharacterWrapper(g1).getPlayerOrdering()-new CharacterWrapper(g2).getPlayerOrdering();
 				}
 			});
 		}
 		else {
-			Collections.sort(characterGameObjects,new Comparator<GameObject>() {
-				public int compare(GameObject g1,GameObject g2) {
+			Collections.sort(characterGameObjects,new Comparator() {
+				public int compare(Object obj1,Object obj2) {
+					GameObject g1 = (GameObject) obj1;
+					GameObject g2 = (GameObject) obj2;
 					return g1.getName().compareTo(g2.getName());
 				}
 			});
 		}
-		ArrayList<GameObject> charactersAndMinions = new ArrayList<GameObject>();
-		for (GameObject go : characterGameObjects) {
+		ArrayList charactersAndMinions = new ArrayList();
+		for (java.util.Iterator _j14it1067 = (characterGameObjects).iterator(); _j14it1067.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1067.next();
 			CharacterWrapper character = new CharacterWrapper(go);
 			charactersAndMinions.add(go);
 			if (character.isActive()) {
-				Collection<GameObject> minions = character.getMinions();
+				Collection minions = character.getMinions();
 				if (minions != null) {
 					charactersAndMinions.addAll(minions);
 				}
@@ -2086,13 +2126,14 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		boolean needSubmit = false;
 		characterList.clear();
 		CharacterWrapper interactiveCharacter = null;
-		ArrayList<String> allFound = new ArrayList<String>();
-		for (GameObject go : charactersAndMinions) {
+		ArrayList allFound = new ArrayList();
+		for (java.util.Iterator _j14it1068 = (charactersAndMinions).iterator(); _j14it1068.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1068.next();
 			CharacterWrapper character = new CharacterWrapper(go);
 			characterList.add(character);
 
 			// don't forget to update any active frames! (maybe this is how they could be created...)
-			CharacterFrame frame = characterFrames.get(character.getGameObject().getStringId());
+			CharacterFrame frame = (CharacterFrame) characterFrames.get(character.getGameObject().getStringId());
 			allFound.add(character.getGameObject().getStringId());
 
 			if (frame == null && !character.isDead() && character.getPlayerName().equals(client.getClientName())) {
@@ -2224,11 +2265,12 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			}
 		}
 		// Remove any leftover frames (Phantasms, or Familiar)
-		ArrayList<String> leftover = new ArrayList<String>(characterFrames.keySet());
+		ArrayList leftover = new ArrayList(characterFrames.keySet());
 		leftover.removeAll(allFound);
-		for (String id : leftover) {
+		for (java.util.Iterator _j14it1069 = (leftover).iterator(); _j14it1069.hasNext(); ) {
+		  String id = (String) _j14it1069.next();
 			characterTable.clearSelection();
-			CharacterFrame frame = characterFrames.remove(id);
+			CharacterFrame frame = (CharacterFrame) characterFrames.remove(id);
 			characterFrameOrder.remove(id);
 			parent.removeFrameFromDesktop(frame);
 			frame.getCharacter().clearPlayerAttributes();
@@ -2256,7 +2298,8 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 			// This guarantees all characters have their combat reset when
 			// combat ends
-			for (GameObject go : charactersAndMinions) {
+			for (java.util.Iterator _j14it1070 = (charactersAndMinions).iterator(); _j14it1070.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it1070.next();
 				CharacterWrapper character = new CharacterWrapper(go);
 				if (character.getCombatStatus() > 0) {
 					character.clearCombat();
@@ -2282,7 +2325,8 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	};
 
 	public void showCharacterFrame(CharacterWrapper character) {
-		for (CharacterFrame frame : characterFrames.values()) {
+		for (java.util.Iterator _j14it1071 = (characterFrames.values()).iterator(); _j14it1071.hasNext(); ) {
+		  CharacterFrame frame = (CharacterFrame) _j14it1071.next();
 			CharacterWrapper test = frame.getCharacter();
 			if (test.getGameObject().equals(character.getGameObject())) {
 				frame.toFront();
@@ -2301,7 +2345,8 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	 * Brings the next recording frame to front, if any
 	 */
 	public void showNextRecordFrame() {
-		for (CharacterFrame frame : characterFrames.values()) {
+		for (java.util.Iterator _j14it1072 = (characterFrames.values()).iterator(); _j14it1072.hasNext(); ) {
+		  CharacterFrame frame = (CharacterFrame) _j14it1072.next();
 			CharacterWrapper character = frame.getCharacter();
 			if (character.isDoRecord()) {
 				characterTable.clearSelection();
@@ -2326,7 +2371,8 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	 * A convenient way to update all the player's character frames (like when an item is picked up)
 	 */
 	public void updateCharacterFrames() {
-		for (CharacterFrame frame : characterFrames.values()) {
+		for (java.util.Iterator _j14it1073 = (characterFrames.values()).iterator(); _j14it1073.hasNext(); ) {
+		  CharacterFrame frame = (CharacterFrame) _j14it1073.next();
 			if (frame.getCharacter().isActive()) {
 				frame.updateCharacter();
 			}
@@ -2335,7 +2381,8 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	}
 	
 	public void updateCharacterFramesWithoutMap() {
-		for (CharacterFrame frame : characterFrames.values()) {
+		for (java.util.Iterator _j14it1074 = (characterFrames.values()).iterator(); _j14it1074.hasNext(); ) {
+		  CharacterFrame frame = (CharacterFrame) _j14it1074.next();
 			if (frame.getCharacter().isActive()) {
 				frame.updateCharacter();
 			}
@@ -2348,16 +2395,17 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 	private class CharacterTableModel extends AbstractTableModel {
 		protected String[] columnName = { " ", " ", " ", "Character", "Player", "Status", };
 		protected Class[] columnClass = { ImageIcon.class, ImageIcon.class, ImageIcon.class, String.class, String.class, String.class, };
-		private ArrayList<CharacterWrapper> list;
+		private ArrayList list;
 
 		public CharacterTableModel() {
 			rebuild();
 		}
 
 		public void rebuild() {
-			list = new ArrayList<CharacterWrapper>();
+			list = new ArrayList();
 			if (characterList != null) {
-				for (CharacterWrapper character : characterList) {
+				for (java.util.Iterator _j14it1075 = (characterList).iterator(); _j14it1075.hasNext(); ) {
+				  CharacterWrapper character = (CharacterWrapper) _j14it1075.next();
 					if (showDeadOption.isSelected() || !character.isDead()) {
 						list.add(character);
 					}
@@ -2373,15 +2421,19 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 		public void sort() {
 			if (list!=null) {
-				Collections.sort(list,new Comparator<CharacterWrapper>() {
-					public int compare(CharacterWrapper c1,CharacterWrapper c2) {
+				Collections.sort(list,new Comparator() {
+					public int compare(Object obj1,Object obj2) {
+						CharacterWrapper c1 = (CharacterWrapper) obj1;
+						CharacterWrapper c2 = (CharacterWrapper) obj2;
 						return c1.getPlayerOrdering()-c2.getPlayerOrdering();
 					}
 				});
 			}
 			if (characterList!=null) {
-				Collections.sort(characterList,new Comparator<CharacterWrapper>() {
-					public int compare(CharacterWrapper c1,CharacterWrapper c2) {
+				Collections.sort(characterList,new Comparator() {
+					public int compare(Object obj1,Object obj2) {
+						CharacterWrapper c1 = (CharacterWrapper) obj1;
+						CharacterWrapper c2 = (CharacterWrapper) obj2;
 						return c1.getPlayerOrdering()-c2.getPlayerOrdering();
 					}
 				});
@@ -2391,14 +2443,15 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		
 		public CharacterWrapper getCharacter(int row) {
 			if (row >= 0 && row < list.size()) {
-				return list.get(row);
+				return (CharacterWrapper) list.get(row);
 			}
 			return null;
 		}
 
 		public int getCharacterRow(CharacterWrapper character) {
 			int row = 0;
-			for (CharacterWrapper test : list) {
+			for (java.util.Iterator _j14it1076 = (list).iterator(); _j14it1076.hasNext(); ) {
+			  CharacterWrapper test = (CharacterWrapper) _j14it1076.next();
 				if (test.equals(character)) {
 					return row;
 				}
@@ -2429,7 +2482,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		public Object getValueAt(int row, int column) {
 			String hostName = hostPrefs.getHostName();
 			if (row < list.size()) {
-				CharacterWrapper character = list.get(row);
+				CharacterWrapper character = (CharacterWrapper) list.get(row);
 				switch (column) {
 					case 0:
 						return character.isBeginner() ? BEGINNER_ICON : null;
@@ -2486,7 +2539,8 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 
 	public void updateToolbarOptions(int inIconSize) {
 		this.iconSize = inIconSize;
-		for (CharacterFrame frame : characterFrames.values()) {
+		for (java.util.Iterator _j14it1077 = (characterFrames.values()).iterator(); _j14it1077.hasNext(); ) {
+		  CharacterFrame frame = (CharacterFrame) _j14it1077.next();
 			frame.actionPanel.modifyToolbarIconStyle(iconSize);
 			frame.updateControls();
 		}

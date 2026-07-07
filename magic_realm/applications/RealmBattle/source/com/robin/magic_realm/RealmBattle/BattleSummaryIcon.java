@@ -10,10 +10,10 @@ public class BattleSummaryIcon implements Icon {
 	private static final Color color1 = Color.white;
 	private static final Color color2 = new Color(220,255,255);
 	
-	private ArrayList<BattleSummaryRow> rows;
+	private ArrayList rows;
 	
 	public BattleSummaryIcon() {
-		rows = new ArrayList<BattleSummaryRow>();
+		rows = new ArrayList();
 	}
 	public BattleSummaryIcon(BattleSummary bs) {
 		rows = bs.getSummaryRows(); 
@@ -34,7 +34,8 @@ public class BattleSummaryIcon implements Icon {
 		boolean white = true;
 		int n=0;
 		Graphics2D g = (Graphics2D)g1;
-		for (BattleSummaryRow row:rows) {
+		for (java.util.Iterator _j14it695 = (rows).iterator(); _j14it695.hasNext(); ) {
+		  BattleSummaryRow row = (BattleSummaryRow) _j14it695.next();
 			row.draw(g,x,y+n,white?color1:color2);
 			n += BattleSummaryRow.HEIGHT;
 			white = !white;

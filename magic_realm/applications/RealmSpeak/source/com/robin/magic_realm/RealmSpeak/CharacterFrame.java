@@ -29,7 +29,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	protected long lastVersion;
 
 	protected RealmGameHandler gameHandler;
-	protected ArrayList<RealmComponent> blockees;
+	protected ArrayList blockees;
 
 	protected JPanel tokenPanel;
 	protected JLabel charLabel;
@@ -143,9 +143,10 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 				currentBadgesBox.add(guildBadge);
 			}
 			
-			ArrayList<String> all = character.getLevelAdvantages();
+			ArrayList all = character.getLevelAdvantages();
 			all.addAll(character.getOptionalLevelAdvantages());
-			for (String val:all) {
+			for (java.util.Iterator _j14it1101 = (all).iterator(); _j14it1101.hasNext(); ) {
+			  String val = (String) _j14it1101.next();
 				currentBadgesBox.add(Box.createHorizontalStrut(2));
 				Badge badge = Badge.getBadge(character,val);
 				if (familiarBadge==null && badge.isFamiliar()) {
@@ -171,7 +172,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		character.setActiveFamiliar(active);
 	}
 	private void updateAvailableColorMagic() {
-		Collection<ColorMagic> colors = character.getChitColorSources();
+		Collection colors = character.getChitColorSources();
 		if (hostPrefs.hasPref(Constants.OPT_ENHANCED_ARTIFACTS) || character.affectedByKey(Constants.ENHANCED_ARTIFACTS)) {
 			colors.addAll(character.getEnchantedArtifactColorSources());
 		}
@@ -179,7 +180,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 
 		// Update the GUI
 		availableColorMagicBox.removeAll();
-		for (ColorMagic cm : colors) {
+		for (java.util.Iterator _j14it1102 = (colors).iterator(); _j14it1102.hasNext(); ) {
+		  ColorMagic cm = (ColorMagic) _j14it1102.next();
 			JLabel label = new JLabel();
 			label.setIcon(cm.getIcon());
 			availableColorMagicBox.add(label);
@@ -199,7 +201,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	public static void updateActiveCurses(CharacterWrapper character,Box box) {
 		boolean nullified = character.isNullifiedCurses();
 		String postfix = nullified ? " (NULLIFIED)" : "";
-		Collection<String> curses = character.getAllCurses();
+		Collection curses = character.getAllCurses();
 		if (curses.contains(Constants.EYEMIST)) {
 			JLabel label = new JLabel(ImageCache.getIcon("curse/eyemist"));
 			label.setEnabled(!nullified);
@@ -239,9 +241,10 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		if (character.getGameObject().hasThisAttribute(Constants.MESMERIZE)) {
 			JLabel label = new JLabel(ImageCache.getIcon("curse/illhealth"));
 			label.setEnabled(!nullified);
-			Collection<String> list = character.getGameObject().getThisAttributeList(Constants.MESMERIZE);
-			StringBuilder effectsSb = new StringBuilder();
-			for (String s : list) { if (effectsSb.length() > 0) effectsSb.append(", "); effectsSb.append(s); }
+			Collection list = character.getGameObject().getThisAttributeList(Constants.MESMERIZE);
+			StringBuffer effectsSb = new StringBuffer();
+			for (java.util.Iterator _j14it1103 = (list).iterator(); _j14it1103.hasNext(); ) {
+			  String s = (String) _j14it1103.next(); if (effectsSb.length() > 0) effectsSb.append(", "); effectsSb.append(s); }
 			String effects = effectsSb.toString();
 			label.setToolTipText("Mesmerize - "+effects + postfix);
 			box.add(label);
@@ -249,7 +252,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	}
 	private void doBlockNow() {
 		if (blockees!=null && !blockees.isEmpty()) {
-			for (RealmComponent target:blockees) {
+			for (java.util.Iterator _j14it1104 = (blockees).iterator(); _j14it1104.hasNext(); ) {
+			  RealmComponent target = (RealmComponent) _j14it1104.next();
 				handleBlockCharacter(target);
 			}
 			blockees = null;
@@ -257,7 +261,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 			gameHandler.updateCharacterList(); // This is necessary so that THIS client is updated
 		}
 		else if (getCharacter().getNeedsInterruptPhaseDecision()){
-			for (RealmComponent target:getCharacter().checkForBlockingState(true,null)) {
+			for (java.util.Iterator _j14it1105 = (getCharacter().checkForBlockingState(true,null)).iterator(); _j14it1105.hasNext(); ) {
+			  RealmComponent target = (RealmComponent) _j14it1105.next();
 				handleBlockCharacter(target);
 			}
 			getCharacter().setInterruptPhaseDecision(false);
@@ -270,9 +275,10 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		boolean phaseBeginning = getCharacter().getNeedsPlayColorChitInterruptPhaseBeginningDecision();
 		boolean phaseEnd = getCharacter().getNeedsPlayColorChitInterruptPhaseEndDecision();
 		if (phaseBeginning||phaseEnd) {
-			ArrayList<RealmComponent> interruptions = character.checkForColorChitInterruptionState(null,phaseBeginning,phaseEnd);
+			ArrayList interruptions = character.checkForColorChitInterruptionState(null,phaseBeginning,phaseEnd);
 			if (interruptions!=null && !interruptions.isEmpty()) {
-				for (RealmComponent target:interruptions) {
+				for (java.util.Iterator _j14it1106 = (interruptions).iterator(); _j14it1106.hasNext(); ) {
+				  RealmComponent target = (RealmComponent) _j14it1106.next();
 					getCharacter().addColorChitInterruptPhaseBeginningDecision(target.getGameObject());
 				}
 				while(true) {
@@ -454,9 +460,9 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		super.toFront();
 		updateControls();
 		if (character.isDoRecord()) {
-			ArrayList<TileLocation> clearingPlot = getCharacter().getClearingPlot();
+			ArrayList clearingPlot = getCharacter().getClearingPlot();
 			if (clearingPlot!=null) {
-				gameHandler.getInspector().getMap().setClearingPlot(new ArrayList<TileLocation>(clearingPlot));
+				gameHandler.getInspector().getMap().setClearingPlot(new ArrayList(clearingPlot));
 			}
 			else {
 				gameHandler.getInspector().getMap().clearClearingPlot();
@@ -476,12 +482,13 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		
 		hiddenEnemiesLabel.setVisible(character.foundHiddenEnemies());
 		if (character.foundHiddenEnemies()) {
-			StringBuilder sb = new StringBuilder();
+			StringBuffer sb = new StringBuffer();
 			sb.append("<html>&nbsp;Found Hidden Enemies");
 			if (!character.foundAllHiddenEnemies()) {
 				sb.append(":");
-				ArrayList<String> list = character.getFoundEnemies();
-				for (String val:list) {
+				ArrayList list = character.getFoundEnemies();
+				for (java.util.Iterator _j14it1107 = (list).iterator(); _j14it1107.hasNext(); ) {
+				  String val = (String) _j14it1107.next();
 					sb.append("<br>&nbsp;&nbsp;&nbsp;&nbsp;");
 					sb.append(val);
 					sb.append("&nbsp;");
@@ -555,7 +562,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 
 	private void setupVPs() {
 		int vps = character.getNewVPRequirement();
-		CharacterVictoryConditionsDialog vpDialog = new CharacterVictoryConditionsDialog(gameHandler.getMainFrame(), character, vps);
+		CharacterVictoryConditionsDialog vpDialog = new CharacterVictoryConditionsDialog(gameHandler.getMainFrame(), character, new Integer(vps));
 		vpDialog.setLocationRelativeTo(this);
 		vpDialog.setVisible(true);
 		gameHandler.submitChanges();
@@ -564,7 +571,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	private void deductVPs() {
 		int vps = character.getTotalAssignedVPs();
 		int deduct = character.getVPsToDeduct();
-		CharacterVictoryConditionsDialog vpDialog = new CharacterVictoryConditionsDialog(gameHandler.getMainFrame(), character, vps, deduct);
+		CharacterVictoryConditionsDialog vpDialog = new CharacterVictoryConditionsDialog(gameHandler.getMainFrame(), character, new Integer(vps), deduct);
 		vpDialog.setLocationRelativeTo(this);
 		vpDialog.setVisible(true);
 		gameHandler.submitChanges();
@@ -574,10 +581,11 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	 * This is really only for the Book of Quests game play
 	 */
 	private void chooseQuest() {
-		ArrayList<Quest> quests = new ArrayList<Quest>();
+		ArrayList quests = new ArrayList();
 		if (hostPrefs.isUsingGuildQuests()) {
 			String guildName = character.getCurrentLocation().clearing.getGuild().getGameObject().getThisAttribute("guild");
-			for (Quest quest : QuestLoader.findAvailableQuests(character,hostPrefs)) {
+			for (java.util.Iterator _j14it1108 = (QuestLoader.findAvailableQuests(character,hostPrefs)).iterator(); _j14it1108.hasNext(); ) {
+			  Quest quest = (Quest) _j14it1108.next();
 				if (quest.getGuild().matches(guildName)) {
 					quests.add(quest);
 				}
@@ -658,17 +666,19 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		ApproveInventoryDialog dialog = new ApproveInventoryDialog(gameHandler.getMainFrame(),getCharacter().getInventoryToApprove());
 		dialog.setVisible(true);
 		
-		for (GameObject go:dialog.getRejected()) {
+		for (java.util.Iterator _j14it1109 = (dialog.getRejected()).iterator(); _j14it1109.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1109.next();
 			// Return the object to the original owner
 			GameObject originalOwner = go.getGameObjectFromThisAttribute(Constants.REQUIRES_APPROVAL);
 			CharacterWrapper owningCharacter = new CharacterWrapper(originalOwner);
-			ArrayList<GameObject> stuff = new ArrayList<GameObject>();
+			ArrayList stuff = new ArrayList();
 			stuff.add(go);
 			go.removeThisAttribute(Constants.REQUIRES_APPROVAL);
 			RealmUtility.transferInventory(gameHandler.getMainFrame(),getCharacter(),owningCharacter,stuff,gameHandler.getUpdateFrameListener(),false);
 		}
 		
-		for (GameObject go:dialog.getApproved()) {
+		for (java.util.Iterator _j14it1110 = (dialog.getApproved()).iterator(); _j14it1110.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1110.next();
 			go.removeThisAttribute(Constants.REQUIRES_APPROVAL);
 		}
 		
@@ -678,10 +688,11 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 
 	private void pickupGoldSpecial() {
 		RealmComponent chosenGS = null;
-		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
+		ArrayList list = new ArrayList();
 		TileLocation tl = getCharacter().getCurrentLocation();
 		if (tl.isInClearing()) {
-			for (RealmComponent rc : tl.clearing.getClearingComponents()) {
+			for (java.util.Iterator _j14it1111 = (tl.clearing.getClearingComponents()).iterator(); _j14it1111.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it1111.next();
 				if (rc.isGoldSpecial() && !rc.isVisitor() && !rc.isNomad() && !rc.getGameObject().hasThisAttribute(Constants.DRAW_BACKSIDE)) {
 					list.add(rc);
 					chosenGS = rc;
@@ -714,10 +725,11 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					// Verify the character can afford it
 					if (gsrc.isCampaign() && hostPrefs.hasPref(Constants.SR_ADV_BOUNTY_HUNTER)) {
 						GamePool pool = new GamePool(character.getGameData().getGameObjects());
-						ArrayList<GameObject> nativeLeaders = pool.find("native,rank=HQ");
-						ArrayList<String> enemyClansToCharacter = new ArrayList<String>();
-						ArrayList<String> notEnemyClansToCharacter = new ArrayList<String>();
-						for (GameObject nativeLeader : nativeLeaders) {
+						ArrayList nativeLeaders = pool.find("native,rank=HQ");
+						ArrayList enemyClansToCharacter = new ArrayList();
+						ArrayList notEnemyClansToCharacter = new ArrayList();
+						for (java.util.Iterator _j14it1112 = (nativeLeaders).iterator(); _j14it1112.hasNext(); ) {
+						  GameObject nativeLeader = (GameObject) _j14it1112.next();
 							if (!nativeLeader.hasThisAttribute(Constants.CLAN)) continue;
 							if (character.getRelationship(nativeLeader)<=-2) {
 								if (!enemyClansToCharacter.contains(nativeLeader.getThisAttribute(Constants.CLAN))) {
@@ -727,20 +739,23 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 								notEnemyClansToCharacter.add(nativeLeader.getThisAttribute(Constants.CLAN));
 							}
 						}
-						for (String clan : notEnemyClansToCharacter) {
+						for (java.util.Iterator _j14it1113 = (notEnemyClansToCharacter).iterator(); _j14it1113.hasNext(); ) {
+						  String clan = (String) _j14it1113.next();
 							enemyClansToCharacter.remove(clan);
 						}
 						if (enemyClansToCharacter.isEmpty()) {	
-							ArrayList<RealmComponent> foes = new ArrayList<RealmComponent>();
-							ArrayList<RealmComponent> foesToClan1 = new ArrayList<RealmComponent>();
-							ArrayList<GameObject> livingCharacters = RealmUtility.getLivingCharacters(character.getGameData());
-							for (GameObject livingCharacter : livingCharacters) {
+							ArrayList foes = new ArrayList();
+							ArrayList foesToClan1 = new ArrayList();
+							ArrayList livingCharacters = RealmUtility.getLivingCharacters(character.getGameData());
+							for (java.util.Iterator _j14it1114 = (livingCharacters).iterator(); _j14it1114.hasNext(); ) {
+							  GameObject livingCharacter = (GameObject) _j14it1114.next();
 								if (livingCharacter.getStringId().matches(character.getGameObject().getStringId())) continue;
 								CharacterWrapper livingCharacterWrapper = new CharacterWrapper(livingCharacter);
 								if (livingCharacterWrapper.isHiredLeader() || livingCharacterWrapper.isMinion()) continue;
-								ArrayList<String> enemyClans = new ArrayList<String>();
-								ArrayList<String> notEnemyClans = new ArrayList<String>();
-								for (GameObject nativeLeader : nativeLeaders) {
+								ArrayList enemyClans = new ArrayList();
+								ArrayList notEnemyClans = new ArrayList();
+								for (java.util.Iterator _j14it1115 = (nativeLeaders).iterator(); _j14it1115.hasNext(); ) {
+								  GameObject nativeLeader = (GameObject) _j14it1115.next();
 									if (!nativeLeader.hasThisAttribute(Constants.CLAN)) continue;
 									if (livingCharacterWrapper.getRelationship(nativeLeader)<=-2) {
 										if (!enemyClans.contains(nativeLeader.getThisAttribute(Constants.CLAN))) {
@@ -752,7 +767,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 										}
 									}
 								}
-								for (String clan : notEnemyClans) {
+								for (java.util.Iterator _j14it1116 = (notEnemyClans).iterator(); _j14it1116.hasNext(); ) {
+								  String clan = (String) _j14it1116.next();
 									enemyClans.remove(clan);
 								}
 								if (!enemyClans.isEmpty()) {
@@ -772,15 +788,17 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 								}
 								RealmComponent target = null;
 								if (foesToClan1.isEmpty() && foes.size()==1) {
-									target = foes.get(0);
+									target = (RealmComponent) foes.get(0);
 								} else if (foes.isEmpty() && foesToClan1.size()==1) {
-									target = foes.get(0);
+									target = (RealmComponent) foes.get(0);
 								} else {
 									RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(gameHandler.getMainFrame(),"Which character will be the foe?",false);
-									for (RealmComponent foe : foes) {
+									for (java.util.Iterator _j14it1117 = (foes).iterator(); _j14it1117.hasNext(); ) {
+									  RealmComponent foe = (RealmComponent) _j14it1117.next();
 										chooser.addRealmComponent(foe);
 									}
-									for (RealmComponent foe : foesToClan1) {
+									for (java.util.Iterator _j14it1118 = (foesToClan1).iterator(); _j14it1118.hasNext(); ) {
+									  RealmComponent foe = (RealmComponent) _j14it1118.next();
 										chooser.addRealmComponent(foe);
 									}
 									chooser.setVisible(true);
@@ -820,8 +838,9 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 									gsrc.getGameObject().removeThisAttribute("partner");
 								}
 								CharacterWrapper targetedCharacter = new CharacterWrapper(target.getGameObject());
-								ArrayList<String> foeNatives = new ArrayList<String>();
-								for (GameObject nativeLeader : nativeLeaders) {
+								ArrayList foeNatives = new ArrayList();
+								for (java.util.Iterator _j14it1119 = (nativeLeaders).iterator(); _j14it1119.hasNext(); ) {
+								  GameObject nativeLeader = (GameObject) _j14it1119.next();
 									if (!nativeLeader.hasThisAttribute(Constants.CLAN)) continue;
 									if (targetedCharacter.getRelationship(nativeLeader)<=-2) {
 										String groupName = nativeLeader.getThisAttribute("native").toLowerCase();
@@ -830,9 +849,10 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 										}
 									}
 								}
-								StringBuilder allGroups = new StringBuilder();
+								StringBuffer allGroups = new StringBuffer();
 								if (!foeNatives.isEmpty()) {
-									for (String group : foeNatives) {
+									for (java.util.Iterator _j14it1120 = (foeNatives).iterator(); _j14it1120.hasNext(); ) {
+									  String group = (String) _j14it1120.next();
 										allGroups.append(group+",");
 									}
 								}
@@ -876,7 +896,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 							if (hostPrefs.hasPref(Constants.SR_ONE_OF_EACH_GOLD_SPECIAL)) {
 								boolean hasCampaign = false;
 								boolean hasTask = false;
-								for (GameObject item : character.getInventory()) {
+								for (java.util.Iterator _j14it1121 = (character.getInventory()).iterator(); _j14it1121.hasNext(); ) {
+								  GameObject item = (GameObject) _j14it1121.next();
 									if (item.hasThisAttribute(Constants.CAMPAIGN)) {
 										hasCampaign = true;
 									}
@@ -1045,7 +1066,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		}
 	}
 	protected void checkDenizenControlToContinue() {
-		for (RealmComponent hireling : character.getAllHirelings()) {
+		for (java.util.Iterator _j14it1122 = (character.getAllHirelings()).iterator(); _j14it1122.hasNext(); ) {
+		  RealmComponent hireling = (RealmComponent) _j14it1122.next();
 			if (hireling.getGameObject().hasThisAttribute(Constants.CONTROLLED_DEMON)) {
 				int ret = JOptionPane.showConfirmDialog(this,"Want to fatigue a Magic Chit to keep the control?","Controlling "+hireling.getGameObject().getNameWithNumber(),JOptionPane.YES_NO_OPTION);
 				if (ret==JOptionPane.NO_OPTION) {
@@ -1081,7 +1103,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	
 	protected void doEnergizeChoice() {
 		if (character.hasSpellConflicts()) {
-			ArrayList<SpellWrapper> conflicts = character.getSpellConflicts();
+			ArrayList conflicts = character.getSpellConflicts();
 			SpellWrapper spell = (SpellWrapper)RealmUtility.chooseSpell(gameHandler.getMainFrame(),conflicts,false,false);
 			if (spell!=null) {
 				GameWrapper game = GameWrapper.findGame(character.getGameObject().getGameData());
@@ -1893,7 +1915,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					else if (rc.isMonster() || rc.isTreasureLocation() || rc.isGoldSpecial() || rc.isTraveler()) {
 						System.out.println("CHEAT - Summon to clearing: " + thing.getName());
 						if (allSimilar) {
-							for (GameObject sim:character.getGameObject().getGameData().getGameObjectsByName(thingName)) {
+							for (java.util.Iterator _j14it1123 = (character.getGameObject().getGameData().getGameObjectsByName(thingName)).iterator(); _j14it1123.hasNext(); ) {
+							  GameObject sim = (GameObject) _j14it1123.next();
 								RealmComponent arc = RealmComponent.getRealmComponent(sim);
 								if (arc.isMonster()) {
 									SetupCardUtility.resetDenizen(arc.getGameObject());
@@ -1934,15 +1957,17 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 				}
 				else if ("heavies".equals(thingName)) {
 					GamePool pool = gameHandler.getGamePool();
-					Collection<GameObject> heavies = pool.find("weapon,weight=H");
-					for (GameObject h : heavies) {
+					Collection heavies = pool.find("weapon,weight=H");
+					for (java.util.Iterator _j14it1124 = (heavies).iterator(); _j14it1124.hasNext(); ) {
+					  GameObject h = (GameObject) _j14it1124.next();
 						character.getCurrentLocation().clearing.add(h,null);
 					}
 				}
 				else if ("n_death".equals(thingName)) {
 					TileLocation tl = getCharacter().getCurrentLocation();
-					Collection<RealmComponent> c = tl.clearing.getDeepClearingComponents();
-					for (RealmComponent rc : c) {
+					Collection c = tl.clearing.getDeepClearingComponents();
+					for (java.util.Iterator _j14it1125 = (c).iterator(); _j14it1125.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it1125.next();
 						if (rc.isNative() && !rc.getGameObject().hasThisAttribute(Constants.DEAD)) {
 							RealmUtility.makeDead(rc);
 							System.out.println("Killed "+rc.getGameObject().getName());
@@ -1951,8 +1976,9 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 				}
 				else if ("nh_death".equals(thingName)) {
 					TileLocation tl = getCharacter().getCurrentLocation();
-					Collection<RealmComponent> c = tl.clearing.getDeepClearingComponents();
-					for (RealmComponent rc : c) {
+					Collection c = tl.clearing.getDeepClearingComponents();
+					for (java.util.Iterator _j14it1126 = (c).iterator(); _j14it1126.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it1126.next();
 						if (rc.isNativeHorse() && !rc.getGameObject().hasThisAttribute(Constants.DEAD)) {
 							rc.getGameObject().setThisAttribute(Constants.DEAD);
 							System.out.println("Killed "+rc.getGameObject().getName());
@@ -1970,7 +1996,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					JOptionPane.showMessageDialog(gameHandler.getMainFrame(),thingName,"Die Roll",JOptionPane.INFORMATION_MESSAGE,roller.getIcon());
 				}
 				else if ("pinkslip".equals(thingName)) {
-					for (RealmComponent rc:character.getAllHirelings()) {
+					for (java.util.Iterator _j14it1127 = (character.getAllHirelings()).iterator(); _j14it1127.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it1127.next();
 						rc.addTermOfHire(1-rc.getTermOfHire());
 					}
 				}
@@ -2075,7 +2102,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					}
 				}
 				else if ("oof".equals(thingName)) {
-					for (CharacterActionChitComponent chit : character.getActiveChits()) {
+					for (java.util.Iterator _j14it1128 = (character.getActiveChits()).iterator(); _j14it1128.hasNext(); ) {
+					  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it1128.next();
 						if (chit.getEffortAsterisks() > 0) {
 							chit.makeFatigued();
 						}
@@ -2094,14 +2122,16 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					character.setExtraWounds(wounds);
 				}
 				else if ("smack".equals(thingName)) {
-					for (CharacterActionChitComponent chit : character.getActiveChits()) {
+					for (java.util.Iterator _j14it1129 = (character.getActiveChits()).iterator(); _j14it1129.hasNext(); ) {
+					  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it1129.next();
 						if (chit.getEffortAsterisks() > 0) {
 							chit.makeWounded();
 						}
 					}
 				}
 				else if ("crunch".equals(thingName)) {
-					for(GameObject go:character.getActiveInventory()) {
+					for (java.util.Iterator _j14it1130 = (character.getActiveInventory()).iterator(); _j14it1130.hasNext(); ) {
+					  GameObject go = (GameObject) _j14it1130.next();
 						RealmComponent rc = RealmComponent.getRealmComponent(go);
 						if (rc.isArmor()) {
 							ArmorChitComponent armor = (ArmorChitComponent)rc;
@@ -2125,7 +2155,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					if (monsterdie!=-1) {
 						boolean ns = DebugUtility.isNoSummon();
 						DebugUtility.NO_SUMMON = false;
-						SetupCardUtility.summonMonsters(hostPrefs,new ArrayList<GameObject>(),character, monsterdie,0);
+						SetupCardUtility.summonMonsters(hostPrefs,new ArrayList(),character, monsterdie,0);
 						DebugUtility.NO_SUMMON = ns;
 					}
 				}
@@ -2174,8 +2204,9 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					}
 				}
 				else if (thingName.equals("discoverall")) {
-					Collection<RealmComponent> c = character.getCurrentLocation().clearing.getClearingComponents();
-					for (RealmComponent rc : c) {
+					Collection c = character.getCurrentLocation().clearing.getClearingComponents();
+					for (java.util.Iterator _j14it1131 = (c).iterator(); _j14it1131.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it1131.next();
 						if (rc.isTreasureLocation() || (rc.isTreasure() && rc.getGameObject().hasThisAttribute("treasure_location"))) {
 							character.addTreasureLocationDiscovery(rc.getGameObject().getName());
 						}
@@ -2186,12 +2217,14 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 				}
 				else if (thingName.equals("seeall")) {
 					// Shows the contents of EVERY treasure site
-					Collection<GameObject> all = gameHandler.getGamePool().find("print");
+					Collection all = gameHandler.getGamePool().find("print");
 					StringBuffer sb = new StringBuffer();
-					for (GameObject site : all) {
+					for (java.util.Iterator _j14it1132 = (all).iterator(); _j14it1132.hasNext(); ) {
+					  GameObject site = (GameObject) _j14it1132.next();
 						sb.append(site.getName());
 						sb.append(" ======================\n");
-						for (GameObject item : site.getHold()) {
+						for (java.util.Iterator _j14it1133 = (site.getHold()).iterator(); _j14it1133.hasNext(); ) {
+						  GameObject item = (GameObject) _j14it1133.next();
 							sb.append("  - ");
 							sb.append(item.getName());
 							sb.append("\n");
@@ -2205,11 +2238,13 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					JOptionPane.showMessageDialog(gameHandler.getMainFrame(), pane);
 				}
 				else if (thingName.equals("manifest")) {
-					Hashtable<String, String> hash = new Hashtable<String, String>();
-					ArrayList<String> list = new ArrayList<String>();
-					Collection<GameObject> all = gameHandler.getGamePool().find("print");
-					for (GameObject site : all) {
-						for (GameObject item : site.getHold()) {
+					Hashtable hash = new Hashtable();
+					ArrayList list = new ArrayList();
+					Collection all = gameHandler.getGamePool().find("print");
+					for (java.util.Iterator _j14it1134 = (all).iterator(); _j14it1134.hasNext(); ) {
+					  GameObject site = (GameObject) _j14it1134.next();
+						for (java.util.Iterator _j14it1135 = (site.getHold()).iterator(); _j14it1135.hasNext(); ) {
+						  GameObject item = (GameObject) _j14it1135.next();
 							String name = item.getName();
 							if (item.hasThisAttribute("traveler")) {
 								name = "Traveler -> "+name;
@@ -2217,10 +2252,11 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 							hash.put(name, site.getName());
 						}
 					}
-					for (String name : hash.keySet()) {
+					for (java.util.Iterator _j14it1136 = (hash.keySet()).iterator(); _j14it1136.hasNext(); ) {
+					  String name = (String) _j14it1136.next();
 						String at;
 						StringBuffer sb = new StringBuffer(name);
-						while ((at = hash.get(name)) != null) {
+						while ((at = (String) hash.get(name)) != null) {
 							sb.append(" -> ");
 							sb.append(at);
 							name = at;
@@ -2278,10 +2314,10 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					raiseDead.applySix(character);
 				}
 				else if (thingName.equals("path")) {
-					ArrayList<String> history = character.getMoveHistory();
-					StringBuilder sb = new StringBuilder();
+					ArrayList history = character.getMoveHistory();
+					StringBuffer sb = new StringBuffer();
 					for (int i=0;i<history.size();i++) {
-						String location = history.get(i);
+						String location = (String) history.get(i);
 						if (CharacterWrapper.MOVE_HISTORY_DAY.equals(location)) continue; // always ignore the days
 						if (sb.length()>0) sb.append(" ");
 						sb.append(location);
@@ -2298,7 +2334,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					ClearingUtility.markBorderlandConnectedClearings(hostPrefs,gameHandler.getClient().getGameData());
 				}
 				else if (thingName.equals("help")) {
-					ArrayList<String> list = new ArrayList<String>();
+					ArrayList list = new ArrayList();
 					list.add("manifest    - Shows where everything is hidden");
 					list.add("seeall      - Shows each site, and what it contains");
 					list.add("discoverall - Discover all treasure locations in the current clearing");
@@ -2354,7 +2390,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 					sb.append("<treasurelocationname> - Bring the treasure location to the current clearing\n");
 					sb.append("\nOTHER CHEAT COMMANDS:\n");
 					sb.append("=================\n");
-					for (String val : list) {
+					for (java.util.Iterator _j14it1137 = (list).iterator(); _j14it1137.hasNext(); ) {
+					  String val = (String) _j14it1137.next();
 						sb.append(val + "\n");
 					}
 					JTextArea area = new JTextArea(sb.toString());
@@ -2574,30 +2611,35 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		if (hostPrefs.hasPref(Constants.SR_NO_INFORMATION_SHARING)) {
 			JOptionPane.showMessageDialog(parent, "You cannot share information about location of secret passages, hidden paths, treasure sites and TWT. This information is not transferable and can only be learned by following.", "Cannot share information", JOptionPane.ERROR_MESSAGE);
 		}
-		ArrayList<RealmComponent> chars = getTradeAvailableChars(gameHandler.getMainFrame(),showingTurn() || character.isFollowingCharacterPlayingTurn());
+		ArrayList chars = getTradeAvailableChars(gameHandler.getMainFrame(),showingTurn() || character.isFollowingCharacterPlayingTurn());
 		if (chars!=null) {
 			RealmObjectChooser chooser = new RealmObjectChooser("Shout discoveries out to who?",character.getGameObject().getGameData(),false);
 			chooser.addComponentsToChoose(chars);
 			chooser.setVisible(true);
 			if (chooser.pressedOkay()) {
-				for(GameObject go:chooser.getChosenObjects()) {
+				for (java.util.Iterator _j14it1138 = (chooser.getChosenObjects()).iterator(); _j14it1138.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it1138.next();
 					CharacterWrapper shareWith = new CharacterWrapper(go);
-					for(String tl:character.getCurrentClearingKnownTreasureLocations(false)) {
+					for (java.util.Iterator _j14it1139 = (character.getCurrentClearingKnownTreasureLocations(false)).iterator(); _j14it1139.hasNext(); ) {
+					  String tl = (String) _j14it1139.next();
 						if (!shareWith.hasTreasureLocationDiscovery(tl)) {
 							shareWith.addTreasureLocationDiscovery(tl);
 						}
 					}
-					for(String path:character.getCurrentClearingKnownHiddenPaths()) {
+					for (java.util.Iterator _j14it1140 = (character.getCurrentClearingKnownHiddenPaths()).iterator(); _j14it1140.hasNext(); ) {
+					  String path = (String) _j14it1140.next();
 						if (!shareWith.hasHiddenPathDiscovery(path)) {
 							shareWith.addHiddenPathDiscovery(path);
 						}
 					}
-					for(String passage:character.getCurrentClearingKnownSecretPassages()) {
+					for (java.util.Iterator _j14it1141 = (character.getCurrentClearingKnownSecretPassages()).iterator(); _j14it1141.hasNext(); ) {
+					  String passage = (String) _j14it1141.next();
 						if (!shareWith.hasSecretPassageDiscovery(passage)) {
 							shareWith.addSecretPassageDiscovery(passage);
 						}
 					}
-					for(String other:character.getCurrentClearingKnownOtherChits()) {
+					for (java.util.Iterator _j14it1142 = (character.getCurrentClearingKnownOtherChits()).iterator(); _j14it1142.hasNext(); ) {
+					  String other = (String) _j14it1142.next();
 						if (!shareWith.hasOtherChitDiscovery(other)) {
 							shareWith.addOtherChitDiscovery(other);
 						}
@@ -2614,7 +2656,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		}
 		CharacterTradeFrame frame = gameHandler.getCharacterTradeFrame();
 		if (frame == null) {
-			ArrayList<RealmComponent> chars = getTradeAvailableChars(parent,activePlayer);
+			ArrayList chars = getTradeAvailableChars(parent,activePlayer);
 			if (chars!=null) {
 				RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(parent, "Trade with whom?", true);
 				chooser.addRealmComponents(chars, true);
@@ -2635,14 +2677,15 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		}
 	}
 	
-	private ArrayList<RealmComponent> getTradeAvailableChars(JFrame parent,boolean activePlayer) {
-		ArrayList<RealmComponent> chars = ClearingUtility.findAllAwakeUnblockedCharactersInClearing(getCharacter());
+	private ArrayList getTradeAvailableChars(JFrame parent,boolean activePlayer) {
+		ArrayList chars = ClearingUtility.findAllAwakeUnblockedCharactersInClearing(getCharacter());
 		boolean areChars = !chars.isEmpty();
 		// If the character is not playing a turn, then they may only trade with the one character currently playing
 		if (!activePlayer) {
 			// Now we need to filter out those characters that are not playing their turn
-			ArrayList<RealmComponent> toKeep = new ArrayList<RealmComponent>();
-			for (RealmComponent rc:chars) {
+			ArrayList toKeep = new ArrayList();
+			for (java.util.Iterator _j14it1143 = (chars).iterator(); _j14it1143.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it1143.next();
 				CharacterWrapper trader = new CharacterWrapper(rc.getGameObject());
 				if (trader.isPlayingTurn() || trader.isFollowingCharacterPlayingTurn() || trader.isDayEndTradingActive() || character.isDayEndTradingActive()) {
 					toKeep.add(rc);
@@ -2671,7 +2714,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 	
 	protected void doAdvancement() {
 		boolean change = false;
-		ArrayList<CharacterActionChitComponent> list = character.getAdvancementChits();
+		ArrayList list = character.getAdvancementChits();
 		if (list.isEmpty()) {
 			// No more advancement chits?  The extra chit marker increment is enough
 			change = true;
@@ -2700,7 +2743,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		if (character.needsLevelUp()) {
 			int newLevel = character.getCharacterLevel()+1;
 			AbstractAction action = null;
-			ArrayList<String> specialGains = new ArrayList<String>();
+			ArrayList specialGains = new ArrayList();
 			if (hostPrefs.hasPref(Constants.HOUSE1_ALLOW_LEVEL_GAINS_PAST_FOUR)) {
 				switch(newLevel) {
 					case 5:
@@ -2749,8 +2792,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 				}
 			}
 			
-			ArrayList<String> oldAdvantages = character.getLevelAdvantages();
-			ArrayList<String> oldOptAdvantages = character.getOptionalLevelAdvantages();
+			ArrayList oldAdvantages = character.getLevelAdvantages();
+			ArrayList oldOptAdvantages = character.getOptionalLevelAdvantages();
 			character.setCharacterLevel(newLevel); // stage is controlled, so this doesn't need to be checked.
 			character.updateLevelAttributes(gameHandler.getHostPrefs());
 			// Make sure any chit mods are applied to bonus chits!
@@ -2762,9 +2805,9 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 			if (newLevel==3 && gameHandler.getHostPrefs().hasPref(Constants.EXP_DEV_3RD_REL)) {
 				character.initRelationships(gameHandler.getHostPrefs(),true);
 			}
-			ArrayList<String> advantages = character.getLevelAdvantages();
+			ArrayList advantages = character.getLevelAdvantages();
 			advantages.removeAll(oldAdvantages);
-			ArrayList<String> optAdvantages = character.getOptionalLevelAdvantages();
+			ArrayList optAdvantages = character.getOptionalLevelAdvantages();
 			optAdvantages.removeAll(oldOptAdvantages);
 			
 			CharacterChitComponent token = (CharacterChitComponent)RealmComponent.getRealmComponent(character.getGameObject());
@@ -2783,7 +2826,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 			updateControls();
 		}
 	}
-	protected String getLevelHtml(ArrayList<String> newAdvantages,ArrayList<String> newOptAdvantages,ArrayList<String> specialGains) {
+	protected String getLevelHtml(ArrayList newAdvantages,ArrayList newOptAdvantages,ArrayList specialGains) {
 		StringBuffer sb = new StringBuffer();
 		sb.append("<html>");
 		sb.append("<h3>You leveled up!  You are now level ");
@@ -2796,7 +2839,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		sb.append(".</h3>");
 		if (!newAdvantages.isEmpty()) {
 			sb.append("<h2>New Advantages:</h2>");
-			for (String val:newAdvantages) {
+			for (java.util.Iterator _j14it1144 = (newAdvantages).iterator(); _j14it1144.hasNext(); ) {
+			  String val = (String) _j14it1144.next();
 				sb.append("<li><b>");
 				sb.append(val);
 				sb.append("</b></li>");
@@ -2804,7 +2848,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		}
 		if (!newOptAdvantages.isEmpty()) {
 			sb.append("<h2>New Optional Advantages:</h2>");
-			for (String val:newOptAdvantages) {
+			for (java.util.Iterator _j14it1145 = (newOptAdvantages).iterator(); _j14it1145.hasNext(); ) {
+			  String val = (String) _j14it1145.next();
 				sb.append("<li><b>");
 				sb.append(val);
 				sb.append("</b></li>");
@@ -2812,7 +2857,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		}
 		if (!specialGains.isEmpty()) {
 			sb.append("<h2>Special Gains:</h2>");
-			for (String val:specialGains) {
+			for (java.util.Iterator _j14it1146 = (specialGains).iterator(); _j14it1146.hasNext(); ) {
+			  String val = (String) _j14it1146.next();
 				sb.append("<li><b>");
 				sb.append(val);
 				sb.append("</b></li>");
@@ -2846,8 +2892,8 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 		frame.setVisible(true);
 
 		GamePool pool = new GamePool(handler.getClient().getGameData().getGameObjects());
-		Collection<GameObject> characters = pool.find("character");
-		GameObject character = characters.iterator().next();
+		Collection characters = pool.find("character");
+		GameObject character = (GameObject) characters.iterator().next();
 		CharacterWrapper charw = new CharacterWrapper(character);
 		charw.setCharacterLevel(4);
 		charw.applyCurse(Constants.ASHES);

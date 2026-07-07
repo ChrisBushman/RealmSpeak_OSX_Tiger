@@ -15,9 +15,11 @@ public class SpellTargetingDeadMonster extends SpellTargetingSingle {
 	}
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
-		for (RealmComponent rc:battleModel.getAllParticipatingCharacters()) {
+		for (java.util.Iterator _j14it855 = (battleModel.getAllParticipatingCharacters()).iterator(); _j14it855.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it855.next();
 			CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
-			for (GameObject go:character.getKills(character.getCurrentDayKey())) {
+			for (java.util.Iterator _j14it856 = (character.getKills(character.getCurrentDayKey())).iterator(); _j14it856.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it856.next();
 				RealmComponent kill = RealmComponent.getRealmComponent(go);
 				if (kill.isMonster() && !go.hasThisAttribute(Constants.DEAD_PERMANENT)) {
 					gameObjects.add(go);

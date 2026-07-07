@@ -30,9 +30,10 @@ public class SpellTargetingCreatureHorseHound extends SpellTargetingSingle {
 	}
 	
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
-		ArrayList<RealmComponent> potentialTargets = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
+		ArrayList potentialTargets = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
 		potentialTargets = CombatSheet.filterNativeFriendly(activeParticipant, potentialTargets);
-		for (RealmComponent rc : potentialTargets) {
+		for (java.util.Iterator _j14it778 = (potentialTargets).iterator(); _j14it778.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it778.next();
 			if ((rc.isMonster() || rc.getGameObject().hasThisAttribute(Constants.BEAST)) && !rc.hasMagicProtection() && !rc.hasMagicColorImmunity(spell)
 					&& (!onlyNonMaximumTargets || !(((MonsterChitComponent)rc).isMaximumWeight()))
 					&& (!onlyNonFlyingTargets || ((MonsterChitComponent)rc).getFlySpeed()==null)) {
@@ -48,7 +49,8 @@ public class SpellTargetingCreatureHorseHound extends SpellTargetingSingle {
 			}
 			else if (rc.isCharacter()) {
 				CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
-				for (GameObject item : character.getInventory()) {
+				for (java.util.Iterator _j14it779 = (character.getInventory()).iterator(); _j14it779.hasNext(); ) {
+				  GameObject item = (GameObject) _j14it779.next();
 					RealmComponent itemRc = (RealmComponent.getRealmComponent(item));
 					if (itemRc.isHorse() && !itemRc.hasMagicProtection() && !itemRc.hasMagicColorImmunity(spell)) {
 						if ((!onlyNonMaximumTargets || !rc.getWeight().isMaximum())

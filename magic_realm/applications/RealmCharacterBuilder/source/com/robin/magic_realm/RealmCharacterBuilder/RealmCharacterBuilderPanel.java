@@ -145,7 +145,8 @@ public class RealmCharacterBuilderPanel extends JPanel {
 		g.drawImage(token.getFlipSideImage(),x+105,y,null);
 		g.drawImage(attention.getImage(),x+258,y+62,null);
 		y += 120;
-		for (GameObject go:model.getAllChits()) {
+		for (java.util.Iterator _j14it903 = (model.getAllChits()).iterator(); _j14it903.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it903.next();
 			CharacterActionChitComponent chit = (CharacterActionChitComponent)RealmComponent.getRealmComponent(go);
 			ImageIcon icon = chit.getIcon();
 			g.drawImage(icon.getImage(),x,y,null);
@@ -159,21 +160,24 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			}
 		}
 		y+=10;
-		for (GameObject go:model.getAllUniqueWeapons()) {
+		for (java.util.Iterator _j14it904 = (model.getAllUniqueWeapons()).iterator(); _j14it904.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it904.next();
 			WeaponChitComponent weapon = (WeaponChitComponent)RealmComponent.getRealmComponent(go);
 			ImageIcon icon = weapon.getIcon();
 			g.drawImage(icon.getImage(),x,y,null);
 			g.drawImage(weapon.getFlipSideImage(),x,y+icon.getIconHeight()+b,null);
 			x += icon.getIconWidth()+b;
 		}
-		for (GameObject go:model.getAllUniqueArmor()) {
+		for (java.util.Iterator _j14it905 = (model.getAllUniqueArmor()).iterator(); _j14it905.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it905.next();
 			ArmorChitComponent armor = (ArmorChitComponent)RealmComponent.getRealmComponent(go);
 			ImageIcon icon = armor.getIcon();
 			g.drawImage(icon.getImage(),x,y,null);
 			g.drawImage(armor.getFlipSideImage(),x,y+icon.getIconHeight()+b,null);
 			x += icon.getIconWidth()+b;
 		}
-		for (GameObject go:model.getAllUniqueArmor(magicRealmData)) {
+		for (java.util.Iterator _j14it906 = (model.getAllUniqueArmor(magicRealmData)).iterator(); _j14it906.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it906.next();
 			ArmorChitComponent armor = new ArmorChitComponent(go);
 			ImageIcon icon = armor.getIcon();
 			g.drawImage(icon.getImage(),x,y,null);
@@ -182,21 +186,24 @@ public class RealmCharacterBuilderPanel extends JPanel {
 		}
 		y = 60;
 		x = 400;
-		for (GameObject go:model.getAllCompanions()) {
+		for (java.util.Iterator _j14it907 = (model.getAllCompanions()).iterator(); _j14it907.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it907.next();
 			ChitComponent companion = (ChitComponent)RealmComponent.getRealmComponent(go);
 			ImageIcon icon = companion.getIcon();
 			g.drawImage(icon.getImage(),x,y,null);
 			g.drawImage(companion.getFlipSideImage(),x+icon.getIconWidth()+b,y,null);
 			y += icon.getIconHeight()+b;
 		}
-		for (GameObject go:model.getAllExtraChits()) {
+		for (java.util.Iterator _j14it908 = (model.getAllExtraChits()).iterator(); _j14it908.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it908.next();
 			CharacterActionChitComponent chit = new CharacterActionChitComponent(go);
 			ImageIcon icon = chit.getIcon();
 			g.drawImage(icon.getImage(),x,y,null);
 			g.drawImage(chit.getFlipSideImage(),x+icon.getIconWidth()+b,y,null);
 			y += icon.getIconHeight()+b;
 		}
-		for (GameObject go:model.getAllExtraInventory()) {
+		for (java.util.Iterator _j14it909 = (model.getAllExtraInventory()).iterator(); _j14it909.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it909.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			ImageIcon icon = rc.getIcon();
 			g.drawImage(icon.getImage(),x,y,null);
@@ -280,7 +287,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			int boxHeight = 200;
 			box = Box.createHorizontalBox();
 				String[] startingLoc = model.getCharacter().getStartingLocations(false);
-				ArrayList<String> list = new ArrayList<String>(Arrays.asList(startingLoc));
+				ArrayList list = new ArrayList(Arrays.asList(startingLoc));
 				JPanel locationControls = new JPanel(new GridLayout(5,2));
 				startInnChoice = new JCheckBox("Inn",true); // ALWAYS true
 				startInnChoice.setEnabled(false); // ALWAYS disabled (MUST have INN as a choice)
@@ -526,7 +533,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			fairnessPanel.add(mfReasonPanel,BorderLayout.SOUTH);
 			topPanel.add(fairnessPanel,"South");
 		leftPanel.add(topPanel,"North");
-			ArrayList<String[]> relationships = new ArrayList<String[]>();
+			ArrayList relationships = new ArrayList();
 			for (int i=0;i<RealmCharacterConstants.DEFAULT_RELATIONSHIPS.length;i++) {
 				relationships.add(RealmCharacterConstants.DEFAULT_RELATIONSHIPS[i]);
 			}
@@ -558,7 +565,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 		}
 	}
 	private void evaluateNow() {
-		TreeSet<String> notes = new TreeSet<String>();
+		TreeSet notes = new TreeSet();
 		
 		boolean mediumArmor = false;
 		boolean mediumMoves = false;
@@ -647,7 +654,8 @@ public class RealmCharacterBuilderPanel extends JPanel {
 		
 		// Finish
 		StringBuffer sb = new StringBuffer();
-		for (String note:notes) {
+		for (java.util.Iterator _j14it910 = (notes).iterator(); _j14it910.hasNext(); ) {
+		  String note = (String) _j14it910.next();
 			sb.append(note);
 			sb.append("\n");
 		}
@@ -694,7 +702,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 	}
 	private void updateStartingLocation(String location,boolean selected) {
 		String[] startingLoc = model.getCharacter().getStartingLocations(false);
-		ArrayList<String> list = new ArrayList<String>(Arrays.asList(startingLoc));
+		ArrayList list = new ArrayList(Arrays.asList(startingLoc));
 		if (selected) {
 			// add it
 			list.add(location);
@@ -845,7 +853,8 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			chit = new CharacterActionChitComponent[3];
 			chitFairness = new JLabel[3];
 			int n=0;
-			for (GameObject go:model.getChits(level)) {
+			for (java.util.Iterator _j14it911 = (model.getChits(level)).iterator(); _j14it911.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it911.next();
 				chit[n] = (CharacterActionChitComponent)RealmComponent.getRealmComponent(go);
 				chit[n].addMouseListener(new MouseAdapter() {
 					public void mouseClicked(MouseEvent ev) {
@@ -1062,10 +1071,11 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			ced.setVisible(true);
 			repaint();
 		}
-		private ArrayList<String> getMagicTypes() {
-			ArrayList<String> magicTypes = new ArrayList<String>();
-			ArrayList<CharacterActionChitComponent> list = model.getCharacter().getAllActionChitsSorted(level);
-			for (CharacterActionChitComponent cc:list) {
+		private ArrayList getMagicTypes() {
+			ArrayList magicTypes = new ArrayList();
+			ArrayList list = model.getCharacter().getAllActionChitsSorted(level);
+			for (java.util.Iterator _j14it912 = (list).iterator(); _j14it912.hasNext(); ) {
+			  CharacterActionChitComponent cc = (CharacterActionChitComponent) _j14it912.next();
 				if (cc.isMagic()) {
 					String type = cc.getMagicType();
 					if (!magicTypes.contains(type)) {
@@ -1155,7 +1165,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 				}
 			}
 			
-			ArrayList<String> magicTypes = getMagicTypes();
+			ArrayList magicTypes = getMagicTypes();
 			startingSpellCount.setEnabled(!magicTypes.isEmpty());
 			if (magicTypes.isEmpty()) {
 				startingSpellCount.setSelectedIndex(0);
@@ -1196,7 +1206,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 		private void updateArmor(String armor,boolean val) {
 			String armorList = model.getCharacter().getGameObject().getAttribute(levelKey,"armor");
 			if (armorList==null) armorList = "";
-			ArrayList<String> list = StringUtilities.stringToCollection(armorList,",");
+			ArrayList list = StringUtilities.stringToCollection(armorList,",");
 			if (val) {
 				if (!list.contains(armor)) {
 					list.add(armor);

@@ -21,7 +21,7 @@ public class ZipUtilities {
 		lastError = null;
 		File[] files = null;
 		try {
-			ArrayList<File> fileList = new ArrayList<File>();
+			ArrayList fileList = new ArrayList();
 			BufferedOutputStream dest = null;
 			FileInputStream fis = new FileInputStream(zipFile);
 			ZipInputStream zis = new ZipInputStream(new BufferedInputStream(fis));
@@ -42,7 +42,7 @@ public class ZipUtilities {
 				dest.close();
 			}
 			zis.close();
-			files = fileList.toArray(new File[fileList.size()]);
+			files = (File[]) fileList.toArray(new File[fileList.size()]);
 		} catch (Exception e) {
 			lastError = e.toString();
 			e.printStackTrace();

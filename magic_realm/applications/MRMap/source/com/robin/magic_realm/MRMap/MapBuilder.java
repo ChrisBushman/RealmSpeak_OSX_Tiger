@@ -13,17 +13,19 @@ import com.robin.magic_realm.map.Tile;
 
 public class MapBuilder {
 	
-	public static ArrayList<Tile> startTileList(GameData data,Collection keyVals) {
-		ArrayList<Tile> tiles = new ArrayList<Tile>();
-		Collection<GameObject> c = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
-		for (GameObject obj : c) {
+	public static ArrayList startTileList(GameData data,Collection keyVals) {
+		ArrayList tiles = new ArrayList();
+		Collection c = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
+		for (java.util.Iterator _j14it958 = (c).iterator(); _j14it958.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it958.next();
 			tiles.add(new Tile(obj));
 		}
 		return tiles;
 	}
-	public static Tile findAnchorTile(Collection<Tile> tiles) {
+	public static Tile findAnchorTile(Collection tiles) {
 		// Find the Borderland tile, and start it at position 0,0 with a random rotation
-		for (Tile tile : tiles) {
+		for (java.util.Iterator _j14it959 = (tiles).iterator(); _j14it959.hasNext(); ) {
+		  Tile tile = (Tile) _j14it959.next();
 			if (tile.getGameObject().hasThisAttribute(Constants.ANCHOR_TILE)) {
 				return tile;
 			}
@@ -36,10 +38,10 @@ public class MapBuilder {
 	}
 	public static boolean autoBuildMap(GameData data,Collection keyVals,MapProgressReportable reporter) {
 		boolean autoBuildRiver = true;
-		ArrayList<Tile> tiles = startTileList(data,keyVals);
+		ArrayList tiles = startTileList(data,keyVals);
 		
 		// Find the Borderland tile, and start it at position 0,0 with a random rotation
-		Hashtable<Point, Tile> mapGrid = new Hashtable<Point, Tile>();
+		Hashtable mapGrid = new Hashtable();
 		Tile anchor = findAnchorTile(tiles);
 		mapGrid.put(new Point(0,0),anchor);
 		anchor.setMapPosition(new Point(0,0));
@@ -59,33 +61,35 @@ public class MapBuilder {
 			// First, identify all connectable map placement locations
 			//		- Have paths leading to them
 			//		- Adjacent to at least two tiles (unless only one tile on map)
-			ArrayList<Point> availableMapPositions = Tile.findAvailableMapPositions(mapGrid,anchor.getGameObject().getName(),autoBuildRiver,hostPrefs.hasPref(Constants.MAP_BUILDING_HILL_TILES));
+			ArrayList availableMapPositions = Tile.findAvailableMapPositions(mapGrid,anchor.getGameObject().getName(),autoBuildRiver,hostPrefs.hasPref(Constants.MAP_BUILDING_HILL_TILES));
 			
 			// Cycle through every available (unplaced) tile
-			ArrayList<ArrayList<TileMappingPossibility>> allTileResults = new ArrayList<ArrayList<TileMappingPossibility>>();
-			ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio1 = new ArrayList<ArrayList<TileMappingPossibility>>();
-			ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio2 = new ArrayList<ArrayList<TileMappingPossibility>>();
-			for (Tile tile : tiles) {
+			ArrayList allTileResults = new ArrayList();
+			ArrayList tileResultsPrio1 = new ArrayList();
+			ArrayList tileResultsPrio2 = new ArrayList();
+			for (java.util.Iterator _j14it960 = (tiles).iterator(); _j14it960.hasNext(); ) {
+			  Tile tile = (Tile) _j14it960.next();
 				addPossibleTilePlacements(mapGrid,tile,anchor,hostPrefs,availableMapPositions,allTileResults,tileResultsPrio1,tileResultsPrio2);
 			}
 			if ((hostPrefs.hasPref(Constants.MAP_BUILDING_RANGE_SETUP) || hostPrefs.hasPref(Constants.MAP_BUILDING_RANGE_SETUP_VARIANT)) && allTileResults.size()==0 && tileResultsPrio1.size()==0 && tileResultsPrio2.size()==0) {
-				for (Tile tile : tiles) {
+				for (java.util.Iterator _j14it961 = (tiles).iterator(); _j14it961.hasNext(); ) {
+				  Tile tile = (Tile) _j14it961.next();
 					addPossibleTilePlacements(mapGrid,tile,anchor,hostPrefs,availableMapPositions,allTileResults,tileResultsPrio1,tileResultsPrio2,false,false);
 				}
 			}
 			if (allTileResults.size()>0 || tileResultsPrio1.size()>0 || tileResultsPrio2.size()>0) {
 				// First, pick a random tile result set
-				ArrayList<TileMappingPossibility> tileResults = null;
+				ArrayList tileResults = null;
 				if (tileResultsPrio1.size()>0) {
-					tileResults = tileResultsPrio1.get(RandomNumber.getRandom(tileResultsPrio1.size()));
+					tileResults = (ArrayList) tileResultsPrio1.get(RandomNumber.getRandom(tileResultsPrio1.size()));
 				} else if (tileResultsPrio2.size()>0) {
-					tileResults = tileResultsPrio2.get(RandomNumber.getRandom(tileResultsPrio2.size()));
+					tileResults = (ArrayList) tileResultsPrio2.get(RandomNumber.getRandom(tileResultsPrio2.size()));
 				} else {
-					tileResults = allTileResults.get(RandomNumber.getRandom(allTileResults.size()));
+					tileResults = (ArrayList) allTileResults.get(RandomNumber.getRandom(allTileResults.size()));
 				}
-				
+
 				// Then pick a random MappingResult from the set for this tile
-				TileMappingPossibility tmp = tileResults.get(RandomNumber.getRandom(tileResults.size()));
+				TileMappingPossibility tmp = (TileMappingPossibility) tileResults.get(RandomNumber.getRandom(tileResults.size()));
 				
 				// Add it to the grid
 				Tile tile = tmp.getTile();
@@ -125,21 +129,23 @@ public class MapBuilder {
 		if (!validateLakeWoodsTile(hostPrefs, mapGrid, anchor)) return false;
 		if (!validateRiver(hostPrefs, mapGrid)) return false;
 		
-		for (Tile tile : mapGrid.values()) {
+		for (java.util.Iterator _j14it962 = (mapGrid.values()).iterator(); _j14it962.hasNext(); ) {
+		  Tile tile = (Tile) _j14it962.next();
 			tile.writeToGameObject();
 		}
 		System.out.println();
 		return true;
 	}
-	private static void addPossibleTilePlacements(Hashtable<Point, Tile> mapGrid, Tile tile, Tile anchor, HostPrefWrapper hostPrefs, ArrayList<Point> availableMapPositions, ArrayList<ArrayList<TileMappingPossibility>> allTileResults, ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio1, ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio2) {
+	private static void addPossibleTilePlacements(Hashtable mapGrid, Tile tile, Tile anchor, HostPrefWrapper hostPrefs, ArrayList availableMapPositions, ArrayList allTileResults, ArrayList tileResultsPrio1, ArrayList tileResultsPrio2) {
 		addPossibleTilePlacements(mapGrid,tile,anchor,hostPrefs,availableMapPositions,allTileResults,tileResultsPrio1,tileResultsPrio2,hostPrefs.hasPref(Constants.MAP_BUILDING_RANGE_SETUP),hostPrefs.hasPref(Constants.MAP_BUILDING_RANGE_SETUP_VARIANT));
 	}
-	private static void addPossibleTilePlacements(Hashtable<Point, Tile> mapGrid, Tile tile, Tile anchor, HostPrefWrapper hostPrefs, ArrayList<Point> availableMapPositions, ArrayList<ArrayList<TileMappingPossibility>> allTileResults, ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio1, ArrayList<ArrayList<TileMappingPossibility>> tileResultsPrio2, boolean rangeSetup, boolean rangeSetupVariant) {
+	private static void addPossibleTilePlacements(Hashtable mapGrid, Tile tile, Tile anchor, HostPrefWrapper hostPrefs, ArrayList availableMapPositions, ArrayList allTileResults, ArrayList tileResultsPrio1, ArrayList tileResultsPrio2, boolean rangeSetup, boolean rangeSetupVariant) {
 		// Only use unmapped tiles
 		if (!mapGrid.contains(tile)) {
-			ArrayList<TileMappingPossibility> tileResults = new ArrayList<TileMappingPossibility>();					
+			ArrayList tileResults = new ArrayList();					
 			// Try the tile in every available position
-			for (Point pos : availableMapPositions) {						
+			for (java.util.Iterator _j14it963 = (availableMapPositions).iterator(); _j14it963.hasNext(); ) {
+			  Point pos = (Point) _j14it963.next();						
 				// Try every rotation
 				for (int rot=0;rot<6;rot++) {
 					// Test the tile at pos, with rotation rot
@@ -166,14 +172,15 @@ public class MapBuilder {
 			}
 		}
 	}
-	public static boolean validateAdjacentTiles(Hashtable<Point, Tile> mapGrid) {
+	public static boolean validateAdjacentTiles(Hashtable mapGrid) {
 		int neededCount = 2;
-		for (Tile tile : mapGrid.values()) {
+		for (java.util.Iterator _j14it964 = (mapGrid.values()).iterator(); _j14it964.hasNext(); ) {
+		  Tile tile = (Tile) _j14it964.next();
 			Point pos = tile.getMapPosition();
 			int adjCount = 0;
 			for (int edge=0;edge<6;edge++) {
 				Point adjPos = Tile.getAdjacentPosition(pos,edge);
-				Tile adjTile = mapGrid.get(adjPos);
+				Tile adjTile = (Tile) mapGrid.get(adjPos);
 				if (adjTile!=null) {
 					adjCount++;
 				}
@@ -183,11 +190,13 @@ public class MapBuilder {
 		}
 		return true;
 	}
-	public static boolean validateLakeWoodsTile(HostPrefWrapper hostPrefs, Hashtable<Point, Tile> mapGrid, Tile anchor) {
+	public static boolean validateLakeWoodsTile(HostPrefWrapper hostPrefs, Hashtable mapGrid, Tile anchor) {
 		if (hostPrefs.hasPref(Constants.MAP_BUILDING_LAKE_WOODS_MUST_CONNECT)) {
-			for (Tile tile : mapGrid.values()) {
+			for (java.util.Iterator _j14it965 = (mapGrid.values()).iterator(); _j14it965.hasNext(); ) {
+			  Tile tile = (Tile) _j14it965.next();
 				if (tile.getGameObject().getName().matches("Lake Woods")) {
-					for (String clearing : tile.getClearings()) {
+					for (java.util.Iterator _j14it966 = (tile.getClearings()).iterator(); _j14it966.hasNext(); ) {
+					  String clearing = (String) _j14it966.next();
 						if (!tile.connectsToTilename(mapGrid,clearing,anchor.getGameObject().getName())) {
 							return false;
 						}
@@ -197,19 +206,20 @@ public class MapBuilder {
 		}
 		return true;
 	}
-	public static boolean validateRiver(HostPrefWrapper hostPrefs, Hashtable<Point, Tile> mapGrid) {
+	public static boolean validateRiver(HostPrefWrapper hostPrefs, Hashtable mapGrid) {
 		if (hostPrefs.hasPref(Constants.MAP_BUILDING_NON_RIVER_TILES_ADJACENT_TO_RIVER) || hostPrefs.hasPref(Constants.MAP_BUILDING_2_NON_RIVER_TILES_ADJACENT_TO_RIVER)) {
 			int neededCount = 1;
 			if (hostPrefs.hasPref(Constants.MAP_BUILDING_2_NON_RIVER_TILES_ADJACENT_TO_RIVER)) {
 				neededCount = 2;
 			}
-			for (Tile tile : mapGrid.values()) {
+			for (java.util.Iterator _j14it967 = (mapGrid.values()).iterator(); _j14it967.hasNext(); ) {
+			  Tile tile = (Tile) _j14it967.next();
 				if (tile.hasRiverPaths(0)) {
 					Point pos = tile.getMapPosition();
 					int adjCount = 0;
 					for (int edge=0;edge<6;edge++) {
 						Point adjPos = Tile.getAdjacentPosition(pos,edge);
-						Tile adjTile = mapGrid.get(adjPos);
+						Tile adjTile = (Tile) mapGrid.get(adjPos);
 						if (adjTile!=null && !adjTile.hasRiverPaths(0)) {
 							adjCount++;
 						}
@@ -221,11 +231,12 @@ public class MapBuilder {
 		}
 		return true;
 	}
-	public static Hashtable<Point, Tile> getMapGrid(GameData data, HostPrefWrapper hostPrefs) {
-		Hashtable<Point, Tile> mapGrid = new Hashtable<Point, Tile>();
-		Collection<String> keyVals = GamePool.makeKeyVals(hostPrefs.getGameKeyVals());
-		ArrayList<Tile> tiles = startTileList(data,keyVals);
-		for (Tile tile : tiles) {
+	public static Hashtable getMapGrid(GameData data, HostPrefWrapper hostPrefs) {
+		Hashtable mapGrid = new Hashtable();
+		Collection keyVals = GamePool.makeKeyVals(hostPrefs.getGameKeyVals());
+		ArrayList tiles = startTileList(data,keyVals);
+		for (java.util.Iterator _j14it968 = (tiles).iterator(); _j14it968.hasNext(); ) {
+		  Tile tile = (Tile) _j14it968.next();
 			tile.readFromGameObject();
 			mapGrid.put(Tile.getPositionFromGameObject(tile.getGameObject()),tile);
 		}
@@ -235,10 +246,11 @@ public class MapBuilder {
 	    RealmLoader loader = new RealmLoader();
 		GameData data = loader.getData();
 		System.out.println("loaded "+data.getGameObjects().size());
-		ArrayList<String> keyVals = new ArrayList<String>();
+		ArrayList keyVals = new ArrayList();
 		keyVals.add("super_realm");
 		while(!MapBuilder.autoBuildMap(data,keyVals))
-		for (GameObject obj : data.getGameObjects()) {
+		for (java.util.Iterator _j14it969 = (data.getGameObjects()).iterator(); _j14it969.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it969.next();
 			if (obj.hasKey("tile")) {
 				System.out.println(obj+":   "+obj.getAttributeBlock("mapGrid"));
 			}

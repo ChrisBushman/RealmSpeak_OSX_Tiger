@@ -17,11 +17,11 @@ public class RealmRegexHelper extends AggressiveDialog {
 	private static Font regexFont = new Font("Dialog",Font.PLAIN,18);
 	private static Font monoFont = new Font("Monospaced",Font.PLAIN,12);
 	private String originalText;
-	private ArrayList<String> names;
+	private ArrayList names;
 	private JTextField testField;
 	private JList list;
 	
-	public RealmRegexHelper(JFrame owner,String text,ArrayList<String> names) {
+	public RealmRegexHelper(JFrame owner,String text,ArrayList names) {
 		super(owner,true);
 		this.originalText = text;
 		this.names = names;
@@ -41,8 +41,9 @@ public class RealmRegexHelper extends AggressiveDialog {
 			testField.setForeground(Color.red);
 			return;
 		}
-		ArrayList<String> matches = new ArrayList<String>();
-		for(String val:names) {
+		ArrayList matches = new ArrayList();
+		for (java.util.Iterator _j14it341 = (names).iterator(); _j14it341.hasNext(); ) {
+		  String val = (String) _j14it341.next();
 			Matcher match = pattern.matcher(val);
 			if (match.find()) {
 				matches.add(val);
@@ -115,7 +116,7 @@ public class RealmRegexHelper extends AggressiveDialog {
 		return panel;
 	}
 	private static JPanel createGuidePanel() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append(".                 Match any single character\n");
   	    sb.append(".*                Match 0 or more characters\n");
 		sb.append(".+                Match 1 or more characters\n");
@@ -150,7 +151,7 @@ public class RealmRegexHelper extends AggressiveDialog {
 		return panel;
 	}
 	public static void main(String[] args) {
-		ArrayList<String> names = new ArrayList<String>();
+		ArrayList names = new ArrayList();
 		names.add("One");
 		names.add("Two");
 		names.add("Three");

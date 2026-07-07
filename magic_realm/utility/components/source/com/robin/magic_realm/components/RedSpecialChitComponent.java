@@ -57,8 +57,9 @@ public class RedSpecialChitComponent extends StateChitComponent {
 	public void addPileToTile() {
 		if (gameObject.getHoldCount()>0) {
 			GameObject tile = gameObject.getHeldBy();
-			Collection<GameObject> hold = new ArrayList<GameObject>(gameObject.getHold()); // this construction is necessary to prevent concurrent modification errors
-			for (GameObject chit : hold) {
+			Collection hold = new ArrayList(gameObject.getHold()); // this construction is necessary to prevent concurrent modification errors
+			for (java.util.Iterator _j14it1354 = (hold).iterator(); _j14it1354.hasNext(); ) {
+			  GameObject chit = (GameObject) _j14it1354.next();
 				StateChitComponent state = (StateChitComponent)RealmComponent.getRealmComponent(chit);
 				state.setFaceUp();
 				tile.add(chit);

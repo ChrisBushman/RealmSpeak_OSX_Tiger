@@ -114,13 +114,13 @@ public class NativeSteedChitComponent extends SquareChitComponent implements Bat
 			}
 		}
 		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX1) && getManeuverCombatBox()==1) {
-			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX1);
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX1).intValue();
 		}
 		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX2) && getManeuverCombatBox()==2) {
-			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX2);
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX2).intValue();
 		}
 		if (hasFaceAttribute(Constants.MOVE_SPEED_BONUS_COMBAT_BOX3) && getManeuverCombatBox()==3) {
-			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX3);
+			mod=mod-getFaceAttributeInteger(Constants.MOVE_SPEED_BONUS_COMBAT_BOX3).intValue();
 		}
 		return mod;
 	}
@@ -405,12 +405,13 @@ public class NativeSteedChitComponent extends SquareChitComponent implements Bat
 		RealmComponent rider = getRider();
 		if (rider!=null) {
 			CombatWrapper combatRider = new CombatWrapper(rider.getGameObject());
-			ArrayList<SpellWrapper> holyShieldsRider = SpellUtility.getBewitchingSpellsWithKey(rider.getGameObject(),Constants.HOLY_SHIELD);
-			if ((holyShieldsRider!=null&&!holyShieldsRider.isEmpty()) || rider.affectedByKey(Constants.HOLY_SHIELD) || combatRider.hasHolyShield(attacker.getAttackSpeed(),attacker.getLength())) {
-				for (SpellWrapper spell : holyShieldsRider) {
+			ArrayList holyShieldsRider = SpellUtility.getBewitchingSpellsWithKey(rider.getGameObject(),Constants.HOLY_SHIELD);
+			if ((holyShieldsRider!=null&&!holyShieldsRider.isEmpty()) || rider.affectedByKey(Constants.HOLY_SHIELD) || combatRider.hasHolyShield(attacker.getAttackSpeed(),attacker.getLength().intValue())) {
+				for (java.util.Iterator _j14it1353 = (holyShieldsRider).iterator(); _j14it1353.hasNext(); ) {
+				  SpellWrapper spell = (SpellWrapper) _j14it1353.next();
 					spell.expireSpell();
 				}
-				combatRider.setHolyShield(attacker.getAttackSpeed(), attacker.getLength());
+				combatRider.setHolyShield(attacker.getAttackSpeed(), attacker.getLength().intValue());
 				RealmLogging.logMessage(attacker.getGameObject().getNameWithNumber(),"Hits Holy Shield and the attack is blocked.");
 				return false;
 			}

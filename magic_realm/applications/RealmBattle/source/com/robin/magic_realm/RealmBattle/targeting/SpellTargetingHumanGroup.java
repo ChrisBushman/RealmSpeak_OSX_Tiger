@@ -17,10 +17,11 @@ public class SpellTargetingHumanGroup extends SpellTargetingSingle {
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
 		// Giants, or Ogres, or Native Group
-		ArrayList<RealmComponent> potentialTargets = battleModel.getAllBattleParticipants(true);
+		ArrayList potentialTargets = battleModel.getAllBattleParticipants(true);
 		potentialTargets = CombatSheet.filterNativeFriendly(activeParticipant, potentialTargets);
 		String ownerId = activeParticipant.getGameObject().getStringId();
-		for (RealmComponent rc:potentialTargets) {
+		for (java.util.Iterator _j14it793 = (potentialTargets).iterator(); _j14it793.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it793.next();
 			if (!rc.isCharacter() && !rc.hasMagicProtection() && !rc.hasMagicColorImmunity(spell) && (rc.getOwnerId()==null || rc.getOwnerId().equals(ownerId))) {
 				String groupName = null;
 				if (rc.isMonster() && !rc.isPlayerControlledLeader()) {
@@ -39,7 +40,7 @@ public class SpellTargetingHumanGroup extends SpellTargetingSingle {
 				}
 				
 				if (groupName!=null) {
-					ArrayList list = secondaryTargets.get(groupName);
+					ArrayList list = (ArrayList) secondaryTargets.get(groupName);
 					if (list==null) {
 						list = new ArrayList();
 						secondaryTargets.put(groupName,list);

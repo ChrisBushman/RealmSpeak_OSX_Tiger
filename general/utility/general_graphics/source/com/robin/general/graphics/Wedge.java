@@ -39,14 +39,14 @@ public class Wedge {
 		return pos;
 	}
 
-	public ArrayList<Wedge> makeWedges(int divisions) {
+	public ArrayList makeWedges(int divisions) {
 		return makeWedges(divisions, false);
 	}
 
-	public ArrayList<Wedge> makeWedges(int divisions, boolean moveCenter) {
+	public ArrayList makeWedges(int divisions, boolean moveCenter) {
 		if (divisions <= 0)
 			throw new IllegalArgumentException("Wedge divisions must be greater than zero.");
-		ArrayList<Wedge> wedges = new ArrayList<Wedge>();
+		ArrayList wedges = new ArrayList();
 		Point newCenter = center;
 		double st = start;
 		double fin = finish;

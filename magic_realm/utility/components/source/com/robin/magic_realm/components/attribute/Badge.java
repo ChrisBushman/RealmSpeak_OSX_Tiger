@@ -55,17 +55,17 @@ public class Badge extends JLabel {
 		return "badges/"+iconName;
 	}
 	
-	private static Hashtable<String,Badge> cached = new Hashtable<String,Badge>();
+	private static Hashtable cached = new Hashtable();
 	public static Badge getBadge(CharacterWrapper character,String advantage) {
 		String key = character.getGameObject().getStringId()+advantage;
-		Badge badge = cached.get(key);
+		Badge badge = (Badge) cached.get(key);
 		if (badge==null) {
 			ImageIcon icon;
 			if (character.getGameObject().hasThisAttribute(Constants.CUSTOM_CHARACTER)) {
 				String badgeName = "custom/badges/one"; // default
 				for (int n=1;n<=4;n++) {
 					String levelKey = "level_"+n;
-					ArrayList<String> list = character.getGameObject().getAttributeList(levelKey,"advantages");
+					ArrayList list = character.getGameObject().getAttributeList(levelKey,"advantages");
 					if (list!=null && list.contains(advantage)) {
 						badgeName = character.getGameObject().getAttribute(levelKey,"badge_icon");
 						break;

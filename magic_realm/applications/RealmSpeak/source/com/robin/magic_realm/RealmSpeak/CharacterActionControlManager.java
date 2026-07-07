@@ -365,7 +365,7 @@ public class CharacterActionControlManager {
 				int cost = tl.hasClearing()?tl.clearing.moveCost(getCharacter(),current):1;
 				boolean continueWithRecord = true;
 				if (current.isBetweenClearings() && tl.hasClearing() && !(current.contains(tl.clearing) && getCharacter().canMoveToClearing(tl.clearing))) {
-					ArrayList<ClearingDetail> clearings = character.findAvailableClearingMoves();
+					ArrayList clearings = character.findAvailableClearingMoves();
 					if (clearings.size()!=1 || !clearings.get(0).equals(tl.clearing)) {
 						JOptionPane.showMessageDialog(
 								getGameHandler().getMainFrame(),
@@ -443,7 +443,7 @@ public class CharacterActionControlManager {
 							updateControls(rtp.getPhaseManager(),true,false);
 						}
 						if (cap!=null) {
-							getGameHandler().getInspector().getMap().setClearingPlot(new ArrayList<TileLocation>(getCharacter().getClearingPlot()));
+							getGameHandler().getInspector().getMap().setClearingPlot(new ArrayList(getCharacter().getClearingPlot()));
 						}
 					}
 				}
@@ -505,11 +505,11 @@ public class CharacterActionControlManager {
 		// cap better NOT be null here!
 		cap.scrollActionTableToVisible();
 		
-		ArrayList<String> actions = new ArrayList<String>();
-		Collection<String> c = getCharacter().getCurrentActions();
+		ArrayList actions = new ArrayList();
+		Collection c = getCharacter().getCurrentActions();
 		if (c!=null && !c.isEmpty()) {
 			actions.addAll(c);
-			String removed = actions.remove(actions.size()-1);
+			String removed = (String) actions.remove(actions.size()-1);
 			if (removed.startsWith(DayAction.MOVE_ACTION.getCode()) || removed.startsWith(DayAction.FLY_ACTION.getCode())) {
 				// deleting a move, so delete a clearing plot
 				getCharacter().chompClearingPlot();
@@ -529,12 +529,12 @@ public class CharacterActionControlManager {
 			if (getCharacter().getClearingPlot()==null) {
 				getCharacter().rebuildClearingPlot();
 			}
-			getGameHandler().getInspector().getMap().setClearingPlot(new ArrayList<TileLocation>(getCharacter().getClearingPlot()));
+			getGameHandler().getInspector().getMap().setClearingPlot(new ArrayList(getCharacter().getClearingPlot()));
 		}
 		getCharacter().setCurrentActions(actions);
 		
 		// Don't forget to delete the actionTypeCode entry
-		ArrayList<String> actionTypeCodes = new ArrayList<String>();
+		ArrayList actionTypeCodes = new ArrayList();
 		c = getCharacter().getCurrentActionTypeCodes();
 		if (c!=null && !c.isEmpty()) {
 			actionTypeCodes.addAll(c);
@@ -543,7 +543,7 @@ public class CharacterActionControlManager {
 		getCharacter().setCurrentActionTypeCodes(actionTypeCodes);
 		
 		// And the valids (aigh)
-		ArrayList<String> valids = new ArrayList<String>();
+		ArrayList valids = new ArrayList();
 		c = getCharacter().getCurrentActionValids();
 		if (c!=null && !c.isEmpty()) {
 			valids.addAll(c);
@@ -576,8 +576,8 @@ public class CharacterActionControlManager {
 			getCharacter().resetClearingPlot();
 		}
 		TileLocation tl = getCharacter().getPlannedLocation();
-		ArrayList<ClearingDetail> ac = getCharacter().findAvailableClearingMoves();
-		ArrayList<ClearingDetail> pc = getCharacter().findPossibleClearingMoves();
+		ArrayList ac = getCharacter().findAvailableClearingMoves();
+		ArrayList pc = getCharacter().findPossibleClearingMoves();
 		getGameHandler().getInspector().getMap().markClearings(ac,true);
 		getGameHandler().getInspector().getMap().markClearings(pc,true,Color.yellow);
 		if (tl.isInClearing()) {
@@ -603,9 +603,10 @@ public class CharacterActionControlManager {
 	}
 	private void recordFollowAction() {
 		// Find all characters that are not this character in the clearing (no clearing validation needed here)
-		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
+		ArrayList list = new ArrayList();
 		TileLocation current = getCharacter().getCurrentLocation(); // since FOLLOW must the first and only action, current is good
-		for (RealmComponent rc : current.clearing.getClearingComponents()) {
+		for (java.util.Iterator _j14it1158 = (current.clearing.getClearingComponents()).iterator(); _j14it1158.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1158.next();
 			// Someone, that isn't yourself
 			if (rc.isPlayerControlledLeader() && !rc.getGameObject().equals(getCharacter().getGameObject())
 					&& !rc.getGameObject().hasThisAttribute(Constants.CAMOUFLAGE) && (!rc.isMistLike() || getCharacter().getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE))) {
@@ -708,12 +709,14 @@ public class CharacterActionControlManager {
 			}
 			else if (flyingActivity) {
 				getGameHandler().getInspector().getMap().markAllClearings(false);
-				Collection<TileComponent> adjTiles = tl.tile.getAllAdjacentTiles();
-				ArrayList<TileComponent> tiles = new ArrayList<TileComponent>();
+				Collection adjTiles = tl.tile.getAllAdjacentTiles();
+				ArrayList tiles = new ArrayList();
 				tiles.add(tl.tile);
 				tiles.addAll(adjTiles);
-				for (TileComponent tile : tiles) {
-					for (ClearingDetail clearing : tile.getClearings()) {
+				for (java.util.Iterator _j14it1159 = (tiles).iterator(); _j14it1159.hasNext(); ) {
+				  TileComponent tile = (TileComponent) _j14it1159.next();
+					for (java.util.Iterator _j14it1160 = (tile.getClearings()).iterator(); _j14it1160.hasNext(); ) {
+					  ClearingDetail clearing = (ClearingDetail) _j14it1160.next();
 						if (!clearing.isCave()) {
 							clearing.setMarked(true);
 						}
@@ -728,7 +731,8 @@ public class CharacterActionControlManager {
 				tl.clearing.setMarked(false); // exclude current clearing
 			}
 			
-			for(ClearingDetail clearing:getGameHandler().getInspector().getMap().getAllMarkedClearings()) {
+			for (java.util.Iterator _j14it1161 = (getGameHandler().getInspector().getMap().getAllMarkedClearings()).iterator(); _j14it1161.hasNext(); ) {
+			  ClearingDetail clearing = (ClearingDetail) _j14it1161.next();
 				if (clearing.getParent().getGameObject().hasThisAttribute(Constants.SP_NO_PEER) || clearing.getParent().getGameObject().hasThisAttribute(Constants.EVENT_FOG)) {
 					clearing.setMarked(false);
 				}
@@ -744,7 +748,7 @@ public class CharacterActionControlManager {
 		}
 	}
 	private void recordRemoteSpellAction() {
-		Collection<String> c = getCharacter().getCurrentActions();
+		Collection c = getCharacter().getCurrentActions();
 		if (!c.contains(DayAction.SPELL_PREP_ACTION.getCode())) {
 			boolean canSkipSpellPrep = getCharacter().getGameObject().hasAttribute(Constants.OPTIONAL_BLOCK,Constants.NO_SPX)
 										|| getCharacter().affectedByKey(Constants.NO_SPX)
@@ -791,13 +795,13 @@ public class CharacterActionControlManager {
 			actionTypeCode = actionTypeCode+actionLocation.clearing.getTypeCode(); // ie., MM for mt-to-mt
 		}
 		
-		Collection<String> c = getCharacter().getCurrentActions();
+		Collection c = getCharacter().getCurrentActions();
 		if (c==null || c.isEmpty()) {
 			// Recording the first action?  Reset the clearingPlot.
-			ArrayList<TileLocation> plot = new ArrayList<TileLocation>();
+			ArrayList plot = new ArrayList();
 			plot.add(getCharacter().getCurrentLocation()); // start the plot off with the current location
 			getCharacter().setClearingPlot(plot);
-			c = new ArrayList<String>();
+			c = new ArrayList();
 		}
 		if (action.equals(DayAction.SPELL_ACTION.getCode()) && !c.contains(DayAction.SPELL_PREP_ACTION.getCode())) {
 			boolean canSkipSpellPrep = getCharacter().getGameObject().hasAttribute(Constants.OPTIONAL_BLOCK,Constants.NO_SPX)
@@ -956,7 +960,8 @@ public class CharacterActionControlManager {
 		if (getGameHandler().isOption(RealmSpeakOptions.UNASSIGNED_HIRELINGS_WARNING)) {
 			boolean unassignedHirelings = false;
 			
-			for (RealmComponent hireling : getCharacter().getAllHirelings()) {
+			for (java.util.Iterator _j14it1162 = (getCharacter().getAllHirelings()).iterator(); _j14it1162.hasNext(); ) {
+			  RealmComponent hireling = (RealmComponent) _j14it1162.next();
 				if (!hireling.isHiredLeader()) {
 					RealmComponent heldBy = hireling.getHeldBy();
 					if (heldBy != null && heldBy.isTile()) {

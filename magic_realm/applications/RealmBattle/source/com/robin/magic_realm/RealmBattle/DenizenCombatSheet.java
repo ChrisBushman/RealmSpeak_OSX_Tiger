@@ -310,7 +310,7 @@ public class DenizenCombatSheet extends CombatSheet {
 			}
 		}
 		hotspotHash.clear();
-		Collection<RealmComponent> c;
+		Collection c;
 		
 		if (!interactiveFrame) {
 			return;
@@ -338,7 +338,8 @@ public class DenizenCombatSheet extends CombatSheet {
 							boolean hasRedSideAttacker = false;
 							c = layoutHash.getList(Integer.valueOf(POS_ATTACKERS_BOX1));
 							if (c!=null && !c.isEmpty()) {
-								for (RealmComponent rc : c) {
+								for (java.util.Iterator _j14it647 = (c).iterator(); _j14it647.hasNext(); ) {
+								  RealmComponent rc = (RealmComponent) _j14it647.next();
 									if (rc.isMonster()) {
 										MonsterChitComponent monster = (MonsterChitComponent)rc;
 										if (monster.isPinningOpponent()) {
@@ -425,7 +426,7 @@ public class DenizenCombatSheet extends CombatSheet {
 					}
 					if (containsFriend(
 							combatFrame.getActiveParticipant(),
-							getAllBoxListsFromLayout(new Integer[] {POS_DEFENDER_TARGET_BOX1,POS_DEFENDER_TARGET_BOX2,POS_DEFENDER_TARGET_BOX3,
+							getAllBoxListsFromLayout(new int[] {POS_DEFENDER_TARGET_BOX1,POS_DEFENDER_TARGET_BOX2,POS_DEFENDER_TARGET_BOX3,
 									POS_DEFENDER_TARGET_CHARGE_SMASH,POS_DEFENDER_TARGET_CHARGE_SWING,
 									POS_DEFENDER_TARGET_DODGE_SMASH,POS_DEFENDER_TARGET_DODGE_THRUST,
 									POS_DEFENDER_TARGET_DUCK_SWING,POS_DEFENDER_TARGET_DUCK_THRUST}))) {
@@ -471,7 +472,7 @@ public class DenizenCombatSheet extends CombatSheet {
 				// Character might have a target to attack
 				RealmComponent target = combatFrame.getActiveParticipant().getTarget();
 				RealmComponent target2 = combatFrame.getActiveParticipant().get2ndTarget();
-				ArrayList<RealmComponent> allSheetParticipants = new ArrayList<RealmComponent>(sheetParticipants);
+				ArrayList allSheetParticipants = new ArrayList(sheetParticipants);
 				allSheetParticipants.add(sheetOwner);
 				boolean sheetHasTarget = target!=null && sheetParticipants.contains(target);
 				boolean sheetHasTarget2 = target2!=null && sheetParticipants.contains(target2);
@@ -521,10 +522,10 @@ public class DenizenCombatSheet extends CombatSheet {
 		battleChitsWithRolls.clear();
 		layoutHash.clear();
 		
-		sheetParticipants = new ArrayList<RealmComponent>();
+		sheetParticipants = new ArrayList();
 		sheetParticipants.add(sheetOwner);
 		
-		ArrayList<RealmComponent> excludeList = new ArrayList<RealmComponent>();
+		ArrayList excludeList = new ArrayList();
 		excludeList.add(sheetOwner);
 		
 		if (isOwnedByActive || combatFrame.getActionState()>=Constants.COMBAT_RESOLVING || sheetOwner.getOwnerId()==null) {
@@ -557,8 +558,9 @@ public class DenizenCombatSheet extends CombatSheet {
 		
 		// If the sheet owner is a denizen, then ALL denizens should be in the middle... I think...
 		if (sheetOwner.getOwnerId()==null && (defenderTarget!=null || defenderTarget2!=null)) {
-			ArrayList<RealmComponent> denizens = new ArrayList<RealmComponent>(model.getDenizenBattleGroup().getBattleParticipants());
-			for (RealmComponent denizen : denizens) {
+			ArrayList denizens = new ArrayList(model.getDenizenBattleGroup().getBattleParticipants());
+			for (java.util.Iterator _j14it648 = (denizens).iterator(); _j14it648.hasNext(); ) {
+			  RealmComponent denizen = (RealmComponent) _j14it648.next();
 				if (!excludeList.contains(denizen) && (
 						(defenderTarget!=null && (defenderTarget.equals(denizen.getTarget()) || defenderTarget.equals(denizen.get2ndTarget())))
 					|| (defenderTarget2!=null && (defenderTarget2.equals(denizen.getTarget()) || defenderTarget2.equals(denizen.get2ndTarget())))
@@ -605,7 +607,7 @@ public class DenizenCombatSheet extends CombatSheet {
 					combatFrame.assignTarget(filterEnemies(combatFrame.getActiveParticipant(),layoutHash.getList(Integer.valueOf(POS_ATTACKERS_BOX1))));
 				}
 				else if (combatFrame.getActionState()==Constants.COMBAT_POSITIONING) {
-					ArrayList<RealmComponent> list = getAllBoxListFromLayout(POS_ATTACKERS_BOX1);
+					ArrayList list = getAllBoxListFromLayout(POS_ATTACKERS_BOX1);
 					if (sheetOwner.getOwnerId()==null) {
 						list = filterFriends(combatFrame.getActiveParticipant(),list);
 					}
@@ -642,8 +644,9 @@ public class DenizenCombatSheet extends CombatSheet {
 			case POS_DEFENDER_DUCK_THRUST:
 				if (combatFrame.getActionState()==Constants.COMBAT_LURE) {
 					// Flip the counter
-					ArrayList<RealmComponent> list = layoutHash.getList(Integer.valueOf(index));
-					for (RealmComponent rc : list) {
+					ArrayList list = layoutHash.getList(Integer.valueOf(index));
+					for (java.util.Iterator _j14it649 = (list).iterator(); _j14it649.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it649.next();
 						rc.flip();
 					}
 				}
@@ -655,8 +658,8 @@ public class DenizenCombatSheet extends CombatSheet {
 //					ArrayList list = new ArrayList();
 //					list.add(sheetOwner);
 					// Though MOST of the time, this list will only contain ONE defender, it does happen when there are more
-					ArrayList<RealmComponent> list
-					= getAllBoxListsFromLayout(new Integer[] {POS_DEFENDER_BOX1,POS_DEFENDER_BOX2,POS_DEFENDER_BOX3,
+					ArrayList list
+					= getAllBoxListsFromLayout(new int[] {POS_DEFENDER_BOX1,POS_DEFENDER_BOX2,POS_DEFENDER_BOX3,
 							POS_DEFENDER_CHARGE_SMASH,POS_DEFENDER_CHARGE_SWING,
 							POS_DEFENDER_DODGE_SMASH,POS_DEFENDER_DODGE_THRUST,
 							POS_DEFENDER_DUCK_SWING,POS_DEFENDER_DUCK_THRUST});
@@ -691,12 +694,12 @@ public class DenizenCombatSheet extends CombatSheet {
 				}
 				else if (combatFrame.getActionState()==Constants.COMBAT_ASSIGN) {
 					// Character target assignment
-					ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
-					ArrayList<RealmComponent> list1 = layoutHash.getList(Integer.valueOf(POS_DEFENDER_BOX1));
+					ArrayList list = new ArrayList();
+					ArrayList list1 = layoutHash.getList(Integer.valueOf(POS_DEFENDER_BOX1));
 					if (list1!=null) {
 						list.addAll(list1);
 					}
-					ArrayList<RealmComponent> list2 = layoutHash.getList(Integer.valueOf(POS_DEFENDER));
+					ArrayList list2 = layoutHash.getList(Integer.valueOf(POS_DEFENDER));
 					if (list2!=null) {
 						list.addAll(list2);
 					}
@@ -725,8 +728,8 @@ public class DenizenCombatSheet extends CombatSheet {
 					}
 				}
 				else if (combatFrame.getActionState()==Constants.COMBAT_POSITIONING) {
-					ArrayList<RealmComponent> list
-					= getAllBoxListsFromLayout(new Integer[] {POS_DEFENDER_TARGET_BOX1,POS_DEFENDER_TARGET_BOX2,POS_DEFENDER_TARGET_BOX3,
+					ArrayList list
+					= getAllBoxListsFromLayout(new int[] {POS_DEFENDER_TARGET_BOX1,POS_DEFENDER_TARGET_BOX2,POS_DEFENDER_TARGET_BOX3,
 							POS_DEFENDER_TARGET_CHARGE_SMASH,POS_DEFENDER_TARGET_CHARGE_SWING,
 							POS_DEFENDER_TARGET_DODGE_SMASH,POS_DEFENDER_TARGET_DODGE_THRUST,
 							POS_DEFENDER_TARGET_DUCK_SWING,POS_DEFENDER_TARGET_DUCK_THRUST});
@@ -775,7 +778,8 @@ public class DenizenCombatSheet extends CombatSheet {
 		
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(combatFrame.getActiveCharacter().getGameObject().getGameData());
 		// start with unassigned denizens
-		for (Component denizenComponent : combatFrame.getUnassignedDenizens()) {
+		for (java.util.Iterator _j14it650 = (combatFrame.getUnassignedDenizens()).iterator(); _j14it650.hasNext(); ) {
+		  Component denizenComponent = (Component) _j14it650.next();
 			RealmComponent denizen = (RealmComponent)denizenComponent;
 			if (denizen.getTarget()==null && denizen.get2ndTarget()==null && (!denizen.isMistLike() || sheetOwner.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE))) {
 				if(attackerIsFriendlyToDenizen(RealmComponent.getRealmComponent(combatFrame.getActiveCharacter().getGameObject()),denizen,hostPrefs)) continue;
@@ -791,8 +795,9 @@ public class DenizenCombatSheet extends CombatSheet {
 		if (sheetOwner.isPlayerControlledLeader()) {
 			sheetOwnerChar = new CharacterWrapper(sheetOwner.getGameObject());
 		}
-		ArrayList<CombatSheet> combatSheets = combatFrame.getAllCombatSheets();
-		for (CombatSheet sheet : combatSheets) {
+		ArrayList combatSheets = combatFrame.getAllCombatSheets();
+		for (java.util.Iterator _j14it651 = (combatSheets).iterator(); _j14it651.hasNext(); ) {
+		  CombatSheet sheet = (CombatSheet) _j14it651.next();
 			RealmComponent aSheetOwner = sheet.getSheetOwner();
 			RealmComponent aOwner = sheet.getSheetOwner().getOwner();
 			if (!owner.equals(aOwner)) {
@@ -806,9 +811,11 @@ public class DenizenCombatSheet extends CombatSheet {
 		}
 		
 		// cycle through other sheet participants - identify sheet owner in each case with a small icon
-		for (CombatSheet sheet : combatSheets) {
+		for (java.util.Iterator _j14it652 = (combatSheets).iterator(); _j14it652.hasNext(); ) {
+		  CombatSheet sheet = (CombatSheet) _j14it652.next();
 			RealmComponent aSheetOwner = sheet.getSheetOwner();
-			for (RealmComponent participant : sheet.getAllParticipantsOnSheet()) {
+			for (java.util.Iterator _j14it653 = (sheet.getAllParticipantsOnSheet()).iterator(); _j14it653.hasNext(); ) {
+			  RealmComponent participant = (RealmComponent) _j14it653.next();
 				if (participant!=null) {
 					RealmComponent participantOwner = participant.getOwner();
 					if (!owner.equals(participantOwner) && !aSheetOwner.equals(participant)) {
@@ -958,7 +965,7 @@ public class DenizenCombatSheet extends CombatSheet {
 	}
 	
 	public boolean canLureMoreDenizens() {
-		ArrayList<RealmComponent> c = layoutHash.getList(Integer.valueOf(DenizenCombatSheet.POS_ATTACKERS_BOX1));
+		ArrayList c = layoutHash.getList(Integer.valueOf(DenizenCombatSheet.POS_ATTACKERS_BOX1));
 		return (c==null || c.size()==0)?true:false;
 	}
 	

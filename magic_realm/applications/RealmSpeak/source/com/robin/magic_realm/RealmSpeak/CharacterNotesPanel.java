@@ -90,7 +90,7 @@ public class CharacterNotesPanel extends CharacterFramePanel {
 	private static class NotesTableModel extends AbstractTableModel {
 		private final String[] header = {" ","Source","Date","Event","Note"};
 		private CharacterWrapper character;
-		private ArrayList<Note> notes;
+		private ArrayList notes;
 		public NotesTableModel(CharacterWrapper character) {
 			this.character = character;
 			updateNotes();
@@ -103,7 +103,7 @@ public class CharacterNotesPanel extends CharacterFramePanel {
 		}
 		public Note getNote(int row) {
 			if (row>=0 && row<notes.size()) {
-				return notes.get(row);
+				return (Note) notes.get(row);
 			}
 			return null;
 		}
@@ -118,7 +118,7 @@ public class CharacterNotesPanel extends CharacterFramePanel {
 		}
 		public Object getValueAt(int row, int column) {
 			if (row<notes.size()) {
-				Note note = notes.get(row);
+				Note note = (Note) notes.get(row);
 				switch(column) {
 					case 0:		return note.getIcon();
 					case 1:		return note.getSourceName();

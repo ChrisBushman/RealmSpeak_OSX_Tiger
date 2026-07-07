@@ -8,7 +8,7 @@ import javax.swing.table.*;
 import java.util.*;
 
 public class OutlineList extends JPanel implements ActionListener {
-	Vector<OutlineEntry> data;
+	Vector data;
 
 	JTable table;
 	JButton addButton;
@@ -22,15 +22,15 @@ public class OutlineList extends JPanel implements ActionListener {
 		super(new BorderLayout());
 		init();
 	}
-	public Vector<OutlineEntry> getData() {
+	public Vector getData() {
 		return data;
 	}
-	public void setData(Vector<OutlineEntry> d) {
+	public void setData(Vector d) {
 		data = d;
 		((AbstractTableModel)table.getModel()).fireTableDataChanged();
 	}
 	public void reset() {
-		setData(new Vector<OutlineEntry>());
+		setData(new Vector());
 	}
 	public void init() {
 		table = new JTable();
@@ -51,7 +51,7 @@ public class OutlineList extends JPanel implements ActionListener {
 			}
 			public Object getValueAt(int row, int column) {
 				if (data!=null && row<data.size() && column<6) {
-					OutlineEntry e = data.elementAt(row);
+					OutlineEntry e = (OutlineEntry) data.elementAt(row);
 					switch(column) {
 						case 0:		return Integer.valueOf(row+1);
 						case 1:
@@ -144,7 +144,7 @@ public class OutlineList extends JPanel implements ActionListener {
 	private void editAction() {
 		int row = table.getSelectedRow();
 		if (row>=0 && row<data.size()) {
-			OutlineEntry e = data.elementAt(row);
+			OutlineEntry e = (OutlineEntry) data.elementAt(row);
 			OutlineEntryPicker picker = new OutlineEntryPicker(e);
 			OutlineEntry newEntry = picker.getEntry();
 			if (newEntry!=null) {
@@ -169,7 +169,7 @@ public class OutlineList extends JPanel implements ActionListener {
 	private void moveUpAction() {
 		int row = table.getSelectedRow();
 		if (row>0 && row<data.size()) {
-			OutlineEntry e = data.elementAt(row);
+			OutlineEntry e = (OutlineEntry) data.elementAt(row);
 			data.removeElementAt(row);
 			data.insertElementAt(e,row-1);
 			((AbstractTableModel)table.getModel()).fireTableDataChanged();
@@ -180,7 +180,7 @@ public class OutlineList extends JPanel implements ActionListener {
 	private void moveDnAction() {
 		int row = table.getSelectedRow();
 		if (row>=0 && row<(data.size()-1)) {
-			OutlineEntry e = data.elementAt(row);
+			OutlineEntry e = (OutlineEntry) data.elementAt(row);
 			data.removeElementAt(row);
 			data.insertElementAt(e,row+1);
 			((AbstractTableModel)table.getModel()).fireTableDataChanged();

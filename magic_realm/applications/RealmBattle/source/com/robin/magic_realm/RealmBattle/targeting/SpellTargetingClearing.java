@@ -22,104 +22,117 @@ public class SpellTargetingClearing extends SpellTargetingSpecial {
 		// Assume that activeParticipant IS character
 		CharacterWrapper character = new CharacterWrapper(activeParticipant.getGameObject());
 	
-		ArrayList<String> clearingTargetType = spell.getGameObject().getThisAttributeList("target_clearing");
+		ArrayList clearingTargetType = spell.getGameObject().getThisAttributeList("target_clearing");
 		if (clearingTargetType.contains("combatants")) {
-			ArrayList<RealmComponent> allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
-			for (RealmComponent rc : allBattleParticipants) {
+			ArrayList allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
+			for (java.util.Iterator _j14it868 = (allBattleParticipants).iterator(); _j14it868.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it868.next();
 				gameObjects.add(rc.getGameObject());
 			}
 		}
 		if (clearingTargetType.contains("characters")) {
-			ArrayList<RealmComponent> allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
-			for (RealmComponent rc : allBattleParticipants) {
+			ArrayList allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
+			for (java.util.Iterator _j14it869 = (allBattleParticipants).iterator(); _j14it869.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it869.next();
 				if (rc.isCharacter() && !gameObjects.contains(rc.getGameObject())) {
 					gameObjects.add(rc.getGameObject());
 				}
 			}
 		}
 		if (clearingTargetType.contains("monsters")) {
-			ArrayList<RealmComponent> allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
-			for (RealmComponent rc : allBattleParticipants) {
+			ArrayList allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
+			for (java.util.Iterator _j14it870 = (allBattleParticipants).iterator(); _j14it870.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it870.next();
 				if (rc.isMonster() && !gameObjects.contains(rc.getGameObject())) {
 					gameObjects.add(rc.getGameObject());
 				}
 			}
 		}
 		if (clearingTargetType.contains("demons")) {
-			ArrayList<RealmComponent> allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
-			for (RealmComponent rc : allBattleParticipants) {
+			ArrayList allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
+			for (java.util.Iterator _j14it871 = (allBattleParticipants).iterator(); _j14it871.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it871.next();
 				if (rc.getGameObject().hasThisAttribute(Constants.DEMON) && !gameObjects.contains(rc.getGameObject())) {
 					gameObjects.add(rc.getGameObject());
 				}
 			}
 		}
 		if (clearingTargetType.contains("imps")) {
-			ArrayList<RealmComponent> allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
-			for (RealmComponent rc : allBattleParticipants) {
+			ArrayList allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
+			for (java.util.Iterator _j14it872 = (allBattleParticipants).iterator(); _j14it872.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it872.next();
 				if (rc.getGameObject().hasThisAttribute(Constants.IMP) && !gameObjects.contains(rc.getGameObject())) {
 					gameObjects.add(rc.getGameObject());
 				}
 			}
 		}
 		if (clearingTargetType.contains("ghosts")) {
-			ArrayList<RealmComponent> allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
-			for (RealmComponent rc : allBattleParticipants) {
+			ArrayList allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
+			for (java.util.Iterator _j14it873 = (allBattleParticipants).iterator(); _j14it873.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it873.next();
 				if (rc.getGameObject().hasThisAttribute(Constants.GHOST) && !gameObjects.contains(rc.getGameObject())) {
 					gameObjects.add(rc.getGameObject());
 				}
 			}
 		}
 		if (clearingTargetType.contains("skeletons")) {
-			ArrayList<RealmComponent> allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
-			for (RealmComponent rc : allBattleParticipants) {
+			ArrayList allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
+			for (java.util.Iterator _j14it874 = (allBattleParticipants).iterator(); _j14it874.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it874.next();
 				if (rc.getGameObject().hasThisAttribute(Constants.SKELETON) && !gameObjects.contains(rc.getGameObject())) {
 					gameObjects.add(rc.getGameObject());
 				}
 			}
 		}
 		if (clearingTargetType.contains("wraiths")) {
-			ArrayList<RealmComponent> allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
-			for (RealmComponent rc : allBattleParticipants) {
+			ArrayList allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
+			for (java.util.Iterator _j14it875 = (allBattleParticipants).iterator(); _j14it875.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it875.next();
 				if (rc.getGameObject().hasThisAttribute(Constants.WRAITH) && !gameObjects.contains(rc.getGameObject())) {
 					gameObjects.add(rc.getGameObject());
 				}
 			}
 		}
 		if (clearingTargetType.contains("ghouls")) {
-			ArrayList<RealmComponent> allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
-			for (RealmComponent rc : allBattleParticipants) {
+			ArrayList allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
+			for (java.util.Iterator _j14it876 = (allBattleParticipants).iterator(); _j14it876.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it876.next();
 				if (rc.getGameObject().hasThisAttribute(Constants.GHOUL) && !gameObjects.contains(rc.getGameObject())) {
 					gameObjects.add(rc.getGameObject());
 				}
 			}
 		}
 		if (clearingTargetType.contains("vampires")) {
-			ArrayList<RealmComponent> allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
-			for (RealmComponent rc : allBattleParticipants) {
+			ArrayList allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
+			for (java.util.Iterator _j14it877 = (allBattleParticipants).iterator(); _j14it877.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it877.next();
 				if (rc.getGameObject().hasThisAttribute(Constants.VAMPIRE) && !gameObjects.contains(rc.getGameObject())) {
 					gameObjects.add(rc.getGameObject());
 				}
 			}
 		}
 		if (clearingTargetType.contains("succubi")) {
-			ArrayList<RealmComponent> allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
-			for (RealmComponent rc : allBattleParticipants) {
+			ArrayList allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
+			for (java.util.Iterator _j14it878 = (allBattleParticipants).iterator(); _j14it878.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it878.next();
 				if (rc.getGameObject().hasThisAttribute(Constants.SUCCUBUS) && !gameObjects.contains(rc.getGameObject())) {
 					gameObjects.add(rc.getGameObject());
 				}
 			}
 		}
 		if (clearingTargetType.contains("devils")) {
-			ArrayList<RealmComponent> allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
-			for (RealmComponent rc : allBattleParticipants) {
+			ArrayList allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
+			for (java.util.Iterator _j14it879 = (allBattleParticipants).iterator(); _j14it879.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it879.next();
 				if (rc.getGameObject().hasThisAttribute(Constants.DEVIL) && !gameObjects.contains(rc.getGameObject())) {
 					gameObjects.add(rc.getGameObject());
 				}
 			}
 		}
 		if (clearingTargetType.contains("undead")) {
-			ArrayList<RealmComponent> allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
-			for (RealmComponent rc : allBattleParticipants) {
+			ArrayList allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
+			for (java.util.Iterator _j14it880 = (allBattleParticipants).iterator(); _j14it880.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it880.next();
 				if ((rc.getGameObject().hasThisAttribute(Constants.UNDEAD) || rc.getGameObject().hasThisAttribute(Constants.UNDEAD_SUMMONED)) && !gameObjects.contains(rc.getGameObject())) {
 					gameObjects.add(rc.getGameObject());
 				}
@@ -127,26 +140,30 @@ public class SpellTargetingClearing extends SpellTargetingSpecial {
 		}
 		if (clearingTargetType.contains("spells")) {
 			SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(spell.getGameObject().getGameData());
-			for (SpellWrapper sw : sm.getAllSpellsInClearing(battleModel.getBattleLocation(),true)) {
+			for (java.util.Iterator _j14it881 = (sm.getAllSpellsInClearing(battleModel.getBattleLocation(),true)).iterator(); _j14it881.hasNext(); ) {
+			  SpellWrapper sw = (SpellWrapper) _j14it881.next();
 				gameObjects.add(sw.getGameObject());
 			}
 		}
 		if (clearingTargetType.contains("curses")) {
-			for (RealmComponent rc : battleModel.getAllParticipatingCharacters()) {
+			for (java.util.Iterator _j14it882 = (battleModel.getAllParticipatingCharacters()).iterator(); _j14it882.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it882.next();
 				CharacterWrapper thisCharacter = new CharacterWrapper(rc.getGameObject());
-				Collection<String> curses = thisCharacter.getAllCurses();
+				Collection curses = thisCharacter.getAllCurses();
 				if (curses.size()>0) {
 					gameObjects.add(rc.getGameObject());
 				}
 			}
 		}
 		if (clearingTargetType.contains("horses")) {
-			ArrayList<RealmComponent> allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
-			for (RealmComponent rc : allBattleParticipants) {
+			ArrayList allBattleParticipants = battleModel.getAllBattleParticipants(true); // clearing affects everything, including hidden!!!
+			for (java.util.Iterator _j14it883 = (allBattleParticipants).iterator(); _j14it883.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it883.next();
 				if ((rc.getGameObject().hasThisAttribute("horse") || rc.getGameObject().hasThisAttribute(RealmComponent.MONSTER_STEED)) && !gameObjects.contains(rc.getGameObject())) {
 					gameObjects.add(rc.getGameObject());
 				}
-				for (GameObject go : rc.getHold()) {
+				for (java.util.Iterator _j14it884 = (rc.getHold()).iterator(); _j14it884.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it884.next();
 					if ((go.hasThisAttribute("horse") || go.hasThisAttribute(RealmComponent.MONSTER_STEED)) && !gameObjects.contains(go)) {
 						gameObjects.add(go);
 					}
@@ -155,14 +172,16 @@ public class SpellTargetingClearing extends SpellTargetingSpecial {
 		}
 		if (clearingTargetType.contains("sites")) {
 			TileLocation loc = battleModel.getBattleLocation();
-			for (RealmComponent rc : loc.clearing.getClearingComponents()) {
+			for (java.util.Iterator _j14it885 = (loc.clearing.getClearingComponents()).iterator(); _j14it885.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it885.next();
 				if (rc.isTreasureLocation()) {
 					gameObjects.add(rc.getGameObject());
 				}
 			}
 		}
 		boolean ignorebattle = spell.getGameObject().hasThisAttribute("nobattle");
-		for (GameObject theTarget : gameObjects) {
+		for (java.util.Iterator _j14it886 = (gameObjects).iterator(); _j14it886.hasNext(); ) {
+		  GameObject theTarget = (GameObject) _j14it886.next();
 			spell.addTarget(combatFrame.getHostPrefs(),theTarget,ignorebattle);
 			if (!ignorebattle) {
 				combatFrame.makeWatchfulNatives(RealmComponent.getRealmComponent(theTarget),true);

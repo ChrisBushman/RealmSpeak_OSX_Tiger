@@ -267,7 +267,7 @@ space and avoid unnecessary heap allocation.
         compares = 0;
         // n2sort();
         // qsort(0, indexes.length-1);
-        shuttlesort(indexes.clone(), indexes, 0, indexes.length);
+        shuttlesort((int[]) indexes.clone(), indexes, 0, indexes.length);
     }
 
     public void n2sort() {

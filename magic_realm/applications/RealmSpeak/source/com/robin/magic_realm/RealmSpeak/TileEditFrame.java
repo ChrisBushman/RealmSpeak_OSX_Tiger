@@ -511,10 +511,10 @@ public class TileEditFrame extends JFrame {
 	}
 	public void updateClearingList() {
 		if (activeTile!=null) {
-			clearingList.setListData(new Vector<ClearingDetail>(activeTile.getClearingDetail()));
+			clearingList.setListData(new Vector(activeTile.getClearingDetail()));
 		}
 		else {
-			clearingList.setListData(new Vector<ClearingDetail>());
+			clearingList.setListData(new Vector());
 		}
 		clearingList.revalidate();
 		clearingList.repaint();
@@ -612,20 +612,21 @@ public class TileEditFrame extends JFrame {
 	public void addClearing() {
 		if (activeTile==null) return;
 		
-		ArrayList<ClearingDetail> allClearings = (ArrayList<ClearingDetail>) activeTile.getClearingDetail();
+		ArrayList allClearings = (ArrayList) activeTile.getClearingDetail();
 		if (allClearings.size()>=6) return;
 		
 		int side = 0;
 		if (activeTile.isDarkSideUp()) {
 			side = 1;
 		}
-		ArrayList<Integer> allClearingsNums = new ArrayList<Integer>();
+		ArrayList allClearingsNums = new ArrayList();
 		int num = 1;
-		for (ClearingDetail cl : allClearings) {
-			allClearingsNums.add(cl.getNum());
+		for (java.util.Iterator _j14it970 = (allClearings).iterator(); _j14it970.hasNext(); ) {
+		  ClearingDetail cl = (ClearingDetail) _j14it970.next();
+			allClearingsNums.add(new Integer(cl.getNum()));
 		}
 		while (num<=6) {
-			if (!allClearingsNums.contains(num)) break;
+			if (!allClearingsNums.contains(new Integer(num))) break;
 			num++;
 		}
 		
@@ -643,16 +644,18 @@ public class TileEditFrame extends JFrame {
 		ClearingDetail selected = (ClearingDetail) clearingList.getSelectedValue();
 		if (selected == null) return;
 		
-		ArrayList<ClearingDetail> allClearings = (ArrayList<ClearingDetail>) activeTile.getClearingDetail();
-		for (ClearingDetail cl : allClearings) {
+		ArrayList allClearings = (ArrayList) activeTile.getClearingDetail();
+		for (java.util.Iterator _j14it971 = (allClearings).iterator(); _j14it971.hasNext(); ) {
+		  ClearingDetail cl = (ClearingDetail) _j14it971.next();
 			if (cl.getNum()==selected.getNum()) {
 				allClearings.remove(cl);
 				break;
 			}
 		}
-		ArrayList<PathDetail> paths = new ArrayList<PathDetail>(activeTile.getPathDetail());
-		ArrayList<PathDetail> validPaths = new ArrayList<PathDetail>();
-		for (PathDetail path : paths) {
+		ArrayList paths = new ArrayList(activeTile.getPathDetail());
+		ArrayList validPaths = new ArrayList();
+		for (java.util.Iterator _j14it972 = (paths).iterator(); _j14it972.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it972.next();
 			if (path.getTo().getNum()!=selected.getNum() && path.getFrom().getNum()!=selected.getNum()) {
 				validPaths.add(path);
 			}
@@ -672,10 +675,10 @@ public class TileEditFrame extends JFrame {
 	}
 	public void updatePathList(int newIndex) {
 		if (activeTile!=null) {
-			pathList.setListData(new Vector<PathDetail>(activeTile.getPathDetail()));
+			pathList.setListData(new Vector(activeTile.getPathDetail()));
 		}
 		else {
-			pathList.setListData(new Vector<PathDetail>());
+			pathList.setListData(new Vector());
 		}
 		if (newIndex>=0) {
 			pathList.setSelectedIndex(newIndex);
@@ -745,7 +748,7 @@ public class TileEditFrame extends JFrame {
 	}
 	public void addPath() {
 		if (activeTile!=null) {
-			ArrayList<Object> list = new ArrayList<Object>(activeTile.getClearingDetail());
+			ArrayList list = new ArrayList(activeTile.getClearingDetail());
 			ButtonOptionDialog chooser = new ButtonOptionDialog(this,null,"From which clearing?","");
 			chooser.addSelectionObjects(list);
 			chooser.setVisible(true);
@@ -771,10 +774,10 @@ public class TileEditFrame extends JFrame {
 					else {
 						String edge = (String)o2;
 						c2Name = edge;
-						Hashtable<String, Point> edgePositionHash = TileComponent.getEdgePositionHash();
-						c2 = new ClearingDetail(activeTile,edge,edgePositionHash.get(edge),activeTile.getFacingIndex());
+						Hashtable edgePositionHash = TileComponent.getEdgePositionHash();
+						c2 = new ClearingDetail(activeTile,edge,(Point)edgePositionHash.get(edge),activeTile.getFacingIndex());
 					}
-					ArrayList<PathDetail> paths = new ArrayList<PathDetail>(activeTile.getPathDetail());
+					ArrayList paths = new ArrayList(activeTile.getPathDetail());
 					PathDetail path = new PathDetail(activeTile,paths.size()+1,c1.getName(),c2Name,c1,c2,null,"normal",activeTile.getFacingName());
 					paths.add(path);
 					activeTile.setPathDetail(paths);
@@ -787,7 +790,7 @@ public class TileEditFrame extends JFrame {
 		if (activeTile!=null) {
 			int index = pathList.getSelectedIndex();
 			if (index>=0) {
-				ArrayList<PathDetail> list = new ArrayList<PathDetail>(activeTile.getPathDetail());
+				ArrayList list = new ArrayList(activeTile.getPathDetail());
 				list.remove(index);
 				activeTile.setPathDetail(list);
 				updatePathList(index);
@@ -799,11 +802,11 @@ public class TileEditFrame extends JFrame {
 			int index = pathList.getSelectedIndex();
 			
 			if (index>0) {
-				ArrayList<PathDetail> list = new ArrayList<PathDetail>(activeTile.getPathDetail());
+				ArrayList list = new ArrayList(activeTile.getPathDetail());
 				
-				PathDetail selected = list.get(index);
-				PathDetail toSwap = list.get(index-1);
-				
+				PathDetail selected = (PathDetail) list.get(index);
+				PathDetail toSwap = (PathDetail) list.get(index-1);
+
 				list.set(index-1,selected);
 				list.set(index,toSwap);
 				
@@ -818,11 +821,11 @@ public class TileEditFrame extends JFrame {
 			int index = pathList.getSelectedIndex();
 			
 			if ((index+1)<pathList.getModel().getSize()) {
-				ArrayList<PathDetail> list = new ArrayList<PathDetail>(activeTile.getPathDetail());
+				ArrayList list = new ArrayList(activeTile.getPathDetail());
 				
-				PathDetail selected = list.get(index);
-				PathDetail toSwap = list.get(index+1);
-				
+				PathDetail selected = (PathDetail) list.get(index);
+				PathDetail toSwap = (PathDetail) list.get(index+1);
+
 				list.set(index+1,selected);
 				list.set(index,toSwap);
 				
@@ -843,9 +846,10 @@ public class TileEditFrame extends JFrame {
 			}
 		}
 	}
-	public Vector<GameObject> getTiles() {
-		Vector<GameObject> tiles = new Vector<GameObject>();
-		for (GameObject go : data.getGameObjects()) {
+	public Vector getTiles() {
+		Vector tiles = new Vector();
+		for (java.util.Iterator _j14it973 = (data.getGameObjects()).iterator(); _j14it973.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it973.next();
 			if (go.hasKey("tile") || go.hasKey("a_tile")) {
 				tiles.addElement(go);
 			}

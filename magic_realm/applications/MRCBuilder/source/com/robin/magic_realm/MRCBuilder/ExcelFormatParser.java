@@ -8,15 +8,15 @@ public class ExcelFormatParser {
 	public ExcelFormatParser(File file1) {
 		character = null;
 		file = file1;
-		Vector<RecordParser> vector = readIt();
+		Vector vector = readIt();
 		if (vector != null)
 			buildCharacter(vector);
 	}
 
-	public Vector<RecordParser> readIt() {
+	public Vector readIt() {
 		try {
 			BufferedReader bufferedreader = new BufferedReader(new FileReader(file));
-			Vector<RecordParser> vector = new Vector<RecordParser>();
+			Vector vector = new Vector();
 			String s;
 			while ((s = bufferedreader.readLine()) != null)
 				vector.addElement(new RecordParser(s, "\t"));
@@ -30,24 +30,24 @@ public class ExcelFormatParser {
 		return null;
 	}
 
-	public String getField(Vector<RecordParser> vector, int i, int j) {
+	public String getField(Vector vector, int i, int j) {
 		return getField(vector, new FieldPos(i, j));
 	}
 
-	public String getField(Vector<RecordParser> vector, FieldPos fieldpos) {
+	public String getField(Vector vector, FieldPos fieldpos) {
 		return getField(vector, fieldpos, 0);
 	}
 
-	public String getField(Vector<RecordParser> vector, FieldPos fieldpos, int i) {
+	public String getField(Vector vector, FieldPos fieldpos, int i) {
 		if (vector != null && fieldpos.getRow() < vector.size()) {
-			RecordParser recordparser = vector.elementAt(fieldpos.getRow());
+			RecordParser recordparser = (RecordParser) vector.elementAt(fieldpos.getRow());
 			if (fieldpos.getCol() < recordparser.totalFields())
 				return recordparser.getField(fieldpos.getCol() + i);
 		}
 		return null;
 	}
 
-	public String getNativeString(Vector<RecordParser> vector, FieldPos fieldpos) {
+	public String getNativeString(Vector vector, FieldPos fieldpos) {
 		StringBuffer stringbuffer = new StringBuffer();
 		for (int i = 0; i < 4; i++) {
 			String s = MRCBuilder.matchNat(getField(vector, fieldpos, i * 2));
@@ -61,7 +61,7 @@ public class ExcelFormatParser {
 		return stringbuffer.toString();
 	}
 
-	public void buildCharacter(Vector<RecordParser> vector) {
+	public void buildCharacter(Vector vector) {
 		if (vector != null) {
 			character = new MRCharacter();
 			character.setName(getField(vector, NAME));
@@ -75,7 +75,7 @@ public class ExcelFormatParser {
 			Chit achit[] = new Chit[12];
 			for (int j = 0; j < 12; j++) {
 				int k = 8 + j;
-				RecordParser recordparser = vector.elementAt(k);
+				RecordParser recordparser = (RecordParser) vector.elementAt(k);
 				achit[j] = new Chit(recordparser);
 				if (achit[j].getTextLine(0).toUpperCase().trim().equals("MAGIC")) {
 					String s = achit[j].getTextLine(1).toUpperCase().trim();
@@ -103,7 +103,7 @@ public class ExcelFormatParser {
 			character.setFriendly(getNativeString(vector, FRIENDLY).toString());
 			character.setUnfriendly(getNativeString(vector, UNFRIENDLY).toString());
 			character.setEnemy(getNativeString(vector, ENEMY).toString());
-			Vector<OutlineEntry> vector1 = new Vector<OutlineEntry>();
+			Vector vector1 = new Vector();
 			for (int l = 0; l < 2; l++) {
 				FieldPos fieldpos = new FieldPos(SPECIAL.getRow() + 1 + l, SPECIAL.getCol() + 1);
 				String s1 = getField(vector, fieldpos);
@@ -188,7 +188,7 @@ public class ExcelFormatParser {
 				String s5 = "";
 				String s6 = getField(vector, fieldpos1, 7);
 				try {
-					Integer integer = Integer.parseInt(s6);
+					Integer integer = new Integer(Integer.parseInt(s6));
 					if (integer.intValue() > 0)
 						s5 = integer.toString().trim() + " <i>Spell" + plural(integer.intValue()) + "</i> " + s3;
 				}

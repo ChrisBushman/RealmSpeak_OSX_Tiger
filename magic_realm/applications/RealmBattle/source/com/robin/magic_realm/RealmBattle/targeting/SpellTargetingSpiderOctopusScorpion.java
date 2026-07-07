@@ -15,10 +15,11 @@ public class SpellTargetingSpiderOctopusScorpion extends SpellTargetingSingle {
 	}
 	
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
-		ArrayList<RealmComponent> allDenizens = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
-		ArrayList<RealmComponent> allParticipantsSansDenizens = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(false),true);
+		ArrayList allDenizens = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
+		ArrayList allParticipantsSansDenizens = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(false),true);
 		allDenizens.removeAll(allParticipantsSansDenizens);
-		for (RealmComponent rc : allDenizens) {
+		for (java.util.Iterator _j14it887 = (allDenizens).iterator(); _j14it887.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it887.next();
 			if (rc.isMonster() && !rc.isPlayerControlledLeader() && !rc.hasMagicProtection() && !rc.hasMagicColorImmunity(spell)) {
 				if (rc.getGameObject().hasThisAttribute(Constants.SPIDER) || rc.getGameObject().hasThisAttribute(Constants.OCTOPUS) || rc.getGameObject().hasThisAttribute(Constants.SCORPION)) {
 					gameObjects.add(rc.getGameObject());

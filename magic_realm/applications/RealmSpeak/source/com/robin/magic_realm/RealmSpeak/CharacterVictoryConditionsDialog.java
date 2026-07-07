@@ -51,7 +51,7 @@ public class CharacterVictoryConditionsDialog extends AggressiveDialog {
 			required = null;
 		}
 		this.required = required;
-		this.deduct = deductVps;
+		this.deduct = new Integer(deductVps);
 		initComponents();
 	}
 	
@@ -87,7 +87,7 @@ public class CharacterVictoryConditionsDialog extends AggressiveDialog {
 			setSize(250,165);
 			line = group.createLabelLine("Quest Points");
 				if (deduct!=null) {
-					if (deduct < 0) {
+					if (deduct.intValue() < 0) {
 						questPoints = createSpinnerPlus(character.getQuestPointScore().getAssignedVictoryPoints());
 					} else {
 						questPoints = createSpinnerMinus(character.getQuestPointScore().getAssignedVictoryPoints());
@@ -104,7 +104,7 @@ public class CharacterVictoryConditionsDialog extends AggressiveDialog {
 			setSize(250,250);
 			line = group.createLabelLine("Great Treasures");
 				if (deduct!=null) {
-					if (deduct < 0) {
+					if (deduct.intValue() < 0) {
 						greatTreasures = createSpinnerPlus(character.getGreatTreasureScore().getAssignedVictoryPoints());
 					} else {
 						greatTreasures = createSpinnerMinus(character.getGreatTreasureScore().getAssignedVictoryPoints());
@@ -119,7 +119,7 @@ public class CharacterVictoryConditionsDialog extends AggressiveDialog {
 			
 			line = group.createLabelLine("Usable Spells");
 				if (deduct!=null) {
-					if (deduct < 0) {
+					if (deduct.intValue() < 0) {
 						usableSpells = createSpinnerPlus(character.getUsableSpellScore().getAssignedVictoryPoints());
 					} else {
 						usableSpells = createSpinnerMinus(character.getUsableSpellScore().getAssignedVictoryPoints());
@@ -134,7 +134,7 @@ public class CharacterVictoryConditionsDialog extends AggressiveDialog {
 			
 			line = group.createLabelLine("Fame");
 				if (deduct!=null) {
-					if (deduct < 0) {
+					if (deduct.intValue() < 0) {
 						famePoints = createSpinnerPlus(character.getFameScore().getAssignedVictoryPoints());
 					} else {
 						famePoints = createSpinnerMinus(character.getFameScore().getAssignedVictoryPoints());
@@ -149,7 +149,7 @@ public class CharacterVictoryConditionsDialog extends AggressiveDialog {
 
 			line = group.createLabelLine("Notoriety");
 				if (deduct!=null) {
-					if (deduct < 0) {
+					if (deduct.intValue() < 0) {
 						notorietyPoints = createSpinnerPlus(character.getNotorietyScore().getAssignedVictoryPoints());
 					} else {
 						notorietyPoints = createSpinnerMinus(character.getNotorietyScore().getAssignedVictoryPoints());
@@ -165,7 +165,7 @@ public class CharacterVictoryConditionsDialog extends AggressiveDialog {
 
 			line = group.createLabelLine("Gold");
 				if (deduct!=null) {
-					if (deduct < 0) {
+					if (deduct.intValue() < 0) {
 						usableGold = createSpinnerPlus(character.getGoldScore().getAssignedVictoryPoints());
 					} else {
 						usableGold = createSpinnerMinus(character.getGoldScore().getAssignedVictoryPoints());
@@ -273,7 +273,7 @@ public class CharacterVictoryConditionsDialog extends AggressiveDialog {
 		}
 	}
 	private static int getIntFromSpinner(JSpinner spinner) {
-		return spinner==null?0:(Integer)spinner.getValue();
+		return spinner==null?0:((Integer)spinner.getValue()).intValue();
 	}
 	
 	public static void main(String[] args) {
@@ -288,7 +288,7 @@ public class CharacterVictoryConditionsDialog extends AggressiveDialog {
 		active.setGold(10);
 		active.setCharacterLevel(4);
 		active.fetchStartingInventory(new JFrame(),loader.getData(),false);
-		CharacterVictoryConditionsDialog vc = new CharacterVictoryConditionsDialog(new JFrame(),active,5);
+		CharacterVictoryConditionsDialog vc = new CharacterVictoryConditionsDialog(new JFrame(),active,new Integer(5));
 		vc.setLocationRelativeTo(null);
 		vc.setVisible(true);
 		System.exit(0);

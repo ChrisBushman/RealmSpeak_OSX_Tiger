@@ -11,7 +11,6 @@ import com.robin.magic_realm.components.wrapper.CombatWrapper;
 
 public class ControlEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		GameObject caster = context.Caster;
 		GameObject spellObj = context.Spell.getGameObject();
@@ -19,8 +18,9 @@ public class ControlEffect implements ISpellEffect {
 		RealmComponent target = context.Target;
 		
 			// Make sure none of the caster's hirelings are attacking the monster/native or this spell is cancelled for that monsters
-			ArrayList<GameObject> attackers = combat.getAttackers();
-			for (GameObject go:attackers) {
+			ArrayList attackers = combat.getAttackers();
+			for (java.util.Iterator _j14it2028 = (attackers).iterator(); _j14it2028.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2028.next();
 				if (!go.equals(caster)) {
 					RealmComponent gorc = RealmComponent.getRealmComponent(go);
 					if (gorc.getOwnerId().equals(caster.getStringId())) {
@@ -31,7 +31,7 @@ public class ControlEffect implements ISpellEffect {
 								+target.getGameObject().getNameWithNumber());
 						
 						// Remove target manually
-						ArrayList<String> targetids = new ArrayList<String>(context.Spell.getList("target_ids"));
+						ArrayList targetids = new ArrayList(context.Spell.getList("target_ids"));
 						targetids.remove(target.getGameObject().getStringId());
 						if (targetids.isEmpty()) {
 							context.Spell.cancelSpell();
@@ -61,7 +61,6 @@ public class ControlEffect implements ISpellEffect {
 //			combat.removeAllAttackers();	
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		context.Spell.getCaster().removeHireling(context.Target.getGameObject()); // this does all the work we need!
 	}

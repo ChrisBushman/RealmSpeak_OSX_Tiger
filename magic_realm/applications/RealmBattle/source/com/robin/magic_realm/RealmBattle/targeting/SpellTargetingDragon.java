@@ -15,10 +15,11 @@ public class SpellTargetingDragon extends SpellTargetingSingle {
 	}
 
 	public boolean populate(BattleModel battleModel,RealmComponent activeParticipant) {
-		ArrayList<RealmComponent> allDenizens = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
-		ArrayList<RealmComponent> allParticipantsSansDenizens = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(false),true);
+		ArrayList allDenizens = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(true),true);
+		ArrayList allParticipantsSansDenizens = combatFrame.findCanBeSeen(battleModel.getAllBattleParticipants(false),true);
 		allDenizens.removeAll(allParticipantsSansDenizens);
-		for (RealmComponent rc : allDenizens) {
+		for (java.util.Iterator _j14it847 = (allDenizens).iterator(); _j14it847.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it847.next();
 			if (rc.isMonster() && !rc.isPlayerControlledLeader() && !rc.hasMagicProtection() && !rc.hasMagicColorImmunity(spell)) {
 				if (rc.getGameObject().hasThisAttribute(Constants.DRAGON) || rc.getGameObject().hasThisAttribute(Constants.DRAKE) || rc.getGameObject().hasThisAttribute(Constants.WYRM)) {
 					gameObjects.add(rc.getGameObject());
