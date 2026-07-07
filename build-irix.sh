@@ -31,4 +31,4 @@ ant -f "$DIR/build/build.xml" \
     -Dcompile.bootclasspath="$RT" \
     -Dcompile.compiler=org.eclipse.jdt.core.JDTCompilerAdapter \
     -Dcompile.memoryMaximumSize=512m \
-    "${@:-build}"
+    "${@:-clean-build-RealmSpeakFull}"

@@ -152,7 +152,7 @@ ant -f build/build.xml \
     -Dcompile.source.version=1.4 \
     -Dcompile.target.version=1.4 \
     -Dcompile.bootclasspath=/path/to/build/irix/rt.jar \
-    build-all-projects
+    clean-build-RealmSpeakFull
 ```
 
 A successful build prints `BUILD SUCCESSFUL` and produces `products/RealmSpeakFull.jar`.
@@ -165,6 +165,38 @@ All class files will be at version **48.0** (Java 1.4).
 3. Double-click `run98.bat`.
 
 **Recommended screen resolution: 1024×768 or higher.**
+
+### Run on SGI IRIX
+
+1. Enable FTP on the O2 if not already running:
+
+   ```sh
+   chkconfig ftp on
+   killall -HUP inetd
+   ```
+
+2. From the Mac, FTP the following files into a directory on the O2 (e.g. `/usr/RealmSpeak`):
+
+   ```
+   products/RealmSpeakFull.jar
+   products/run-irix.sh
+   products/characters/      (directory)
+   products/gameData/        (directory)
+   products/quests/          (directory)
+   ```
+
+3. On the O2, make the script executable and launch:
+
+   ```sh
+   chmod +x /usr/RealmSpeak/run-irix.sh
+   /usr/RealmSpeak/run-irix.sh
+   ```
+
+   The `-Duser.home=.` flag keeps save files in the same directory as the jar.
+   Adjust `-mx256m` if your O2 has less than 512 MB RAM (try `-mx128m`).
+
+   Java on IRIX is typically installed at `/usr/java2/bin/java` — the script uses
+   the full path so it works regardless of PATH settings.
 
 ### Run under Wine (for testing)
 

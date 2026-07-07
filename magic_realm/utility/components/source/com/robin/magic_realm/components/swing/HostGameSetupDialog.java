@@ -416,7 +416,7 @@ public class HostGameSetupDialog extends AggressiveDialog {
 		useWeather.setEnabled(editMode && startingSeason.getSelectedIndex()>0);
 	}
 	private void initComponents() {
-		setSize(1024,768);
+		setSize(1560,960);
 		setLocationRelativeTo(null);
 		setModal(true);
 		
