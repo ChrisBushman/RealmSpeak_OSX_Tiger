@@ -60,7 +60,7 @@
   <property name="compile.includeAntRuntime" value="false"/>
   <property name="compile.source.version" value="1.5"/>
   <property name="compile.target.version" value="1.5"/>
-  <property name="compile.bootclasspath" value="${compile.library.dir}/classes.jar:${compile.library.dir}/ui.jar"/>
+  <property name="compile.bootclasspath" value="${allproject.dir}/build/irix/rt.jar"/>
   <!-- Set to org.eclipse.jdt.core.JDTCompilerAdapter when building with ECJ (ant -lib ecj.jar) -->
   <property name="compile.compiler" value="modern"/>
 
