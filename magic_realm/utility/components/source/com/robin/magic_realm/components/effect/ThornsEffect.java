@@ -14,15 +14,14 @@ public class ThornsEffect implements ISpellEffect {
 	public ThornsEffect(){
 	}
 	
-	@Override
 	public void apply(SpellEffectContext context) {
 		String clearings = context.Spell.getExtraIdentifier();
 		String[] clearingStrings = clearings.split("_");
 		String clearing1 = clearingStrings[0];
 		String clearing2 = clearingStrings[1];
-		ArrayList<RealmComponent> targets = context.Spell.getTargets();
-		TileComponent tile1 = new TileComponent(targets.get(0).getGameObject());
-		TileComponent tile2 = new TileComponent(targets.get(1).getGameObject());
+		ArrayList targets = context.Spell.getTargets();
+		TileComponent tile1 = new TileComponent(((RealmComponent)targets.get(0)).getGameObject());
+		TileComponent tile2 = new TileComponent(((RealmComponent)targets.get(1)).getGameObject());
 		
 		moveCharactersBetweenClearings(tile1,Integer.parseInt(clearing1),tile2,Integer.parseInt(clearing2));
 		moveCharactersBetweenClearings(tile2,Integer.parseInt(clearing2),tile1,Integer.parseInt(clearing1));
@@ -32,13 +31,12 @@ public class ThornsEffect implements ISpellEffect {
 		RealmLogging.logMessage(context.Spell.getCaster().getGameObject().getName(),"Casts Thorns on "+context.Target.getGameObject().getNameWithNumber()+": Roadway between clearings "+tile1+" "+clearing1+" and "+tile2+" "+clearing2+".");
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		String clearings = context.Spell.getExtraIdentifier();
 		String[] clearingStrings = clearings.split("_");
 		String clearing1 = clearingStrings[0];
 		String clearing2 = clearingStrings[1];
-		ArrayList<RealmComponent> targets = context.Spell.getTargets();
+		ArrayList targets = context.Spell.getTargets();
 		TileComponent tile1 = (TileComponent)targets.get(0);
 		TileComponent tile2 = (TileComponent)targets.get(1);
 		
@@ -46,7 +44,8 @@ public class ThornsEffect implements ISpellEffect {
 	}
 
 	private static void moveCharactersBetweenClearings(TileComponent tile1, int clearing1, TileComponent tile2, int clearing2) {
-		for (RealmComponent rc : tile1.getRealmComponentsBetweenClearing(clearing1)) {
+		for (java.util.Iterator _j14it2026 = (tile1.getRealmComponentsBetweenClearing(clearing1)).iterator(); _j14it2026.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2026.next();
 			if (!rc.isCharacter()) continue;
 			CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 			TileLocation loc = character.getCurrentLocation();

@@ -19,7 +19,6 @@ public class QuestRequirementLearnAwaken extends QuestRequirement {
 		super(go);
 	}
 
-	@Override
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
 		boolean awaken = (reqParams.searchType == SearchResultType.Awaken || reqParams.searchType == SearchResultType.LearnAndAwaken) && reqParams.searchHadAnEffect;
 		if (!awaken) {
@@ -39,7 +38,7 @@ public class QuestRequirementLearnAwaken extends QuestRequirement {
 				logger.fine("Nothing to match to regex /"+regex+"/");
 				return false;
 			}
-			GameObject go = reqParams.objectList.get(0);
+			GameObject go = (GameObject) reqParams.objectList.get(0);
 			if (!pattern.matcher(go.getName()).find()) {
 				logger.fine(go.getName()+" does not match regex /"+regex+"/");
 				return false;
@@ -49,14 +48,12 @@ public class QuestRequirementLearnAwaken extends QuestRequirement {
 		return true;
 	}
 
-	@Override
 	public RequirementType getRequirementType() {
 		return RequirementType.LearnAwaken;
 	}
 
-	@Override
 	protected String buildDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append(requiresLearn() ? "Must learn " : "Must awaken ");
 		sb.append("a spell");
 		String regex = getRegExFilter();

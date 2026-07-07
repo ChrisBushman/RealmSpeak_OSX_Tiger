@@ -9,7 +9,6 @@ public class SummonEffect implements ISpellEffect {
 		_summonType = type;
 	}
 	
-	@Override
 	public void apply(SpellEffectContext context) {
 		SpellUtility.summonRandomCompanion(
 				context.Parent,
@@ -19,7 +18,6 @@ public class SummonEffect implements ISpellEffect {
 				_summonType);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		SpellUtility.unsummonCompanions(context.Spell);
 	}

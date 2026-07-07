@@ -32,7 +32,7 @@ public class QuestRequirementWeather extends QuestRequirement {
 	}
 
 	protected String buildDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		if (weatherEnabled()) {
 			sb.append("Weather must be enabled. ");
 		}

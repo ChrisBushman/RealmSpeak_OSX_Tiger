@@ -44,14 +44,15 @@ public class QuestRequirementSearchTile extends QuestRequirement {
 			logger.fine("Search table name "+reqParams.actionName+" does not match "+reqTable);
 			return false;
 		}
-		ArrayList<SearchResultType> acceptibleSearchResults = getAcceptableSearchResults();
+		ArrayList acceptibleSearchResults = getAcceptableSearchResults();
 		if (!acceptibleSearchResults.contains(reqParams.searchType)) {
 			logger.fine("Search type "+reqParams.searchType+" wasn't among the acceptable search results: "+StringUtilities.collectionToString(acceptibleSearchResults,","));
 			return false;
 		}
 		if (getChit()!=null && !getChit().matches(NONE)) {
 			boolean chitFound = false;
-			for (GameObject go : loc.tile.getGameObject().getHold()) {
+			for (java.util.Iterator _j14it2296 = (loc.tile.getGameObject().getHold()).iterator(); _j14it2296.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2296.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (rc.isSound() || rc.isWarning()) {
 					if (go.getName().toLowerCase().matches(getChit().toLowerCase())) {
@@ -83,7 +84,8 @@ public class QuestRequirementSearchTile extends QuestRequirement {
 			
 			int highestClearingNumberWithSite = 0;
 			int highestClearingNumberWithSound = 0;
-			for (ClearingDetail cl : loc.tile.getClearings()) {
+			for (java.util.Iterator _j14it2297 = (loc.tile.getClearings()).iterator(); _j14it2297.hasNext(); ) {
+			  ClearingDetail cl = (ClearingDetail) _j14it2297.next();
 				if (cl.getTreasureLocations()!=null && !cl.getTreasureLocations().isEmpty()) {
 					if (cl.getNum()>highestClearingNumberWithSite) {
 						highestClearingNumberWithSite = cl.getNum();
@@ -108,7 +110,7 @@ public class QuestRequirementSearchTile extends QuestRequirement {
 		return true;
 	}
 	protected String buildDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must ");
 		if ((getTileType()!=null && !getTileType().matches(ANY)) || (getChit()!=null && !getChit().matches(NONE))) {
 			sb.append("be in a ");
@@ -144,10 +146,11 @@ public class QuestRequirementSearchTile extends QuestRequirement {
 	public SearchTableType getRequiredSearchTable() {
 		return SearchTableType.valueOf(getString(TABLENAME));
 	}
-	public ArrayList<SearchResultType> getAcceptableSearchResults() {
-		ArrayList<SearchResultType> list = new ArrayList<SearchResultType>();
+	public ArrayList getAcceptableSearchResults() {
+		ArrayList list = new ArrayList();
 		
-		for(String key:ALL_RESULTS) {
+		for (int _j14i2298 = 0; _j14i2298 < ALL_RESULTS.length; _j14i2298++) {
+		  String key = ALL_RESULTS[_j14i2298];
 			SearchResultType type = null;
 			try {
 				type = SearchResultType.valueOf(getString(key));
@@ -157,7 +160,9 @@ public class QuestRequirementSearchTile extends QuestRequirement {
 			}
 			if (type!=null) {
 				if (type==SearchResultType.Any) {
-					for(SearchResultType s:SearchResultType.values()) {
+					SearchResultType[] _j14v2299 = SearchResultType.values();
+				for (int _j14i2299 = 0; _j14i2299 < _j14v2299.length; _j14i2299++) {
+					  SearchResultType s = _j14v2299[_j14i2299];
 						if (s!=SearchResultType.Any && !list.contains(s)) {
 							list.add(s);
 						}

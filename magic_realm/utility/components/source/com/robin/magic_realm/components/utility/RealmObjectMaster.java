@@ -16,15 +16,15 @@ import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
  */
 public class RealmObjectMaster {
 	
-	private static HashMap<Long, RealmObjectMaster> map = null;
+	private static HashMap map = null;
 	
 	private GameData data = null;
 	private HostPrefWrapper hostPrefs = null;
 	private int gameObjectCountForPlayers = -1;
-	private ArrayList<GameObject> playerCharacterObjects = null;
-	private ArrayList<GameObject> denizenObjects = null;
-	private ArrayList<GameObject> tileObjects = null;
-	private ArrayList<GameObject> dwellingObjects = null;
+	private ArrayList playerCharacterObjects = null;
+	private ArrayList denizenObjects = null;
+	private ArrayList tileObjects = null;
+	private ArrayList dwellingObjects = null;
 	
 	private RealmObjectMaster(GameData data) {
 		this.data = data;
@@ -41,7 +41,7 @@ public class RealmObjectMaster {
 		}
 	}
 	
-	public ArrayList<GameObject> findObjects(String baseQuery,ArrayList<String> keyVals) {
+	public ArrayList findObjects(String baseQuery,ArrayList keyVals) {
 		String query = StringUtilities.collectionToString(keyVals,",");
 		if (baseQuery!=null && baseQuery.length()>0) {
 			if (query.length()>0) {
@@ -52,10 +52,10 @@ public class RealmObjectMaster {
 		return findObjects(query);
 	}
 	
-	public ArrayList<GameObject> findObjects(String keyVals) {
+	public ArrayList findObjects(String keyVals) {
 		keyVals = hostPrefs.getGameKeyVals()+","+keyVals;
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> objects = pool.find(keyVals);
+		ArrayList objects = pool.find(keyVals);
 		return objects;
 	}
 	
@@ -63,14 +63,14 @@ public class RealmObjectMaster {
 	 * @return		A Collection of all characters (dead or alive), all Native Leaders (hired or not, dead or alive),
 	 * 				and all the monsters (they may get controlled!)
 	 */
-	public ArrayList<GameObject> getPlayerCharacterObjects() {
+	public ArrayList getPlayerCharacterObjects() {
 		int dataSize = data.getGameObjects().size();
 		if (gameObjectCountForPlayers!=dataSize) {
 			gameObjectCountForPlayers = dataSize;
 			playerCharacterObjects = null;
 		}
 		if (playerCharacterObjects==null) {
-			playerCharacterObjects = new ArrayList<GameObject>();
+			playerCharacterObjects = new ArrayList();
 			playerCharacterObjects.addAll(findObjects("character"));
 			playerCharacterObjects.addAll(findObjects("native,rank")); // not just leaders anymore, due to Hypnotize spell!
 			playerCharacterObjects.addAll(findObjects("monster,!part"));
@@ -82,9 +82,9 @@ public class RealmObjectMaster {
 	/**
 	 * @return		A Collection of all natives & monsters, dead or alive, controlled/hired or not.
 	 */
-	public ArrayList<GameObject> getDenizenObjects() {
+	public ArrayList getDenizenObjects() {
 		if (denizenObjects==null) {
-			denizenObjects = new ArrayList<GameObject>();
+			denizenObjects = new ArrayList();
 			denizenObjects.addAll(findObjects("native,rank"));
 			denizenObjects.addAll(findObjects("monster,!part"));
 		}
@@ -94,9 +94,9 @@ public class RealmObjectMaster {
 	/**
 	 * @return		A Collection of all the tile objects
 	 */
-	public ArrayList<GameObject> getTileObjects() {
+	public ArrayList getTileObjects() {
 		if (tileObjects==null) {
-			tileObjects = new ArrayList<GameObject>();
+			tileObjects = new ArrayList();
 			tileObjects.addAll(findObjects("tile"));
 		}
 		return tileObjects;
@@ -108,9 +108,9 @@ public class RealmObjectMaster {
 	/**
 	 * @return		A Collection of all the dwelling objects
 	 */
-	public ArrayList<GameObject> getDwellingObjects() {
+	public ArrayList getDwellingObjects() {
 		if (dwellingObjects==null) {
-			dwellingObjects = new ArrayList<GameObject>();
+			dwellingObjects = new ArrayList();
 			dwellingObjects.addAll(findObjects("dwelling"));
 			dwellingObjects.addAll(findObjects("guild"));
 		}
@@ -122,10 +122,10 @@ public class RealmObjectMaster {
 	 */
 	public static RealmObjectMaster getRealmObjectMaster(GameData data) {
 		if (map==null) {
-			map = new HashMap<Long, RealmObjectMaster>();
+			map = new HashMap();
 		}
 		Long id = Long.valueOf(data.getDataId());
-		RealmObjectMaster rom = map.get(id);
+		RealmObjectMaster rom = (RealmObjectMaster) map.get(id);
 		if (rom==null) {
 			rom = new RealmObjectMaster(data);
 			map.put(id,rom);

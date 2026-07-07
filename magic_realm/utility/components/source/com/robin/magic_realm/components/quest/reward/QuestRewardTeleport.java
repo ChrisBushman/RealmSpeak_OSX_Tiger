@@ -23,14 +23,14 @@ public class QuestRewardTeleport extends QuestReward {
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
 		QuestLocation loc = getQuestLocation();		
-		ArrayList<TileLocation> validLocations = new ArrayList<TileLocation>();
+		ArrayList validLocations = new ArrayList();
 		validLocations = loc.fetchAllLocations(frame, character, getGameData());
 		if(validLocations.isEmpty()) {
 			logger.fine("QuestLocation "+loc.getName()+" doesn't have any valid locations!");
 			return;
 		}
 		int random = RandomNumber.getRandom(validLocations.size());
-		TileLocation tileLocation = validLocations.get(random);
+		TileLocation tileLocation = (TileLocation) validLocations.get(random);
 		character.moveToLocation(frame, tileLocation);
 	}
 	
@@ -62,7 +62,7 @@ public class QuestRewardTeleport extends QuestReward {
 		return null;
 	}
 
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}
 }

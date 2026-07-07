@@ -11,7 +11,6 @@ import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class ReanimateEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		GameObject monster = context.getGameData().createNewObject();
 		SpellWrapper.copyMonsterAttributesToObject(context.Target.getGameObject(), "this", monster);
@@ -49,7 +48,8 @@ public class ReanimateEffect implements ISpellEffect {
 			monster.removeThisAttribute("native");
 		}
 		monster.setThisAttribute(Constants.SPOILS_NONE);
-		for (GameObject held : context.Target.getGameObject().getHold()) {
+		for (java.util.Iterator _j14it2029 = (context.Target.getGameObject().getHold()).iterator(); _j14it2029.hasNext(); ) {
+		  GameObject held = (GameObject) _j14it2029.next();
 			if (held.hasThisAttribute(Constants.SPELL_DENIZEN)) {
 				GameObject spell = held.copy();
 				monster.add(spell);
@@ -66,7 +66,6 @@ public class ReanimateEffect implements ISpellEffect {
 		}
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		String id = context.Spell.getExtraIdentifier();
 		if (id !=null) {

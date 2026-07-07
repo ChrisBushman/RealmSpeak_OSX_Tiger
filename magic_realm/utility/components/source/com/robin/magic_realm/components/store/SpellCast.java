@@ -31,10 +31,11 @@ public class SpellCast extends Store {
 	
 	public String doService(JFrame frame) {
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,"Which Service?",true);
-		SpellWrapper spell = new SpellWrapper(trader.getHold().iterator().next());
-		Hashtable<String,String[]> optionKeyToPrice = new Hashtable<String,String[]>();
-		ArrayList<String> prices = trader.getGameObject().getThisAttributeList("prices");
-		for (String price:prices) {
+		SpellWrapper spell = new SpellWrapper((com.robin.game.objects.GameObject) trader.getHold().iterator().next());
+		Hashtable optionKeyToPrice = new Hashtable();
+		ArrayList prices = trader.getGameObject().getThisAttributeList("prices");
+		for (java.util.Iterator _j14it2526 = (prices).iterator(); _j14it2526.hasNext(); ) {
+		  String price = (String) _j14it2526.next();
 			String[] keyVal = price.split("=");
 			int cost = Integer.parseInt(keyVal[0]);
 			int spellMod = Integer.parseInt(keyVal[1]);
@@ -47,7 +48,7 @@ public class SpellCast extends Store {
 		String selOptionKey = chooser.getSelectedOptionKey();
 		if (selOptionKey!=null) {
 			RealmComponent rc = chooser.getFirstSelectedComponent();
-			String[] keyVal = optionKeyToPrice.get(selOptionKey);
+			String[] keyVal = (String[]) optionKeyToPrice.get(selOptionKey);
 			int cost = Integer.parseInt(keyVal[0]);
 			double gold = character.getGold();
 			if (cost>gold) {

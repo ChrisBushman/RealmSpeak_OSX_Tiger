@@ -22,7 +22,6 @@ public class QuestRequirementPath extends QuestRequirement {
 		super(go);
 	}
 
-	@Override
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
 		String path = getPathString();
 		if (path==null || path.trim().length()==0) {
@@ -31,42 +30,37 @@ public class QuestRequirementPath extends QuestRequirement {
 		}
 		path = path.trim();
 		
-		ArrayList<String> history = character.getMoveHistory();
+		ArrayList history = character.getMoveHistory();
 		if (history==null || history.size()==0) {
 			logger.fine("Character hasn't gone anywhere yet.");
 			return false;
 		}
-		ArrayList<String> historyDays = character.getMoveHistoryDayKeys();
+		ArrayList historyDays = character.getMoveHistoryDayKeys();
 		if (history.size()!=historyDays.size()) {
 			logger.fine("QUEST ERROR:  history is different size than historyDays.");
 			return false;
 		}
 		
 		DayKey startKey = null;
-		switch(getTimeRestriction()) {
-			case Quest:
-				startKey = getParentStep().getQuestStartTime();
-				break;
-			case Step:
-				startKey = getParentStep().getQuestStepStartTime();
-				break;
-			case Game:
-				startKey = new DayKey(1,1);
-				break;
-			case Day:
-			default:
-				startKey = new DayKey(character.getCurrentDayKey());
-				break;
+		TargetValueType _tr = getTimeRestriction();
+		if (_tr == TargetValueType.Quest) {
+			startKey = getParentStep().getQuestStartTime();
+		} else if (_tr == TargetValueType.Step) {
+			startKey = getParentStep().getQuestStepStartTime();
+		} else if (_tr == TargetValueType.Game) {
+			startKey = new DayKey(1,1);
+		} else {
+			startKey = new DayKey(character.getCurrentDayKey());
 		}
 		
 		boolean ignoreJumps = isAllowTransport();
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		for (int i=0;i<history.size();i++) {
 			if (startKey!=null) {
-				DayKey dayKey = new DayKey(historyDays.get(i));
+				DayKey dayKey = new DayKey((String) historyDays.get(i));
 				if (dayKey.before(startKey)) continue;
 			}
-			String location = history.get(i);
+			String location = (String) history.get(i);
 			if (CharacterWrapper.MOVE_HISTORY_DAY.equals(location)) continue; // always ignore the days
 			if (ignoreJumps && CharacterWrapper.MOVE_HISTORY_JUMP.equals(location)) continue; // ignore the jumps only if transport is allowed
 			if (sb.length()>0) sb.append(" ");
@@ -96,14 +90,15 @@ public class QuestRequirementPath extends QuestRequirement {
 		}
 		
 		for (int i=0;i<pathSections.length;i++) {
-			StringBuilder sb = new StringBuilder(each[i]);
+			StringBuffer sb = new StringBuffer(each[i]);
 			sb.append(' ');
 			sb.append(each[i+1]);
 			pathSections[i] = sb.toString();
 		}
 		
 		int lastIndex = -1;
-		for(String section:pathSections) {
+		for (int _j14i2318 = 0; _j14i2318 < pathSections.length; _j14i2318++) {
+		  String section = pathSections[_j14i2318];
 			int index = charPath.lastIndexOf(" "+section);
 			if (index<0 || index<=lastIndex) return false;
 			lastIndex = index;
@@ -111,26 +106,20 @@ public class QuestRequirementPath extends QuestRequirement {
 		return true;
 	}
 
-	@Override
 	public RequirementType getRequirementType() {
 		return RequirementType.Path;
 	}
 
-	@Override
 	protected String buildDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must follow path");
-		switch(getTimeRestriction()) {
-			case Quest:
-				sb.append(" during the quest");
-				break;
-			case Step:
-				sb.append(" during the step");
-				break;
-			case Day:
-			default:
-				sb.append(" during the current day");
-				break;
+		TargetValueType _tr2 = getTimeRestriction();
+		if (_tr2 == TargetValueType.Quest) {
+			sb.append(" during the quest");
+		} else if (_tr2 == TargetValueType.Step) {
+			sb.append(" during the step");
+		} else {
+			sb.append(" during the current day");
 		}
 		if (!isAllowTransport()) {
 			sb.append(" without teleporting");
@@ -151,7 +140,7 @@ public class QuestRequirementPath extends QuestRequirement {
 		String path = getPathString();
 		if (path==null) return null;
 		String[] ret = path.split(" ");
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		for(int i=ret.length-1;i>=0;i--) {
 			sb.append(ret[i]);
 			sb.append(' ');

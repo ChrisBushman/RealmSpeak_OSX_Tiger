@@ -63,7 +63,7 @@ public class QuestRequirementLocation extends QuestRequirement {
 		return null;
 	}
 	
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}
 }

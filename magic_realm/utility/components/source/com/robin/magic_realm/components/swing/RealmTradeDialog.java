@@ -23,11 +23,11 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class RealmTradeDialog extends AggressiveDialog {
 	private RealmComponent trader = null; // could be null
-	private ArrayList<TradeComponent> tradeComponents;
+	private ArrayList tradeComponents;
 	public JTable tradeTable;
 	private int maxHeight;
 	
-	private Collection<TradeComponent> selectedTradeComponents = null;
+	private Collection selectedTradeComponents = null;
 	
 	private JButton cancelButton;
 	private JButton okayButton;
@@ -67,44 +67,47 @@ public class RealmTradeDialog extends AggressiveDialog {
 	public RealmComponent getMarkedRealmComponentFromTradeTable() {
 		int selRow = tradeTable.getSelectedRow();
 		if (selRow>=0) {
-			return (tradeComponents.get(selRow)).realmComponent;
+			return ((TradeComponent) tradeComponents.get(selRow)).realmComponent;
 		}
 		return null;
 	}
 	public RealmComponent getFirstSelectedRealmComponent() {
-		ArrayList<RealmComponent> sel = getSelectedRealmComponents();
+		ArrayList sel = getSelectedRealmComponents();
 		if (sel!=null && sel.size()>0) {
-			return sel.get(0);
+			return (RealmComponent) sel.get(0);
 		}
 		return null;
 	}
-	public ArrayList<RealmComponent> getSelectedRealmComponents() {
+	public ArrayList getSelectedRealmComponents() {
 		if (selectedTradeComponents!=null) {
-			ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
-			for (TradeComponent tradeComponent : selectedTradeComponents) {
+			ArrayList ret = new ArrayList();
+			for (java.util.Iterator _j14it1876 = (selectedTradeComponents).iterator(); _j14it1876.hasNext(); ) {
+			  TradeComponent tradeComponent = (TradeComponent) _j14it1876.next();
 				ret.add(tradeComponent.getRealmComponent());
 			}
 			return ret;
 		}
 		return null;
 	}
-	public ArrayList<GameObject> getSelectedObjects() {
+	public ArrayList getSelectedObjects() {
 		if (selectedTradeComponents!=null) {
-			ArrayList<GameObject> ret = new ArrayList<GameObject>();
-			for (TradeComponent tradeComponent : selectedTradeComponents) {
+			ArrayList ret = new ArrayList();
+			for (java.util.Iterator _j14it1877 = (selectedTradeComponents).iterator(); _j14it1877.hasNext(); ) {
+			  TradeComponent tradeComponent = (TradeComponent) _j14it1877.next();
 				ret.add(tradeComponent.getRealmComponent().getGameObject());
 			}
 			return ret;
 		}
 		return null;
 	}
-	public void setTradeComponents(Collection<RealmComponent> components) {
+	public void setTradeComponents(Collection components) {
 		setTradeComponents(components,true);
 	}
-	public void setTradeComponents(Collection<RealmComponent> components,boolean sort) {
+	public void setTradeComponents(Collection components,boolean sort) {
 		maxHeight = 0;
-		tradeComponents = new ArrayList<TradeComponent>();
-		for (RealmComponent rc : components) {
+		tradeComponents = new ArrayList();
+		for (java.util.Iterator _j14it1878 = (components).iterator(); _j14it1878.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1878.next();
 			TradeComponent tc = new TradeComponent(rc);
 			if (tc.getSide1().getIconHeight()>maxHeight) {
 				maxHeight = tc.getSide1().getIconHeight();
@@ -113,10 +116,11 @@ public class RealmTradeDialog extends AggressiveDialog {
 		}
 		buildDialog(sort);
 	}
-	public void setTradeObjects(Collection<GameObject> objects) {
+	public void setTradeObjects(Collection objects) {
 		maxHeight = 0;
-		tradeComponents = new ArrayList<TradeComponent>();
-		for (GameObject go  : objects) {
+		tradeComponents = new ArrayList();
+		for (java.util.Iterator _j14it1879 = (objects).iterator(); _j14it1879.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1879.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			TradeComponent tc = new TradeComponent(rc);
 			if (tc.getSide1().getIconHeight()>maxHeight) {
@@ -128,10 +132,12 @@ public class RealmTradeDialog extends AggressiveDialog {
 	}
 	private void buildDialog(boolean sort) {
 		if (sort) {
-			Collections.sort(tradeComponents,new Comparator<TradeComponent>() {
-				public int compare(TradeComponent t1,TradeComponent t2) {
-					int bp1 = t1.getBasePrice()==null?0:t1.getBasePrice();
-					int bp2 = t2.getBasePrice()==null?0:t2.getBasePrice();
+			Collections.sort(tradeComponents,new Comparator() {
+				public int compare(Object o1,Object o2) {
+					TradeComponent t1 = (TradeComponent) o1;
+					TradeComponent t2 = (TradeComponent) o2;
+					int bp1 = t1.getBasePrice()==null?0:t1.getBasePrice().intValue();
+					int bp2 = t2.getBasePrice()==null?0:t2.getBasePrice().intValue();
 					return bp1-bp2;
 				}
 			});
@@ -161,7 +167,7 @@ public class RealmTradeDialog extends AggressiveDialog {
 		tradeTable.setDefaultRenderer(Integer.class,new TradeTableIntegerRenderer());
 		int maxIconColWidth = 0;
 		for (int i=0;i<tradeComponents.size();i++) {
-			TradeComponent tc = tradeComponents.get(i);
+			TradeComponent tc = (TradeComponent) tradeComponents.get(i);
 			tradeTable.setRowHeight(i,tc.getSide1().getIconHeight()+2);
 			if (tc.getSide1().getIconWidth()>maxIconColWidth) {
 				maxIconColWidth = tc.getSide1().getIconWidth();
@@ -187,7 +193,7 @@ public class RealmTradeDialog extends AggressiveDialog {
 					if (ev.getClickCount()==2) {
 						int selRow = tradeTable.getSelectedRow();
 						if (selRow>=0) {
-							selectedTradeComponents = new ArrayList<TradeComponent>();
+							selectedTradeComponents = new ArrayList();
 							selectedTradeComponents.add(tradeComponents.get(selRow));
 							close();
 						}
@@ -212,7 +218,7 @@ public class RealmTradeDialog extends AggressiveDialog {
 			okayButton = new JButton("Okay");
 			okayButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
-					selectedTradeComponents = new ArrayList<TradeComponent>();
+					selectedTradeComponents = new ArrayList();
 					int[] selRow = tradeTable.getSelectedRows();
 					for (int i=0;i<selRow.length;i++) {
 						selectedTradeComponents.add(tradeComponents.get(selRow[i]));
@@ -234,8 +240,10 @@ public class RealmTradeDialog extends AggressiveDialog {
 	private boolean actionableItemsToTrade() {
 		if (tradeTable.getSelectedRowCount()==0) return false;
 
-		for (int selRow:tradeTable.getSelectedRows()) {
-			TradeComponent tc = tradeComponents.get(selRow);
+		int[] _selectedRows1880 = tradeTable.getSelectedRows();
+		for (int _j14i1880 = 0; _j14i1880 < _selectedRows1880.length; _j14i1880++) {
+		  int selRow = _selectedRows1880[_j14i1880];
+			TradeComponent tc = (TradeComponent) tradeComponents.get(selRow);
 			if (tc.isNoDeal()) return false;
 		}
 		
@@ -270,10 +278,10 @@ public class RealmTradeDialog extends AggressiveDialog {
 				if (rc.getGameObject().hasThisAttribute(Constants.SHIELD)
 						|| rc.getGameObject().hasThisAttribute(Constants.HELMET)
 						|| rc.getGameObject().hasThisAttribute(Constants.BREASTPLATE)) {
-					basePrice = 5;
+					basePrice = new Integer(5);
 				}
 				else {
-					basePrice = 10;
+					basePrice = new Integer(10);
 				}
 			}
 			else if (repairMode && rc.isArmor() && ((ArmorChitComponent)rc).isDamaged()) {
@@ -285,7 +293,7 @@ public class RealmTradeDialog extends AggressiveDialog {
 			if (dealingCharacter!=null && rc.isSpell() && !dealingCharacter.canLearn(rc.getGameObject())) {
 				noDeal = true;
 			}
-			if (basePrice==0) {
+			if (basePrice.intValue()==0) {
 				if (!realmComponent.getGameObject().hasThisAttribute("base_price") && !realmComponent.isArmor()) {
 					basePrice = null;
 				}
@@ -322,7 +330,7 @@ public class RealmTradeDialog extends AggressiveDialog {
 			}
 			else if (realmComponent.isMinorCharacter()) {
 				if (realmComponent.getGameObject().hasAttributeBlock(Quest.QUEST_BLOCK)) {
-					OrderedHashtable<String, Object> questAttributes = realmComponent.getGameObject().getAttributeBlock(Quest.QUEST_BLOCK);
+					OrderedHashtable questAttributes = realmComponent.getGameObject().getAttributeBlock(Quest.QUEST_BLOCK);
 					Object description = questAttributes.get(QuestMinorCharacter.DESCRIPTION);
 					if (description!=null) {
 						sb.append(description.toString());
@@ -374,7 +382,7 @@ public class RealmTradeDialog extends AggressiveDialog {
 		}
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			Component cell = super.getTableCellRendererComponent(table,value,isSelected,hasFocus,row,column);
-			TradeComponent tc = tradeComponents.get(row);
+			TradeComponent tc = (TradeComponent) tradeComponents.get(row);
 			if (tc.isNoDeal()) {
 				cell.setForeground(Color.red);
 			}
@@ -418,7 +426,7 @@ public class RealmTradeDialog extends AggressiveDialog {
 		}
 		public Object getValueAt(int row, int col) {
 			if (row<getRowCount()) {
-				TradeComponent dsc = tradeComponents.get(row);
+				TradeComponent dsc = (TradeComponent) tradeComponents.get(row);
 				RealmComponent rc = dsc.getRealmComponent();
 				boolean showAll = revealAll || !rc.isTreasure() || ((TreasureCardComponent)rc).isFaceUp();
 				switch(col) {
@@ -454,7 +462,7 @@ public class RealmTradeDialog extends AggressiveDialog {
 		RealmLoader loader = new RealmLoader();
 		System.out.println("Done");
 		
-		ArrayList<GameObject> objects = new ArrayList<GameObject>();
+		ArrayList objects = new ArrayList();
 		GamePool pool = new GamePool(loader.getData().getGameObjects());
 		objects.addAll(pool.find("armor,!character"));
 		objects.addAll(pool.find("horse,!native"));

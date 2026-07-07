@@ -14,18 +14,18 @@ import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class DieRollBuilder {
 	
-	private static Hashtable<Long,DieRollBuilder> builderHash = null;
+	private static Hashtable builderHash = null;
 	public static DieRollBuilder getDieRollBuilder(JFrame parent,CharacterWrapper character) {
 		return getDieRollBuilder(parent,character,0);
 	}
 	public static DieRollBuilder getDieRollBuilder(JFrame parent,CharacterWrapper character,int redDie) {
 		if (builderHash==null) {
-			builderHash = new Hashtable<Long,DieRollBuilder>();
+			builderHash = new Hashtable();
 		}
-		DieRollBuilder drb = builderHash.get(character.getGameObject().getId());
+		DieRollBuilder drb = (DieRollBuilder) builderHash.get(Long.valueOf(character.getGameObject().getId()));
 		if (drb == null) {
 			drb = new DieRollBuilder(parent,character,redDie);
-			builderHash.put(character.getGameObject().getId(),drb);
+			builderHash.put(Long.valueOf(character.getGameObject().getId()),drb);
 		}
 		drb.parent = parent;
 		drb.redDie = redDie;
@@ -68,20 +68,22 @@ public class DieRollBuilder {
 		// The following will be a list of strings that contains tilename and all state chit names:
 		//  For example:
 		//			High Pass:Ruins:Lost City:Hoard:Lair:Patter:Flutter:Ruins V
-		ArrayList<String> chitDescriptionList = tl.tile.getChitDescriptionList();
+		ArrayList chitDescriptionList = tl.tile.getChitDescriptionList();
 		
 		// Cycle through all activated treasures, bewitching spells, and character to determine modifiers
-		ArrayList<GameObject> objectsToTest = new ArrayList<GameObject>();
+		ArrayList objectsToTest = new ArrayList();
 		if (character!=null) {
 			objectsToTest.add(character.getGameObject());
 			if (character.isCharacter()) {
 				objectsToTest.addAll(character.getEnhancingItemsAndNomads()); // active treasures, nomads and travelers
 			}
 			TileLocation current = character.getCurrentLocation();
-			for (SpellWrapper spell:SpellUtility.getBewitchingSpells(character.getGameObject())) {
+			for (java.util.Iterator _j14it2800 = (SpellUtility.getBewitchingSpells(character.getGameObject())).iterator(); _j14it2800.hasNext(); ) {
+			  SpellWrapper spell = (SpellWrapper) _j14it2800.next();
 				objectsToTest.add(spell.getGameObject());
 			}
-			for (SpellWrapper spell:SpellUtility.getBewitchingSpells(current.tile.getGameObject())) {
+			for (java.util.Iterator _j14it2801 = (SpellUtility.getBewitchingSpells(current.tile.getGameObject())).iterator(); _j14it2801.hasNext(); ) {
+			  SpellWrapper spell = (SpellWrapper) _j14it2801.next();
 				if (!spell.isInert()) {
 					objectsToTest.add(spell.getGameObject());
 				}
@@ -92,21 +94,23 @@ public class DieRollBuilder {
 			mod += ClearingUtility.getClearingDieMod(tl);
 		}
 		
-		for (GameObject go : objectsToTest) {			
-			ArrayList<String> list = null;
+		for (java.util.Iterator _j14it2802 = (objectsToTest).iterator(); _j14it2802.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2802.next();			
+			ArrayList list = null;
 			if (go.hasThisAttribute(Constants.DIEMOD)) {
-				list = new ArrayList<String>(go.getThisAttributeList(Constants.DIEMOD));
+				list = new ArrayList(go.getThisAttributeList(Constants.DIEMOD));
 			}
 			if (go.hasAttribute(Constants.OPTIONAL_BLOCK,Constants.DIEMOD)) {
 				if (list==null) {
-					list = new ArrayList<String>();
+					list = new ArrayList();
 				}
 				list.addAll(go.getAttributeList(Constants.OPTIONAL_BLOCK,Constants.DIEMOD));
 			}
 			
 			if (list!=null) {
 				String boardNumber = RealmUtility.updateNameToBoard(go,"");
-				for (String rule : list) {
+				for (java.util.Iterator _j14it2803 = (list).iterator(); _j14it2803.hasNext(); ) {
+				  String rule = (String) _j14it2803.next();
 					rule = StringUtilities.findAndReplace(rule,Constants.BOARD_NUMBER_REPLACE_PATTERN,boardNumber);
 					DieRule dieRule = new DieRule(tl,rule);
 					if (dieRule.conditionsMet(key,chitDescriptionList)) {

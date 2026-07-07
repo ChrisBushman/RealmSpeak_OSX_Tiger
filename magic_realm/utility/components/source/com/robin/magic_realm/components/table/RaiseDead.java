@@ -86,9 +86,9 @@ public class RaiseDead extends MonsterTable {
 		}
 		return createZombie(monsterCreator,data,r-8);
 	}
-	public ArrayList<GameObject> getOneOfEach(CharacterWrapper character) {
+	public ArrayList getOneOfEach(CharacterWrapper character) {
 		GameData data = character.getGameObject().getGameData();
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
+		ArrayList list = new ArrayList();
 		list.add(createSkeleton(getMonsterCreator(),data));
 		list.add(createSkeletonArcher(getMonsterCreator(),data));
 		list.add(createSkeletonSwordsman(getMonsterCreator(),data));

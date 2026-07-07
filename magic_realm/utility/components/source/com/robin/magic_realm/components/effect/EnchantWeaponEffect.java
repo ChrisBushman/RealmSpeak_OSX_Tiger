@@ -7,7 +7,6 @@ import com.robin.magic_realm.components.utility.SpellUtility;
 
 public class EnchantWeaponEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		if (context.Target.getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON)) {
 			context.Spell.cancelSpell();
@@ -15,7 +14,7 @@ public class EnchantWeaponEffect implements ISpellEffect {
 		}
 		if (SpellUtility.ApplyNamedSpellEffectToTargetAndReturn(Constants.ENCHANTED_WEAPON, context.Target.getGameObject(), context.Spell)) {
 			SpellUtility.ApplyNamedSpellEffectToTarget(Constants.ENCHANTED_ALERTED_WEAPON, context.Target.getGameObject(), context.Spell);
-			OrderedHashtable<String, Object> stats = context.Spell.getGameObject().getAttributeBlock(Constants.ENCAHNTED_WEAPON_STATS);
+			OrderedHashtable stats = context.Spell.getGameObject().getAttributeBlock(Constants.ENCAHNTED_WEAPON_STATS);
 			if (stats.get("length")!=null) {
 				SpellUtility.ApplyNamedSpellEffectWithValueToTarget(Constants.ENCHANTED_WEAPON_LENGTH, context.Target.getGameObject(), context.Spell, stats.get("length").toString());
 			}
@@ -32,7 +31,6 @@ public class EnchantWeaponEffect implements ISpellEffect {
 	}
 	
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		if(context.Target.getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON)){
 			context.Target.getGameObject().removeThisAttribute(Constants.ENCHANTED_WEAPON);

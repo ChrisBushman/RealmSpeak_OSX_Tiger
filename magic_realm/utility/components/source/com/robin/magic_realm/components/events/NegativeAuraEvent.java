@@ -23,26 +23,26 @@ public class NegativeAuraEvent implements IEvent {
 	}
 	public void expire(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_NEGATIVE_AURA);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_NEGATIVE_AURA);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2453 = (ids).iterator(); _j14it2453.hasNext(); ) {
+			  String id = (String) _j14it2453.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				tile.removeThisAttribute(Constants.EVENT_NEGATIVE_AURA);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_NEGATIVE_AURA,id);
 			}
 		}
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
 		String text = "";
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_NEGATIVE_AURA);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_NEGATIVE_AURA);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2454 = (ids).iterator(); _j14it2454.hasNext(); ) {
+			  String id = (String) _j14it2454.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				text = text + tile.getNameWithNumber() + ", ";
 			}

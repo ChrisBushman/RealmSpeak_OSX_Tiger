@@ -42,7 +42,7 @@ public class QuestRequirementProbability extends QuestRequirement {
 
 	protected String buildDescription() {
 		int val = getChance();
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Probability of ");
 		sb.append(val);
 		sb.append("% that requirement is fullfilled, when tested.");

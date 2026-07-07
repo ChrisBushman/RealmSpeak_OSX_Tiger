@@ -35,29 +35,31 @@ public class QuestRewardMagicColor extends QuestReward {
 	}
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
-		ArrayList<ClearingDetail> clearingsToAffect = new ArrayList<ClearingDetail>();
+		ArrayList clearingsToAffect = new ArrayList();
 		String target = getTarget();
 		if (CHARACTERS_TILE.equals(target)) {
 			clearingsToAffect.addAll(character.getCurrentLocation().tile.getClearings());
 		} else if (LOC_RANDOM_CLEARING.equals(target)) {
 			QuestLocation loc1 = getQuestLocation();
-			ArrayList<TileLocation> loc1Tiles = loc1.fetchAllLocations(frame, character, character.getGameData());
+			ArrayList loc1Tiles = loc1.fetchAllLocations(frame, character, character.getGameData());
 			int random1 = RandomNumber.getRandom(loc1Tiles.size());
-			clearingsToAffect.add(loc1Tiles.get(random1).clearing);
+			clearingsToAffect.add(((TileLocation) loc1Tiles.get(random1)).clearing);
 		} else if (LOC_RANDOM_TILE.equals(target)) {
 			QuestLocation loc2 = getQuestLocation();
-			ArrayList<TileLocation> loc2Tiles = loc2.fetchAllLocations(frame, character, character.getGameData());
+			ArrayList loc2Tiles = loc2.fetchAllLocations(frame, character, character.getGameData());
 			int random2 = RandomNumber.getRandom(loc2Tiles.size());
-			clearingsToAffect.addAll(loc2Tiles.get(random2).tile.getClearings());
+			clearingsToAffect.addAll(((TileLocation) loc2Tiles.get(random2)).tile.getClearings());
 		} else if (LOC_ALL_TILES.equals(target)) {
 			QuestLocation loc3 = getQuestLocation();
-			ArrayList<TileLocation> loc3Tiles = loc3.fetchAllLocations(frame, character, character.getGameData());
-			for (TileLocation tileLoc : loc3Tiles) {
+			ArrayList loc3Tiles = loc3.fetchAllLocations(frame, character, character.getGameData());
+			for (java.util.Iterator _j14it2411 = (loc3Tiles).iterator(); _j14it2411.hasNext(); ) {
+			  TileLocation tileLoc = (TileLocation) _j14it2411.next();
 				clearingsToAffect.addAll(tileLoc.tile.getClearings());
 			}
 		} else if (ALL.equals(target)) {
 			GamePool pool = new GamePool(character.getGameData().getGameObjects());
-			for (GameObject go : pool.find("tile")) {
+			for (java.util.Iterator _j14it2412 = (pool.find("tile")).iterator(); _j14it2412.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2412.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (rc != null && rc.isTile()) {
 					TileComponent tc = (TileComponent) rc;
@@ -68,7 +70,8 @@ public class QuestRewardMagicColor extends QuestReward {
 			clearingsToAffect.add(character.getCurrentClearing());
 		}
 		ColorMagic color = ColorMagic.makeColorMagic(getColor(), false);
-		for (ClearingDetail clearing : clearingsToAffect) {
+		for (java.util.Iterator _j14it2413 = (clearingsToAffect).iterator(); _j14it2413.hasNext(); ) {
+		  ClearingDetail clearing = (ClearingDetail) _j14it2413.next();
 			clearing.setMagic(color.getColorNumber()-1, !remove());
 		}
 	}
@@ -85,7 +88,6 @@ public class QuestRewardMagicColor extends QuestReward {
 		return getString(AFFECT);
 	}
 	
-	@Override
 	public String getDescription() {
 		if (remove()) {
 			return getColor()+" Magic is removed from "+getTarget()+".";
@@ -111,7 +113,7 @@ public class QuestRewardMagicColor extends QuestReward {
 		}
 		return null;
 	}
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}
 }

@@ -63,7 +63,7 @@ public class ActionPrerequisite {
 		GamePool pool = new GamePool();
 		pool.addAll(character.getActivatedTreasureObjects());
 		
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add("key");
 		if (source.hasThisAttribute(Constants.BOARD_NUMBER)) {
 			query.add(Constants.BOARD_NUMBER+"="+source.getThisAttribute(Constants.BOARD_NUMBER));
@@ -125,26 +125,29 @@ public class ActionPrerequisite {
 		if (!success) {
 			boolean optionalOpeningTreasureLocations = HostPrefWrapper.findHostPrefs(source.getGameData()).hasPref(Constants.SR_OPENING_TREASURE_LOCATIONS);
 			// Instead, you need to fatigue a T chit
-			ArrayList<CharacterActionChitComponent> tremendousChits = new ArrayList<CharacterActionChitComponent>();
-			Collection<CharacterActionChitComponent> active = character.getActiveChits();
-			for (CharacterActionChitComponent chit : active) {
+			ArrayList tremendousChits = new ArrayList();
+			Collection active = character.getActiveChits();
+			for (java.util.Iterator _j14it2139 = (active).iterator(); _j14it2139.hasNext(); ) {
+			  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2139.next();
 				if ("T".equals(chit.getStrength().toString()) || ("X".equals(chit.getStrength().toString()) && !chit.isFly())) {
 					if (!optionalOpeningTreasureLocations || !chit.isMove() || !character.isMistLike()) {
 						tremendousChits.add(chit);
 					}
 				}
 			}
-			ArrayList<RealmComponent> spells = new ArrayList<RealmComponent>();
-			HashLists<String, SpellSet> spellSetHashlists = new HashLists<String, SpellSet>();
-			ArrayList<RealmComponent> items  = new ArrayList<RealmComponent>();
+			ArrayList spells = new ArrayList();
+			HashLists spellSetHashlists = new HashLists();
+			ArrayList items  = new ArrayList();
 			if (optionalOpeningTreasureLocations && !source.hasThisAttribute(RealmComponent.TREASURE_WITHIN_TREASURE)) {
-				for (SpellSet spellSet : character.getCastableSpellSets()) {
+				for (java.util.Iterator _j14it2140 = (character.getCastableSpellSets()).iterator(); _j14it2140.hasNext(); ) {
+				  SpellSet spellSet = (SpellSet) _j14it2140.next();
 					if (spellSet.getSpell().hasThisAttribute(Constants.OPENS_TREASURE_LOCATION) && spellSet.canBeCast()) {
 						spells.add(RealmComponent.getRealmComponent(spellSet.getSpell()));
 						spellSetHashlists.put(spellSet.getSpell().getName(),spellSet);
 					}
 				}
-				for (GameObject item : character.getInventory()) {
+				for (java.util.Iterator _j14it2141 = (character.getInventory()).iterator(); _j14it2141.hasNext(); ) {
+				  GameObject item = (GameObject) _j14it2141.next();
 					RealmComponent rc = RealmComponent.getRealmComponent(item);
 					if (rc.isTreasure() && item.hasThisAttribute("attack") && item.hasThisAttribute(Constants.POTION)) {
 						items.add(rc);
@@ -153,7 +156,7 @@ public class ActionPrerequisite {
 			}
 			//hurricaneWinds Spell and Lightning Bolt and Alchemists Mixture or Holy Handgrenade
 			
-			ArrayList<RealmComponent> allOptions  = new ArrayList<RealmComponent>();
+			ArrayList allOptions  = new ArrayList();
 			allOptions.addAll(tremendousChits);
 			allOptions.addAll(spells);
 			allOptions.addAll(items);
@@ -197,13 +200,15 @@ public class ActionPrerequisite {
 								
 								if (rc.isSpell()) {
 									SpellWrapper spellWrapper = new SpellWrapper(rc.getGameObject());
-									ArrayList<SpellSet> list = spellSetHashlists.getList(spellWrapper.getGameObject().getName());
+									ArrayList list = spellSetHashlists.getList(spellWrapper.getGameObject().getName());
 									RealmComponentOptionChooser spellChooser = new RealmComponentOptionChooser(frame,"Choose Casting Options for "+spellWrapper.getName()+":",true);
 									// Then choose a set
-									Hashtable<String, SpellSet> setHash = new Hashtable<String, SpellSet>();
+									Hashtable setHash = new Hashtable();
 									int keyN = 0;
-									for (SpellSet set : list) { // by definition, the set is castable
-										for (GameObject type : set.getValidTypeObjects()) {
+									for (java.util.Iterator _j14it2142 = (list).iterator(); _j14it2142.hasNext(); ) {
+									  SpellSet set = (SpellSet) _j14it2142.next(); // by definition, the set is castable
+										for (java.util.Iterator _j14it2143 = (set.getValidTypeObjects()).iterator(); _j14it2143.hasNext(); ) {
+										  GameObject type = (GameObject) _j14it2143.next();
 											if (set.getInfiniteSource()!=null) {
 												String key = "P"+(keyN++);
 												spellChooser.addOption(key,"");
@@ -211,7 +216,8 @@ public class ActionPrerequisite {
 												setHash.put(key, set);
 											}
 											if (set.getInfiniteSource()==null || set.getColorMagic()==null) {
-												for (MagicChit chit:set.getValidColorChits()) {
+												for (java.util.Iterator _j14it2144 = (set.getValidColorChits()).iterator(); _j14it2144.hasNext(); ) {
+												  MagicChit chit = (MagicChit) _j14it2144.next();
 													String key = "P"+(keyN++);
 													spellChooser.addOption(key,"");
 													spellChooser.addRealmComponentToOption(key,RealmComponent.getRealmComponent(type));
@@ -224,10 +230,10 @@ public class ActionPrerequisite {
 									spellChooser.setVisible(true);
 									if (spellChooser.getSelectedText()!=null) {
 										String key = chooser.getSelectedOptionKey();
-										SpellSet set = setHash.get(key);
-										Collection<RealmComponent> c = spellChooser.getSelectedComponents();
-										Iterator<RealmComponent> i=c.iterator();
-										RealmComponent incantationComponent = i.next();
+										SpellSet set = (SpellSet) setHash.get(key);
+										Collection c = spellChooser.getSelectedComponents();
+										Iterator i=c.iterator();
+										RealmComponent incantationComponent = (RealmComponent) i.next();
 										if (!incantationComponent.isActionChit()) {
 											String dayKey = character.getCurrentDayKey();
 											String usedSpell = incantationComponent.getGameObject().getThisAttribute(Constants.USED_SPELL);
@@ -337,14 +343,15 @@ public class ActionPrerequisite {
 		return success;
 	}
 	private boolean selectAndFatigueChit(JFrame frame,CharacterWrapper character) {
-		Collection<CharacterActionChitComponent> active = character.getActiveEffortChits();
+		Collection active = character.getActiveEffortChits();
 		if (active.isEmpty()) {
 			JOptionPane.showMessageDialog(frame,"You don't have any active chits to fatigue!","No Chits to Fatigue",JOptionPane.WARNING_MESSAGE);
 			return false;
 		}
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,"You must fatigue a chit to "+messageText+" this site:",false);
 		int keyN = 0;
-		for (CharacterActionChitComponent chit : active) {
+		for (java.util.Iterator _j14it2145 = (active).iterator(); _j14it2145.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2145.next();
 			String key = "N"+(keyN++);
 			chooser.addOption(key,"Fatigue");
 			chooser.addRealmComponentToOption(key,chit);
@@ -356,9 +363,10 @@ public class ActionPrerequisite {
 			
 			if (chit.getEffortAsterisks()==2) {
 				// Need to make change
-				Collection<CharacterActionChitComponent> fatigued = character.getFatiguedChits(); // In case you need to make change
-				ArrayList<CharacterActionChitComponent> singleAsteriskFatiguedChits = new ArrayList<CharacterActionChitComponent>();
-				for (CharacterActionChitComponent fatiguedChit : fatigued) {
+				Collection fatigued = character.getFatiguedChits(); // In case you need to make change
+				ArrayList singleAsteriskFatiguedChits = new ArrayList();
+				for (java.util.Iterator _j14it2146 = (fatigued).iterator(); _j14it2146.hasNext(); ) {
+				  CharacterActionChitComponent fatiguedChit = (CharacterActionChitComponent) _j14it2146.next();
 					if (fatiguedChit.getEffortAsterisks()==1) {
 						singleAsteriskFatiguedChits.add(fatiguedChit);
 					}

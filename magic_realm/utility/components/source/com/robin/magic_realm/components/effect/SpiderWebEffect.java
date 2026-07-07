@@ -20,7 +20,6 @@ import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class SpiderWebEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		RealmComponent target = context.Target;
 		GameObject caster = context.Caster;
@@ -29,30 +28,30 @@ public class SpiderWebEffect implements ISpellEffect {
 	}
 	public static void applySpiderWebEffect(RealmComponent target, GameObject caster, GameData gameData) {
 		CombatWrapper cw = new CombatWrapper(target.getGameObject());
-		ArrayList<Integer> attackBoxes = new ArrayList<Integer>();
-		ArrayList<Integer> defenseBoxes = new ArrayList<Integer>();
-		attackBoxes.add(cw.getCombatBoxAttack());
-		defenseBoxes.add(cw.getCombatBoxDefense());
+		ArrayList attackBoxes = new ArrayList();
+		ArrayList defenseBoxes = new ArrayList();
+		attackBoxes.add(Integer.valueOf(cw.getCombatBoxAttack()));
+		defenseBoxes.add(Integer.valueOf(cw.getCombatBoxDefense()));
 		if (target.isDenizen()) {
 			if (target.isMonster()) {
 				MonsterChitComponent monster = ((MonsterChitComponent)target);
 				MonsterPartChitComponent weapon = monster.getWeapon();
 				if (weapon!=null) {
 					CombatWrapper cwWeapon = new CombatWrapper(weapon.getGameObject());
-					if (!attackBoxes.contains(cwWeapon.getCombatBoxAttack())) {
-						attackBoxes.add(cwWeapon.getCombatBoxAttack());
+					if (!attackBoxes.contains(Integer.valueOf(cwWeapon.getCombatBoxAttack()))) {
+						attackBoxes.add(Integer.valueOf(cwWeapon.getCombatBoxAttack()));
 					}
-					if (!defenseBoxes.contains(cwWeapon.getCombatBoxDefense())) {
-						defenseBoxes.add(cwWeapon.getCombatBoxDefense());
+					if (!defenseBoxes.contains(Integer.valueOf(cwWeapon.getCombatBoxDefense()))) {
+						defenseBoxes.add(Integer.valueOf(cwWeapon.getCombatBoxDefense()));
 					}
 				}
 				BattleHorse horse = monster.getHorse();
 				if (horse!=null) {
-					if (!attackBoxes.contains(horse.getAttackCombatBox())) {
-						attackBoxes.add(horse.getAttackCombatBox());
+					if (!attackBoxes.contains(Integer.valueOf(horse.getAttackCombatBox()))) {
+						attackBoxes.add(Integer.valueOf(horse.getAttackCombatBox()));
 					}
-					if (!defenseBoxes.contains(horse.getManeuverCombatBox())) {
-						defenseBoxes.add(horse.getManeuverCombatBox());
+					if (!defenseBoxes.contains(Integer.valueOf(horse.getManeuverCombatBox()))) {
+						defenseBoxes.add(Integer.valueOf(horse.getManeuverCombatBox()));
 					}
 				}
 			}
@@ -60,35 +59,37 @@ public class SpiderWebEffect implements ISpellEffect {
 				NativeChitComponent nativeDenizen = ((NativeChitComponent)target);
 				BattleHorse horse = nativeDenizen.getHorse();
 				if (horse!=null) {
-					if (!attackBoxes.contains(horse.getAttackCombatBox())) {
-						attackBoxes.add(horse.getAttackCombatBox());
+					if (!attackBoxes.contains(Integer.valueOf(horse.getAttackCombatBox()))) {
+						attackBoxes.add(Integer.valueOf(horse.getAttackCombatBox()));
 					}
-					if (!defenseBoxes.contains(horse.getManeuverCombatBox())) {
-						defenseBoxes.add(horse.getManeuverCombatBox());
+					if (!defenseBoxes.contains(Integer.valueOf(horse.getManeuverCombatBox()))) {
+						defenseBoxes.add(Integer.valueOf(horse.getManeuverCombatBox()));
 					}
 				}
 			}
 		}
 		else if (target.isCharacter()) {
 			CharacterWrapper character = new CharacterWrapper(target.getGameObject());
-			for (CharacterActionChitComponent chit : character.getActiveChits()) {
+			for (java.util.Iterator _j14it2040 = (character.getActiveChits()).iterator(); _j14it2040.hasNext(); ) {
+			  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2040.next();
 				CombatWrapper cwChit = new CombatWrapper(chit.getGameObject());
-				if (!attackBoxes.contains(cwChit.getCombatBoxAttack())) {
-					attackBoxes.add(cwChit.getCombatBoxAttack());
+				if (!attackBoxes.contains(Integer.valueOf(cwChit.getCombatBoxAttack()))) {
+					attackBoxes.add(Integer.valueOf(cwChit.getCombatBoxAttack()));
 				}
-				if (!defenseBoxes.contains(cwChit.getCombatBoxDefense())) {
-					defenseBoxes.add(cwChit.getCombatBoxDefense());
+				if (!defenseBoxes.contains(Integer.valueOf(cwChit.getCombatBoxDefense()))) {
+					defenseBoxes.add(Integer.valueOf(cwChit.getCombatBoxDefense()));
 				}
 			}
-			for (GameObject item :character.getActiveInventory()) {
+			for (java.util.Iterator _j14it2041 = (character.getActiveInventory()).iterator(); _j14it2041.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it2041.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(item);
 				if (rc.isHorse() || rc.isNativeHorse()) {
 					CombatWrapper itemChit = new CombatWrapper(item);
-					if (!attackBoxes.contains(itemChit.getCombatBoxAttack())) {
-						attackBoxes.add(itemChit.getCombatBoxAttack());
+					if (!attackBoxes.contains(Integer.valueOf(itemChit.getCombatBoxAttack()))) {
+						attackBoxes.add(Integer.valueOf(itemChit.getCombatBoxAttack()));
 					}
-					if (!defenseBoxes.contains(itemChit.getCombatBoxDefense())) {
-						defenseBoxes.add(itemChit.getCombatBoxDefense());
+					if (!defenseBoxes.contains(Integer.valueOf(itemChit.getCombatBoxDefense()))) {
+						defenseBoxes.add(Integer.valueOf(itemChit.getCombatBoxDefense()));
 					}
 				}
 			}
@@ -97,17 +98,18 @@ public class SpiderWebEffect implements ISpellEffect {
 		HostPrefWrapper hostPref = HostPrefWrapper.findHostPrefs(gameData);
 		
 		int randomBox = RandomNumber.getRandom(3)+1;
-		if (attackBoxes.isEmpty() || (attackBoxes.size()==1 && attackBoxes.get(0)==0)) {
+		if (attackBoxes.isEmpty() || (attackBoxes.size()==1 && Integer.valueOf(0).equals(attackBoxes.get(0)))) {
 			target.getGameObject().addThisAttributeListItem(Constants.SPIDER_WEB_BOXES_ATTACK,Integer.toString(randomBox));
 		}
 		else {
-			for (Integer box : attackBoxes) {
-				if (box!=0) {
+			for (java.util.Iterator _j14it2042 = (attackBoxes).iterator(); _j14it2042.hasNext(); ) {
+			  Integer box = (Integer) _j14it2042.next();
+				if (box.intValue()!=0) {
 					target.getGameObject().addThisAttributeListItem(Constants.SPIDER_WEB_BOXES_ATTACK,box.toString());
 				}
 			}
 		}
-		if (defenseBoxes.isEmpty() || (defenseBoxes.size()==1 && defenseBoxes.get(0)==0)) {
+		if (defenseBoxes.isEmpty() || (defenseBoxes.size()==1 && Integer.valueOf(0).equals(defenseBoxes.get(0)))) {
 			if (hostPref.hasPref(Constants.SR_COMBAT)) {
 				int randomBoxDefense = RandomNumber.getRandom(3)+1;
 				target.getGameObject().addThisAttributeListItem(Constants.SPIDER_WEB_BOXES_DEFENSE,Integer.toString(randomBoxDefense));
@@ -117,24 +119,26 @@ public class SpiderWebEffect implements ISpellEffect {
 			}
 		}
 		else {
-			for (Integer box : defenseBoxes) {
-				if (box!=0) {
+			for (java.util.Iterator _j14it2043 = (defenseBoxes).iterator(); _j14it2043.hasNext(); ) {
+			  Integer box = (Integer) _j14it2043.next();
+				if (box.intValue()!=0) {
 					target.getGameObject().addThisAttributeListItem(Constants.SPIDER_WEB_BOXES_DEFENSE,box.toString());
 				}
 			}
 		}
 		
-		StringBuilder sb = new StringBuilder();
-		for (String box : target.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK)) {
+		StringBuffer sb = new StringBuffer();
+		for (java.util.Iterator _j14it2044 = (target.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK)).iterator(); _j14it2044.hasNext(); ) {
+		  String box = (String) _j14it2044.next();
 			sb.append(RealmUtility.getNameForAttackBox(Integer.parseInt(box))+" ");
 		}
-		for (String box : target.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_DEFENSE)) {
+		for (java.util.Iterator _j14it2045 = (target.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_DEFENSE)).iterator(); _j14it2045.hasNext(); ) {
+		  String box = (String) _j14it2045.next();
 			sb.append(RealmUtility.getNameForDefensekBox(Integer.parseInt(box))+" ");
 		}
 		RealmLogging.logMessage(caster.getName(),target.getGameObject().getNameWithNumber()+" was hit by Spider Web and can only use the following combat boxes: "+sb);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 	}
 

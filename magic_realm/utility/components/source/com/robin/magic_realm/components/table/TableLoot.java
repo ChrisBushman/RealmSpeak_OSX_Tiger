@@ -280,9 +280,9 @@ public class TableLoot extends Loot {
 		else if ("remove_curse".equals(result)) {
 			qp.searchType = SearchResultType.RemoveCurse;
 			if (character.hasCurses()) {
-				ArrayList<String> curses = character.getAllCurses();
+				ArrayList curses = character.getAllCurses();
 				int r = RandomNumber.getRandom(curses.size());
-				String curseRemoved = curses.get(r);
+				String curseRemoved = (String) curses.get(r);
 				character.removeCurse(curseRemoved);
 				ret = "Remove Curse - "+curseRemoved;
 				qp.searchHadAnEffect = true;
@@ -307,9 +307,9 @@ public class TableLoot extends Loot {
 		else if ("random_tl".equals(result)) {
 			// Discover Random Treasure Location
 			GamePool pool = new GamePool(data.getGameObjects());
-			ArrayList<GameObject> tls = pool.find("treasure_location");
+			ArrayList tls = pool.find("treasure_location");
 			int r = RandomNumber.getRandom(tls.size());
-			GameObject go = tls.get(r);
+			GameObject go = (GameObject) tls.get(r);
 			String tlName = go.getName();
 			qp.searchType = SearchResultType.DiscoverChits;
 			if (!character.hasTreasureLocationDiscovery(tlName)) {
@@ -324,10 +324,11 @@ public class TableLoot extends Loot {
 		}
 		else if ("clues_chosen".equals(result)) {
 			// Clues in a chosen tile
-			ArrayList<GameObject> tiles = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
+			ArrayList tiles = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
 			RealmComponentOptionChooser chooseSearch = new RealmComponentOptionChooser(getParentFrame(),"Clues for which tile:",false);
-			Hashtable<String,GameObject> hash = new Hashtable<String,GameObject>();
-			for(GameObject tile:tiles) {
+			Hashtable hash = new Hashtable();
+			for (java.util.Iterator _j14it2134 = (tiles).iterator(); _j14it2134.hasNext(); ) {
+			  GameObject tile = (GameObject) _j14it2134.next();
 				chooseSearch.addOption(chooseSearch.generateOption(),tile.getName());
 				hash.put(tile.getName(),tile);
 			}
@@ -336,7 +337,7 @@ public class TableLoot extends Loot {
 			chooseSearch.setVisible(true);
 			
 			String selected = chooseSearch.getSelectedText();
-			GameObject tile = hash.get(selected);
+			GameObject tile = (GameObject) hash.get(selected);
 			String title = "Clues in a Chosen Tile - "+selected;
 			doClues(character,tile);
 			ret = title;
@@ -345,9 +346,9 @@ public class TableLoot extends Loot {
 		}
 		else if ("clues_random".equals(result)) {
 			// Clues in a random tile (use doClues)
-			ArrayList<GameObject> tiles = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
+			ArrayList tiles = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
 			int r = RandomNumber.getRandom(tiles.size());
-			GameObject tile = tiles.get(r);
+			GameObject tile = (GameObject) tiles.get(r);
 			String title = "Clues in a Random Tile - "+tile.getName();
 			doClues(character,tile);
 			ret = title;
@@ -355,11 +356,13 @@ public class TableLoot extends Loot {
 			qp.searchHadAnEffect = true;
 		}
 		else if ("read_runes_any".equals(result)) {
-			ArrayList<String> treasureLocationOptions = new ArrayList<String>();
-			Hashtable<String, GameObject> hash = new Hashtable<String, GameObject>();
+			ArrayList treasureLocationOptions = new ArrayList();
+			Hashtable hash = new Hashtable();
 			GamePool pool = new GamePool(data.getGameObjects());
-			for (GameObject treasureLocation : pool.find("treasure_location")) {
-				for (GameObject item : treasureLocation.getHold()) {
+			for (java.util.Iterator _j14it2135 = (pool.find("treasure_location")).iterator(); _j14it2135.hasNext(); ) {
+			  GameObject treasureLocation = (GameObject) _j14it2135.next();
+				for (java.util.Iterator _j14it2136 = (treasureLocation.getHold()).iterator(); _j14it2136.hasNext(); ) {
+				  GameObject item = (GameObject) _j14it2136.next();
 					if (item.hasThisAttribute("spell")) {
 						treasureLocationOptions.add(treasureLocation.getNameWithNumber());
 						hash.put(treasureLocation.getNameWithNumber(), treasureLocation);
@@ -375,7 +378,7 @@ public class TableLoot extends Loot {
 			Vector v = chooser.getSelectedItems();
 			if (v != null && !v.isEmpty()) {
 				String locationName = (String)v.get(0);
-				setNewTable(new ReadRunes(getParentFrame(), hash.get(locationName)));
+				setNewTable(new ReadRunes(getParentFrame(), (GameObject) hash.get(locationName)));
 				
 			}
 			ret = "Read Runes at any Site";
@@ -394,7 +397,7 @@ public class TableLoot extends Loot {
 	}
 	private void doClues(CharacterWrapper character,GameObject go) {
 		TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
-		ClearingDetail clearing = tile.getClearings().get(0); // first real clearing is good enough
+		ClearingDetail clearing = (ClearingDetail) tile.getClearings().get(0); // first real clearing is good enough
 		String note = ClearingUtility.showTileChits(getParentFrame(),clearing,"Clues at "+go.getName());
 		if (note!=null) {
 			character.addNote(clearing.getParent(),"Clues",note);
@@ -432,10 +435,12 @@ public class TableLoot extends Loot {
 		}
 
 		// Followers should stay behind!
-		for (CharacterWrapper follower:transportVictim.getActionFollowers()) {
+		for (java.util.Iterator _j14it2137 = (transportVictim.getActionFollowers()).iterator(); _j14it2137.hasNext(); ) {
+		  CharacterWrapper follower = (CharacterWrapper) _j14it2137.next();
 			transportVictim.removeActionFollower(follower,null,null);
 		}
-		for (RealmComponent hireling:transportVictim.getFollowingHirelings()) {
+		for (java.util.Iterator _j14it2138 = (transportVictim.getFollowingHirelings()).iterator(); _j14it2138.hasNext(); ) {
+		  RealmComponent hireling = (RealmComponent) _j14it2138.next();
 			ClearingUtility.moveToLocation(hireling.getGameObject(),planned);
 		}
 	}

@@ -16,12 +16,13 @@ public class QuestRewardRelationshipChange extends QuestRewardRelationshipSet {
 		super(go);
 	}
 	public void processReward(JFrame frame,CharacterWrapper character) {
-		ArrayList<GameObject> representativeNativesToChange = getRepresentativeNatives(character);
+		ArrayList representativeNativesToChange = getRepresentativeNatives(character);
 		if (representativeNativesToChange==null) return;
 		
 		// Do the change
 		int sign = getGainType()==GainType.Gain?1:-1;
-		for(GameObject denizen:representativeNativesToChange) {
+		for (java.util.Iterator _j14it2410 = (representativeNativesToChange).iterator(); _j14it2410.hasNext(); ) {
+		  GameObject denizen = (GameObject) _j14it2410.next();
 			character.changeRelationship(denizen,sign*getRelationshipChange());
 		}
 	}

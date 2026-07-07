@@ -27,13 +27,13 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 public class RealmComponentDisplayDialog extends AggressiveDialog {
 	private Font TITLE_FONT = new Font("Dialog", Font.BOLD, 14);
 
-	private ArrayList<RealmComponent> components;
+	private ArrayList components;
 	private JPanel displayPanel;
 	private JButton okayButton;
 
 	public RealmComponentDisplayDialog(JFrame parent, String title,String message) {
 		super(parent, title, true);
-		components = new ArrayList<RealmComponent>();
+		components = new ArrayList();
 		initComponents(message);
 //		updateLayout();
 	}
@@ -70,12 +70,13 @@ public class RealmComponentDisplayDialog extends AggressiveDialog {
 		components.add(rc);
 //		updateLayout();
 	}
-	public void addRealmComponents(Collection<RealmComponent> rcs) {
+	public void addRealmComponents(Collection rcs) {
 		components.addAll(rcs);
 //		updateLayout();
 	}
-	public void addGameObjects(Collection<GameObject> gos) {
-		for (GameObject go : gos) {
+	public void addGameObjects(Collection gos) {
+		for (java.util.Iterator _j14it1887 = (gos).iterator(); _j14it1887.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1887.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			components.add(rc);
 		}
@@ -97,7 +98,8 @@ public class RealmComponentDisplayDialog extends AggressiveDialog {
 		displayPanel.removeAll();
 		displayPanel.setLayout(new GridLayout(rows, columns));
 
-		for (RealmComponent rc : components) {
+		for (java.util.Iterator _j14it1888 = (components).iterator(); _j14it1888.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1888.next();
 			displayPanel.add(rc);
 			cellCount--;
 		}
@@ -127,10 +129,10 @@ public class RealmComponentDisplayDialog extends AggressiveDialog {
 		// artifically fatigue and wound some chits
 		CharacterWrapper wrapper = new CharacterWrapper(character);
 		RealmComponentDisplayDialog display = new RealmComponentDisplayDialog(new JFrame(), "Hey!","Look at these:");
-		ArrayList<CharacterActionChitComponent> list = new ArrayList<CharacterActionChitComponent>(wrapper.getAllChits());
+		ArrayList list = new ArrayList(wrapper.getAllChits());
 		for (int i = 0; i < 10; i += 2) {
-			CharacterActionChitComponent c1 = list.get(i);
-			CharacterActionChitComponent c2 = list.get(i + 1);
+			CharacterActionChitComponent c1 = (CharacterActionChitComponent) list.get(i);
+			CharacterActionChitComponent c2 = (CharacterActionChitComponent) list.get(i + 1);
 			display.addRealmComponent(c1);
 			display.addRealmComponent(c2);
 		}

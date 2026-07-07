@@ -17,37 +17,30 @@ public class QuestRewardHeal extends QuestReward {
 		super(go);
 	}
 
-	@Override
 	public void processReward(JFrame frame, CharacterWrapper character) {
-		Collection<CharacterActionChitComponent> chits;
-		switch (getHealType()) {
-		case Fatigued:
+		Collection chits;
+		HealType _ht = getHealType();
+		if (_ht == HealType.Fatigued) {
 			chits = character.getFatiguedChits();
-			break;
-		case Wounded:
+		} else if (_ht == HealType.Wounded) {
 			chits = character.getWoundedChits();
-			break;
-		case Restable:
+		} else if (_ht == HealType.Restable) {
 			chits = character.getRestableChits();
-			break;
-		case Magic:
+		} else if (_ht == HealType.Magic) {
 			chits = character.getAllMagicChits();
-			break;
-		case All:
-		default:
+		} else {
 			chits = character.getAllChits();
 		}
 
-		for (CharacterActionChitComponent chit : chits) {
+		for (java.util.Iterator _j14it2403 = (chits).iterator(); _j14it2403.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2403.next();
 			chit.makeActive();
 		}
 	}
 	
-	@Override
 	public RewardType getRewardType() {
 		return RewardType.Heal;
 	}
-	@Override
 	public String getDescription() {
 		return "Heals all chits of the character.";
 	}

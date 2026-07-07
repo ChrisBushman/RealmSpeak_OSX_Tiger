@@ -17,7 +17,7 @@ public class HurricaneWindsEvent implements IEvent {
 	public void applyBirdsong(GameData data) {
 	}
 	public void applySunset(GameData data) {
-		ArrayList<String> clearingTypes = new ArrayList<String>(Arrays.asList("mountain"));
+		ArrayList clearingTypes = new ArrayList(Arrays.asList(new String[]{"mountain"}));
 		ClearingDetail clearing = RealmEvents.chooseRandomClearing(data,clearingTypes);
 		if (clearing!=null) {
 			TileComponent tile = clearing.getTileLocation().tile;
@@ -29,28 +29,29 @@ public class HurricaneWindsEvent implements IEvent {
 	}
 	public void expire(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_HURRICANE_WINDS);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_HURRICANE_WINDS);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2517 = (ids).iterator(); _j14it2517.hasNext(); ) {
+			  String id = (String) _j14it2517.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				tile.removeThisAttribute(Constants.EVENT_HURRICANE_WINDS);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_HURRICANE_WINDS,id);
 			}
 		}
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
 		String text = "";
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_HURRICANE_WINDS);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_HURRICANE_WINDS);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2518 = (ids).iterator(); _j14it2518.hasNext(); ) {
+			  String id = (String) _j14it2518.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
-				for (String cl : tile.getThisAttributeList(Constants.EVENT_HURRICANE_WINDS)) {;
+				for (java.util.Iterator _j14it2519 = (tile.getThisAttributeList(Constants.EVENT_HURRICANE_WINDS)).iterator(); _j14it2519.hasNext(); ) {
+				  String cl = (String) _j14it2519.next();;
 					text = text + tile.getNameWithNumber() +" ("+cl+")"+ ", ";
 				}
 			}

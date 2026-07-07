@@ -45,9 +45,9 @@ public class QuestDeck extends GameObjectWrapper {
 		for(int i=0;i<3;i++) doShuffle(); // shuffle 3 times to make Steve S happy... :-)
 	}
 	private void doShuffle() {
-		ArrayList<String> list = getList(QUEST_CARD_LIST);
+		ArrayList list = getList(QUEST_CARD_LIST);
 		if (list==null) return;
-		ArrayList<String> shuffled = new ArrayList<String>();
+		ArrayList shuffled = new ArrayList();
 		while(list.size()>0) {
 			int r = RandomNumber.getRandom(list.size());
 			shuffled.add(list.remove(r));
@@ -68,27 +68,30 @@ public class QuestDeck extends GameObjectWrapper {
 	}
 
 	public void setupAllPlayCards(JFrame frame,CharacterWrapper character) {
-		for(Quest card:getAllPlayCards()) {
+		for (java.util.Iterator _j14it2187 = (getAllPlayCards()).iterator(); _j14it2187.hasNext(); ) {
+		  Quest card = (Quest) _j14it2187.next();
 			if (card.getState()!=QuestState.New && !card.isMultipleUse()) continue; // skip all play cards that are no longer new (completed or failed)
 			Quest quest = card.copyQuestToGameData(getGameData());
 			quest.setState(QuestState.Assigned, character.getCurrentDayKey(), character); // indicates when the quest was first assigned
 			character.addQuest(frame,quest);
 		}
 	}
-	private ArrayList<GameObject> getAllPlayCardsAsObjects() {
-		ArrayList<GameObject> allPlay = new ArrayList<GameObject>();
-		ArrayList<String> list = getList(QUEST_ALL_PLAY_LIST);
+	private ArrayList getAllPlayCardsAsObjects() {
+		ArrayList allPlay = new ArrayList();
+		ArrayList list = getList(QUEST_ALL_PLAY_LIST);
 		if (list!=null && list.size()>0) {
-			for(String questId : list) {
+			for (java.util.Iterator _j14it2188 = (list).iterator(); _j14it2188.hasNext(); ) {
+			  String questId = (String) _j14it2188.next();
 				GameObject go = getGameData().getGameObject(Long.valueOf(questId));
 				allPlay.add(go);
 			}
 		}
 		return allPlay;
 	}
-	private ArrayList<Quest> getAllPlayCards() {
-		ArrayList<Quest> allPlay = new ArrayList<Quest>();
-		for(GameObject go:getAllPlayCardsAsObjects()) {
+	private ArrayList getAllPlayCards() {
+		ArrayList allPlay = new ArrayList();
+		for (java.util.Iterator _j14it2189 = (getAllPlayCardsAsObjects()).iterator(); _j14it2189.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2189.next();
 			Quest quest = new Quest(go);
 			allPlay.add(quest);
 		}
@@ -96,28 +99,30 @@ public class QuestDeck extends GameObjectWrapper {
 	}
 	
 	private void reshuffle() {
-		ArrayList<String> discards = getList(QUEST_DISCARDS);
+		ArrayList discards = getList(QUEST_DISCARDS);
 		if (discards==null || discards.size()==0) return; // if there are no discards, then there are more player quest slots than the deck can handle, and nothing happens.
-		setList(QUEST_CARD_LIST,new ArrayList<String>(discards));
+		setList(QUEST_CARD_LIST,new ArrayList(discards));
 		clear(QUEST_DISCARDS);
 		shuffle();
 	}
 	
 	public void reshuffleIncudingDiscard() {
-		for (String quest : getList(QUEST_DISCARDS)) {
+		for (java.util.Iterator _j14it2190 = (getList(QUEST_DISCARDS)).iterator(); _j14it2190.hasNext(); ) {
+		  String quest = (String) _j14it2190.next();
 			addListItem(QUEST_CARD_LIST,quest);
 		}
 		clear(QUEST_DISCARDS);
 		shuffle();
 	}
 	
-	public ArrayList<String> getAllQuestNames() {
-		ArrayList<String> quests = getList(QUEST_CARD_LIST);
+	public ArrayList getAllQuestNames() {
+		ArrayList quests = getList(QUEST_CARD_LIST);
 		quests.addAll(getList(QUEST_DISCARDS));
-		ArrayList<String> names = new ArrayList<String>();
+		ArrayList names = new ArrayList();
 		GameData gameData = getGameData();
 		if (quests!=null && quests.size()>0) {
-			for (String questId : quests) {
+			for (java.util.Iterator _j14it2191 = (quests).iterator(); _j14it2191.hasNext(); ) {
+			  String questId = (String) _j14it2191.next();
 				GameObject go = gameData.getGameObject(Long.valueOf(questId));
 				names.add(go.getName());
 			}
@@ -129,11 +134,11 @@ public class QuestDeck extends GameObjectWrapper {
 	 * This will select a random quest card, remove it from the "deck", and add it to the current GameData collection.
 	 */
 	public Quest drawCard(GameObject gameObject) {
-		ArrayList<String> list = getList(QUEST_CARD_LIST);
+		ArrayList list = getList(QUEST_CARD_LIST);
 		if (list!=null && list.size()>0) {
 			//int r = RandomNumber.getRandom(list.size());
 			int r = 0; // just take the top card - the deck is "shuffled" after all!
-			String questId = list.get(r);
+			String questId = (String) list.get(r);
 			GameObject go = getGameData().getGameObject(Long.valueOf(questId));
 			Quest card = new Quest(go);
 			
@@ -202,7 +207,7 @@ public class QuestDeck extends GameObjectWrapper {
 			GamePool pool = new GamePool(data.getGameObjects());
 			GameObject go = pool.findFirst(QUEST_DECK_KEY);
 			if (go!=null) {
-				DECK_ID = go.getId();
+				DECK_ID = Long.valueOf(go.getId());
 				return new QuestDeck(go);
 			}
 		}

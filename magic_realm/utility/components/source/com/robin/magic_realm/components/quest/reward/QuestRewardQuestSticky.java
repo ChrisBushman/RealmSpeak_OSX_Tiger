@@ -28,7 +28,7 @@ public class QuestRewardQuestSticky extends QuestReward {
 		return RewardType.QuestSticky;
 	}
 	
-	private Boolean unsticky() {
+	private boolean unsticky() {
 		return getBoolean(UNSTICKY);
 	}
 }

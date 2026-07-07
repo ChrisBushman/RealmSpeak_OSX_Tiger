@@ -27,18 +27,20 @@ public class QuestRewardSummonGuardian extends QuestReward {
 		QuestLocation loc = getQuestLocation();
 		RealmComponent[] pieces = loc.allPiecesForLocationClearings(frame,character);
 		GamePool pool = new GamePool(getGameData().getGameObjects());
-		for(RealmComponent piece:pieces) {
+		for (int _j14i2354 = 0; _j14i2354 < pieces.length; _j14i2354++) {
+		  RealmComponent piece = pieces[_j14i2354];
 			if (!piece.isTreasureLocation()) continue;
 			
 			String locationName = piece.getGameObject().getThisAttribute(RealmComponent.TREASURE_LOCATION);
-			ArrayList<String> query = new ArrayList<String>();
+			ArrayList query = new ArrayList();
 			query.add("setup_start="+StringUtilities.capitalize(locationName));
 			String boardNumber = piece.getGameObject().getThisAttribute(Constants.BOARD_NUMBER);
 			if (boardNumber!=null) {
 				query.add(Constants.BOARD_NUMBER+"="+boardNumber);
 			}
 			TileLocation tl = piece.getCurrentLocation();
-			for(GameObject denizen:pool.find(query)) { // I don't think there is ever more than one...
+			for (java.util.Iterator _j14it2355 = (pool.find(query)).iterator(); _j14it2355.hasNext(); ) {
+			  GameObject denizen = (GameObject) _j14it2355.next(); // I don't think there is ever more than one...
 				SetupCardUtility.resetDenizen(denizen); // make sure denizen is not dead, or elsewhere on the board
 				tl.clearing.add(denizen,null);
 			}
@@ -67,7 +69,7 @@ public class QuestRewardSummonGuardian extends QuestReward {
 		}
 		return null;
 	}
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}
 }

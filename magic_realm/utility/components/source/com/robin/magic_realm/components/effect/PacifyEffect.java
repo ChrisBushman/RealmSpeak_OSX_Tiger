@@ -15,7 +15,6 @@ public class PacifyEffect implements ISpellEffect {
 		_level = level;
 	}
 	
-	@Override
 	public void apply(SpellEffectContext context) {
 		CombatWrapper combat = context.getCombatTarget();
 		RealmComponent target = context.Target;
@@ -51,14 +50,13 @@ public class PacifyEffect implements ISpellEffect {
 		}
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		String pacifyBlock = Constants.PACIFY+ context.Spell.getGameObject().getStringId();
 		
-		ArrayList<String> inlist = context.Target.getGameObject().getAttributeList("this","pacifyBlocks");
+		ArrayList inlist = context.Target.getGameObject().getAttributeList("this","pacifyBlocks");
 		
 		if (inlist!=null) { // might be null if the spell was cancelled partway through
-			ArrayList<String> list = new ArrayList<String>(inlist);
+			ArrayList list = new ArrayList(inlist);
 			list.remove(pacifyBlock);
 			if (list.isEmpty()) {
 				context.Target.getGameObject().removeThisAttribute("pacifyBlocks");

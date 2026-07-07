@@ -60,10 +60,10 @@ public class Peer1ed extends Search {
 		return "Nothing";
 	}
 
-	@Override
-	protected ArrayList<ImageIcon> getHintIcons(CharacterWrapper character) {
-		ArrayList<ImageIcon> list = new ArrayList<ImageIcon>();
-		for(RealmComponent rc:getAllDiscoverableChits(character,true)) {
+	protected ArrayList getHintIcons(CharacterWrapper character) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it2095 = (getAllDiscoverableChits(character,true)).iterator(); _j14it2095.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2095.next();
 			list.add(getIconForSearch(rc));
 		}
 		return list;

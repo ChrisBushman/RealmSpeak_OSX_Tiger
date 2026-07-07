@@ -33,7 +33,8 @@ public class ReadRunes extends RealmTable {
 		super(frame,null);
 		this.spellLocation = spellLocation;
 		
-		for (GameObject spell : spellLocation.getHold()) {
+		for (java.util.Iterator _j14it2100 = (spellLocation.getHold()).iterator(); _j14it2100.hasNext(); ) {
+		  GameObject spell = (GameObject) _j14it2100.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(spell);
 			if (rc.isSpell()) {
 				if (!spell.hasThisAttribute(Constants.SPELL_AWAKENED)) { // select the first non-activated spell
@@ -143,8 +144,9 @@ public class ReadRunes extends RealmTable {
 		return ret;
 	}
 	private GameObject selectFromAllAwakenedSpells(CharacterWrapper character) {
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
-		for (GameObject spell : spellLocation.getHold()) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it2101 = (spellLocation.getHold()).iterator(); _j14it2101.hasNext(); ) {
+		  GameObject spell = (GameObject) _j14it2101.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(spell);
 			if (rc.isSpell() && ((character.canLearn(spell) && rc.getGameObject().hasThisAttribute(Constants.SPELL_AWAKENED)) || character.affectedByKey(Constants.MAGE_DIARY))) {
 				list.add(spell);
@@ -155,12 +157,13 @@ public class ReadRunes extends RealmTable {
 		}
 		if (list.size()>0) {
 			if (list.size()==1) { // the choice is obvious
-				return list.get(0);
+				return (GameObject) list.get(0);
 			}
 			
 			// otherwise:
 			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(getParentFrame(),"Choose a spell:",false);
-			for (GameObject go : list) {
+			for (java.util.Iterator _j14it2102 = (list).iterator(); _j14it2102.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2102.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (go.hasThisAttribute(Constants.SPELL_AWAKENED) || character.affectedByKey(Constants.MAGE_DIARY)) {
 					chooser.addRealmComponent(rc);
@@ -207,9 +210,8 @@ public class ReadRunes extends RealmTable {
 		
 		return ret;
 	}
-	@Override
-	protected ArrayList<ImageIcon> getHintIcons(CharacterWrapper character) {
-		ArrayList<ImageIcon> list = new ArrayList<ImageIcon>();
+	protected ArrayList getHintIcons(CharacterWrapper character) {
+		ArrayList list = new ArrayList();
 		list.add(getIconForSearch(RealmComponent.getRealmComponent(spellLocation)));
 		return list;
 	}

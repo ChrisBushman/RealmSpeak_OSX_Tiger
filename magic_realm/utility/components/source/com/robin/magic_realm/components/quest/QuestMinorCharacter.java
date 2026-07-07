@@ -27,8 +27,8 @@ public class QuestMinorCharacter extends GameObjectWrapper {
 	public QuestMinorCharacter(GameObject obj) {
 		super(obj);
 	}
-	public ArrayList<String> getAllAbilityBlockNames() {
-		ArrayList<String> abilityBlockNames = new ArrayList<String>();
+	public ArrayList getAllAbilityBlockNames() {
+		ArrayList abilityBlockNames = new ArrayList();
 		int n=0;
 		String blockName;
 		while(getGameObject().hasAttributeBlock(blockName=ABILITY_BLOCK_NAME+n)) {
@@ -41,16 +41,18 @@ public class QuestMinorCharacter extends GameObjectWrapper {
 		return getName();
 	}
 	public void setupAbilities() {
-		ArrayList<String> ignore = new ArrayList<String>(Arrays.asList(IGNORE));
-		for(String abilityBlockName:getAllAbilityBlockNames()) {
+		ArrayList ignore = new ArrayList(Arrays.asList(IGNORE));
+		for (java.util.Iterator _j14it2183 = (getAllAbilityBlockNames()).iterator(); _j14it2183.hasNext(); ) {
+		  String abilityBlockName = (String) _j14it2183.next();
 			OrderedHashtable block = getGameObject().getAttributeBlock(abilityBlockName);
-			for(Object o:block.keySet()) {
+			for (java.util.Iterator _j14it2184 = (block.keySet()).iterator(); _j14it2184.hasNext(); ) {
+			  Object o = (Object) _j14it2184.next();
 				String key = (String)o;
 				if (ignore.contains(key)) continue;
 				Object val = block.get(key);
 				if (val instanceof ArrayList) {
-					ArrayList<String> list = new ArrayList((ArrayList)val);
-					ArrayList<String> current = getGameObject().getThisAttributeList(key);
+					ArrayList list = new ArrayList((ArrayList)val);
+					ArrayList current = getGameObject().getThisAttributeList(key);
 					if (current!=null && !current.isEmpty()) {
 						list.addAll(current);
 					}

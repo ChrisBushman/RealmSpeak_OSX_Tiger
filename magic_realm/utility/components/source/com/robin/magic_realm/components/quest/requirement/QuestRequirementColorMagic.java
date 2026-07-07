@@ -21,10 +21,11 @@ public class QuestRequirementColorMagic extends QuestRequirement {
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
 		ColorMagic test = getColorMagic();
 		if (reqParams.burnedColor!=null && reqParams.burnedColor.sameColorAs(test)) return true;
-		Collection<ColorMagic> colors = character.getInfiniteColorSources();
+		Collection colors = character.getInfiniteColorSources();
 		
 		boolean found = false;
-		for(ColorMagic cm:colors) {
+		for (java.util.Iterator _j14it2333 = (colors).iterator(); _j14it2333.hasNext(); ) {
+		  ColorMagic cm = (ColorMagic) _j14it2333.next();
 			if (cm.sameColorAs(test)) {
 				found = true;
 				break;

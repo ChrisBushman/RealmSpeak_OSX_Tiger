@@ -8,10 +8,10 @@ import com.robin.general.io.SendMail;
 import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class RealmMail {
-	public static String sendMail(HostPrefWrapper hostPrefs,ArrayList<String> recipients,String subtitle,String message) {
+	public static String sendMail(HostPrefWrapper hostPrefs,ArrayList recipients,String subtitle,String message) {
 		return sendMail(hostPrefs.getSmtpHost(),hostPrefs.getHostEmail(),recipients,hostPrefs.getGameTitle(),subtitle,message);
 	}
-	public static String sendMail(String smtpHost,String hostEmail,ArrayList<String> recipients,String gameTitle,String subtitle,String message) {
+	public static String sendMail(String smtpHost,String hostEmail,ArrayList recipients,String gameTitle,String subtitle,String message) {
 		SendMail sm = new SendMail(smtpHost,hostEmail,recipients,null,null);
 		sm.setSubject("["+gameTitle+"] - "+subtitle);
 		sm.setMessage(message);

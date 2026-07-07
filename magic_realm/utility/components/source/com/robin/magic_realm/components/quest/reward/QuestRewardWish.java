@@ -17,7 +17,6 @@ public class QuestRewardWish extends QuestReward {
 		super(go);
 	}
 
-	@Override
 	public void processReward(JFrame frame, CharacterWrapper character) {
 		Wish wish = new Wish(frame);
 		DieRoller roller;
@@ -30,11 +29,9 @@ public class QuestRewardWish extends QuestReward {
 		wish.apply(character,roller);
 	}
 	
-	@Override
 	public RewardType getRewardType() {
 		return RewardType.Wish;
 	}
-	@Override
 	public String getDescription() {
 		return "Grants the character a wish.";
 	}

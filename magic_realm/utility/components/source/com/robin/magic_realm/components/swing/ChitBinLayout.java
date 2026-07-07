@@ -19,16 +19,17 @@ public class ChitBinLayout {
 		"MAGIC",
 	};
 	
-	private ArrayList<String> groups;
-	private ArrayList<ChitBin> chitBins;
-	private HashLists<String,ChitBin> hashLists;
+	private ArrayList groups;
+	private ArrayList chitBins;
+	private HashLists hashLists;
 	
-	public ChitBinLayout(ArrayList<StateChitComponent> chits) {
+	public ChitBinLayout(ArrayList chits) {
 		Collections.sort(chits);
-		groups = new ArrayList<String>();
-		chitBins = new ArrayList<ChitBin>();
-		hashLists = new HashLists<String,ChitBin>();
-		for (ChitComponent chit : chits) {
+		groups = new ArrayList();
+		chitBins = new ArrayList();
+		hashLists = new HashLists();
+		for (java.util.Iterator _j14it2002 = (chits).iterator(); _j14it2002.hasNext(); ) {
+		  ChitComponent chit = (ChitComponent) _j14it2002.next();
 			if (chit.isActionChit()) {
 				CharacterActionChitComponent achit = (CharacterActionChitComponent)chit;
 				if (achit.isMoveFight()) {
@@ -56,33 +57,34 @@ public class ChitBinLayout {
 			}
 		}
 		
-		ArrayList<String> sorted = new ArrayList<String>(Arrays.asList(GROUP));
+		ArrayList sorted = new ArrayList(Arrays.asList(GROUP));
 		sorted.retainAll(groups);
 		groups = sorted;
 	}
-	public ArrayList<String> getGroups() {
+	public ArrayList getGroups() {
 		return groups;
 	}
-	public ArrayList<ChitBin> getBins(String group) {
+	public ArrayList getBins(String group) {
 		return hashLists.getList(group);
 	}
 	public ChitComponent getChit(int index) {
 		if (index<0 || index>=chitBins.size()) {
 			throw new IllegalStateException("No chit bin at position " + index);
 		}
-		ChitBin bin = chitBins.get(index);
+		ChitBin bin = (ChitBin) chitBins.get(index);
 		return bin.getChit();
 	}
 	public void setChit(int index,ChitComponent chit) {
 		if (index<0 || index>=chitBins.size()) {
 			throw new IllegalStateException("No chit bin at position " + index);
 		}
-		ChitBin bin = chitBins.get(index);
+		ChitBin bin = (ChitBin) chitBins.get(index);
 		bin.setChit(chit);
 	}
-	public ArrayList<ChitComponent> getAllChits() {
-		ArrayList<ChitComponent> list = new ArrayList<ChitComponent>();
-		for (ChitBin bin : chitBins) {
+	public ArrayList getAllChits() {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it2003 = (chitBins).iterator(); _j14it2003.hasNext(); ) {
+		  ChitBin bin = (ChitBin) _j14it2003.next();
 			ChitComponent chit = bin.getChit();
 			if (chit!=null) {
 				list.add(chit);
@@ -90,9 +92,10 @@ public class ChitBinLayout {
 		}
 		return list;
 	}
-	public ArrayList<ChitComponent> getColorChits() {
-		ArrayList<ChitComponent> list = new ArrayList<ChitComponent>();
-		for (ChitBin bin : chitBins) {
+	public ArrayList getColorChits() {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it2004 = (chitBins).iterator(); _j14it2004.hasNext(); ) {
+		  ChitBin bin = (ChitBin) _j14it2004.next();
 			ChitComponent chit = bin.getChit();
 			if (chit!=null && chit instanceof CharacterActionChitComponent && ((CharacterActionChitComponent)chit).isColorOnlyChit()) {
 				list.add(chit);
@@ -112,12 +115,14 @@ public class ChitBinLayout {
 		}
 	}
 	public void reset() {
-		for (ChitBin bin : chitBins) {
+		for (java.util.Iterator _j14it2005 = (chitBins).iterator(); _j14it2005.hasNext(); ) {
+		  ChitBin bin = (ChitBin) _j14it2005.next();
 			bin.setChit(null);
 		}
 	}
 	public ChitComponent getChitAt(Point p) {
-		for (ChitBin bin : chitBins) {
+		for (java.util.Iterator _j14it2006 = (chitBins).iterator(); _j14it2006.hasNext(); ) {
+		  ChitBin bin = (ChitBin) _j14it2006.next();
 			if (bin.getRectangle().contains(p)) {
 				return bin.getChit();
 			}
@@ -126,7 +131,7 @@ public class ChitBinLayout {
 	}
 	public int getChitIndex(ChitComponent chit) {
 		for (int i=0;i<chitBins.size();i++) {
-			ChitBin bin = chitBins.get(i);
+			ChitBin bin = (ChitBin) chitBins.get(i);
 			if (chit==bin.getChit()) { // testing pointer equality is good enough for here
 				return i;
 			}

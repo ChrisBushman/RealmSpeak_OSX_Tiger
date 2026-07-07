@@ -20,35 +20,31 @@ public class QuestRequirementCastMultipleSpells extends QuestRequirement {
 		super(go);
 	}
 
-	@Override
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
 		QuestStep step = getParentStep();
 		DayKey earliestTime = new DayKey(1,1);
 		TargetValueType tvt = getTargetValueType();
-		switch (tvt) {
-			case Game:
-				earliestTime = new DayKey(1,1);
-				break;
-			case Quest:
-				earliestTime = step.getQuestStartTime();
-				break;
-			case Step:
-				earliestTime = step.getQuestStepStartTime();
-				break;
-			case Day:
-				earliestTime = new DayKey(character.getCurrentDayKey());
-				break;
+		if (tvt == TargetValueType.Game) {
+			earliestTime = new DayKey(1,1);
+		} else if (tvt == TargetValueType.Quest) {
+			earliestTime = step.getQuestStartTime();
+		} else if (tvt == TargetValueType.Step) {
+			earliestTime = step.getQuestStepStartTime();
+		} else if (tvt == TargetValueType.Day) {
+			earliestTime = new DayKey(character.getCurrentDayKey());
 		}
 		
-		List<String> spellsCasted = new ArrayList<String>();
-		ArrayList<String> allDayKeys = character.getAllDayKeys();
+		List spellsCasted = new ArrayList();
+		ArrayList allDayKeys = character.getAllDayKeys();
 		if (allDayKeys==null) {
 			return false;
 		}
-		for(String dayKeyString:allDayKeys) {
+		for (java.util.Iterator _j14it2342 = (allDayKeys).iterator(); _j14it2342.hasNext(); ) {
+		  String dayKeyString = (String) _j14it2342.next();
 			DayKey dayKey = new DayKey(dayKeyString);
 			if (dayKey.before(earliestTime)) continue; // ignore spells on days before the earliest allowable date
-			for (GameObject spell : character.getCastedSpells(dayKeyString)) {
+			for (java.util.Iterator _j14it2343 = (character.getCastedSpells(dayKeyString)).iterator(); _j14it2343.hasNext(); ) {
+			  GameObject spell = (GameObject) _j14it2343.next();
 				if (!getUnique() || !spellsCasted.contains(spell.getName())) {
 					spellsCasted.add(spell.getName());
 				}
@@ -58,14 +54,12 @@ public class QuestRequirementCastMultipleSpells extends QuestRequirement {
 		return spellsCasted.size() >= getAmount();
 	}
 
-	@Override
 	public RequirementType getRequirementType() {
 		return RequirementType.CastMultipleSpells;
 	}
 
-	@Override
 	protected String buildDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must cast "+getAmount());
 		if (getUnique()) {
 			sb.append(" different");

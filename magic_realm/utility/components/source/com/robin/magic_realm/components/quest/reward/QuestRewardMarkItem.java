@@ -26,7 +26,7 @@ public class QuestRewardMarkItem extends QuestReward {
 	}
 
 	public void processReward(JFrame frame, CharacterWrapper character) {
-		ArrayList<GameObject> objects;
+		ArrayList objects;
 		if (mustBeInInventory()) {
 			objects = QuestRewardItem.getObjectList(character.getInventory(),getChitTypes(),getItemRegex());
 		}
@@ -34,8 +34,9 @@ public class QuestRewardMarkItem extends QuestReward {
 			objects = QuestRewardItem.getObjectList(character.getGameData().getGameObjects(),getChitTypes(),getItemRegex());
 		}
 
-		ArrayList<GameObject> availableObjects = new ArrayList<GameObject>();
-		for (GameObject item : objects) {
+		ArrayList availableObjects = new ArrayList();
+		for (java.util.Iterator _j14it2356 = (objects).iterator(); _j14it2356.hasNext(); ) {
+		  GameObject item = (GameObject) _j14it2356.next();
 			if (removeMark() && !item.hasThisAttribute(QuestConstants.QUEST_MARK)) continue;
 			if (mustBeActive() && !item.hasThisAttribute(Constants.ACTIVATED)) continue;
 			if (mustBeDeactive() && item.hasThisAttribute(Constants.ACTIVATED)) continue;
@@ -56,7 +57,8 @@ public class QuestRewardMarkItem extends QuestReward {
 			}
 			return;
 		}
-		for (GameObject item : objects) {
+		for (java.util.Iterator _j14it2357 = (objects).iterator(); _j14it2357.hasNext(); ) {
+		  GameObject item = (GameObject) _j14it2357.next();
 			if (removeMark()) {
 				item.removeThisAttribute(QuestConstants.QUEST_MARK);
 			} else {
@@ -66,7 +68,7 @@ public class QuestRewardMarkItem extends QuestReward {
 	}
 
 	public String getDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		if (removeMark()) {
 			if(onlySingleItem()) {
 				sb.append("Removes the mark of a single item");
@@ -106,7 +108,7 @@ public class QuestRewardMarkItem extends QuestReward {
 	public RewardType getRewardType() {
 		return RewardType.MarkItem;
 	}
-	public ArrayList<ChitItemType> getChitTypes() {
+	public ArrayList getChitTypes() {
 		return ChitItemType.listToTypes(getList(ITEM_CHITTYPES));
 	}
 	public String getItemRegex() {

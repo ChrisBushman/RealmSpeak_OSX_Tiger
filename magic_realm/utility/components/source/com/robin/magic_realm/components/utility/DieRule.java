@@ -15,10 +15,10 @@ public class DieRule {
 	private TileLocation tl;
 	private int type;
 	private boolean allKeys = false;
-	private ArrayList<String> keyList;
+	private ArrayList keyList;
 	private boolean allLocations = false;
-	private ArrayList<String> locationList;
-	private ArrayList<String> twt = new ArrayList<String>(Arrays.asList("crypt of the knight","enchanted meadow","toadstool circle","circle of stones","ethereal abbey","fairy grove","haunted grave","mage library"));
+	private ArrayList locationList;
+	private ArrayList twt = new ArrayList(Arrays.asList(new String[]{"crypt of the knight","enchanted meadow","toadstool circle","circle of stones","ethereal abbey","fairy grove","haunted grave","mage library"}));
 	
 	public DieRule(TileLocation tl,String rule) {
 		this.tl = tl;
@@ -54,7 +54,7 @@ public class DieRule {
 			locationList = makeList(locationListString);
 		}
 	}
-	public boolean conditionsMet(String key,ArrayList<String> chitDescList) {
+	public boolean conditionsMet(String key,ArrayList chitDescList) {
 		if (key.indexOf(',')>0) {
 			StringTokenizer tokens = new StringTokenizer(key,",");
 			while(tokens.hasMoreTokens()) {
@@ -68,8 +68,9 @@ public class DieRule {
 		boolean validLocation = allLocations || locationMatches(chitDescList);
 		return validKey && validLocation;
 	}
-	private boolean locationMatches(ArrayList<String> chitDescList) {
-		for (String loc:locationList) {
+	private boolean locationMatches(ArrayList chitDescList) {
+		for (java.util.Iterator _j14it2804 = (locationList).iterator(); _j14it2804.hasNext(); ) {
+		  String loc = (String) _j14it2804.next();
 			if (loc.startsWith(">")) {
 				// test clearing
 				if (tl.hasClearing() && tl.clearing.getType().equalsIgnoreCase(loc.substring(1))) {
@@ -78,7 +79,8 @@ public class DieRule {
 			}
 			else if (loc.startsWith("%") && loc.endsWith("%")) {
 				loc = loc.substring(1,loc.length()-1);
-				for (String test:chitDescList) {
+				for (java.util.Iterator _j14it2805 = (chitDescList).iterator(); _j14it2805.hasNext(); ) {
+				  String test = (String) _j14it2805.next();
 					if (test.indexOf(loc)>=0) {
 						return true;
 					}
@@ -86,7 +88,8 @@ public class DieRule {
 			}
 			else if (loc.startsWith("%")) {
 				loc = loc.substring(1);
-				for (String test:chitDescList) {
+				for (java.util.Iterator _j14it2806 = (chitDescList).iterator(); _j14it2806.hasNext(); ) {
+				  String test = (String) _j14it2806.next();
 					if (test.endsWith(loc)) {
 						return true;
 					}
@@ -94,7 +97,8 @@ public class DieRule {
 			}
 			else if (loc.endsWith("%")) {
 				loc = loc.substring(0,loc.length()-1);
-				for (String test:chitDescList) {
+				for (java.util.Iterator _j14it2807 = (chitDescList).iterator(); _j14it2807.hasNext(); ) {
+				  String test = (String) _j14it2807.next();
 					if (test.startsWith(loc)) {
 						return true;
 					}
@@ -112,8 +116,8 @@ public class DieRule {
 		}
 		return false;
 	}
-	private static ArrayList<String> makeList(String input) {
-		ArrayList<String> list = new ArrayList<String>();
+	private static ArrayList makeList(String input) {
+		ArrayList list = new ArrayList();
 		StringTokenizer tokens = new StringTokenizer(input,",");
 		while(tokens.hasMoreTokens()) {
 			list.add(tokens.nextToken());

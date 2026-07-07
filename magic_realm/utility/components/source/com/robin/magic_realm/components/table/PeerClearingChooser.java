@@ -36,13 +36,15 @@ public class PeerClearingChooser {
 	public static TileLocation chooseClearingFromMountain(JFrame frame, CharacterWrapper character, String text) {
 		TileLocation planned = character.getCurrentLocation();
 		CenteredMapView.getSingleton().setMarkClearingAlertText(text);
-		ArrayList<ClearingDetail> clearingsMarked = CenteredMapView.getSingleton().markClearingsInTile(planned.tile,Arrays.asList(TYPES),true);
-		for(ClearingDetail clearing:clearingsMarked) {
+		ArrayList clearingsMarked = CenteredMapView.getSingleton().markClearingsInTile(planned.tile,Arrays.asList(TYPES),true);
+		for (java.util.Iterator _j14it2161 = (clearingsMarked).iterator(); _j14it2161.hasNext(); ) {
+		  ClearingDetail clearing = (ClearingDetail) _j14it2161.next();
 			if (clearing.getParent().getGameObject().hasThisAttribute(Constants.SP_NO_PEER) || clearing.getParent().getGameObject().hasThisAttribute(Constants.EVENT_FOG)) {
 				clearing.setMarked(false);
 			}
 			else {
-				for (RealmComponent rc : clearing.getDeepClearingComponents()) {
+				for (java.util.Iterator _j14it2162 = (clearing.getDeepClearingComponents()).iterator(); _j14it2162.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it2162.next();
 					if (rc.getGameObject().hasThisAttribute(Constants.MIST_CRYSTAL)) {
 						clearing.setMarked(false);
 						break;

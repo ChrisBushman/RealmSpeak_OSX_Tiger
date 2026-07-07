@@ -22,16 +22,33 @@ import com.robin.magic_realm.components.table.*;
 import com.robin.magic_realm.components.wrapper.*;
 
 public class TreasureUtility {
-	public enum ArmorType {
-		None,
-		Shield,
-		Helmet,
-		Breastplate,
-		Armor,
-		Charge,
-		Dodge,
-		Duck,
-		Special,
+	public static final class ArmorType {
+		private final String _name;
+		private final int _ordinal;
+		private ArmorType(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final ArmorType None = new ArmorType("None", 0);
+		public static final ArmorType Shield = new ArmorType("Shield", 1);
+		public static final ArmorType Helmet = new ArmorType("Helmet", 2);
+		public static final ArmorType Breastplate = new ArmorType("Breastplate", 3);
+		public static final ArmorType Armor = new ArmorType("Armor", 4);
+		public static final ArmorType Charge = new ArmorType("Charge", 5);
+		public static final ArmorType Dodge = new ArmorType("Dodge", 6);
+		public static final ArmorType Duck = new ArmorType("Duck", 7);
+		public static final ArmorType Special = new ArmorType("Special", 8);
+
+		private static final ArmorType[] _VALUES = { None, Shield, Helmet, Breastplate, Armor, Charge, Dodge, Duck, Special };
+		public static ArmorType[] values() { ArmorType[] r = new ArmorType[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static ArmorType valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 
 	/**
@@ -82,11 +99,12 @@ public class TreasureUtility {
 			RealmComponent rc = RealmComponent.getRealmComponent(thing);
 			
 			// Before anything else, check for item restrictions (custom characters)
-			ArrayList<String> itemRestrictions = character.getGameObject().getThisAttributeList(Constants.ITEM_RESTRICTIONS);
+			ArrayList itemRestrictions = character.getGameObject().getThisAttributeList(Constants.ITEM_RESTRICTIONS);
 			if (itemRestrictions!=null && !itemRestrictions.isEmpty()) {
 				// Check first by name
-				for (String restriction : itemRestrictions) {
-					ArrayList<String> thingWords = StringUtilities.stringToCollection(thing.getName()," ");
+				for (java.util.Iterator _j14it2698 = (itemRestrictions).iterator(); _j14it2698.hasNext(); ) {
+				  String restriction = (String) _j14it2698.next();
+					ArrayList thingWords = StringUtilities.stringToCollection(thing.getName()," ");
 					if (restriction.equals(thing.getName()) || thingWords.contains(restriction)) {
 						JOptionPane.showMessageDialog(parentFrame,"Your character is not allowed to activate the "+thing.getName()+" (see advantages).");
 						return false;
@@ -112,7 +130,7 @@ public class TreasureUtility {
 			
 //			Strength characterVulnerability = new Strength(character.getGameObject().getThisAttribute("vulnerability"));
 			Strength characterCarryWeight = character.getNeededSupportWeight();
-			ArrayList<GameObject> activeInventory = character.getActiveInventory();
+			ArrayList activeInventory = character.getActiveInventory();
 			ArmorType armorType = getArmorType(thing);
 			if (rc.isHorse()) {
 				// Horse
@@ -132,7 +150,8 @@ public class TreasureUtility {
 				Strength horseStrength = new Strength(thing.getAttribute("trot","strength"));
 				if (horseStrength.strongerOrEqualTo(characterCarryWeight)) {
 					// If good, then inactivate any existing horses
-					for (GameObject otherThing : activeInventory) {
+					for (java.util.Iterator _j14it2699 = (activeInventory).iterator(); _j14it2699.hasNext(); ) {
+					  GameObject otherThing = (GameObject) _j14it2699.next();
 						if (otherThing.hasThisAttribute("horse")) {
 							otherThing.removeThisAttribute(Constants.ACTIVATED);
 							break; // no need to keep searching as long as this code is in place
@@ -156,7 +175,8 @@ public class TreasureUtility {
 					Strength bootStrength = RealmUtility.getBootsStrength(thing);
 					if (bootStrength.strongerOrEqualTo(characterCarryWeight)) {
 						// If good, then inactivate any existing boots
-						for (GameObject otherThing : activeInventory) {
+						for (java.util.Iterator _j14it2700 = (activeInventory).iterator(); _j14it2700.hasNext(); ) {
+						  GameObject otherThing = (GameObject) _j14it2700.next();
 							if (otherThing.hasThisAttribute("boots")) {
 								otherThing.removeThisAttribute(Constants.ACTIVATED);
 								break; // no need to keep searching as long as this code is in place
@@ -172,7 +192,8 @@ public class TreasureUtility {
 			else if (thing.hasThisAttribute("gloves")) {
 				// Gloves
 				// Inactivate any existing gloves
-				for (GameObject otherThing : activeInventory) {
+				for (java.util.Iterator _j14it2701 = (activeInventory).iterator(); _j14it2701.hasNext(); ) {
+				  GameObject otherThing = (GameObject) _j14it2701.next();
 					if (otherThing.hasThisAttribute("gloves")) {
 						otherThing.removeThisAttribute(Constants.ACTIVATED);
 						break; // no need to keep searching as long as this code is in place
@@ -181,7 +202,8 @@ public class TreasureUtility {
 			}
 			else if (armorType!=ArmorType.None && armorType!=ArmorType.Special) {
 				// Inactivate any existing armor of the same ArmorType
-				for (GameObject otherThing : activeInventory) {
+				for (java.util.Iterator _j14it2702 = (activeInventory).iterator(); _j14it2702.hasNext(); ) {
+				  GameObject otherThing = (GameObject) _j14it2702.next();
 					ArmorType otherArmor = getArmorType(otherThing);
 					if (otherArmor==armorType) {
 						if (doDeactivate(parentFrame,character,otherThing)) {
@@ -195,7 +217,8 @@ public class TreasureUtility {
 				boolean dualWielding = hostPrefs.hasPref(Constants.OPT_DUAL_WIELDING) || character.affectedByKey(Constants.DUAL_WIELDING);
 				if (thing.hasThisAttribute(Constants.SHIELD) && (twoHandedWeaponResctriction || dualWielding)) {
 					boolean secondWeaponActive = false;
-					for (GameObject otherThing : activeInventory) {
+					for (java.util.Iterator _j14it2703 = (activeInventory).iterator(); _j14it2703.hasNext(); ) {
+					  GameObject otherThing = (GameObject) _j14it2703.next();
 						if (otherThing.hasThisAttribute("weapon") || (otherThing.hasThisAttribute(Constants.POTION) && otherThing.hasThisAttribute("attack"))) {
 							if (twoHandedWeaponResctriction) {
 								boolean twoHandedMissleWeaponWithFumbleRule = !hostPrefs.hasPref(Constants.OPT_FUMBLE) && otherThing.hasThisAttribute(Constants.TWO_HANDED);
@@ -215,7 +238,8 @@ public class TreasureUtility {
 			}
 			else if (thing.hasThisAttribute("weapon")) {
 				// Inactivate any existing weapon
-				for (GameObject otherThing : activeInventory) {
+				for (java.util.Iterator _j14it2704 = (activeInventory).iterator(); _j14it2704.hasNext(); ) {
+				  GameObject otherThing = (GameObject) _j14it2704.next();
 					if (otherThing.hasThisAttribute("weapon") || (otherThing.hasThisAttribute(Constants.POTION) && otherThing.hasThisAttribute("attack"))) {
 						if ((hostPrefs.hasPref(Constants.OPT_DUAL_WIELDING) || character.affectedByKey(Constants.DUAL_WIELDING))
 							&& (((character.affectedByKey(Constants.STRONG) || character.affectedByKey(Constants.DUAL_WIELDING_TWO_HANDED) || hostPrefs.hasPref(Constants.OPT_DUAL_WIELDING_STRONG) || hostPrefs.hasPref(Constants.OPT_DUAL_WIELDING_HEAVY)) && (!thing.hasThisAttribute(Constants.TWO_HANDED) || !thing.hasThisAttribute("missile")) && (!otherThing.hasThisAttribute(Constants.TWO_HANDED) || !otherThing.hasThisAttribute("missile")))
@@ -225,7 +249,8 @@ public class TreasureUtility {
 							((hostPrefs.hasPref(Constants.OPT_DUAL_WIELDING_HEAVY) || character.affectedByKey(Constants.DUAL_WIELDING_HEAVY)) || (character.getVulnerability().strongerThan((RealmComponent.getRealmComponent(thing)).getWeight()) && character.getVulnerability().strongerThan((RealmComponent.getRealmComponent(otherThing)).getWeight())))
 							))) {
 							boolean secondWeaponActive = false;
-							for (GameObject activeItem : activeInventory) {
+							for (java.util.Iterator _j14it2705 = (activeInventory).iterator(); _j14it2705.hasNext(); ) {
+							  GameObject activeItem = (GameObject) _j14it2705.next();
 								if (activeItem.hasThisAttribute(Constants.SHIELD)) {
 									activeItem.removeThisAttribute(Constants.ACTIVATED);
 								}
@@ -268,14 +293,14 @@ public class TreasureUtility {
 				}
 			}
 			else if (thing.hasThisAttribute(Constants.NEEDS_OPEN)) {
-				Collection<GameObject> openable = new ArrayList<GameObject>();
+				Collection openable = new ArrayList();
 				openable.add(thing);
 				
 				boolean success = TreasureUtility.openOneObject(parentFrame,character,openable,listener,false)!=null;
 				if (success) {
 					QuestRequirementParams qp = new QuestRequirementParams();
 					qp.actionType = CharacterActionType.ActivatingItem;
-					qp.objectList = new ArrayList<GameObject>();
+					qp.objectList = new ArrayList();
 					qp.objectList.add(thing);
 					character.testQuestRequirements(parentFrame,qp);
 				}
@@ -284,7 +309,8 @@ public class TreasureUtility {
 			if (thing.hasThisAttribute(Constants.BEAST_AWAY)) {
 				TileLocation current = character.getCurrentLocation();
 				if (current.isInClearing()) {
-					for (RealmComponent cc:current.clearing.getClearingComponents(false)) {
+					for (java.util.Iterator _j14it2706 = (current.clearing.getClearingComponents(false)).iterator(); _j14it2706.hasNext(); ) {
+					  RealmComponent cc = (RealmComponent) _j14it2706.next();
 						if (cc.isMonster()) {
 							SetupCardUtility.resetDenizen(cc.getGameObject());
 						}
@@ -299,7 +325,8 @@ public class TreasureUtility {
 				TileLocation current = character.getCurrentLocation();
 				if (current.isInClearing()) {
 					StringBufferedList sb = new StringBufferedList();
-					for (RealmComponent cc:current.clearing.getClearingComponents(false)) {
+					for (java.util.Iterator _j14it2707 = (current.clearing.getClearingComponents(false)).iterator(); _j14it2707.hasNext(); ) {
+					  RealmComponent cc = (RealmComponent) _j14it2707.next();
 						if (cc.isTreasureLocation()
 								&& cc.getGameObject().hasThisAttribute(Constants.GENERATOR)
 								&& !cc.getGameObject().hasThisAttribute(Constants.DESTROYED)
@@ -324,14 +351,15 @@ public class TreasureUtility {
 			if (thing.hasThisAttribute(Constants.COMBINE_COUNT)) {
 				int count = thing.getThisInt(Constants.COMBINE_COUNT);
 				String target = thing.getThisAttribute(Constants.COMBINE);
-				ArrayList<GameObject> list = character.getAllActiveInventoryThisKeyAndValue(Constants.COMBINE,target);
+				ArrayList list = character.getAllActiveInventoryThisKeyAndValue(Constants.COMBINE,target);
 				list.add(thing);
 				
 				if (count==list.size()) {
 					// Combine achieved!  Create object
 					GameObject result = thing.getGameData().getGameObjectByName(target);
 					character.getGameObject().add(result);
-					for(GameObject go:list) {
+					for (java.util.Iterator _j14it2708 = (list).iterator(); _j14it2708.hasNext(); ) {
+					  GameObject go = (GameObject) _j14it2708.next();
 						go.removeThisAttribute(Constants.ACTIVATED);
 						character.getGameObject().remove(go);
 					}
@@ -345,7 +373,8 @@ public class TreasureUtility {
 			}
 			if (thing.hasThisAttribute(Constants.NOPIN)) {
 				CombatWrapper combat = new CombatWrapper(character.getGameObject());
-				for (RealmComponent attacker:combat.getAttackersAsComponents()) {
+				for (java.util.Iterator _j14it2709 = (combat.getAttackersAsComponents()).iterator(); _j14it2709.hasNext(); ) {
+				  RealmComponent attacker = (RealmComponent) _j14it2709.next();
 					if (attacker.isMonster()) {
 						MonsterChitComponent monster = (MonsterChitComponent)attacker;
 						if (monster.isPinningOpponent()) {
@@ -376,10 +405,11 @@ public class TreasureUtility {
 				companion.setThisAttribute(Constants.DESTROY_TREASURE_WHEN_KILLED,thing.getStringId());
 			}
 			if (thing.hasThisAttribute(Constants.COMPANION_FROM_HOLD)) {
-				ArrayList<GameObject> companions = new ArrayList<GameObject>(thing.getHold());
+				ArrayList companions = new ArrayList(thing.getHold());
 				StringBufferedList list = new StringBufferedList();
 				IconGroup group = new IconGroup(rc.getIcon(),IconGroup.VERTICAL,5);
-				for(GameObject companion : companions) {
+				for (java.util.Iterator _j14it2710 = (companions).iterator(); _j14it2710.hasNext(); ) {
+				  GameObject companion = (GameObject) _j14it2710.next();
 					character.getGameObject().add(companion);
 					character.addHireling(companion);
 					list.append(companion.getName());
@@ -428,16 +458,17 @@ public class TreasureUtility {
 		}
 		QuestRequirementParams qp = new QuestRequirementParams();
 		qp.actionType = CharacterActionType.ActivatingItem;
-		qp.objectList = new ArrayList<GameObject>();
+		qp.objectList = new ArrayList();
 		qp.objectList.add(thing);
 		character.testQuestRequirements(parentFrame,qp);
 		return true;
 	}
 	
 	private static boolean doColorCapture(JFrame parentFrame,CharacterWrapper character,GameObject thing) {
-		ArrayList<ColorMagic> permColor = character.getInfiniteColorSources();
-		ArrayList<String> permColorNames = new ArrayList<String>();
-		for (ColorMagic cm:permColor) {
+		ArrayList permColor = character.getInfiniteColorSources();
+		ArrayList permColorNames = new ArrayList();
+		for (java.util.Iterator _j14it2711 = (permColor).iterator(); _j14it2711.hasNext(); ) {
+		  ColorMagic cm = (ColorMagic) _j14it2711.next();
 			if (!permColorNames.contains(cm.getColorName())) {
 				permColorNames.add(cm.getColorName());
 			}
@@ -445,7 +476,7 @@ public class TreasureUtility {
 		
 		String colorName = null;
 		if (permColorNames.size()==1) {
-			colorName = permColorNames.get(0);
+			colorName = (String) permColorNames.get(0);
 		}
 		else if (permColorNames.size()>1) {
 			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(parentFrame,"Choose a color to capture:",true);
@@ -466,24 +497,25 @@ public class TreasureUtility {
 	}
 	
 	private static boolean doConvertChitsToNew(CharacterWrapper character,GameObject thing){
-		ArrayList<String> chitBlocks = thing.getThisAttributeList(Constants.CONVERT_CHITS);
+		ArrayList chitBlocks = thing.getThisAttributeList(Constants.CONVERT_CHITS);
 		int count = chitBlocks.size();
 		RealmObjectChooser chooser = new RealmObjectChooser("Select "+count+" chit"+(count==1?"":"s")+" to convert:",thing.getGameData(),false,false);
 		chooser.setValidCount(count);
-		for (CharacterActionChitComponent chit:character.getAllChits()) {
+		for (java.util.Iterator _j14it2712 = (character.getAllChits()).iterator(); _j14it2712.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2712.next();
 			if (!chit.isTreasureChit()) {
 				chooser.addComponentToChoose(chit);
 			}
 		}
 		chooser.setVisible(true);
 		
-		ArrayList<GameObject> chosen = chooser.getChosenObjects();
+		ArrayList chosen = chooser.getChosenObjects();
 		if (chosen==null) return false;
 		
 		for (int i=0;i<count;i++) {
-			GameObject chit = chosen.get(i);
+			GameObject chit = (GameObject) chosen.get(i);
 			chit.renameAttributeBlock("this","this_convert");
-			String block = chitBlocks.get(i);
+			String block = (String) chitBlocks.get(i);
 			chit.copyAttributeBlockFrom(thing,block);
 			chit.renameAttributeBlock(block,"this");
 			chit.setThisAttribute("icon_folder",character.getGameObject().getThisAttribute("icon_folder"));
@@ -494,7 +526,8 @@ public class TreasureUtility {
 		return true;
 	}
 	private static void doRestoreConvertedChits(CharacterWrapper character,GameObject thing) {
-		for (RealmComponent rc : character.getAllChits()) {
+		for (java.util.Iterator _j14it2713 = (character.getAllChits()).iterator(); _j14it2713.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2713.next();
 			GameObject chit = rc.getGameObject();
 			if (chit.hasThisAttribute("convertedby")) {
 				String thingId = chit.getThisAttribute("convertedby");
@@ -508,13 +541,14 @@ public class TreasureUtility {
 	private static boolean handlePotionEffects(JFrame parentFrame,CharacterWrapper character,GameObject thing,ChangeListener listener) {
 		// some potion and phase chit effects are immediate
 		if (thing.hasThisAttribute("attack")) {
-			ArrayList<WeaponChitComponent> weapons = character.getActiveWeapons();
+			ArrayList weapons = character.getActiveWeapons();
 			if (weapons!=null && !weapons.isEmpty()) {
 				int ret = JOptionPane.showConfirmDialog(parentFrame,"You are about to deactivate your primary weapon(s).  Are you sure?","",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
 				if (ret==JOptionPane.NO_OPTION) {
 					return false;
 				}
-				for (WeaponChitComponent weapon : weapons) {
+				for (java.util.Iterator _j14it2714 = (weapons).iterator(); _j14it2714.hasNext(); ) {
+				  WeaponChitComponent weapon = (WeaponChitComponent) _j14it2714.next();
 					if (weapon.isAlerted()) {
 						weapon.setAlerted(false);
 					}
@@ -523,8 +557,9 @@ public class TreasureUtility {
 			}
 		}
 		if (thing.hasThisAttribute(Constants.REPAIR_ONE)) {
-			ArrayList<ArmorChitComponent> list = new ArrayList<ArmorChitComponent>();
-			for(GameObject go:character.getInventory()) {
+			ArrayList list = new ArrayList();
+			for (java.util.Iterator _j14it2715 = (character.getInventory()).iterator(); _j14it2715.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2715.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (rc.isArmor()) {
 					ArmorChitComponent armor = (ArmorChitComponent)rc;
@@ -547,9 +582,9 @@ public class TreasureUtility {
 		if (thing.hasThisAttribute(Constants.RANDOM_TL)) {
 			// Discover Random Treasure Location
 			GamePool pool = new GamePool(thing.getGameData().getGameObjects());
-			ArrayList<GameObject> tls = pool.find("treasure_location,!cannot_move,!treasure_within_treasure");
+			ArrayList tls = pool.find("treasure_location,!cannot_move,!treasure_within_treasure");
 			int r = RandomNumber.getRandom(tls.size());
-			GameObject go = tls.get(r);
+			GameObject go = (GameObject) tls.get(r);
 			String tlName = go.getName();
 			if (!character.hasTreasureLocationDiscovery(tlName)) {
 				character.addTreasureLocationDiscovery(tlName);
@@ -587,9 +622,10 @@ public class TreasureUtility {
 				// Select bewitching spells to cancel (spellcaster or target must be in clearing)
 				TileLocation current = character.getCurrentLocation();
 				SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(thing.getGameData());
-				Collection<SpellWrapper> spells = sm.getAllSpellsInClearing(current,true);
+				Collection spells = sm.getAllSpellsInClearing(current,true);
 				if (!spells.isEmpty()) {
-					for (SpellWrapper spell : spells) {
+					for (java.util.Iterator _j14it2716 = (spells).iterator(); _j14it2716.hasNext(); ) {
+					  SpellWrapper spell = (SpellWrapper) _j14it2716.next();
 						RealmComponent src = RealmComponent.getRealmComponent(spell.getGameObject());
 						chooser.addRealmComponent(src);
 					}
@@ -599,19 +635,22 @@ public class TreasureUtility {
 			// Select curse to cancel
 			TileLocation loc = character.getCurrentLocation();
 			if (loc != null) {
-				for (RealmComponent rc : loc.clearing.getClearingComponents(false)) {
+				for (java.util.Iterator _j14it2717 = (loc.clearing.getClearingComponents(false)).iterator(); _j14it2717.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it2717.next();
 					if (rc.isCharacter()) {
 						CharacterWrapper rcChar = new CharacterWrapper(rc.getGameObject());
-						ArrayList<String> rcCurses = rcChar.getAllCurses();
-						for (String rcCurse : rcCurses) {
+						ArrayList rcCurses = rcChar.getAllCurses();
+						for (java.util.Iterator _j14it2718 = (rcCurses).iterator(); _j14it2718.hasNext(); ) {
+						  String rcCurse = (String) _j14it2718.next();
 							chooser.addRealmComponent(rc, rcCurse);
 						}
 					}
 				}
 			}
 			else {
-				Collection<String> curses = character.getAllCurses();
-				for (String curse : curses) {
+				Collection curses = character.getAllCurses();
+				for (java.util.Iterator _j14it2719 = (curses).iterator(); _j14it2719.hasNext(); ) {
+				  String curse = (String) _j14it2719.next();
 					chooser.addRealmComponent(RealmComponent.getRealmComponent(character.getGameData()), curse);
 				}
 			}
@@ -645,7 +684,8 @@ public class TreasureUtility {
 			character.getGameObject().setThisAttribute(Constants.DISENCHANT_POTION);
 			character.nullifyCurses();
 			SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(thing.getGameData());
-			for (SpellWrapper spell:sm.getAffectingSpells(character.getGameObject())) {
+			for (java.util.Iterator _j14it2720 = (sm.getAffectingSpells(character.getGameObject())).iterator(); _j14it2720.hasNext(); ) {
+			  SpellWrapper spell = (SpellWrapper) _j14it2720.next();
 				if (spell.isNullified()) continue;
 				if (spell.isActive() && spell.hasAffectedTargets()) {
 					spell.nullifySpell(false);
@@ -665,8 +705,9 @@ public class TreasureUtility {
 			thing.setThisAttribute(Constants.HOLY_WATER_AFFECTED_CHARACTER,character.getGameObject().getStringId());
 			character.getGameObject().setThisAttribute(Constants.HOLY_WATER);
 			CombatWrapper characterCw = new CombatWrapper(character.getGameObject());
-			ArrayList<RealmComponent> attackers = characterCw.getAttackersAsComponents();
-			for (RealmComponent attacker : attackers) {
+			ArrayList attackers = characterCw.getAttackersAsComponents();
+			for (java.util.Iterator _j14it2721 = (attackers).iterator(); _j14it2721.hasNext(); ) {
+			  RealmComponent attacker = (RealmComponent) _j14it2721.next();
 				if (attacker.getGameObject().hasThisAttribute(Constants.DEMON)
 				|| attacker.getGameObject().hasThisAttribute(Constants.IMP)
 				|| attacker.getGameObject().hasThisAttribute(Constants.SUCCUBUS)
@@ -700,8 +741,9 @@ public class TreasureUtility {
 				character.setHidden(true);
 			}
 			CombatWrapper characterCw = new CombatWrapper(character.getGameObject());
-			ArrayList<RealmComponent> attackers = characterCw.getAttackersAsComponents();
-			for (RealmComponent attacker : attackers) {
+			ArrayList attackers = characterCw.getAttackersAsComponents();
+			for (java.util.Iterator _j14it2722 = (attackers).iterator(); _j14it2722.hasNext(); ) {
+			  RealmComponent attacker = (RealmComponent) _j14it2722.next();
 				if (attacker.getTarget()!=null && attacker.getTarget().getGameObject() == character.getGameObject()) {
 					attacker.clearTarget();
 				}
@@ -715,7 +757,8 @@ public class TreasureUtility {
 		if (thing.hasThisAttribute(Constants.PACIFY_MONSTERS)) {
 			TileLocation loc = character.getCurrentLocation();
 			if (loc != null) {
-				for (RealmComponent rc : loc.clearing.getClearingComponents(false)) {
+				for (java.util.Iterator _j14it2723 = (loc.clearing.getClearingComponents(false)).iterator(); _j14it2723.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it2723.next();
 					if (rc.isMonster()) {
 						CombatWrapper cw = new CombatWrapper(rc.getGameObject());
 						cw.pacify();						
@@ -725,8 +768,9 @@ public class TreasureUtility {
 		}
 		
 		if (thing.hasThisAttribute(Constants.STICKS_TO_ARMOR)) {
-			ArrayList<ArmorChitComponent> list = new ArrayList<ArmorChitComponent>();
-			for(GameObject go:character.getInventory()) {
+			ArrayList list = new ArrayList();
+			for (java.util.Iterator _j14it2724 = (character.getInventory()).iterator(); _j14it2724.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2724.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (rc.isArmor()) {
 					list.add((ArmorChitComponent)rc);
@@ -761,7 +805,8 @@ public class TreasureUtility {
 		}
 		else {
 			// Check for Treasure Weapons
-			for (GameObject item : character.getActiveInventory()) {
+			for (java.util.Iterator _j14it2725 = (character.getActiveInventory()).iterator(); _j14it2725.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it2725.next();
 				if (item.hasThisAttribute("attack")) {
 					weaponObject = item;
 					break;
@@ -820,14 +865,15 @@ public class TreasureUtility {
 		}
 	}
 	public static void enchantChit(JFrame frame, CharacterWrapper character) {
-		ArrayList<MagicChit> enchantable = new ArrayList<MagicChit>();
-		ArrayList<CharacterActionChitComponent> enchantableChits = character.getEnchantableChits();
+		ArrayList enchantable = new ArrayList();
+		ArrayList enchantableChits = character.getEnchantableChits();
 		Collections.sort(enchantableChits);
 		enchantable.addAll(enchantableChits);
 		
 		RealmComponentOptionChooser compChooser = new RealmComponentOptionChooser(frame,"Enchant which?",true);
 		int keyN = 0;
-		for (MagicChit magicChit : enchantable) {
+		for (java.util.Iterator _j14it2726 = (enchantable).iterator(); _j14it2726.hasNext(); ) {
+		  MagicChit magicChit = (MagicChit) _j14it2726.next();
 			RealmComponent chit = (RealmComponent)magicChit;
 			String key = "k"+(keyN++);
 			if (chit.isActionChit()) {
@@ -842,7 +888,8 @@ public class TreasureUtility {
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
 		if (hostPrefs.hasPref(Constants.OPT_ENHANCED_ARTIFACTS) || character.affectedByKey(Constants.ENHANCED_ARTIFACTS)) {
 			// Enchantable Artifacts and Books
-			for(GameObject item:character.getActiveInventory()) {
+			for (java.util.Iterator _j14it2727 = (character.getActiveInventory()).iterator(); _j14it2727.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it2727.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(item);
 				if (rc.isMagicChit()) {
 					MagicChit mc = (MagicChit)rc;
@@ -860,10 +907,11 @@ public class TreasureUtility {
 				MagicChit chit = (MagicChit)compChooser.getFirstSelectedComponent();
 				if (chit!=null) {
 					int enchantNumber;
-					ArrayList<Integer> list = chit.getEnchantableNumbers();
+					ArrayList list = chit.getEnchantableNumbers();
 					if (list.size()>1) {
 						ButtonOptionDialog colorChooser = new ButtonOptionDialog(frame,chit.getIcon(),"What color?","Enchant "+chit.getGameObject().getName(),false);
-						for(int mn:list) {
+						for (java.util.Iterator _j14it2728 = (list).iterator(); _j14it2728.hasNext(); ) {
+						  int mn = ((Integer) _j14it2728.next()).intValue();
 							ColorMagic cm = new ColorMagic(mn,false);
 							colorChooser.addSelectionObject(cm.getColorName());
 						}
@@ -872,7 +920,7 @@ public class TreasureUtility {
 						enchantNumber = ColorMagic.makeColorMagic(colorName,false).getColorNumber();
 					}
 				else {
-					enchantNumber = list.get(0);
+					enchantNumber = ((Integer) list.get(0)).intValue();
 				}
 					
 				chit.enchant(enchantNumber);
@@ -965,11 +1013,12 @@ public class TreasureUtility {
 			}
 		}
 		if (thing.hasThisAttribute(Constants.COMPANION_FROM_HOLD_RETURNS)) {
-			ArrayList<String> ids = thing.getThisAttributeList(Constants.COMPANION_FROM_HOLD_RETURNS);
+			ArrayList ids = thing.getThisAttributeList(Constants.COMPANION_FROM_HOLD_RETURNS);
 			if (ids!=null && !ids.isEmpty()) {
 				GameData data = thing.getGameData();
 				boolean success = true;
-				for (String id : ids) {
+				for (java.util.Iterator _j14it2729 = (ids).iterator(); _j14it2729.hasNext(); ) {
+				  String id = (String) _j14it2729.next();
 					GameObject companion = data.getGameObject(Long.valueOf(id));
 					if (companion != null) {
 						CombatWrapper combat = new CombatWrapper(companion);
@@ -992,7 +1041,7 @@ public class TreasureUtility {
 					return false;
 				}
 			}
-			thing.setThisAttributeList(Constants.COMPANION_FROM_HOLD_RETURNS,new ArrayList<String>());
+			thing.setThisAttributeList(Constants.COMPANION_FROM_HOLD_RETURNS,new ArrayList());
 		}
 		if (thing.hasThisAttribute(Constants.ADD_CHIT)) {
 			GamePool pool = new GamePool(character.getGameObject().getHold());
@@ -1016,7 +1065,7 @@ public class TreasureUtility {
 		
 		QuestRequirementParams qp = new QuestRequirementParams();
 		qp.actionType = CharacterActionType.DeactivatingItem;
-		qp.objectList = new ArrayList<GameObject>();
+		qp.objectList = new ArrayList();
 		qp.objectList.add(thing);
 		character.testQuestRequirements(frame,qp);
 		
@@ -1041,7 +1090,7 @@ public class TreasureUtility {
 			TileLocation tl = character.getCurrentLocation();
             if(tl.isInClearing() && tl.clearing.isEdge())
             {
-                PathDetail path = tl.clearing.getConnectedMapEdges().get(0);
+                PathDetail path = (PathDetail) tl.clearing.getConnectedMapEdges().get(0);
                 tl = new TileLocation(path.getEdgeClearing());
             }
             
@@ -1069,7 +1118,8 @@ public class TreasureUtility {
 			}
 			
 			if (thing.hasThisAttribute(Constants.NO_HIDE)) {
-				for (RealmComponent rc:tl.clearing.getClearingComponents()) {
+				for (java.util.Iterator _j14it2730 = (tl.clearing.getClearingComponents()).iterator(); _j14it2730.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it2730.next();
 					if (rc.isCharacter()) {
 						(new CharacterWrapper(rc.getGameObject())).setHidden(false);
 					}
@@ -1163,16 +1213,17 @@ public class TreasureUtility {
 	/**
 	 * @param doApply			true to apply, false to remove
 	 */
-	public static void applyChitEffects(Collection<CharacterActionChitComponent> allChits,GameObject thing) {
+	public static void applyChitEffects(Collection allChits,GameObject thing) {
 		if (thing.hasThisAttribute(Constants.CHIT_STRENGTH)) {
 			String val = thing.getThisAttribute(Constants.CHIT_STRENGTH);
-			ArrayList<String> changes = new ArrayList<String>(StringUtilities.stringToCollection(val,","));
+			ArrayList changes = new ArrayList(StringUtilities.stringToCollection(val,","));
 			if (changes.size()==3) { // there MUST be three to indicate 0,1,2 asterisks
-				for (CharacterActionChitComponent chit : allChits) {
+				for (java.util.Iterator _j14it2731 = (allChits).iterator(); _j14it2731.hasNext(); ) {
+				  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2731.next();
 					if (!chit.isMagic() && !chit.isTreasureChit()) {
 						int effort = chit.getEffortAsterisks();
 						if (effort<changes.size()) { 
-							Strength strength = new Strength(changes.get(effort));
+							Strength strength = new Strength((String) changes.get(effort));
 							chit.setAlternateStrength(strength);
 						}
 					}
@@ -1186,7 +1237,8 @@ public class TreasureUtility {
 			String val = thing.getThisAttribute(Constants.CHIT_SPEED);
 			ArrayList changes = new ArrayList(StringUtilities.stringToCollection(val,","));
 			if (changes.size()==3) { // there MUST be three to indicate 0,1,2 asterisks
-				for (CharacterActionChitComponent chit : allChits) {
+				for (java.util.Iterator _j14it2732 = (allChits).iterator(); _j14it2732.hasNext(); ) {
+				  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2732.next();
 					if (!chit.isMoveFight() && !chit.isTreasureChit()) { // MOVE/FIGHT and treasure-based chits are not affected
 						int effort = chit.getEffortAsterisks();
 						if (effort<changes.size()) {
@@ -1202,7 +1254,8 @@ public class TreasureUtility {
 		}
 		if (thing.hasThisAttribute(Constants.CHIT_SPEED_INC)) {
 			int increase = thing.getThisInt(Constants.CHIT_SPEED_INC);
-			for (CharacterActionChitComponent chit : allChits) {
+			for (java.util.Iterator _j14it2733 = (allChits).iterator(); _j14it2733.hasNext(); ) {
+			  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2733.next();
 				if (!chit.isTreasureChit()) { // treasure-based chits are not affected
 					Speed speed = chit.getSpeed();
 					chit.setAlternateSpeed(new Speed(speed.getNum()-increase));
@@ -1235,9 +1288,10 @@ public class TreasureUtility {
 		return fame;
 	}
 	
-	public static ArrayList<GameObject> getTreasures(GameObject treasureLocation,CharacterWrapper character) {
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
-		for (GameObject obj : treasureLocation.getHold()) {
+	public static ArrayList getTreasures(GameObject treasureLocation,CharacterWrapper character) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it2734 = (treasureLocation.getHold()).iterator(); _j14it2734.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it2734.next();
 			if (character!=null && hasSeen(character,obj)) continue;
 			RealmComponent rc = RealmComponent.getRealmComponent(obj);
 			if (!rc.isMonster() && !rc.isSpell() && !rc.isNative()) {
@@ -1260,9 +1314,10 @@ public class TreasureUtility {
 		return TreasureUtility.getTreasureCards(treasureLocation).size();
 	}
 
-	public static Collection<GameObject> getTreasureCards(GameObject treasureLocation) {
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
-		for (GameObject obj : treasureLocation.getHold()) {
+	public static Collection getTreasureCards(GameObject treasureLocation) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it2735 = (treasureLocation.getHold()).iterator(); _j14it2735.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it2735.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(obj);
 			if (rc.isTreasure()) {
 				list.add(obj);
@@ -1274,11 +1329,11 @@ public class TreasureUtility {
 	/**
 	 * @return		true on success
 	 */
-	public static GameObject openOneObject(JFrame frame,CharacterWrapper character,Collection<GameObject> openable,ChangeListener listener,boolean ignorePrerequisites) {
+	public static GameObject openOneObject(JFrame frame,CharacterWrapper character,Collection openable,ChangeListener listener,boolean ignorePrerequisites) {
 		GameObject toOpen = null;
 		
 		if (openable.size()==1) {
-			toOpen = openable.iterator().next();
+			toOpen = (GameObject) openable.iterator().next();
 		}
 		else {
 			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,"Select object to open:",true);
@@ -1467,12 +1522,14 @@ public class TreasureUtility {
 	}
 	
 	public static GameObject getSleepObject(TileLocation current) {
-		ArrayList<RealmComponent> seen = new ArrayList<RealmComponent>();
+		ArrayList seen = new ArrayList();
 		if (current.isInClearing()) {
-			for (RealmComponent rc:current.clearing.getClearingComponents()) {
+			for (java.util.Iterator _j14it2736 = (current.clearing.getClearingComponents()).iterator(); _j14it2736.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2736.next();
 				seen.addAll(ClearingUtility.dissolveIntoSeenStuff(rc));
 			}
-			for (RealmComponent rc:seen) {
+			for (java.util.Iterator _j14it2737 = (seen).iterator(); _j14it2737.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2737.next();
 				GameObject item = rc.getGameObject();
 				if (item.hasThisAttribute(Constants.SLEEP)) {
 					return item;
@@ -1482,9 +1539,10 @@ public class TreasureUtility {
 		return null;
 	}
 	
-	public static ArrayList<GameObject> getDamagedArmor(ArrayList<GameObject> stuff) {
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
-		for (GameObject go:stuff) {
+	public static ArrayList getDamagedArmor(ArrayList stuff) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it2738 = (stuff).iterator(); _j14it2738.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2738.next();
 			RealmComponent inv = RealmComponent.getRealmComponent(go);
 			if (inv.isArmor()) {
 				ArmorChitComponent armor = (ArmorChitComponent)inv;
@@ -1511,14 +1569,15 @@ public class TreasureUtility {
 		
 		// Destroy ALL monster pods
 		GamePool pool = new GamePool(generator.getGameData().getGameObjects());
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add(Constants.GENERATED);
 		query.add(Constants.GENERATOR_ID+"="+generator.getStringId());
 		query.add("!"+Constants.DEAD);
-		ArrayList<GameObject> list = pool.find(query);
+		ArrayList list = pool.find(query);
 		if (!list.isEmpty()) {
 			RealmLogging.logMessage(character.getGameObject().getName(),list.size()+" generated monster"+(list.size()==1?"":"s")+" leave the realm.");
-			for (GameObject go:list) {
+			for (java.util.Iterator _j14it2739 = (list).iterator(); _j14it2739.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2739.next();
 				RealmUtility.makeDead(RealmComponent.getRealmComponent(go));
 			}
 		}

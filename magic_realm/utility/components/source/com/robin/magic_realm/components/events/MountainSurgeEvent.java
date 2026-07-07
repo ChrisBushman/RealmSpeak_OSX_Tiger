@@ -18,17 +18,19 @@ public class MountainSurgeEvent implements IEvent {
 	private static final String description = "At sunset in a random hex Mountain Surge is cast and lasts until the seventh day of the week.";
 	public void applyBirdsong(GameData data) {
 		TileComponent tile = RealmEvents.chooseRandomTile(data);
-		ArrayList<ClearingDetail> clearings = new ArrayList<ClearingDetail>();
+		ArrayList clearings = new ArrayList();
 		if (tile!=null) {
-			for (ClearingDetail cl : tile.getClearings()) {
-				for (RealmComponent rc : cl.getClearingComponents()) {
+			for (java.util.Iterator _j14it2486 = (tile.getClearings()).iterator(); _j14it2486.hasNext(); ) {
+			  ClearingDetail cl = (ClearingDetail) _j14it2486.next();
+				for (java.util.Iterator _j14it2487 = (cl.getClearingComponents()).iterator(); _j14it2487.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it2487.next();
 					if (rc.isCharacter() || rc.isHiredOrControlled()) {
 						clearings.add(cl);
 					}
 				}
 			}
 			if (!clearings.isEmpty()) {
-				ClearingDetail chosenClearing = clearings.get(RandomNumber.getRandom(clearings.size()));
+				ClearingDetail chosenClearing = (ClearingDetail) clearings.get(RandomNumber.getRandom(clearings.size()));
 				GameObject config = RealmEvents.findEventsConfig(data);
 				tile.getGameObject().addThisAttributeListItem(Constants.EVENT_MOUNTAIN_SURGE,chosenClearing.getNumString());
 				RealmEvents.addEffectForTile(config,Constants.EVENT_MOUNTAIN_SURGE,tile.getGameObject().getStringId());
@@ -42,9 +44,10 @@ public class MountainSurgeEvent implements IEvent {
 		GameWrapper game = GameWrapper.findGame(data);
 		if (RealmCalendar.isSeventhDay(game.getDay())) {
 			GameObject config = RealmEvents.findEventsConfig(data);
-			ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_MOUNTAIN_SURGE);
+			ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_MOUNTAIN_SURGE);
 			if (ids!=null && !ids.isEmpty()) {
-				for (String id : ids) {
+				for (java.util.Iterator _j14it2488 = (ids).iterator(); _j14it2488.hasNext(); ) {
+				  String id = (String) _j14it2488.next();
 					GameObject tile = data.getGameObject(Long.valueOf(id));
 					tile.removeThisAttribute(Constants.EVENT_MOUNTAIN_SURGE);
 					RealmEvents.removeEffectForTile(config,Constants.EVENT_MOUNTAIN_SURGE,id);
@@ -52,19 +55,19 @@ public class MountainSurgeEvent implements IEvent {
 			}
 		}
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
 		String text = "";
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_MOUNTAIN_SURGE);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_MOUNTAIN_SURGE);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2489 = (ids).iterator(); _j14it2489.hasNext(); ) {
+			  String id = (String) _j14it2489.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
-				for (String cl : tile.getThisAttributeList(Constants.EVENT_MOUNTAIN_SURGE)) {;
+				for (java.util.Iterator _j14it2490 = (tile.getThisAttributeList(Constants.EVENT_MOUNTAIN_SURGE)).iterator(); _j14it2490.hasNext(); ) {
+				  String cl = (String) _j14it2490.next();;
 					text = text + tile.getNameWithNumber() +" ("+cl+")"+ ", ";
 				}
 			}

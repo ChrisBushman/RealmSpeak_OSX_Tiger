@@ -21,7 +21,8 @@ public class QuestRewardRepair extends QuestReward {
 	public void processReward(JFrame frame,CharacterWrapper character) {
 		if ((getRegex().length() > 0)) {
 			Pattern pattern = Pattern.compile(getRegex());
-			for (GameObject obj : character.getInventory()) {
+			for (java.util.Iterator _j14it2443 = (character.getInventory()).iterator(); _j14it2443.hasNext(); ) {
+			  GameObject obj = (GameObject) _j14it2443.next();
 				if (!pattern.matcher(obj.getName()).find()) continue;
 				RealmComponent rc = RealmComponent.getRealmComponent(obj);
 				if (!rc.isArmor()) continue;

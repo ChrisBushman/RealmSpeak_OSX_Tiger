@@ -152,7 +152,7 @@ public class CharacterWrapper_WeightTest extends TestBaseWithLoader {
 		broomstick.addTarget(hostPrefs,witch.getGameObject());
 		broomstick.affectTargets(dummyFrame,game,false,null);
 		
-		ArrayList<StrengthChit> fly = witch.getFlyStrengthChits(false);
+		ArrayList fly = witch.getFlyStrengthChits(false);
 		Assert.assertEquals(1,fly.size());
 		Assert.assertTrue(fly.get(0).getStrength().strongerOrEqualTo(witch.getNeededSupportWeight(true)));
 		

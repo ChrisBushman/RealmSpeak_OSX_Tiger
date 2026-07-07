@@ -6,7 +6,6 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class PhaseChitEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		GameObject spell = context.Spell.getGameObject();
 		CharacterWrapper character = new CharacterWrapper(context.Target.getGameObject());
@@ -22,7 +21,6 @@ public class PhaseChitEffect implements ISpellEffect {
 		character.getGameObject().add(phaseChit);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		// A Phase spell.  Ditch the phase chit.
 		if (context.Spell.getGameObject().hasThisAttribute(Constants.PHASE_CHIT_ID)) {

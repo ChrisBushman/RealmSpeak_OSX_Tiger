@@ -172,8 +172,9 @@ public class RealmCalendarViewer extends JFrame implements ManagedFrame {
 			if (RealmCalendar.isLastDayOfMonth(i+1) && hostPrefs.hasPref(Constants.SR_END_OF_MONTH_REGENERATION)) {
 				dayPanel[i].add(new JLabel("Denizen Reset"));
 			}
-			ArrayList<ColorMagic> colors = realmCalendar.getColorMagic(month,i+1);
-			for (ColorMagic cm:colors) {
+			ArrayList colors = realmCalendar.getColorMagic(month,i+1);
+			for (java.util.Iterator _j14it1889 = (colors).iterator(); _j14it1889.hasNext(); ) {
+			  ColorMagic cm = (ColorMagic) _j14it1889.next();
 				dayPanel[i].add(new JLabel(cm.getSmallIcon()));
 			}
 		}
@@ -232,14 +233,15 @@ public class RealmCalendarViewer extends JFrame implements ManagedFrame {
 		text.append(season.getThisAttribute("vps"));
 		text.append(rowEnd);
 		
-		Collection<ColorMagic> c = realmCalendar.getColorMagic(month,7);
+		Collection c = realmCalendar.getColorMagic(month,7);
 		text.append(rowHeaderStart);
 		text.append("7th Day Color");
 		text.append(c.size()==1?"s":"");
 		text.append(":");
 		text.append(rowContentStart);
 		StringBuffer colors = new StringBuffer();
-		for (ColorMagic cm : c) {
+		for (java.util.Iterator _j14it1890 = (c).iterator(); _j14it1890.hasNext(); ) {
+		  ColorMagic cm = (ColorMagic) _j14it1890.next();
 			if (colors.length()>0) {
 				colors.append(", ");
 			}

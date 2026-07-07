@@ -12,7 +12,7 @@ import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class SellingVisitor extends Commerce {
 	private int relationship;
-	public SellingVisitor(JFrame frame,TradeInfo tradeInfo,Collection<RealmComponent> merchandise,HostPrefWrapper hostPrefs,int relationship) {
+	public SellingVisitor(JFrame frame,TradeInfo tradeInfo,Collection merchandise,HostPrefWrapper hostPrefs,int relationship) {
 		super(frame,tradeInfo,merchandise,hostPrefs);
 		this.relationship = relationship;
 	}

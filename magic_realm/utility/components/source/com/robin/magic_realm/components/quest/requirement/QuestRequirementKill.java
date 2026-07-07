@@ -41,19 +41,14 @@ public class QuestRequirementKill extends QuestRequirement {
 		QuestStep step = getParentStep();
 		DayKey earliestTime = new DayKey(1,1);
 		TargetValueType tvt = getTargetValueType();
-		switch (tvt) {
-			case Game:
-				earliestTime = new DayKey(1,1);
-				break;
-			case Quest:
-				earliestTime = step.getQuestStartTime();
-				break;
-			case Step:
-				earliestTime = step.getQuestStepStartTime();
-				break;
-			case Day:
-				earliestTime = new DayKey(character.getCurrentDayKey());
-				break;
+		if (tvt == TargetValueType.Game) {
+			earliestTime = new DayKey(1,1);
+		} else if (tvt == TargetValueType.Quest) {
+			earliestTime = step.getQuestStartTime();
+		} else if (tvt == TargetValueType.Step) {
+			earliestTime = step.getQuestStepStartTime();
+		} else if (tvt == TargetValueType.Day) {
+			earliestTime = new DayKey(character.getCurrentDayKey());
 		}
 		
 		boolean requireMark = getRequireMark();
@@ -64,7 +59,8 @@ public class QuestRequirementKill extends QuestRequirement {
 		int numberOfKillsNeeded = getValue();
 		if (numberOfKillsNeeded==QuestConstants.ALL_VALUE) {
 			GamePool pool = new GamePool(getGameData().getGameObjects());
-			for(GameObject go:pool.find("vulnerability,!weight")) { // stuff that can be killed has a vulnerability, including characters!
+			for (java.util.Iterator _j14it2334 = (pool.find("vulnerability,!weight")).iterator(); _j14it2334.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2334.next(); // stuff that can be killed has a vulnerability, including characters!
 				if (!killCharacters() && !go.hasThisAttribute(Constants.DENIZEN)) continue;
 				if (killCharacters() && !go.hasThisAttribute(RealmComponent.CHARACTER)) continue;
 				if (pattern!=null && !pattern.matcher(go.getName()).find()) continue;
@@ -82,18 +78,20 @@ public class QuestRequirementKill extends QuestRequirement {
 			return true;
 		}
 		
-		ArrayList<GameObject> validKills = new ArrayList<GameObject>();
-		ArrayList<String> allDayKeys = character.getAllDayKeys();
+		ArrayList validKills = new ArrayList();
+		ArrayList allDayKeys = character.getAllDayKeys();
 		if (allDayKeys==null) {
 			logger.fine("Character hasn't had a turn yet.");
 			return false;
 		}
-		for(String dayKeyString:allDayKeys) {
+		for (java.util.Iterator _j14it2335 = (allDayKeys).iterator(); _j14it2335.hasNext(); ) {
+		  String dayKeyString = (String) _j14it2335.next();
 			DayKey dayKey = new DayKey(dayKeyString);
 			if (dayKey.before(earliestTime)) continue; // ignore kills on days before the earliest allowable date
 			
-			ArrayList<GameObject> kills = character.getKills(dayKeyString);
-			for(GameObject kill:kills) {
+			ArrayList kills = character.getKills(dayKeyString);
+			for (java.util.Iterator _j14it2336 = (kills).iterator(); _j14it2336.hasNext(); ) {
+			  GameObject kill = (GameObject) _j14it2336.next();
 				if (!killCharacters() && !kill.hasThisAttribute(Constants.DENIZEN)) continue;
 				if (killCharacters() && !kill.hasThisAttribute(RealmComponent.CHARACTER)) continue;
 				if (pattern!=null && !pattern.matcher(kill.getName()).find()) continue;
@@ -116,7 +114,7 @@ public class QuestRequirementKill extends QuestRequirement {
 	}
 	
 	protected String buildDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must kill ");
 		int val = getValue();
 		boolean mark = getRequireMark();

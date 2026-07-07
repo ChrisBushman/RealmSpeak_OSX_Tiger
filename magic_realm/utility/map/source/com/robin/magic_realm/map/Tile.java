@@ -92,11 +92,12 @@ public class Tile {
 	 * Reconstructs the mapGrid hash from the prebuilt gameobjects.  Note that this method can only be called
 	 * AFTER setting up the map with buildMap
 	 */
-	public static Hashtable<Point, Tile> readMap(GameData data,Collection<String> keyVals) {
-		Hashtable<Point, Tile> mapGrid = new Hashtable<Point, Tile>();
+	public static Hashtable readMap(GameData data,Collection keyVals) {
+		Hashtable mapGrid = new Hashtable();
 		// loop through all gameObjects to get tiles
 		GamePool pool = new GamePool(data.getGameObjects());
-		for (GameObject obj : pool.extract(keyVals)) {
+		for (java.util.Iterator _j14it2808 = (pool.extract(keyVals)).iterator(); _j14it2808.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it2808.next();
 			if (obj.hasKey("tile")) {
 				Tile tile = new Tile(obj);
 				if (tile.getGameObject().hasAttribute(Tile.MAP_GRID, Tile.MAP_POSITION)) {
@@ -108,7 +109,7 @@ public class Tile {
 		return mapGrid;
 	}
 	
-	protected ArrayList<String> clearings;
+	protected ArrayList clearings;
 
 	protected GameObject gameObject;
 	
@@ -135,7 +136,7 @@ public class Tile {
 		}
 	}
 	public void build() {
-		clearings = new ArrayList<String>();
+		clearings = new ArrayList();
 		paths = new Hashtable[2];
 		paths[SIDE_NORMAL] = new Hashtable();
 		buildPaths(paths[SIDE_NORMAL],gameObject.getAttributeBlock("normal"));
@@ -166,10 +167,10 @@ public class Tile {
 		this.name = name;
 	}
 	
-	public boolean connectsToTilename(Hashtable<Point,Tile> mapGrid,String clearingKey,String tilename) {
-		return connectsToTilename(mapGrid,clearingKey,tilename,new ArrayList<String>());
+	public boolean connectsToTilename(Hashtable mapGrid,String clearingKey,String tilename) {
+		return connectsToTilename(mapGrid,clearingKey,tilename,new ArrayList());
 	} 
-	private boolean connectsToTilename(Hashtable<Point,Tile> mapGrid,String clearingKey,String tilename,ArrayList<String> touchedClearings) {
+	private boolean connectsToTilename(Hashtable mapGrid,String clearingKey,String tilename,ArrayList touchedClearings) {
 		touchedClearings.add(name+":"+clearingKey);
 
 		// Check the obvious
@@ -179,12 +180,13 @@ public class Tile {
 		}
 	
 		// Get all clearings connected to this clearing
-		Collection<String> c = getConnected(clearingKey);
+		Collection c = getConnected(clearingKey);
 		
 		// Remove any clearings already "touched"
 		if (c!=null && c.size()>0) {
 			// Cycle through connected clearings
-			for (String connectedClearing : c) {
+			for (java.util.Iterator _j14it2809 = (c).iterator(); _j14it2809.hasNext(); ) {
+			  String connectedClearing = (String) _j14it2809.next();
 				if (!touchedClearings.contains(name+":"+connectedClearing)) {
 					if (isEdge(connectedClearing)) {
 						touchedClearings.add(name+":"+connectedClearing);
@@ -194,16 +196,17 @@ public class Tile {
 						// First find the tile that connects on that side
 						int realEdge = getRealEdgeNumber(connectedClearing);
 						Point adjPos = getAdjacentPosition(position,realEdge);
-						Tile adjTile = mapGrid.get(adjPos);
+						Tile adjTile = (Tile) mapGrid.get(adjPos);
 						
 						if (adjTile!=null) {
 							// Find the edge of the adjacent tile that touches this tile
 							int adjTileRealEdge = (realEdge+3)%6;
 							int adjTileRelativeEdge = adjTileRealEdge-adjTile.getRotation();
 							while(adjTileRelativeEdge<0) adjTileRelativeEdge+=6;
-							Collection<String> newTileClearings = adjTile.getConnected(getEdgeName(adjTileRelativeEdge));
+							Collection newTileClearings = adjTile.getConnected(getEdgeName(adjTileRelativeEdge));
 							if (newTileClearings!=null) {
-								for (String newTileClearing : newTileClearings) {
+								for (java.util.Iterator _j14it2810 = (newTileClearings).iterator(); _j14it2810.hasNext(); ) {
+								  String newTileClearing = (String) _j14it2810.next();
 									if (adjTile.connectsToTilename(mapGrid,newTileClearing,tilename,touchedClearings)) {
 										// The connected clearing on the adjacent tile connects to tilename, so this connects.
 										return true;
@@ -229,12 +232,12 @@ public class Tile {
 		return clearings.size();
 	}
 	
-	public ArrayList<String> getClearings() {
+	public ArrayList getClearings() {
 		return clearings;
 	}
 	
-	public Collection<String> getConnected(String clearing) {
-		return (Collection<String>)paths[side].get(clearing);
+	public Collection getConnected(String clearing) {
+		return (Collection)paths[side].get(clearing);
 	}
 	public GameObject getGameObject() {
 		return gameObject;
@@ -287,10 +290,10 @@ public class Tile {
 		}
 	}
 	
-	private void updatePathHash(Hashtable<String, ArrayList<String>> pathHash,String from,String to) {
-		ArrayList<String> list = pathHash.get(from);
+	private void updatePathHash(Hashtable pathHash,String from,String to) {
+		ArrayList list = (ArrayList) pathHash.get(from);
 		if (list==null) {
-			list = new ArrayList<String>();
+			list = new ArrayList();
 			pathHash.put(from,list);
 		}
 		if (!list.contains(to)) {
@@ -329,8 +332,8 @@ public class Tile {
 				if (tile.getPathState(edge)!=adjTile.getPathState((edge+3)%6)) {
 					return false;
 				}
-				ArrayList<String> pathsTypes = tile.getPathTypes(tile.side,(edge-rot+6)%6);
-				ArrayList<String> adjTilePathsTypes = adjTile.getPathTypes(adjTile.side,(edge+9-adjTile.getRotation())%6);
+				ArrayList pathsTypes = tile.getPathTypes(tile.side,(edge-rot+6)%6);
+				ArrayList adjTilePathsTypes = adjTile.getPathTypes(adjTile.side,(edge+9-adjTile.getRotation())%6);
 				if ((pathsTypes.contains("river") && !adjTilePathsTypes.contains("river")) || (adjTilePathsTypes.contains("river") && !pathsTypes.contains("river"))) {
 					return false;
 				}
@@ -339,19 +342,22 @@ public class Tile {
 				}
 				if ((rangeSetup || rangeSetupVariant) && !tile.hasRiverPaths(0)) {
 					if (rangeSetup) {
-						for (String clearing : tile.getClearings()) {
+						for (java.util.Iterator _j14it2811 = (tile.getClearings()).iterator(); _j14it2811.hasNext(); ) {
+						  String clearing = (String) _j14it2811.next();
 							if (tile.clearingConnectsToEdge(clearing,edge,0)) {
-								Collection<String> c = tile.getConnected(clearing);
+								Collection c = tile.getConnected(clearing);
 								if (c!=null && c.size()>0) {
-									for (String connectedClearing : c) {
+									for (java.util.Iterator _j14it2812 = (c).iterator(); _j14it2812.hasNext(); ) {
+									  String connectedClearing = (String) _j14it2812.next();
 										if (Tile.clearingIsEdge(connectedClearing)) {
 											int realEdge = tile.getRealEdgeNumber(connectedClearing);
 											int adjTileRealEdge = (realEdge+3)%6;
 											int adjTileRelativeEdge = adjTileRealEdge-adjTile.getRotation();
 											while(adjTileRelativeEdge<0) adjTileRelativeEdge+=6;
-											Collection<String> newTileClearings = adjTile.getConnected(getEdgeName(adjTileRelativeEdge));
+											Collection newTileClearings = adjTile.getConnected(getEdgeName(adjTileRelativeEdge));
 											if (newTileClearings!=null) {
-												for (String newClearing : newTileClearings) {
+												for (java.util.Iterator _j14it2813 = (newTileClearings).iterator(); _j14it2813.hasNext(); ) {
+												  String newClearing = (String) _j14it2813.next();
 													if (tile.getTypeForClearing(clearing,0).matches("mountain") && !adjTile.getTypeForClearing(newClearing,0).matches("mountain")) {
 														return false;
 													}
@@ -369,14 +375,16 @@ public class Tile {
 					if (rangeSetupVariant) {
 						boolean mountain = false;
 						boolean caves = false;
-						for (String type : tile.getClearingTypes(0)) {
+						for (java.util.Iterator _j14it2814 = (tile.getClearingTypes(0)).iterator(); _j14it2814.hasNext(); ) {
+						  String type = (String) _j14it2814.next();
 							if (type.matches("mountain")) mountain = true;
 							if (type.matches("caves")) mountain = true;
 						}
 						if (mountain || caves) {
 							boolean adjMountain = false;
 							boolean adjCaves = false;
-							for (String type : adjTile.getClearingTypes(0)) {
+							for (java.util.Iterator _j14it2815 = (adjTile.getClearingTypes(0)).iterator(); _j14it2815.hasNext(); ) {
+							  String type = (String) _j14it2815.next();
 								if (type.matches("mountain")) adjMountain = true;
 								if (type.matches("caves")) adjCaves = true;
 							}
@@ -406,7 +414,8 @@ public class Tile {
 		}
 		boolean allConnect = true;
 		boolean anyConnect = false;
-		for (String clearing : tile.getClearings()) {
+		for (java.util.Iterator _j14it2816 = (tile.getClearings()).iterator(); _j14it2816.hasNext(); ) {
+		  String clearing = (String) _j14it2816.next();
 			if (tile.connectsToTilename(mapGrid,clearing,anchorTilename)) {
 				anyConnect = true;
 			}
@@ -452,7 +461,7 @@ public class Tile {
 		return false;
 	}
 	
-	public ArrayList<String> getPathTypes(int side,int edge) {
+	public ArrayList getPathTypes(int side,int edge) {
 		String sideName; 
 		if (side == 0) {
 			sideName = "normal";
@@ -461,7 +470,7 @@ public class Tile {
 			sideName = "enchanted";
 		}
 		String edgeName = getEdgeName(edge);
-		ArrayList<String> pathsTypes = new ArrayList<String>();
+		ArrayList pathsTypes = new ArrayList();
 		int i=1;
 		Hashtable attributes = gameObject.getAttributeBlock(sideName);
 		while (true) {
@@ -480,7 +489,7 @@ public class Tile {
 		return pathsTypes;
 	}
 	
-	public ArrayList<String> getClearingTypes(int side) {
+	public ArrayList getClearingTypes(int side) {
 		String sideName; 
 		if (side == 0) {
 			sideName = "normal";
@@ -488,7 +497,7 @@ public class Tile {
 		else {
 			sideName = "enchanted";
 		}
-		ArrayList<String> clearingTypes = new ArrayList<String>();
+		ArrayList clearingTypes = new ArrayList();
 		Hashtable attributes = gameObject.getAttributeBlock(sideName);
 		for (int i=1;i<=9;i++) {
 			if (attributes.get("clearing_"+i+"_type")!=null) {
@@ -572,12 +581,13 @@ public class Tile {
 	/**
 	 * @return		A Collection of Point objects that reference possible map placements
 	 */
-	public static ArrayList<Point> findAvailableMapPositions(Hashtable<Point, Tile> mapGrid,String anchorTilename) {
+	public static ArrayList findAvailableMapPositions(Hashtable mapGrid,String anchorTilename) {
 		return findAvailableMapPositions(mapGrid,anchorTilename,false,false);
 	}
-	public static ArrayList<Point> findAvailableMapPositions(Hashtable<Point, Tile> mapGrid, String anchorTilename, boolean autoBuildRiver, boolean hillTilesRule) {
-		ArrayList<Point> availableMapPositions = new ArrayList<Point>();
-		for (Tile tile : mapGrid.values()) {
+	public static ArrayList findAvailableMapPositions(Hashtable mapGrid, String anchorTilename, boolean autoBuildRiver, boolean hillTilesRule) {
+		ArrayList availableMapPositions = new ArrayList();
+		for (java.util.Iterator _j14it2817 = (mapGrid.values()).iterator(); _j14it2817.hasNext(); ) {
+		  Tile tile = (Tile) _j14it2817.next();
 			Point pos = tile.getMapPosition();
 			
 			// Cycle through all adjacent positions to the mapped tile
@@ -592,7 +602,7 @@ public class Tile {
 							// Count adjacent tiles (joined or not)
 							int adjCount = 0;
 							for (int adj=0;adj<6;adj++) {
-								Tile adjTile = mapGrid.get(Tile.getAdjacentPosition(adjPos,adj));
+								Tile adjTile = (Tile) mapGrid.get(Tile.getAdjacentPosition(adjPos,adj));
 								if (adjTile!=null) {
 									adjCount++;
 								}
@@ -601,7 +611,8 @@ public class Tile {
 							if (mapGrid.size()==1 || adjCount>1 || tile.getGameObject().hasThisAttribute("map_building_prio")) {
 								if (hillTilesRule && tile.getGameObject().getThisAttribute("tile_type").matches("H")) {
 									boolean connects = true;
-									for (String clearing : tile.getClearings()) {
+									for (java.util.Iterator _j14it2818 = (tile.getClearings()).iterator(); _j14it2818.hasNext(); ) {
+									  String clearing = (String) _j14it2818.next();
 										if (!tile.connectsToTilename(mapGrid,clearing,anchorTilename)) {
 											connects = false;
 											break;

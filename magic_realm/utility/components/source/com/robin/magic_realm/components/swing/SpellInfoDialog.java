@@ -146,11 +146,12 @@ public class SpellInfoDialog extends AggressiveDialog {
 			
 			castingInfo.add(topRow);
 			
-			ArrayList<RealmComponent> targets = spell.getTargets();
+			ArrayList targets = spell.getTargets();
 			JPanel bottomRow = getDisplayBox("Target"+(targets.size()==1?"":"s"),null,null);
 			RealmObjectPanel targetPanel = new RealmObjectPanel(false,false);
 			if (!targets.isEmpty()) {
-				for (RealmComponent rc : spell.getTargets()) {
+				for (java.util.Iterator _j14it2023 = (spell.getTargets()).iterator(); _j14it2023.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it2023.next();
 					ImageIcon icon;
 					if (rc.isTile()) {
 						TileComponent tile = (TileComponent)rc;

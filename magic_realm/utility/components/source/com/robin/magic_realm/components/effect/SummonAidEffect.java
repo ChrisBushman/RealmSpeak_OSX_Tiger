@@ -12,7 +12,6 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class SummonAidEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		CharacterWrapper character = context.getCharacterTarget();
 
@@ -23,8 +22,8 @@ public class SummonAidEffect implements ISpellEffect {
 
 		character.setGold(character.getGold() - 1);
 
-		ArrayList<String> friends = character.getRelationshipList(Constants.GAME_RELATIONSHIP, RelationshipType.FRIENDLY);
-		ArrayList<String> allies  = character.getRelationshipList(Constants.GAME_RELATIONSHIP, RelationshipType.ALLY);
+		ArrayList friends = character.getRelationshipList(Constants.GAME_RELATIONSHIP, RelationshipType.FRIENDLY);
+		ArrayList allies  = character.getRelationshipList(Constants.GAME_RELATIONSHIP, RelationshipType.ALLY);
 
 		GameObjectFilter notdead = new GameObjectFilter() {
 			public boolean test(GameObject go) {
@@ -47,12 +46,12 @@ public class SummonAidEffect implements ISpellEffect {
 		SpellUtility.bringSummonToClearing(character, buddy, context.Spell, null);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		long id = Long.parseLong(context.Spell.getGameObject().getThisAttribute("SummonedNative"));
 
 		GameObject buddy = null;
-		for (GameObject go : context.getGameData().getGameObjects()) {
+		for (java.util.Iterator _j14it2048 = (context.getGameData().getGameObjects()).iterator(); _j14it2048.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2048.next();
 			if (go.equalsId(id)) {
 				buddy = go;
 				break;

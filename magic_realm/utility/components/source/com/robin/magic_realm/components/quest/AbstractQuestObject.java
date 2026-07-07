@@ -14,7 +14,8 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see
  *
  * http://www.gnu.org/licenses/
- */package com.robin.magic_realm.components.quest;
+ */
+package com.robin.magic_realm.components.quest;
 
 import java.util.Hashtable;
 
@@ -26,11 +27,11 @@ public abstract class AbstractQuestObject extends GameObjectWrapper {
 	public AbstractQuestObject(GameObject obj) {
 		super(obj);
 	}
-	public void updateIdsForKey(Hashtable<Long, GameObject> lookup,String key) {
+	public void updateIdsForKey(Hashtable lookup,String key) {
 		String stringId = getString(key);
 		if (stringId==null) return;
 		Long oldId = Long.valueOf(stringId);
-		GameObject go = lookup.get(oldId);
+		GameObject go = (GameObject) lookup.get(oldId);
 		if (go != null) {
 			setString(key,go.getStringId());
 		}

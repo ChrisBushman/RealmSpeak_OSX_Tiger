@@ -25,12 +25,13 @@ public class QuestRewardMarkTraveler extends QuestReward {
 	}
 
 	public void processReward(JFrame frame, CharacterWrapper character) {
-		ArrayList<GameObject> travelers;
+		ArrayList travelers;
 		if (charactersClearingOnly()) {
 			TileLocation current = character.getCurrentLocation();
 			if (!current.isInClearing()) return;
-			travelers = new ArrayList<GameObject>();
-			for (RealmComponent rc : current.clearing.getClearingComponents()) {
+			travelers = new ArrayList();
+			for (java.util.Iterator _j14it2419 = (current.clearing.getClearingComponents()).iterator(); _j14it2419.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2419.next();
 				travelers.add(rc.getGameObject());
 			}
 		} else {
@@ -39,8 +40,9 @@ public class QuestRewardMarkTraveler extends QuestReward {
 		}
 		String regex = getTravelerRegEx().trim();
 		Pattern pattern = regex.length()==0?null:Pattern.compile(regex);
-		ArrayList<GameObject> allTravelers = new ArrayList<GameObject>();
-		for (GameObject go:travelers) {
+		ArrayList allTravelers = new ArrayList();
+		for (java.util.Iterator _j14it2420 = (travelers).iterator(); _j14it2420.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2420.next();
 			if (pattern==null || pattern.matcher(go.getName()).find()) {
 				if (randomTraveler()) {
 					allTravelers.add(go);
@@ -55,9 +57,9 @@ public class QuestRewardMarkTraveler extends QuestReward {
 		}
 		if (randomTraveler()) {
 			if (removeMark()) {
-				allTravelers.get(RandomNumber.getRandom(allTravelers.size())).removeThisAttribute(QuestConstants.QUEST_MARK);
+				((GameObject) allTravelers.get(RandomNumber.getRandom(allTravelers.size()))).removeThisAttribute(QuestConstants.QUEST_MARK);
 			} else {
-				allTravelers.get(RandomNumber.getRandom(allTravelers.size())).setThisAttribute(QuestConstants.QUEST_MARK,getParentQuest().getGameObject().getStringId());
+				((GameObject) allTravelers.get(RandomNumber.getRandom(allTravelers.size()))).setThisAttribute(QuestConstants.QUEST_MARK,getParentQuest().getGameObject().getStringId());
 			}
 		}
 	}
@@ -89,15 +91,15 @@ public class QuestRewardMarkTraveler extends QuestReward {
 		return getString(TRAVELER_REGEX);
 	}
 	
-	private Boolean charactersClearingOnly() {
+	private boolean charactersClearingOnly() {
 		return getBoolean(CHARACTERS_CLEARING);
 	}
-	
-	private Boolean randomTraveler() {
+
+	private boolean randomTraveler() {
 		return getBoolean(RANDOM_TRAVELER);
 	}
-	
-	private Boolean removeMark() {
+
+	private boolean removeMark() {
 		return getBoolean(REMOVE);
 	}
 }

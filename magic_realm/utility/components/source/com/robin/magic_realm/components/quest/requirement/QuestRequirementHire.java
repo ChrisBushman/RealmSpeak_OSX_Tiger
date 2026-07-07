@@ -25,7 +25,8 @@ public class QuestRequirementHire extends QuestRequirement {
 		int hiredUnderlings = 0;
 		String regex = getRegExFilter();
 		Pattern pattern = regex==null || regex.trim().length()==0?null:Pattern.compile(regex);
-		for (GameObject hireling : reqParams.objectList) {
+		for (java.util.Iterator _j14it2301 = (reqParams.objectList).iterator(); _j14it2301.hasNext(); ) {
+		  GameObject hireling = (GameObject) _j14it2301.next();
 			if (pattern==null || pattern.matcher(hireling.getName()).find()) {
 				hiredUnderlings++;
 			}

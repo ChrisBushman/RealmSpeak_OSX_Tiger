@@ -24,10 +24,12 @@ public class QuestRewardClonedQuestsCounter extends QuestReward {
 	public void processReward(JFrame frame,CharacterWrapper character) {
 		GameObject questGo = getGameObject().getHeldBy();
 		Quest quest = new Quest(questGo);
-		for (GameObject clonedQuestGo : quest.findClones(getGameData().getGameObjects())) {
+		for (java.util.Iterator _j14it2414 = (quest.findClones(getGameData().getGameObjects())).iterator(); _j14it2414.hasNext(); ) {
+		  GameObject clonedQuestGo = (GameObject) _j14it2414.next();
 			Quest clonedQuest = new Quest(clonedQuestGo);
 			if (clonedQuest.getCounters()==null) continue;
-			for (QuestCounter counter : clonedQuest.getCounters()) {
+			for (java.util.Iterator _j14it2415 = (clonedQuest.getCounters()).iterator(); _j14it2415.hasNext(); ) {
+			  QuestCounter counter = (QuestCounter) _j14it2415.next();
 				if (counter.getTagName().matches(getQuestCounter().getTagName())) {
 					processCounter(counter);
 				}
@@ -106,7 +108,7 @@ public class QuestRewardClonedQuestsCounter extends QuestReward {
 	private boolean needToDecreaseQuestCount() {
 		return getValueToDecrease() != 0;
 	}
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,COUNTER);
 	}
 }

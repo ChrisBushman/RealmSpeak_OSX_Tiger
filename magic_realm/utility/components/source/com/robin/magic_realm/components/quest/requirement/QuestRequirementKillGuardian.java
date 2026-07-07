@@ -28,30 +28,27 @@ public class QuestRequirementKillGuardian extends QuestRequirement {
 		QuestStep step = getParentStep();
 		DayKey earliestTime = new DayKey(1,1);
 		TargetValueType tvt = getTargetValueType();
-		switch (tvt) {
-			case Game:
-				earliestTime = new DayKey(1,1);
-				break;
-			case Quest:
-				earliestTime = step.getQuestStartTime();
-				break;
-			case Step:
-				earliestTime = step.getQuestStepStartTime();
-				break;
-			case Day:
-				earliestTime = new DayKey(character.getCurrentDayKey());
-				break;
+		if (tvt == TargetValueType.Game) {
+			earliestTime = new DayKey(1,1);
+		} else if (tvt == TargetValueType.Quest) {
+			earliestTime = step.getQuestStartTime();
+		} else if (tvt == TargetValueType.Step) {
+			earliestTime = step.getQuestStepStartTime();
+		} else if (tvt == TargetValueType.Day) {
+			earliestTime = new DayKey(character.getCurrentDayKey());
 		}
-		ArrayList<String> allDayKeys = character.getAllDayKeys();
+		ArrayList allDayKeys = character.getAllDayKeys();
 		if (allDayKeys==null) {
 			logger.fine("Character hasn't had a turn yet.");
 			return false;
 		}
-		for(String dayKeyString:allDayKeys) {
+		for (java.util.Iterator _j14it2331 = (allDayKeys).iterator(); _j14it2331.hasNext(); ) {
+		  String dayKeyString = (String) _j14it2331.next();
 			DayKey dayKey = new DayKey(dayKeyString);
 			if (dayKey.before(earliestTime)) continue; // ignore kills on days before the earliest allowable date
-			ArrayList<GameObject> kills = character.getKills(dayKeyString);
-			for(GameObject kill:kills) {
+			ArrayList kills = character.getKills(dayKeyString);
+			for (java.util.Iterator _j14it2332 = (kills).iterator(); _j14it2332.hasNext(); ) {
+			  GameObject kill = (GameObject) _j14it2332.next();
 				if (kill.getName().toLowerCase().matches(getGuardian().trim().toLowerCase())
 						&& kill.getThisAttribute("setup_start").toLowerCase().matches(getSite().toLowerCase())) {
 					return true;
@@ -63,7 +60,7 @@ public class QuestRequirementKillGuardian extends QuestRequirement {
 	}
 	
 	protected String buildDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must kill ");
 		sb.append(getGuardian()+"("+getSite()+")");
 		sb.append(".");

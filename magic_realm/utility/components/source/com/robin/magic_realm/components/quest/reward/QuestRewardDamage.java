@@ -16,14 +16,11 @@ public class QuestRewardDamage extends QuestReward {
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
 		DamageType type = getDamageType();
-		switch (type) {
-		case WeatherFatigue:
+		if (type == DamageType.WeatherFatigue) {
 			character.setWeatherFatigue(getAmount(),includeFollowers());
-			break;
-		case Wounds:
+		} else if (type == DamageType.Wounds) {
 			character.setExtraWounds(getAmount(),includeFollowers());
-			break;
-		}	
+		}
 		return;
 	}
 	

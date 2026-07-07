@@ -17,7 +17,7 @@ public class CaveInEvent implements IEvent {
 	public void applyBirdsong(GameData data) {
 	}
 	public void applySunset(GameData data) {
-		ArrayList<String> clearingTypes = new ArrayList<String>(Arrays.asList("caves"));
+		ArrayList clearingTypes = new ArrayList(Arrays.asList(new String[]{"caves"}));
 		ClearingDetail clearing = RealmEvents.chooseRandomClearing(data,clearingTypes);
 		if (clearing!=null) {
 			TileComponent tile = clearing.getTileLocation().tile;
@@ -29,28 +29,29 @@ public class CaveInEvent implements IEvent {
 	}
 	public void expire(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_CAVE_IN);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_CAVE_IN);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2465 = (ids).iterator(); _j14it2465.hasNext(); ) {
+			  String id = (String) _j14it2465.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				tile.removeThisAttribute(Constants.EVENT_CAVE_IN);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_CAVE_IN,id);
 			}
 		}
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
 		String text = "";
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_CAVE_IN);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_CAVE_IN);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2466 = (ids).iterator(); _j14it2466.hasNext(); ) {
+			  String id = (String) _j14it2466.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
-				for (String cl : tile.getThisAttributeList(Constants.EVENT_CAVE_IN)) {;
+				for (java.util.Iterator _j14it2467 = (tile.getThisAttributeList(Constants.EVENT_CAVE_IN)).iterator(); _j14it2467.hasNext(); ) {
+				  String cl = (String) _j14it2467.next();;
 					text = text + tile.getNameWithNumber() +" ("+cl+")"+ ", ";
 				}
 			}

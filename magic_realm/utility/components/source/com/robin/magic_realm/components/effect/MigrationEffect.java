@@ -4,7 +4,6 @@ import com.robin.game.objects.GameObject;
 
 public class MigrationEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		GameObject chit1 = context.Target.getGameObject();
 		GameObject chit2 = context.getGameData().getGameObject(context.Spell.getExtraIdentifier());
@@ -14,7 +13,6 @@ public class MigrationEffect implements ISpellEffect {
 		tile2.add(chit1);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 	}
 

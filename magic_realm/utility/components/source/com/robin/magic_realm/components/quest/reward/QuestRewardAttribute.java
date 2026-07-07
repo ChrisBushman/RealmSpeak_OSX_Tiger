@@ -19,18 +19,13 @@ public class QuestRewardAttribute extends QuestReward {
 	public void processReward(JFrame frame,CharacterWrapper character) {
 		int val = getAttributeChange();
 		val = getGainType()==GainType.Gain?val:-val;
-		switch(getAttributeType()) {
-			case Fame:
-				character.addFame(val,false);
-				break;
-			case Notoriety:
-				character.addNotoriety(val);
-				break;
-			case Gold:
-				character.addGold(val);
-				break;
-			default:
-				break;
+		AttributeType _at = getAttributeType();
+		if (_at == AttributeType.Fame) {
+			character.addFame(val,false);
+		} else if (_at == AttributeType.Notoriety) {
+			character.addNotoriety(val);
+		} else if (_at == AttributeType.Gold) {
+			character.addGold(val);
 		}
 	}
 

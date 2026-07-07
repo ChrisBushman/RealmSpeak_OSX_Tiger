@@ -15,16 +15,16 @@ import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class RedirectEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
-		RealmComponent primaryTarget = context.Spell.getTargets().get(0);
+		RealmComponent primaryTarget = (RealmComponent) context.Spell.getTargets().get(0);
 		GameObject secondaryTarget = context.Spell.getSecondaryTarget();
 		String spellId = context.Spell.getExtraIdentifier();
 		GameObject spell = context.getGameData().getGameObject(spellId);
 		SpellWrapper spellWrapper = new SpellWrapper(spell);
 		if (spell!=null && primaryTarget!=null && secondaryTarget!=null) {
-			ArrayList<SpellWrapper> bewitchingSpellsOnSecondaryTarget = SpellUtility.getBewitchingSpells(secondaryTarget);
-			for (SpellWrapper bewitchingSpell : bewitchingSpellsOnSecondaryTarget) {
+			ArrayList bewitchingSpellsOnSecondaryTarget = SpellUtility.getBewitchingSpells(secondaryTarget);
+			for (java.util.Iterator _j14it2052 = (bewitchingSpellsOnSecondaryTarget).iterator(); _j14it2052.hasNext(); ) {
+			  SpellWrapper bewitchingSpell = (SpellWrapper) _j14it2052.next();
 				if(bewitchingSpell.getGameObject().getName().matches(spell.getName())) {
 					JOptionPane.showMessageDialog(context.Parent,"Redirect: Target already bewichted by the same spell",secondaryTarget.getNameWithNumber()+" already bewitched by "+spell.getName()+". Cannot redirect the spell.",JOptionPane.INFORMATION_MESSAGE);
 					return;
@@ -46,7 +46,6 @@ public class RedirectEffect implements ISpellEffect {
 		}
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 	}
 

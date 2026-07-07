@@ -32,8 +32,8 @@ public class QuestStep extends GameObjectWrapper {
 	
 	public static QuestStep currentStep;
 
-	private ArrayList<QuestRequirement> requirements;
-	private ArrayList<QuestReward> rewards;
+	private ArrayList requirements;
+	private ArrayList rewards;
 
 	public QuestStep(GameObject go) {
 		super(go);
@@ -45,9 +45,10 @@ public class QuestStep extends GameObjectWrapper {
 	}
 
 	public void refresh() {
-		requirements = new ArrayList<QuestRequirement>();
-		rewards = new ArrayList<QuestReward>();
-		for (GameObject held : getGameObject().getHold()) {
+		requirements = new ArrayList();
+		rewards = new ArrayList();
+		for (java.util.Iterator _j14it2266 = (getGameObject().getHold()).iterator(); _j14it2266.hasNext(); ) {
+		  GameObject held = (GameObject) _j14it2266.next();
 			if (held.hasThisAttribute(Quest.QUEST_REQUIREMENT)) {
 				String val = held.getThisAttribute(Quest.QUEST_REQUIREMENT);
 				if (val.equals("Location"))
@@ -75,11 +76,13 @@ public class QuestStep extends GameObjectWrapper {
 		if (desc != null && desc.contains(tag)) {
 			return true;
 		}
-		for (QuestRequirement req : requirements) {
+		for (java.util.Iterator _j14it2267 = (requirements).iterator(); _j14it2267.hasNext(); ) {
+		  QuestRequirement req = (QuestRequirement) _j14it2267.next();
 			if (req.usesLocationTag(tag))
 				return true;
 		}
-		for (QuestReward reward : rewards) {
+		for (java.util.Iterator _j14it2268 = (rewards).iterator(); _j14it2268.hasNext(); ) {
+		  QuestReward reward = (QuestReward) _j14it2268.next();
 			if (reward.usesLocationTag(tag))
 				return true;
 		}
@@ -87,11 +90,13 @@ public class QuestStep extends GameObjectWrapper {
 	}
 	
 	public boolean usesMinorCharacter(QuestMinorCharacter mc) {
-		for (QuestRequirement req : requirements) {
+		for (java.util.Iterator _j14it2269 = (requirements).iterator(); _j14it2269.hasNext(); ) {
+		  QuestRequirement req = (QuestRequirement) _j14it2269.next();
 			if (req.usesMinorCharacter(mc))
 				return true;
 		}
-		for (QuestReward reward : rewards) {
+		for (java.util.Iterator _j14it2270 = (rewards).iterator(); _j14it2270.hasNext(); ) {
+		  QuestReward reward = (QuestReward) _j14it2270.next();
 			if (reward.usesMinorCharacter(mc))
 				return true;
 		}
@@ -103,11 +108,13 @@ public class QuestStep extends GameObjectWrapper {
 		if (desc != null && desc.contains(tag)) {
 			return true;
 		}
-		for (QuestRequirement req : requirements) {
+		for (java.util.Iterator _j14it2271 = (requirements).iterator(); _j14it2271.hasNext(); ) {
+		  QuestRequirement req = (QuestRequirement) _j14it2271.next();
 			if (req.usesCounterTag(tag))
 				return true;
 		}
-		for (QuestReward reward : rewards) {
+		for (java.util.Iterator _j14it2272 = (rewards).iterator(); _j14it2272.hasNext(); ) {
+		  QuestReward reward = (QuestReward) _j14it2272.next();
 			if (reward.usesCounterTag(tag))
 				return true;
 		}
@@ -124,7 +131,9 @@ public class QuestStep extends GameObjectWrapper {
 
 	public void clearStates() {
 		clear(STATE);
-		for (QuestStepState state : QuestStepState.values()) {
+		QuestStepState[] _vals2273 = QuestStepState.values();
+		for (int _i2273 = 0; _i2273 < _vals2273.length; _i2273++) {
+			QuestStepState state = _vals2273[_i2273];
 			clear(state.toString());
 		}
 		GameObject questObject = getGameObject().getHeldBy();
@@ -132,7 +141,8 @@ public class QuestStep extends GameObjectWrapper {
 	}
 	
 	public void activateRequirements(CharacterWrapper character) {
-		for(QuestRequirement requirement:requirements) {
+		for (java.util.Iterator _j14it2274 = (requirements).iterator(); _j14it2274.hasNext(); ) {
+		  QuestRequirement requirement = (QuestRequirement) _j14it2274.next();
 			requirement.activate(character);
 		}
 	}
@@ -208,23 +218,23 @@ public class QuestStep extends GameObjectWrapper {
 		clear(REQ_STEPS);
 	}
 
-	public ArrayList<String> getRequiredSteps() {
+	public ArrayList getRequiredSteps() {
 		return getList(REQ_STEPS);
 	}
 
 	public boolean isOrigin() {
-		ArrayList<String> requiredSteps = getRequiredSteps();
-		ArrayList<String> failSteps = getFailSteps();
+		ArrayList requiredSteps = getRequiredSteps();
+		ArrayList failSteps = getFailSteps();
 		return (requiredSteps == null || requiredSteps.size() == 0) && (failSteps == null || failSteps.size() == 0);
 	}
 
 	public boolean requires(QuestStep step) {
-		ArrayList<String> requiredSteps = getRequiredSteps();
+		ArrayList requiredSteps = getRequiredSteps();
 		return requiredSteps != null && requiredSteps.contains(step.getGameObject().getStringId());
 	}
 	
 	public boolean requiresFail(QuestStep step) {
-		ArrayList<String> failSteps = getFailSteps();
+		ArrayList failSteps = getFailSteps();
 		return failSteps != null && failSteps.contains(step.getGameObject().getStringId());
 	}
 
@@ -240,7 +250,7 @@ public class QuestStep extends GameObjectWrapper {
 		clear(PREEMPT_STEPS);
 	}
 
-	public ArrayList<String> getPreemptedSteps() {
+	public ArrayList getPreemptedSteps() {
 		return getList(PREEMPT_STEPS);
 	}
 
@@ -256,11 +266,11 @@ public class QuestStep extends GameObjectWrapper {
 		clear(FAIL_STEPS);
 	}
 
-	public ArrayList<String> getFailSteps() {
+	public ArrayList getFailSteps() {
 		return getList(FAIL_STEPS);
 	}
 
-	public ArrayList<QuestRequirement> getRequirements() {
+	public ArrayList getRequirements() {
 		return requirements;
 	}
 
@@ -277,7 +287,7 @@ public class QuestStep extends GameObjectWrapper {
 		requirement.getGameObject().delete();
 	}
 
-	public ArrayList<QuestReward> getRewards() {
+	public ArrayList getRewards() {
 		return rewards;
 	}
 
@@ -294,30 +304,33 @@ public class QuestStep extends GameObjectWrapper {
 		reward.getGameObject().delete();
 	}
 
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIds(lookup, REQ_STEPS);
 		updateIds(lookup, FAIL_STEPS);
 		updateIds(lookup, PREEMPT_STEPS);
-		for (QuestRequirement req : getRequirements()) {
+		for (java.util.Iterator _j14it2275 = (getRequirements()).iterator(); _j14it2275.hasNext(); ) {
+		  QuestRequirement req = (QuestRequirement) _j14it2275.next();
 			req.updateIds(lookup);
 		}
-		for (QuestReward rew : getRewards()) {
+		for (java.util.Iterator _j14it2276 = (getRewards()).iterator(); _j14it2276.hasNext(); ) {
+		  QuestReward rew = (QuestReward) _j14it2276.next();
 			rew.updateIds(lookup);
 		}
 	}
 
-	private void updateIds(Hashtable<Long, GameObject> lookup, String key) {
-		ArrayList<String> oldIds = getList(key);
+	private void updateIds(Hashtable lookup, String key) {
+		ArrayList oldIds = getList(key);
 		if (oldIds == null || oldIds.size() == 0)
 			return;
 		clear(key);
-		for (Object obj : oldIds) {
+		for (java.util.Iterator _j14it2277 = (oldIds).iterator(); _j14it2277.hasNext(); ) {
+		  Object obj = (Object) _j14it2277.next();
 			String stringId = (String) obj;
 			Long oldId = Long.valueOf(stringId);
 			if (!lookup.containsKey(oldId)) {
 				throw new IllegalStateException("cannot find conversion for id " + oldId + " in quest step " + getId() + " of quest " + getGameObject().getHeldBy());
 			}
-			addListItem(key, lookup.get(oldId).getStringId());
+			addListItem(key, ((GameObject) lookup.get(oldId)).getStringId());
 		}
 	}
 
@@ -332,12 +345,13 @@ public class QuestStep extends GameObjectWrapper {
 	}
 
 	public boolean fulfillsRequirements(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
-		ArrayList<QuestRequirement> reqs = getRequirements();
+		ArrayList reqs = getRequirements();
 		if (reqs.isEmpty()) return true; // no requirements means auto-success
 		QuestStepType type = getReqType();
 		if (type == QuestStepType.And) {
 			boolean ret = true;
-			for (QuestRequirement req : reqs) {
+			for (java.util.Iterator _j14it2278 = (reqs).iterator(); _j14it2278.hasNext(); ) {
+			  QuestRequirement req = (QuestRequirement) _j14it2278.next();
 				if (req instanceof QuestRequirementNextPhase && ret == false) continue;
 				if (!req.usesAutoJournal() && ret == false) continue;
 				
@@ -353,7 +367,8 @@ public class QuestStep extends GameObjectWrapper {
 		}
 		// OR - any requirement fulfilled is a success
 		boolean oneFulfilled = false;
-		for (QuestRequirement req : reqs) {
+		for (java.util.Iterator _j14it2279 = (reqs).iterator(); _j14it2279.hasNext(); ) {
+		  QuestRequirement req = (QuestRequirement) _j14it2279.next();
 			if (oneFulfilled && !(req instanceof QuestRequirementLocationExists) && !(req instanceof QuestRequirementLocation)) continue;
 			if (req.fulfillsRequirement(frame, character, reqParams)) {
 				logger.fine("Requirement " + req.getName() + " fulfilled.");
@@ -364,70 +379,77 @@ public class QuestStep extends GameObjectWrapper {
 		return oneFulfilled;
 	}
 
-	public void preemptSteps(ArrayList<QuestStep> steps, String dayKey) {
-		ArrayList<String> preempt = getPreemptedSteps();
+	public void preemptSteps(ArrayList steps, String dayKey) {
+		ArrayList preempt = getPreemptedSteps();
 		if (preempt == null)
 			return;
-		Hashtable<String, QuestStep> lookup = new Hashtable<String, QuestStep>();
-		for (QuestStep step : steps) {
+		Hashtable lookup = new Hashtable();
+		for (java.util.Iterator _j14it2280 = (steps).iterator(); _j14it2280.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2280.next();
 			lookup.put(step.getGameObject().getStringId(), step);
 		}
-		for (String reqId : preempt) {
-			QuestStep preemptedStep = lookup.get(reqId);
+		for (java.util.Iterator _j14it2281 = (preempt).iterator(); _j14it2281.hasNext(); ) {
+		  String reqId = (String) _j14it2281.next();
+			QuestStep preemptedStep = (QuestStep) lookup.get(reqId);
 			preemptedStep.setState(QuestStepState.Failed, dayKey);
 		}
 	}
 
 	public void doRewards(JFrame frame, CharacterWrapper character) {
-		HashLists<String, QuestReward> rewardGroups = new HashLists<String, QuestReward>();
-		for (QuestReward reward : getRewards()) {
+		HashLists rewardGroups = new HashLists();
+		for (java.util.Iterator _j14it2282 = (getRewards()).iterator(); _j14it2282.hasNext(); ) {
+		  QuestReward reward = (QuestReward) _j14it2282.next();
 			rewardGroups.put(reward.getRewardGroup(), reward);
 		}
 		if (rewardGroups.size() == 0)
 			return; // No rewards. Awww, how sad.
 		
 		// First, complete all the "ALL REWARD" rewards.
-		ArrayList<QuestReward> allRewards = rewardGroups.getList(QuestReward.ALL_REWARD_GROUP);
+		ArrayList allRewards = rewardGroups.getList(QuestReward.ALL_REWARD_GROUP);
 		if (allRewards!=null) {
-			for(QuestReward reward:allRewards) {
+			for (java.util.Iterator _j14it2283 = (allRewards).iterator(); _j14it2283.hasNext(); ) {
+			  QuestReward reward = (QuestReward) _j14it2283.next();
 				reward.processReward(frame,character);
 			}
 		}
 		
 		// If there are any group choice awards, get a choice (if needed) and proceed.
 		String selectedRewardGroup = chooseReward(frame, rewardGroups);
-		ArrayList<QuestReward> list = new ArrayList<QuestReward>();
+		ArrayList list = new ArrayList();
 		if (selectedRewardGroup != QuestReward.ALL_REWARD_GROUP) {
 			list.addAll(rewardGroups.getList(selectedRewardGroup));
 		}
-		for (QuestReward reward : list) {
+		for (java.util.Iterator _j14it2284 = (list).iterator(); _j14it2284.hasNext(); ) {
+		  QuestReward reward = (QuestReward) _j14it2284.next();
 			reward.processReward(frame, character);
 		}
 	}
 
-	private static String chooseReward(JFrame frame, HashLists<String, QuestReward> rewardGroups) {
+	private static String chooseReward(JFrame frame, HashLists rewardGroups) {
 		// First see if the choice is obvious
-		ArrayList<String> keys = new ArrayList<String>(rewardGroups.keySet());
+		ArrayList keys = new ArrayList(rewardGroups.keySet());
 		keys.remove(QuestReward.ALL_REWARD_GROUP);
 		if (keys.size() == 1)
-			return keys.get(0);
+			return (String) keys.get(0);
 		if (keys.size() == 0)
 			return QuestReward.ALL_REWARD_GROUP;
 
 		// Nope! Better ask the player then
 		int columns = (int) Math.ceil(rewardGroups.size()/5.0);
 		ButtonOptionDialog chooser = new ButtonOptionDialog(frame, null, "Select a reward group:", "Reward Chooser", false, columns);
-		keys = new ArrayList<String>(rewardGroups.keySet());
+		keys = new ArrayList(rewardGroups.keySet());
 		Collections.sort(keys);
-		Hashtable<String, String> reverseLookup = new Hashtable<String, String>();
-		for (String key : keys) {
+		Hashtable reverseLookup = new Hashtable();
+		for (java.util.Iterator _j14it2285 = (keys).iterator(); _j14it2285.hasNext(); ) {
+		  String key = (String) _j14it2285.next();
 			if (QuestReward.ALL_REWARD_GROUP.equals(key))
 				continue;
-			ArrayList<QuestReward> rewards = new ArrayList<QuestReward>();
+			ArrayList rewards = new ArrayList();
 			rewards.addAll(rewardGroups.getList(key));
-			StringBuilder sb = new StringBuilder();
+			StringBuffer sb = new StringBuffer();
 			IconGroup icon = null;
-			for (QuestReward reward : rewards) {
+			for (java.util.Iterator _j14it2286 = (rewards).iterator(); _j14it2286.hasNext(); ) {
+			  QuestReward reward = (QuestReward) _j14it2286.next();
 				if (!reward.getRewardType().isShown())
 					continue;
 				if (sb.length() > 0) {
@@ -447,17 +469,18 @@ public class QuestStep extends GameObjectWrapper {
 		}
 		chooser.setVisible(true);
 		String selectedString = (String) chooser.getSelectedObject();
-		return reverseLookup.get(selectedString);
+		return (String) reverseLookup.get(selectedString);
 	}
 	/**
 	 * Find all the pending steps that are dependent on this step's failure
 	 */
-	public ArrayList<QuestStep> findPendingFailTriggeredSteps(ArrayList<QuestStep> steps) {
+	public ArrayList findPendingFailTriggeredSteps(ArrayList steps) {
 		String id = getGameObject().getStringId();
-		ArrayList<QuestStep> ret = new ArrayList<QuestStep>();
-		for(QuestStep step:steps) {
+		ArrayList ret = new ArrayList();
+		for (java.util.Iterator _j14it2287 = (steps).iterator(); _j14it2287.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2287.next();
 			if (step.getState()!=QuestStepState.Pending) continue;
-			ArrayList<String> list = step.getFailSteps();
+			ArrayList list = step.getFailSteps();
 			if (list!=null && list.contains(id)) ret.add(step);
 		}
 		return ret;

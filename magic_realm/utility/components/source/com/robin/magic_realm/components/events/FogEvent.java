@@ -12,10 +12,11 @@ public class FogEvent implements IEvent {
 	private static final String title = "Fog";
 	private static final String description = "A random hex and all adjacent hexes are affected by Fog.";
 	public void applyBirdsong(GameData data) {
-		ArrayList<TileComponent> tiles = RealmEvents.chooseRandomAndAdjacentTiles(data);
+		ArrayList tiles = RealmEvents.chooseRandomAndAdjacentTiles(data);
 		if (tiles!=null && !tiles.isEmpty()) {
 			GameObject config = RealmEvents.findEventsConfig(data);
-			for (TileComponent tile : tiles) {
+			for (java.util.Iterator _j14it2472 = (tiles).iterator(); _j14it2472.hasNext(); ) {
+			  TileComponent tile = (TileComponent) _j14it2472.next();
 				tile.getGameObject().setThisAttribute(Constants.EVENT_FOG);
 				RealmEvents.addEffectForTile(config,Constants.EVENT_FOG,tile.getGameObject().getStringId());
 				RealmLogging.logMessage("Event","Fog: Cannot peer in "+tile.getGameObject().getNameWithNumber());
@@ -26,26 +27,26 @@ public class FogEvent implements IEvent {
 	}
 	public void expire(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_FOG);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_FOG);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2473 = (ids).iterator(); _j14it2473.hasNext(); ) {
+			  String id = (String) _j14it2473.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				tile.removeThisAttribute(Constants.EVENT_FOG);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_FOG,id);
 			}
 		}
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
 		String text = "";
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_FOG);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_FOG);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2474 = (ids).iterator(); _j14it2474.hasNext(); ) {
+			  String id = (String) _j14it2474.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				text = text + tile.getNameWithNumber() + ", ";
 			}

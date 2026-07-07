@@ -22,7 +22,8 @@ public class MountainPeer extends Peer {
 	public String apply(CharacterWrapper character, DieRoller inRoller) {
 		TileLocation loc = character.getCurrentLocation();
 		if (loc!=null && loc.clearing!=null) {
-			for (RealmComponent rc : loc.clearing.getDeepClearingComponents()) {
+			for (java.util.Iterator _j14it2159 = (loc.clearing.getDeepClearingComponents()).iterator(); _j14it2159.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2159.next();
 				if (rc.getGameObject().hasThisAttribute(Constants.MIST_CRYSTAL)) {
 					return loc.toString()+": Affected by Mist Crystal, Peering not possible";
 				}
@@ -32,8 +33,7 @@ public class MountainPeer extends Peer {
 		targetClearing = tl.clearing;
 		return tl.toString()+": "+super.apply(character,inRoller);
 	}
-	@Override
-	protected ArrayList<ImageIcon> getHintIcons(CharacterWrapper character) {
-		return new ArrayList<ImageIcon>();
+	protected ArrayList getHintIcons(CharacterWrapper character) {
+		return new ArrayList();
 	}
 }

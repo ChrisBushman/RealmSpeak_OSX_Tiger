@@ -46,17 +46,17 @@ public class TreasureSetupCardView extends JComponent {
 	
 	private GameData data;
 	private GameWrapper game;
-	private ArrayList<String> sections;
-	ArrayList<Integer> spacingPerSection;
+	private ArrayList sections;
+	ArrayList spacingPerSection;
 	private Dimension cardSize;
-	private Hashtable<String, HashLists<String, GameObject>> sectionRowHash;
-	private ArrayList<GameObject> nonMdList;
-	private ArrayList<GameObject> bottomList;
+	private Hashtable sectionRowHash;
+	private ArrayList nonMdList;
+	private ArrayList bottomList;
 	
 	private Image image;
 	
-	private ArrayList<Rectangle> drawRectList;
-	private ArrayList<GameObject> drawContainerList;
+	private ArrayList drawRectList;
+	private ArrayList drawContainerList;
 	
 	private HostPrefWrapper hostPrefs;
 	
@@ -107,10 +107,10 @@ public class TreasureSetupCardView extends JComponent {
 
 		initView();
 	}
-	public ArrayList<Rectangle> getDrawRectList() {
+	public ArrayList getDrawRectList() {
 		return drawRectList;
 	}
-	public ArrayList<GameObject> getDrawContainerList() {
+	public ArrayList getDrawContainerList() {
 		return drawContainerList;
 	}
 	public String toString() {
@@ -119,17 +119,19 @@ public class TreasureSetupCardView extends JComponent {
 	private void initView() {
 		// Get all the section objects
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add("ts_section");
 		query.add(hostPrefs.getGameKeyVals());
 		if (boardKey!=null) {
 			query.add(boardKey);
 		}
-		ArrayList<GameObject> list = pool.find(query);
+		ArrayList list = pool.find(query);
 		
 		// Sort by section, monster_die, summon, and finally box_num
-		Collections.sort(list,new Comparator<GameObject>() {
-			public int compare(GameObject go1,GameObject go2) {
+		Collections.sort(list,new Comparator() {
+			public int compare(Object o1,Object o2) {
+				GameObject go1 = (GameObject) o1;
+				GameObject go2 = (GameObject) o2;
 				int ret = 0;
 				String s1 = go1.getThisAttribute("ts_section");
 				String s2 = go2.getThisAttribute("ts_section");
@@ -161,9 +163,10 @@ public class TreasureSetupCardView extends JComponent {
 		});
 		
 		// Hash by section and monster die
-		HashLists<String, GameObject> hash = new HashLists<String, GameObject>();
-		sections = new ArrayList<String>();
-		for (GameObject go : list) {
+		HashLists hash = new HashLists();
+		sections = new ArrayList();
+		for (java.util.Iterator _j14it1891 = (list).iterator(); _j14it1891.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1891.next();
 			String section = go.getThisAttribute("ts_section");
 			if (!sections.contains(section)) {
 				sections.add(section);
@@ -180,16 +183,18 @@ public class TreasureSetupCardView extends JComponent {
 			hash.put(key,go);
 		}
 		
-		bottomList = new ArrayList<GameObject>();
+		bottomList = new ArrayList();
 		// Take each subsection (section+monster_die) and divide into groups based on summon string
-		sectionRowHash = new Hashtable<String, HashLists<String, GameObject>>();
+		sectionRowHash = new Hashtable();
 		for (int n=1;n<=6;n++) {
-			for (String section : sections) {
+			for (java.util.Iterator _j14it1892 = (sections).iterator(); _j14it1892.hasNext(); ) {
+			  String section = (String) _j14it1892.next();
 				String key = section+n;
-				ArrayList<GameObject> row = hash.getList(key);
+				ArrayList row = hash.getList(key);
 				if (row!=null) {
-					HashLists<String, GameObject> groups = new HashLists<String, GameObject>();
-					for (GameObject go : row) {
+					HashLists groups = new HashLists();
+					for (java.util.Iterator _j14it1893 = (row).iterator(); _j14it1893.hasNext(); ) {
+					  GameObject go = (GameObject) _j14it1893.next();
 						String summon = go.getThisAttribute("summon");
 						if (summon==null) {
 							summon = go.getThisAttribute("dwelling");
@@ -208,13 +213,16 @@ public class TreasureSetupCardView extends JComponent {
 			}
 		}
 		
-		nonMdList = new ArrayList<GameObject>();
-		for (String section : sections) {
+		nonMdList = new ArrayList();
+		for (java.util.Iterator _j14it1894 = (sections).iterator(); _j14it1894.hasNext(); ) {
+		  String section = (String) _j14it1894.next();
 			String key = section;
-			ArrayList<GameObject> l = hash.getList(key);
+			ArrayList l = hash.getList(key);
 			if (l!=null) {
-				Collections.sort(l,new Comparator<GameObject>() {
-					public int compare(GameObject go1,GameObject go2) {
+				Collections.sort(l,new Comparator() {
+					public int compare(Object o1,Object o2) {
+						GameObject go1 = (GameObject) o1;
+						GameObject go2 = (GameObject) o2;
 						int ret = 0;
 						int md1 = go1.getThisInt("monster_die");
 						int md2 = go2.getThisInt("monster_die");
@@ -230,7 +238,8 @@ public class TreasureSetupCardView extends JComponent {
 						return ret;
 					}
 				});
-				for(GameObject go : l) {
+				for (java.util.Iterator _j14it1895 = (l).iterator(); _j14it1895.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it1895.next();
 					if (!go.hasThisAttribute(CacheChitComponent.DEPLETED_CACHE) && go.hasThisAttribute("ts_color")) {
 						if (nativeSetup) {
 							if ((go.hasThisAttribute("native") || go.hasThisAttribute("native_die") || go.hasThisAttribute("gold_special_target")) && !go.hasThisAttribute("treasure")) {
@@ -252,18 +261,21 @@ public class TreasureSetupCardView extends JComponent {
 		
 		int maxwidth = 0;
 		if(structuredLayout) {
-			spacingPerSection = new ArrayList<Integer>();
-			for (String section : sections) {
+			spacingPerSection = new ArrayList();
+			for (java.util.Iterator _j14it1896 = (sections).iterator(); _j14it1896.hasNext(); ) {
+			  String section = (String) _j14it1896.next();
 				int xMax = 0;
 				for (int n=1;n<=6;n++) {
 					String key = section+n;
-					HashLists<String, GameObject> group = sectionRowHash.get(key);
+					HashLists group = (HashLists) sectionRowHash.get(key);
 					if (group!=null) {
 						int sectionWidth = 0;
-						for (String summons : group.keySet()) {
+						for (java.util.Iterator _j14it1897 = (group.keySet()).iterator(); _j14it1897.hasNext(); ) {
+						  String summons = (String) _j14it1897.next();
 							sectionWidth += (SPACING<<1);
-							ArrayList<GameObject> goArray = (ArrayList<GameObject>)group.get(summons);
-							for (GameObject go : goArray) {
+							ArrayList goArray = (ArrayList)group.get(summons);
+							for (java.util.Iterator _j14it1898 = (goArray).iterator(); _j14it1898.hasNext(); ) {
+							  GameObject go = (GameObject) _j14it1898.next();
 								String size = getChitSizeAttribute(go);
 								sectionWidth += ChitComponent.getDimensionForSize(size).width;
 								if (go.hasThisAttribute("ts_offset")) {
@@ -275,20 +287,23 @@ public class TreasureSetupCardView extends JComponent {
 						xMax = Math.max(xMax,sectionWidth);
 					}
 				}
-				spacingPerSection.add(xMax);
+				spacingPerSection.add(new Integer(xMax));
 				maxwidth += xMax;
 			}
 		}
 		else {
 			for (int n=1;n<=6;n++) {
 				int width = 0;
-				for (String section : sections) {
+				for (java.util.Iterator _j14it1899 = (sections).iterator(); _j14it1899.hasNext(); ) {
+				  String section = (String) _j14it1899.next();
 					String key = section+n;
-					HashLists<String, GameObject> groups = sectionRowHash.get(key);
+					HashLists groups = (HashLists) sectionRowHash.get(key);
 					if (groups!=null) {
-						for (ArrayList<GameObject> group : groups.values()) {
+						for (java.util.Iterator _j14it1900 = (groups.values()).iterator(); _j14it1900.hasNext(); ) {
+						  ArrayList group = (ArrayList) _j14it1900.next();
 							width += (SPACING<<1);
-							for (GameObject go : group) {
+							for (java.util.Iterator _j14it1901 = (group).iterator(); _j14it1901.hasNext(); ) {
+							  GameObject go = (GameObject) _j14it1901.next();
 								String size = getChitSizeAttribute(go);
 								width += ChitComponent.getDimensionForSize(size).width;
 							}
@@ -327,7 +342,7 @@ public class TreasureSetupCardView extends JComponent {
 			drawClickViewObject(g);
 		}
 		else if (mouseHoverIndex>=0) {
-			Rectangle r = drawRectList.get(mouseHoverIndex);
+			Rectangle r = (Rectangle) drawRectList.get(mouseHoverIndex);
 			g.setStroke(THICK_STROKE);
 			g.setColor(Color.yellow);
 			g.draw(r);
@@ -377,8 +392,9 @@ public class TreasureSetupCardView extends JComponent {
 		int x = vr.x + border + subBorder;
 		int y = vr.y + border + subBorder + title;
 		int maxH = 0;
-		ArrayList<RealmComponent> contents = new ArrayList<RealmComponent>();
-		for (GameObject go : clickViewObject.getHold()) {
+		ArrayList contents = new ArrayList();
+		for (java.util.Iterator _j14it1902 = (clickViewObject.getHold()).iterator(); _j14it1902.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1902.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			contents.add(rc);
 			if (rc.isNative()) {
@@ -410,7 +426,8 @@ public class TreasureSetupCardView extends JComponent {
 				y += (maxH+spacing);
 			}
 		}
-		for (RealmComponent rc:contents) {
+		for (java.util.Iterator _j14it1903 = (contents).iterator(); _j14it1903.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1903.next();
 			Dimension d = rc.getSize();
 			if ((x+d.width)>(vr.x + vr.width-border-subBorder)) {
 				y += (maxH+spacing);
@@ -467,7 +484,8 @@ public class TreasureSetupCardView extends JComponent {
 		if (ev!=null) {
 			Point p = ev.getPoint();
 			int i = 0;
-			for (Rectangle rect:drawRectList) {
+			for (java.util.Iterator _j14it1904 = (drawRectList).iterator(); _j14it1904.hasNext(); ) {
+			  Rectangle rect = (Rectangle) _j14it1904.next();
 				if (rect.contains(p)) {
 					newMouseHoverIndex = i;
 					break;
@@ -483,7 +501,7 @@ public class TreasureSetupCardView extends JComponent {
 	}
 	public void showClickViewObject() {
 		if (mouseHoverIndex>=0) {
-			clickViewObject = drawContainerList.get(mouseHoverIndex);
+			clickViewObject = (GameObject) drawContainerList.get(mouseHoverIndex);
 			repaint();
 		}
 	}
@@ -496,7 +514,7 @@ public class TreasureSetupCardView extends JComponent {
 		Graphics2D g = (Graphics2D)g1;
 		Composite defaultComposite = g.getComposite();
 		
-		ArrayList<Integer> dice = new ArrayList<Integer>();
+		ArrayList dice = new ArrayList();
 		if (nativeSetup) {
 			DieRoller roller = game.getNativeDie();
 			if (roller!=null) {
@@ -515,16 +533,16 @@ public class TreasureSetupCardView extends JComponent {
 			}
 		}
 		
-		drawRectList = new ArrayList<Rectangle>();
-		drawContainerList = new ArrayList<GameObject>();
+		drawRectList = new ArrayList();
+		drawContainerList = new ArrayList();
 	
 		Die die = new Die(40,9,Color.red,Color.white);
 		
 		g.setColor(MagicRealmColor.GRAY);
 		g.fillRect(0,0,cardSize.width,cardSize.height);
 		int h = (ChitComponent.T_CHIT_SIZE+SPACING+TEXT_SPACING+SPACING);
-		ArrayList<RealmComponent> allDrawables = new ArrayList<RealmComponent>();
-		ArrayList<Rectangle> allDrawableRects = new ArrayList<Rectangle>();
+		ArrayList allDrawables = new ArrayList();
+		ArrayList allDrawableRects = new ArrayList();
 		for (int n=1;n<=6;n++) {
 			int x = LEFT_BORDER;
 			int y = ((n-1)*h)+SPACING+TEXT_SPACING+25;
@@ -543,11 +561,12 @@ public class TreasureSetupCardView extends JComponent {
 			die.setFace(n);
 			die.paintIcon(this,g,10,y-TEXT_SPACING-SPACING+((h-die.getIconHeight())>>1));
 			int sectionNumber = 0;
-			for (String section : sections) {
+			for (java.util.Iterator _j14it1905 = (sections).iterator(); _j14it1905.hasNext(); ) {
+			  String section = (String) _j14it1905.next();
 				if (structuredLayout) {
 					int xSectionMax = LEFT_BORDER;
 					for (int i=0;i<=sectionNumber-1;i++) {
-						int xSection = spacingPerSection.get(i);
+						int xSection = ((Integer) spacingPerSection.get(i)).intValue();
 						xSectionMax+=xSection;
 					}
 					x = Math.max(x, xSectionMax);
@@ -555,7 +574,7 @@ public class TreasureSetupCardView extends JComponent {
 				}
 
 				String key = section+n;
-				HashLists<String, GameObject> groups = sectionRowHash.get(key);
+				HashLists groups = (HashLists) sectionRowHash.get(key);
 				if (n==1) {
 					if (groups!=null || sectionRowHash.get(section+2)!=null
 							|| sectionRowHash.get(section+3)!=null || sectionRowHash.get(section+4)!=null
@@ -566,23 +585,26 @@ public class TreasureSetupCardView extends JComponent {
 				}
 				if (groups!=null) {
 					x += SPACING;
-					ArrayList<SummonGroup> summons = new ArrayList<SummonGroup>();
-					for (String summon : groups.keySet()) {
-						ArrayList<GameObject> group = (ArrayList<GameObject>)groups.get(summon);
+					ArrayList summons = new ArrayList();
+					for (java.util.Iterator _j14it1906 = (groups.keySet()).iterator(); _j14it1906.hasNext(); ) {
+					  String summon = (String) _j14it1906.next();
+						ArrayList group = (ArrayList)groups.get(summon);
 						summons.add(new SummonGroup(summon,group));
 					}
 					
 					Collections.sort(summons);
-					for (SummonGroup sg : summons) {
+					for (java.util.Iterator _j14it1907 = (summons).iterator(); _j14it1907.hasNext(); ) {
+					  SummonGroup sg = (SummonGroup) _j14it1907.next();
 						String summon = sg.summon;
-						ArrayList<GameObject> group = sg.group;
-						ArrayList<Rectangle> rects = new ArrayList<Rectangle>();
-						ArrayList<GameObject> gos = new ArrayList<GameObject>();
+						ArrayList group = sg.group;
+						ArrayList rects = new ArrayList();
+						ArrayList gos = new ArrayList();
 						int startX = x-SPACING;
 						int yoffset = 0;
 						int yoffsetDoubleBox = 6;
 						boolean doubleBox = false;
-						for (GameObject go : group) {
+						for (java.util.Iterator _j14it1908 = (group).iterator(); _j14it1908.hasNext(); ) {
+						  GameObject go = (GameObject) _j14it1908.next();
 							String size = getChitSizeAttribute(go);
 							Dimension d = ChitComponent.getDimensionForSize(size);
 							String col = go.getThisAttribute("ts_color");
@@ -635,10 +657,11 @@ public class TreasureSetupCardView extends JComponent {
 						g.setColor(Color.black);
 						
 						g.setFont(COUNT_FONT);
-						Iterator<GameObject> gg = gos.iterator();
-						for (Rectangle rect : rects) {
+						Iterator gg = gos.iterator();
+						for (java.util.Iterator _j14it1909 = (rects).iterator(); _j14it1909.hasNext(); ) {
+						  Rectangle rect = (Rectangle) _j14it1909.next();
 							// Start by drawing the box
-							GameObject go = gg.next();
+							GameObject go = (GameObject) gg.next();
 							
 							// Save these attributes for later mouse point interpretations
 							drawRectList.add(rect);
@@ -701,10 +724,11 @@ public class TreasureSetupCardView extends JComponent {
 							g.setComposite(defaultComposite);
 							
 							// Draw contents
-							ArrayList<GameObject> hold = go.getHold();
-							ArrayList<RealmComponent> drawable = new ArrayList<RealmComponent>();
-							ArrayList<RealmComponent> horses = new ArrayList<RealmComponent>();
-							for (GameObject held : hold) {
+							ArrayList hold = go.getHold();
+							ArrayList drawable = new ArrayList();
+							ArrayList horses = new ArrayList();
+							for (java.util.Iterator _j14it1910 = (hold).iterator(); _j14it1910.hasNext(); ) {
+							  GameObject held = (GameObject) _j14it1910.next();
 								RealmComponent rc = RealmComponent.getRealmComponent(held);
 								if (rc.isMonster() || rc.isNative() || rc.isGoldSpecial()) {
 									drawable.add(0,rc);
@@ -720,12 +744,13 @@ public class TreasureSetupCardView extends JComponent {
 								int offset = 0;
 								
 								// what is the difference in size of the box and the topmost chit?
-								RealmComponent topChit = drawable.get(drawable.size()-1);
+								RealmComponent topChit = (RealmComponent) drawable.get(drawable.size()-1);
 								int diff = rect.height - topChit.getHeight();
 								int yoff = ((drawable.size()-1)*3)-(diff>>1);
 								
 								if (drawable.size()>5) yoff -= 4;
-								for (RealmComponent rc : drawable) {
+								for (java.util.Iterator _j14it1911 = (drawable).iterator(); _j14it1911.hasNext(); ) {
+								  RealmComponent rc = (RealmComponent) _j14it1911.next();
 									int dx = rect.x+((rect.width-rc.getWidth())>>1)-offset;
 									int dy = rect.y+((rect.height-rc.getHeight())>>1)-offset+yoff;
 									allDrawables.add(rc);
@@ -749,8 +774,10 @@ public class TreasureSetupCardView extends JComponent {
 			int y = (6*h)+SPACING+TEXT_SPACING+25;
 			int x = 0+startX;
 			g.setComposite(defaultComposite);
-			Collections.sort(bottomList,new Comparator<GameObject>() {
-				public int compare(GameObject go1,GameObject go2) {
+			Collections.sort(bottomList,new Comparator() {
+				public int compare(Object o1,Object o2) {
+					GameObject go1 = (GameObject) o1;
+					GameObject go2 = (GameObject) o2;
 					int ret = 0;
 					String s1 = go1.getThisAttribute(dieString1);
 					String s2 = go2.getThisAttribute(dieString1);
@@ -763,8 +790,9 @@ public class TreasureSetupCardView extends JComponent {
 					return ret;
 				}
 			});
-			for (GameObject go : bottomList) {
-				ArrayList<Rectangle> rects = new ArrayList<Rectangle>();
+			for (java.util.Iterator _j14it1912 = (bottomList).iterator(); _j14it1912.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it1912.next();
+				ArrayList rects = new ArrayList();
 				String size = getChitSizeAttribute(go);
 				Dimension d = ChitComponent.getDimensionForSize(size);
 				String col = go.getThisAttribute("ts_color");
@@ -794,7 +822,8 @@ public class TreasureSetupCardView extends JComponent {
 				}
 				x += d.width;
 				x += SPACING;
-				for (Rectangle rect : rects) {
+				for (java.util.Iterator _j14it1913 = (rects).iterator(); _j14it1913.hasNext(); ) {
+				  Rectangle rect = (Rectangle) _j14it1913.next();
 					// Save these attributes for later mouse point interpretations
 					drawRectList.add(rect);
 					drawContainerList.add(go);
@@ -802,10 +831,11 @@ public class TreasureSetupCardView extends JComponent {
 					g.draw(rect);
 					g.setComposite(defaultComposite);
 					// Draw contents
-					ArrayList<GameObject> hold = go.getHold();
-					ArrayList<RealmComponent> drawable = new ArrayList<RealmComponent>();
-					ArrayList<RealmComponent> horses = new ArrayList<RealmComponent>();
-					for (GameObject held : hold) {
+					ArrayList hold = go.getHold();
+					ArrayList drawable = new ArrayList();
+					ArrayList horses = new ArrayList();
+					for (java.util.Iterator _j14it1914 = (hold).iterator(); _j14it1914.hasNext(); ) {
+					  GameObject held = (GameObject) _j14it1914.next();
 						RealmComponent rc = RealmComponent.getRealmComponent(held);
 						if (rc.isMonster() || rc.isNative() || rc.isGoldSpecial()) {
 							drawable.add(0,rc);
@@ -819,12 +849,13 @@ public class TreasureSetupCardView extends JComponent {
 					
 					if (!drawable.isEmpty()) {
 						int offset = 0;
-						RealmComponent topChit = drawable.get(drawable.size()-1);
+						RealmComponent topChit = (RealmComponent) drawable.get(drawable.size()-1);
 						int diff = rect.height - topChit.getHeight();
 						int yoff = ((drawable.size()-1)*3)-(diff>>1);
 						
 						if (drawable.size()>5) yoff -= 4;
-						for (RealmComponent rc : drawable) {
+						for (java.util.Iterator _j14it1915 = (drawable).iterator(); _j14it1915.hasNext(); ) {
+						  RealmComponent rc = (RealmComponent) _j14it1915.next();
 							int dx = rect.x+((rect.width-rc.getWidth())>>1)-offset;
 							int dy = rect.y+((rect.height-rc.getHeight())>>1)-offset+yoff;
 							allDrawables.add(rc);
@@ -843,7 +874,8 @@ public class TreasureSetupCardView extends JComponent {
 		int y = SPACING+TEXT_SPACING+5;
 		g.setFont(LABEL_FONT);
 		int count = 0;
-		for (GameObject go : nonMdList) {
+		for (java.util.Iterator _j14it1916 = (nonMdList).iterator(); _j14it1916.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1916.next();
 			Rectangle r = new Rectangle(x,y,NON_MD_LIST_WIDTH,NON_MD_LIST_HEIGHT);
 			
 			// Draw boxes
@@ -867,22 +899,24 @@ public class TreasureSetupCardView extends JComponent {
 			}
 		}
 		
-		Iterator<Rectangle> r=allDrawableRects.iterator();
-		for (RealmComponent rc : allDrawables) {
-			Rectangle rect = r.next();
+		Iterator r=allDrawableRects.iterator();
+		for (java.util.Iterator _j14it1917 = (allDrawables).iterator(); _j14it1917.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1917.next();
+			Rectangle rect = (Rectangle) r.next();
 			rc.paint(g.create(rect.x,rect.y,rect.width,rect.height));
 		}
 		g.setColor(Color.black);
 		g.drawRect(0,0,cardSize.width-1,cardSize.height-1);
 	}
-	private class SummonGroup implements Comparable<Object> {
+	private class SummonGroup implements Comparable {
 		public String summon;
-		public ArrayList<GameObject> group;
+		public ArrayList group;
 		private int sortOrder = 0;
-		public SummonGroup(String summon,ArrayList<GameObject> group) {
+		public SummonGroup(String summon,ArrayList group) {
 			this.summon = summon;
 			this.group = group;
-			for (GameObject go : group) {
+			for (java.util.Iterator _j14it1918 = (group).iterator(); _j14it1918.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it1918.next();
 				sortOrder = go.getInt("this","ts_sort");
 			}
 		}
@@ -995,7 +1029,7 @@ public class TreasureSetupCardView extends JComponent {
 		roller.addRedDie();
 		roller.rollDice();
 		game.setMonsterDie(roller);
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add("original_game");
 		loader.getData().doSetup("standard_game",query);
 		TreasureSetupCardView view = new TreasureSetupCardView(loader.getData(),"Bob",true);

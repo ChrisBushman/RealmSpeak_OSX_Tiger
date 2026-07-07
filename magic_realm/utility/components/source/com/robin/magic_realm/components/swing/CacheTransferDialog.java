@@ -119,11 +119,11 @@ public class CacheTransferDialog extends AggressiveDialog {
 		character.addGold(-cacheTableModel.getGold());
 		cache.addGold(cacheTableModel.getGold());
 		
-		ArrayList<GameObject> cacheInventory = cache.getInventory();
-		ArrayList<GameObject> cacheFinalInventory = cacheTableModel.getInventory();
+		ArrayList cacheInventory = cache.getInventory();
+		ArrayList cacheFinalInventory = cacheTableModel.getInventory();
 		
 		// First, transfer all items in cache that the character is taking
-		ArrayList<GameObject> getting = new ArrayList<GameObject>(cacheInventory);
+		ArrayList getting = new ArrayList(cacheInventory);
 		getting.removeAll(cacheFinalInventory);
 		RealmUtility.transferInventory((JFrame)parent, cache, character, getting, listener,false);
 		cacheInventory.removeAll(getting);
@@ -188,12 +188,13 @@ public class CacheTransferDialog extends AggressiveDialog {
 		};
 		
 		private double gold;
-		private ArrayList<GameObject> inventory;
+		private ArrayList inventory;
 		private boolean includePosition;
 		
 		public CacheTableModel(CharacterWrapper bin,boolean includePosition) {
-			inventory = new ArrayList<GameObject>();
-			for (GameObject go:bin.getInventory()) {
+			inventory = new ArrayList();
+			for (java.util.Iterator _j14it1926 = (bin.getInventory()).iterator(); _j14it1926.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it1926.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (rc.isItem() && !go.hasThisAttribute(Constants.CONTROLLED_HORSE)) {
 					inventory.add(go);
@@ -202,11 +203,11 @@ public class CacheTransferDialog extends AggressiveDialog {
 			gold = bin.hasCurse(Constants.WITHER)?0:bin.getGold();
 			this.includePosition = includePosition;
 		}
-		public ArrayList<GameObject> getInventory() {
+		public ArrayList getInventory() {
 			return inventory;
 		}
 		public GameObject removeInventory(int index) {
-			GameObject go = inventory.remove(index);
+			GameObject go = (GameObject) inventory.remove(index);
 			fireTableDataChanged();
 			return go;
 		}
@@ -248,7 +249,7 @@ public class CacheTransferDialog extends AggressiveDialog {
 					}
 				}
 				else {
-					GameObject go = inventory.get(row-1);
+					GameObject go = (GameObject) inventory.get(row-1);
 					RealmComponent rc = RealmComponent.getRealmComponent(go);
 					switch(col + (includePosition?0:1)) {
 						case 0:
@@ -270,7 +271,7 @@ public class CacheTransferDialog extends AggressiveDialog {
 			int maxIconColWidth = 0;
 			table.setRowHeight(0,50);
 			for (int i=0;i<inventory.size();i++) {
-				GameObject go = inventory.get(i);
+				GameObject go = (GameObject) inventory.get(i);
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				
 				ImageIcon icon = rc.getIcon();

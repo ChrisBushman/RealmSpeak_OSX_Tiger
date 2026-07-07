@@ -32,7 +32,7 @@ public class QuestRewardDiscardOption extends QuestReward {
 
 	public String getDescription() {
 		String option = getOption();
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Character can");
 		if (option.matches(QuestConstants.DISCARD_ALWAYS)) {
 			sb.append(" always");

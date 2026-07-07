@@ -8,7 +8,7 @@ import com.robin.general.util.StringUtilities;
 import com.robin.magic_realm.components.attribute.TileLocation;
 
 public class RealmLogParser {
-	private ArrayList<String> lines;
+	private ArrayList lines;
 	public RealmLogParser(String detailLog) {
 		lines = StringUtilities.stringToCollection(detailLog,"\n");
 	}
@@ -39,7 +39,7 @@ public class RealmLogParser {
 	private int getLineNumberFor(String pattern,int lineStart) {
 		Pattern p = Pattern.compile(pattern);
 		for (int i=lineStart;i<lines.size();i++) {
-			String line = lines.get(i).trim();
+			String line = ((String) lines.get(i)).trim();
 			Matcher m = p.matcher(line);
 			if (m.matches()) {
 				return i;

@@ -32,10 +32,12 @@ public class QuestRewardExorcise extends QuestReward {
 		
 		if (location()) {
 			QuestLocation loc = getQuestLocation();
-			ArrayList<TileLocation> locations = loc.fetchAllLocations(frame, character, character.getGameData());
-			for (TileLocation location : locations) {
+			ArrayList locations = loc.fetchAllLocations(frame, character, character.getGameData());
+			for (java.util.Iterator _j14it2421 = (locations).iterator(); _j14it2421.hasNext(); ) {
+			  TileLocation location = (TileLocation) _j14it2421.next();
 				if (location.clearing != null) {
-					for (RealmComponent target : location.clearing.getClearingComponents()) {
+					for (java.util.Iterator _j14it2422 = (location.clearing.getClearingComponents()).iterator(); _j14it2422.hasNext(); ) {
+					  RealmComponent target = (RealmComponent) _j14it2422.next();
 						if (!spell.getTargets().contains(target)) {
 							spell.addTarget(hostPrefs, target.getGameObject());
 						}
@@ -46,7 +48,8 @@ public class QuestRewardExorcise extends QuestReward {
 		else {
 			ClearingDetail clearing = character.getCurrentClearing();
 			if (clearing != null) {
-				for (RealmComponent target : clearing.getClearingComponents()) {
+				for (java.util.Iterator _j14it2423 = (clearing.getClearingComponents()).iterator(); _j14it2423.hasNext(); ) {
+				  RealmComponent target = (RealmComponent) _j14it2423.next();
 					spell.addTarget(hostPrefs, target.getGameObject());
 				}
 			}
@@ -92,7 +95,7 @@ public class QuestRewardExorcise extends QuestReward {
 	public void setQuestLocation(QuestLocation location) {
 		setString(LOCATION,location.getGameObject().getStringId());
 	}
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}
 }

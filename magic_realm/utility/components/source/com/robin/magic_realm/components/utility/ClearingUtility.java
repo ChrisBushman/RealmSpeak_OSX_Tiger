@@ -29,13 +29,13 @@ public class ClearingUtility {
 	}
 	public static GameObject findDwellingInClearing(GameObject tile,int clearing) {
 		GamePool pool = new GamePool(tile.getHold());
-		ArrayList<String> keyVals = new ArrayList<String>();
+		ArrayList keyVals = new ArrayList();
 		keyVals.add("dwelling");
 		keyVals.add("tile_type");
 		keyVals.add("clearing="+clearing);
-		Collection<GameObject> dwellings = pool.find(keyVals);
+		Collection dwellings = pool.find(keyVals);
 		if (dwellings.size()==1) {
-			GameObject dwelling = dwellings.iterator().next();
+			GameObject dwelling = (GameObject) dwellings.iterator().next();
 			return dwelling;
 		}
 		
@@ -44,23 +44,25 @@ public class ClearingUtility {
 	
 	public static void markBorderlandConnectedClearings(HostPrefWrapper hostPrefs,GameData gameData) {
 		String anchorTileName = "Borderland";
-		ArrayList<GameObject> tiles = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
-		Collection<String> keyVals = GamePool.makeKeyVals(hostPrefs.getGameKeyVals());
-		Hashtable<Point, Tile> mapGrid = Tile.readMap(gameData,keyVals);
-		for(GameObject tile:tiles) {
+		ArrayList tiles = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
+		Collection keyVals = GamePool.makeKeyVals(hostPrefs.getGameKeyVals());
+		Hashtable mapGrid = Tile.readMap(gameData,keyVals);
+		for (java.util.Iterator _j14it2759 = (tiles).iterator(); _j14it2759.hasNext(); ) {
+		  GameObject tile = (GameObject) _j14it2759.next();
 			if (tile.hasThisAttribute(Constants.ANCHOR_TILE)) {
 				anchorTileName = tile.getName();
 				break;
 			}
 		}
-		for(GameObject tile:tiles) {
+		for (java.util.Iterator _j14it2760 = (tiles).iterator(); _j14it2760.hasNext(); ) {
+		  GameObject tile = (GameObject) _j14it2760.next();
 			if (tile.getHoldCount()==0) continue;
 			TileComponent tileRc = (TileComponent)RealmComponent.getRealmComponent(tile);
 			Tile mapTile = null;
 			
 			boolean tilePlaced = tile.hasAttribute(Tile.MAP_GRID, Tile.MAP_POSITION);
 			if (tilePlaced) {
-				mapTile = mapGrid.get(Tile.getPositionFromGameObject(tile));
+				mapTile = (Tile) mapGrid.get(Tile.getPositionFromGameObject(tile));
 			}
 			for (int i=1;i<=6;i++) {
 				ClearingDetail clearing = tileRc.getClearing(i);
@@ -95,58 +97,59 @@ public class ClearingUtility {
 	/**
 	 * @return		The objects that were dumped
 	 */
-	public static ArrayList<GameObject> dumpHoldToTile(GameObject tile,GameObject gameObject,int clearing) {
+	public static ArrayList dumpHoldToTile(GameObject tile,GameObject gameObject,int clearing) {
 		return ClearingUtility.dumpHoldToTile(tile,gameObject,clearing,null,false,false,false);
 	}
 
 	/**
 	 * @return		The objects that were dumped
 	 */
-	public static ArrayList<GameObject> dumpHoldToTile(GameObject tile,GameObject gameObject,int clearing,String testKey) {
+	public static ArrayList dumpHoldToTile(GameObject tile,GameObject gameObject,int clearing,String testKey) {
 		return ClearingUtility.dumpHoldToTile(tile,gameObject,clearing,testKey,false,false,false);
 	}
 		
 	/**
 	 * @return		The objects that were dumped
 	 */
-	public static ArrayList<GameObject> dumpGoldSpecialsToTile(GameObject tile,GameObject gameObject,int clearing) {
+	public static ArrayList dumpGoldSpecialsToTile(GameObject tile,GameObject gameObject,int clearing) {
 		return ClearingUtility.dumpHoldToTile(tile,gameObject,clearing,null,true,false,false);
 	}
 	
 	/**
 	 * @return		The objects that were dumped
 	 */
-	public static ArrayList<GameObject> dumpTravelersToTile(GameObject tile,GameObject gameObject,int clearing) {
+	public static ArrayList dumpTravelersToTile(GameObject tile,GameObject gameObject,int clearing) {
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(gameObject.getGameData());
 		if (hostPrefs.hasPref(Constants.SR_REVEAL_TRAVELERS)) {
 			return ClearingUtility.dumpHoldToTile(tile,gameObject,clearing,null,true,true,false);
 		}
-		return new ArrayList<GameObject>();
+		return new ArrayList();
 	}
 	
 	/**
 	 * @return		The objects that were dumped
 	 */
-	public static ArrayList<GameObject> dumpTravelersToTileFaceUp(GameObject tile,GameObject gameObject,int clearing) {
+	public static ArrayList dumpTravelersToTileFaceUp(GameObject tile,GameObject gameObject,int clearing) {
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(gameObject.getGameData());
 		if (hostPrefs.hasPref(Constants.SR_REVEAL_TRAVELERS)) {
 			return ClearingUtility.dumpHoldToTile(tile,gameObject,clearing,null,true,true,true);
 		}
-		return new ArrayList<GameObject>();
+		return new ArrayList();
 	}
 	
 	/**
 	 * @return		The objects that were dumped
 	 */
-	private static ArrayList<GameObject> dumpHoldToTile(GameObject tile,GameObject gameObject,int clearing,String testKey,boolean onlyGoldSpecial, boolean onlyTravelers, boolean faceUp) {
+	private static ArrayList dumpHoldToTile(GameObject tile,GameObject gameObject,int clearing,String testKey,boolean onlyGoldSpecial, boolean onlyTravelers, boolean faceUp) {
 		if (clearing==-1) {
 			clearing = recommendedClearing(tile);
 		}
-		ArrayList<GameObject> added = new ArrayList<GameObject>();
-		Collection<GameObject> hold = new ArrayList<GameObject>(gameObject.getHold()); // this construction is necessary to prevent concurrent modification errors
+		ArrayList added = new ArrayList();
+		Collection hold = new ArrayList(gameObject.getHold()); // this construction is necessary to prevent concurrent modification errors
 		boolean itemsAndSpells = !gameObject.hasThisAttribute(Constants.ROVING_NATIVE);
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(gameObject.getGameData());
-		for (GameObject go : hold) {
+		for (java.util.Iterator _j14it2761 = (hold).iterator(); _j14it2761.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2761.next();
 			if (go.hasThisAttribute(Constants.QUEST)) {
 				continue;
 			}
@@ -176,10 +179,11 @@ public class ClearingUtility {
 		return added;
 	}
 
-	public static Collection<GameObject> getAbandonedItems(TileLocation tileLocation) {
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
-		Collection<RealmComponent> stuff = tileLocation.clearing.getClearingComponents();
-		for (RealmComponent rc : stuff) {
+	public static Collection getAbandonedItems(TileLocation tileLocation) {
+		ArrayList list = new ArrayList();
+		Collection stuff = tileLocation.clearing.getClearingComponents();
+		for (java.util.Iterator _j14it2762 = (stuff).iterator(); _j14it2762.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2762.next();
 			GameObject obj = rc.getGameObject();
 			if (!rc.isPlainSight() && !obj.hasThisAttribute(Constants.CANNOT_MOVE) && rc.isItem()) {
 				list.add(obj);
@@ -197,11 +201,12 @@ public class ClearingUtility {
 	 */
 	public static void restoreChitState(GameData data) {
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(data);
-		Collection<GameObject> tileObjects = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
+		Collection tileObjects = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
 		
 		// Check all the tiles
 		boolean chitsStayFaceUp = hostPrefs.hasPref(Constants.HOUSE1_CHIT_REMAIN_FACE_UP);
-		for (GameObject obj : tileObjects) {
+		for (java.util.Iterator _j14it2763 = (tileObjects).iterator(); _j14it2763.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it2763.next();
 			TileComponent tc = (TileComponent)RealmComponent.getRealmComponent(obj);
 			if (!chitsStayFaceUp && !tc.holdsCharacter()) {
 				tc.setChitsFaceDown(); // ALWAYS turn them face down
@@ -213,11 +218,12 @@ public class ClearingUtility {
 	/**
 	 * If the provided component can hold inventory, then the inventory is deduced and broken down into individual "seen" items.
 	 */
-	public static ArrayList<RealmComponent> dissolveIntoSeenStuff(RealmComponent rc) {
-		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
+	public static ArrayList dissolveIntoSeenStuff(RealmComponent rc) {
+		ArrayList list = new ArrayList();
 		if (rc.isAnyLeader() || rc.isVisitor() || rc.isCacheChit()) {
 			// check all character and native leader treasures
-			for (GameObject go : rc.getGameObject().getHold()) {
+			for (java.util.Iterator _j14it2764 = (rc.getGameObject().getHold()).iterator(); _j14it2764.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2764.next();
 				RealmComponent arc = RealmComponent.getRealmComponent(go);
 				list.addAll(dissolveIntoSeenStuff(arc));
 			}
@@ -227,7 +233,8 @@ public class ClearingUtility {
 			if (rc.isNativeLeader()) {
 				GameObject holder = SetupCardUtility.getDenizenHolder(rc.getGameObject());
 				if (holder != null) {
-					for (GameObject go : holder.getHold()) {
+					for (java.util.Iterator _j14it2765 = (holder.getHold()).iterator(); _j14it2765.hasNext(); ) {
+					  GameObject go = (GameObject) _j14it2765.next();
 						if (go.hasThisAttribute(Constants.TREASURE_SEEN)) {
 							RealmComponent arc = RealmComponent.getRealmComponent(go);
 							list.addAll(dissolveIntoSeenStuff(arc));
@@ -239,8 +246,10 @@ public class ClearingUtility {
 			if (rc.isCharacter()) {
 				// Look for transmorphed inventory in bewitching spells
 				CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
-				for (SpellWrapper spell:SpellUtility.getBewitchingSpells(character.getGameObject())) {
-					for (GameObject item : spell.getGameObject().getHold()) {
+				for (java.util.Iterator _j14it2766 = (SpellUtility.getBewitchingSpells(character.getGameObject())).iterator(); _j14it2766.hasNext(); ) {
+				  SpellWrapper spell = (SpellWrapper) _j14it2766.next();
+					for (java.util.Iterator _j14it2767 = (spell.getGameObject().getHold()).iterator(); _j14it2767.hasNext(); ) {
+					  GameObject item = (GameObject) _j14it2767.next();
 						if (item.hasThisAttribute(Constants.TREASURE_SEEN)) {
 							list.add(RealmComponent.getRealmComponent(item));
 						}
@@ -357,12 +366,14 @@ public class ClearingUtility {
 	public static int getClearingDieMod(TileLocation tl) {
 		int mod = 0;
 		if (tl!=null && tl.hasClearing()) {
-			ArrayList<RealmComponent> seen = new ArrayList<RealmComponent>();
+			ArrayList seen = new ArrayList();
 			// Check for presence of cloven hoof (the only plus_one item at present) in the clearing
-			for (RealmComponent rc : tl.clearing.getClearingComponents()) {
+			for (java.util.Iterator _j14it2768 = (tl.clearing.getClearingComponents()).iterator(); _j14it2768.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2768.next();
 				seen.addAll(dissolveIntoSeenStuff(rc));
 			}
-			for (RealmComponent rc : seen) {
+			for (java.util.Iterator _j14it2769 = (seen).iterator(); _j14it2769.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2769.next();
 				GameObject go = rc.getGameObject();
 				if (go.hasThisAttribute(Constants.PLUS_ONE) && go.hasThisAttribute(Constants.TREASURE_SEEN)) {
 					mod++;
@@ -374,12 +385,14 @@ public class ClearingUtility {
 	
 	public static GameObject getItemInClearingWithKey(TileLocation tl,String key) {
 		if (tl!=null && tl.hasClearing()) {
-			ArrayList<RealmComponent> seen = new ArrayList<RealmComponent>();
+			ArrayList seen = new ArrayList();
 			// Check for presence of cloven hoof (the only plus_one item at present) in the clearing
-			for (RealmComponent rc : tl.clearing.getClearingComponents()) {
+			for (java.util.Iterator _j14it2770 = (tl.clearing.getClearingComponents()).iterator(); _j14it2770.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2770.next();
 				seen.addAll(dissolveIntoSeenStuff(rc));
 			}
-			for (RealmComponent rc : seen) {
+			for (java.util.Iterator _j14it2771 = (seen).iterator(); _j14it2771.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2771.next();
 				GameObject go = rc.getGameObject();
 				if (go.hasThisAttribute(key) && go.hasThisAttribute(Constants.TREASURE_SEEN)) {
 					return go;
@@ -404,7 +417,7 @@ public class ClearingUtility {
 		TileComponent tile = null;
 		RealmComponent parent = null;
 		
-		ArrayList<GameObject> searched = new ArrayList<GameObject>();
+		ArrayList searched = new ArrayList();
 		
 		// Find the top level parent, that isn't a tile
 		while(parent==null && go.getHeldBy()!=null) {
@@ -476,18 +489,20 @@ public class ClearingUtility {
 	public static int calculateClearingCount(TileLocation tl1,TileLocation tl2) {
 		int val = 0;
 		if (tl1!=null && tl2!=null && !tl1.equals(tl2)) {
-			ArrayList<ClearingDetail> all = new ArrayList<ClearingDetail>();
-			ArrayList<ClearingDetail> list = new ArrayList<ClearingDetail>();
+			ArrayList all = new ArrayList();
+			ArrayList list = new ArrayList();
 			list.add(tl1.clearing);
 			int count = 0;
 			while(!list.isEmpty()) {
 				count++;
-				ArrayList<ClearingDetail> found = new ArrayList<ClearingDetail>();
-				for (ClearingDetail clearing : list) {
+				ArrayList found = new ArrayList();
+				for (java.util.Iterator _j14it2772 = (list).iterator(); _j14it2772.hasNext(); ) {
+				  ClearingDetail clearing = (ClearingDetail) _j14it2772.next();
 					if (!all.contains(clearing)) {
 						all.add(clearing);
-						Collection<PathDetail> c = clearing.getConnectedPaths();
-						for (PathDetail path : c) {
+						Collection c = clearing.getConnectedPaths();
+						for (java.util.Iterator _j14it2773 = (c).iterator(); _j14it2773.hasNext(); ) {
+						  PathDetail path = (PathDetail) _j14it2773.next();
 							ClearingDetail connectedClearing = path.findConnection(clearing);
 							if (connectedClearing!=null) {
 								if (connectedClearing.equals(tl2.clearing)) {
@@ -515,9 +530,10 @@ public class ClearingUtility {
 	/**
 	 * Returns all native leaders, visitors, and travelers w/stores that are in the clearing.
 	 */
-	public static ArrayList<RealmComponent> getAllTraders(CharacterWrapper character,ClearingDetail clearing) {
-		ArrayList<RealmComponent> traders = new ArrayList<RealmComponent>();
-		for (RealmComponent rc:clearing.getClearingComponents()) {
+	public static ArrayList getAllTraders(CharacterWrapper character,ClearingDetail clearing) {
+		ArrayList traders = new ArrayList();
+		for (java.util.Iterator _j14it2774 = (clearing.getClearingComponents()).iterator(); _j14it2774.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2774.next();
 			if (character.hasDamagedRelations(rc.getGameObject())) {
 				continue;
 			}
@@ -540,9 +556,10 @@ public class ClearingUtility {
 		return traders;
 	}
 	
-	public static ArrayList<RealmComponent> getAllVictimsForStealing(CharacterWrapper character,ClearingDetail clearing) {
-		ArrayList<RealmComponent> victims = new ArrayList<RealmComponent>();
-		for (RealmComponent rc:clearing.getClearingComponents()) {
+	public static ArrayList getAllVictimsForStealing(CharacterWrapper character,ClearingDetail clearing) {
+		ArrayList victims = new ArrayList();
+		for (java.util.Iterator _j14it2775 = (clearing.getClearingComponents()).iterator(); _j14it2775.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2775.next();
 			if (rc.isNative() && rc.getOwnerId()==null) {
 				String rank = rc.getGameObject().getThisAttribute("rank");
 				if (rank!=null && "HQ".equals(rank)) {
@@ -556,10 +573,11 @@ public class ClearingUtility {
 	/**
 	 * @return		A collection of unhired natives in the clearing
 	 */
-	public static ArrayList<RealmComponent> getAllHireables(CharacterWrapper character,ClearingDetail clearing) {
-		ArrayList<RealmComponent> hireables = new ArrayList<RealmComponent>();
-		Collection<RealmComponent> c = clearing.getClearingComponents();
-		for (RealmComponent rc : c) {
+	public static ArrayList getAllHireables(CharacterWrapper character,ClearingDetail clearing) {
+		ArrayList hireables = new ArrayList();
+		Collection c = clearing.getClearingComponents();
+		for (java.util.Iterator _j14it2776 = (c).iterator(); _j14it2776.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2776.next();
 			if (character.hasDamagedRelations(rc.getGameObject())) {
 				continue;
 			}
@@ -574,7 +592,8 @@ public class ClearingUtility {
 			}
 		}
 		// Include all of the character's current hirelings (for "rehire")
-		for (RealmComponent rc : character.getAllHirelings()) {
+		for (java.util.Iterator _j14it2777 = (character.getAllHirelings()).iterator(); _j14it2777.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2777.next();
 			if (rc.isCompanion() || rc.getGameObject().hasThisAttribute(Constants.HIRE_WITH_CHIT)) continue; // companions cannot be "rehired"
 			TileLocation tl = getTileLocation(rc);
 			if (tl != null && tl.clearing != null && tl.clearing.equals(clearing)) {
@@ -584,11 +603,12 @@ public class ClearingUtility {
 		return hireables;
 	}
 
-	public static ArrayList<RealmComponent> getGuidesInClearing(TileLocation location) {
-		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
+	public static ArrayList getGuidesInClearing(TileLocation location) {
+		ArrayList list = new ArrayList();
 		if (location.isInClearing()) {
-			Collection<RealmComponent> c = location.clearing.getClearingComponents();
-			for (RealmComponent rc : c) {
+			Collection c = location.clearing.getClearingComponents();
+			for (java.util.Iterator _j14it2778 = (c).iterator(); _j14it2778.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2778.next();
 				if (rc.isPlayerControlledLeader() && !rc.getGameObject().hasThisAttribute(Constants.CAMOUFLAGE)) {
 					// Valid Guide
 					list.add(rc);
@@ -598,10 +618,11 @@ public class ClearingUtility {
 		return list;
 	}
 
-	public static Collection<RealmComponent> getCombatantsInClearing(TileLocation location, GameData data) {
-		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
+	public static Collection getCombatantsInClearing(TileLocation location, GameData data) {
+		ArrayList list = new ArrayList();
 		if (location!=null && location.isInClearing()) {
-			for (RealmComponent rc:location.clearing.getClearingComponents()) {
+			for (java.util.Iterator _j14it2779 = (location.clearing.getClearingComponents()).iterator(); _j14it2779.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2779.next();
 				if (rc.isCharacter() || rc.isMonster() || rc.isNative() || rc.isCombativeTraveler() || rc.isCompanion() || rc instanceof EventSpellCardComponent) {
 					if (rc.isNative() && !rc.isHiredOrControlled() && HostPrefWrapper.findHostPrefs(data).hasPref(Constants.HOUSE2_NO_NATIVES_BATTLING)) continue;
 					if (rc.getGameObject().hasThisAttribute(Constants.NO_COMBAT)) continue;
@@ -612,10 +633,11 @@ public class ClearingUtility {
 		return list;
 	}
 
-	public static ArrayList<CharacterWrapper> getCharactersInClearing(TileLocation location) {
-		ArrayList<CharacterWrapper> list = new ArrayList<CharacterWrapper>();
+	public static ArrayList getCharactersInClearing(TileLocation location) {
+		ArrayList list = new ArrayList();
 		if (location.hasClearing()) {
-			for (RealmComponent rc:location.clearing.getClearingComponents()) {
+			for (java.util.Iterator _j14it2780 = (location.clearing.getClearingComponents()).iterator(); _j14it2780.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2780.next();
 				if (rc.isCharacter()) {
 					CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 					list.add(character);
@@ -627,11 +649,12 @@ public class ClearingUtility {
 
 	public static String showTileChits(JFrame parentFrame,ClearingDetail currentClearing,String title) {
 		// Show the tile chits - do I resolve lost city and castle too? - yes, I should
-		Collection<StateChitComponent> c = currentClearing.getParent().getClues();
+		Collection c = currentClearing.getParent().getClues();
 		if (!c.isEmpty()) {
 			RealmObjectPanel cluePanel = new RealmObjectPanel();
 			StringBufferedList note = new StringBufferedList();
-			for (StateChitComponent state : c) {
+			for (java.util.Iterator _j14it2781 = (c).iterator(); _j14it2781.hasNext(); ) {
+			  StateChitComponent state = (StateChitComponent) _j14it2781.next();
 				if (state.isTreasureLocation()) {
 					note.append(state.getGameObject().getName()+" "+state.getGameObject().getThisAttribute("clearing"));
 				}
@@ -644,7 +667,8 @@ public class ClearingUtility {
 			JOptionPane.showMessageDialog(parentFrame,cluePanel,title,JOptionPane.INFORMATION_MESSAGE);
 			
 			// restore facing
-			for (StateChitComponent state : c) {
+			for (java.util.Iterator _j14it2782 = (c).iterator(); _j14it2782.hasNext(); ) {
+			  StateChitComponent state = (StateChitComponent) _j14it2782.next();
 				state.setFaceDown();
 			}
 			return note.toString();
@@ -655,10 +679,11 @@ public class ClearingUtility {
 	/**
 	 * Finds all characters and hired leaders that are not your character, and that are not blocked and are awake.
 	 */
-	public static ArrayList<RealmComponent> findAllAwakeUnblockedCharactersInClearing(CharacterWrapper character) {
-		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
+	public static ArrayList findAllAwakeUnblockedCharactersInClearing(CharacterWrapper character) {
+		ArrayList list = new ArrayList();
 		TileLocation current = character.getCurrentLocation();
-		for (RealmComponent rc : current.clearing.getClearingComponents()) {
+		for (java.util.Iterator _j14it2783 = (current.clearing.getClearingComponents()).iterator(); _j14it2783.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2783.next();
 			// Someone, that isn't yourself
 			if (!rc.getGameObject().equals(character.getGameObject())) {
 				// and is a character or hired leader
@@ -693,37 +718,42 @@ public class ClearingUtility {
 	}
 	
 	public static void assignChitClearings(GameData data) {
-		ArrayList<GameObject> tiles = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
-		for(GameObject tile:tiles) {
+		ArrayList tiles = RealmObjectMaster.getRealmObjectMaster(data).getTileObjects();
+		for (java.util.Iterator _j14it2784 = (tiles).iterator(); _j14it2784.hasNext(); ) {
+		  GameObject tile = (GameObject) _j14it2784.next();
 			if (tile.getHoldCount()==0) continue;
 			
 			// Make sure all chits have a valid clearing
 			TileComponent tileC = (TileComponent)RealmComponent.getRealmComponent(tile);
-			ArrayList<GameObject> chits = new ArrayList<GameObject>();
-			ArrayList<ClearingDetail> connectedClearings = new ArrayList<ClearingDetail>();
-			for (ClearingDetail clearing:tileC.getClearings()){
+			ArrayList chits = new ArrayList();
+			ArrayList connectedClearings = new ArrayList();
+			for (java.util.Iterator _j14it2785 = (tileC.getClearings()).iterator(); _j14it2785.hasNext(); ) {
+			  ClearingDetail clearing = (ClearingDetail) _j14it2785.next();
 				if (clearing.isConnectsToBorderland()) {
 					connectedClearings.add(clearing);
 				}
 			}
-			for (GameObject chit : tile.getHold()) {
+			for (java.util.Iterator _j14it2786 = (tile.getHold()).iterator(); _j14it2786.hasNext(); ) {
+			  GameObject chit = (GameObject) _j14it2786.next();
 				chits.add(chit);
 				if (chit.hasThisAttribute("red_special")) {
 					chits.addAll(chit.getHold());
 				}
 			}
-			for (GameObject chit:chits) {
+			for (java.util.Iterator _j14it2787 = (chits).iterator(); _j14it2787.hasNext(); ) {
+			  GameObject chit = (GameObject) _j14it2787.next();
 				if (!chit.hasThisAttribute(RealmComponent.WARNING) && !chit.hasThisAttribute("clearing")) {
 					int r = RandomNumber.getRandom(connectedClearings.size());
-					ClearingDetail clearing = connectedClearings.get(r);
+					ClearingDetail clearing = (ClearingDetail) connectedClearings.get(r);
 					chit.setThisAttribute("clearing",clearing.getNum());
 				}
 			}
 		}
 	}
 	public static void initAdjacentTiles(GameData data) {
-		Hashtable<Point,TileComponent> mapGrid = new Hashtable<Point,TileComponent>();
-		for(GameObject go:RealmObjectMaster.getRealmObjectMaster(data).getTileObjects()) {
+		Hashtable mapGrid = new Hashtable();
+		for (java.util.Iterator _j14it2788 = (RealmObjectMaster.getRealmObjectMaster(data).getTileObjects()).iterator(); _j14it2788.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2788.next();
 			TileComponent tc = (TileComponent)RealmComponent.getRealmComponent(go);
 			String pos = go.getAttribute("mapGrid","mapPosition");
 			String rot = go.getAttribute("mapGrid","mapRotation");
@@ -736,14 +766,15 @@ public class ClearingUtility {
 		}
 		initAdjacentTiles(mapGrid);
 	}
-	public static void initAdjacentTiles(Hashtable<Point,TileComponent> mapGrid) {
-		for (Point mapPos:mapGrid.keySet()) {
-			TileComponent tile = mapGrid.get(mapPos);
+	public static void initAdjacentTiles(Hashtable mapGrid) {
+		for (java.util.Iterator _j14it2789 = (mapGrid.keySet()).iterator(); _j14it2789.hasNext(); ) {
+		  Point mapPos = (Point) _j14it2789.next();
+			TileComponent tile = (TileComponent) mapGrid.get(mapPos);
 			tile.clearAdjacentTiles();
 			for (int d=0;d<6;d++) { // Get ALL adjacent tiles, not just connected ones!
 				String edge = Tile.getEdgeName(d);
 				Point adjPos = Tile.getAdjacentPosition(mapPos,d);
-				TileComponent adjTile = mapGrid.get(adjPos);
+				TileComponent adjTile = (TileComponent) mapGrid.get(adjPos);
 				if (adjTile!=null) {
 					// found adjacent tile
 					tile.putAdjacentTile(edge,adjTile);
@@ -756,7 +787,8 @@ public class ClearingUtility {
 	 */
 	public static RealmComponent findDiscoverToLeaveComponent(TileLocation current,CharacterWrapper character) {
 		if (current.isInClearing()) {
-			for (RealmComponent rc:current.clearing.getClearingComponents()) {
+			for (java.util.Iterator _j14it2790 = (current.clearing.getClearingComponents()).iterator(); _j14it2790.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2790.next();
 				if (rc.getGameObject().hasThisAttribute(Constants.DISCOVER_TO_LEAVE)) {
 					if (!character.hasTreasureLocationDiscovery(rc.getGameObject().getName())
 							&& !character.hasActiveInventoryThisKeyAndValue(Constants.MAP,rc.getGameObject().getName().toLowerCase())) {
@@ -769,20 +801,22 @@ public class ClearingUtility {
 	}
 	
 	public static String getEdgeNameBetweenClearings(ClearingDetail clearing1, ClearingDetail clearing2) {
-		Collection<PathDetail> c = clearing1.getConnectedMapEdges();
+		Collection c = clearing1.getConnectedMapEdges();
 		if (c!=null) {
 			int rot1 = Tile.getRotationFromGameObject(clearing1.getTileLocation().tile.getGameObject());
 			int rot2 = Tile.getRotationFromGameObject(clearing2.getTileLocation().tile.getGameObject());
 			int rot = (9+rot1-rot2)%6;
-			for (PathDetail path : c) {
+			for (java.util.Iterator _j14it2791 = (c).iterator(); _j14it2791.hasNext(); ) {
+			  PathDetail path = (PathDetail) _j14it2791.next();
 				ClearingDetail edgeClearing = path.getEdgeAsClearing();
 				int rotation = (rot+Tile.getEdgeIntByName(edgeClearing.toString()))%6;
 				String edgeName = Tile.getEdgeName(rotation);
-				ArrayList<PathDetail> connectedMapEdges = clearing2.getConnectedMapEdges();
+				ArrayList connectedMapEdges = clearing2.getConnectedMapEdges();
 				if (connectedMapEdges == null)  {
 					continue;
 				}
-				for (PathDetail ed : connectedMapEdges) {
+				for (java.util.Iterator _j14it2792 = (connectedMapEdges).iterator(); _j14it2792.hasNext(); ) {
+				  PathDetail ed = (PathDetail) _j14it2792.next();
 					if (ed.getEdgeAsClearing().getType().matches(edgeName)) {
 						return edgeName;
 					}

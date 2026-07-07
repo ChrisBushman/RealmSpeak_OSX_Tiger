@@ -51,17 +51,18 @@ public class RealmLogWindow extends JFrame {
 	private JTextPane textPane;
 	private StyledDocument doc;
 	private StyledDocument docFiltered;
-	private ArrayList<String[]> list;
+	private ArrayList list;
 	
 	private int indent = 0;
 
 	private RealmLogWindow() {
 		initComponents();
-		list = new ArrayList<String[]>();
+		list = new ArrayList();
 	}
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		for (String[] line:list) {
+		StringBuffer sb = new StringBuffer();
+		for (java.util.Iterator _j14it1996 = (list).iterator(); _j14it1996.hasNext(); ) {
+		  String[] line = (String[]) _j14it1996.next();
 			sb.append(line[0]);
 			sb.append(" - ");
 			sb.append(line[1]);
@@ -73,7 +74,7 @@ public class RealmLogWindow extends JFrame {
 		String path = FileUtilities.getFilePathString(rsGameFile,true,false);
 		return path+".rslog";
 	}
-	public ArrayList<String[]> getStringArrayList() {
+	public ArrayList getStringArrayList() {
 		return list;
 	}
 	public boolean save(File rsGameFile) {
@@ -82,9 +83,10 @@ public class RealmLogWindow extends JFrame {
 			FileOutputStream fileStream = new FileOutputStream(saveFilePath);
 			DeflaterOutputStream deflater = new DeflaterOutputStream(fileStream);
 			PrintStream stream = new PrintStream(deflater);
-			ArrayList<String[]> safeList = new ArrayList<String[]>(list);
+			ArrayList safeList = new ArrayList(list);
 			stream.println(safeList.size());
-			for (String[] line:safeList) {
+			for (java.util.Iterator _j14it1997 = (safeList).iterator(); _j14it1997.hasNext(); ) {
+			  String[] line = (String[]) _j14it1997.next();
 				stream.println(line[0]);
 				stream.println(line[1]);
 			}
@@ -122,7 +124,8 @@ public class RealmLogWindow extends JFrame {
 	}
 	public String getHtmlString() {
 		StringBuffer sb = new StringBuffer();
-		for (String[] line:list) {
+		for (java.util.Iterator _j14it1998 = (list).iterator(); _j14it1998.hasNext(); ) {
+		  String[] line = (String[]) _j14it1998.next();
 			sb.append(getHtml(line));
 		}
 		return sb.toString();
@@ -377,7 +380,8 @@ public class RealmLogWindow extends JFrame {
 	}
 
 	private void addContentToDocFiltered(String key) {
-		for (String[] line : list) {
+		for (java.util.Iterator _j14it1999 = (list).iterator(); _j14it1999.hasNext(); ) {
+		  String[] line = (String[]) _j14it1999.next();
 			try {
 				if (line[0].matches(key)) {
 					docFiltered.insertString(docFiltered.getLength(),getAliasName(line[0]),docFiltered.getStyle(getStyleName(line[0])));
@@ -390,21 +394,22 @@ public class RealmLogWindow extends JFrame {
 	private void addContentForDay(DayKey dayKey) {
 		int lineNumberStart = 0;
 		int lineNumberEnd = list.size();
-		for (String[] line : list) {
+		for (java.util.Iterator _j14it2000 = (list).iterator(); _j14it2000.hasNext(); ) {
+		  String[] line = (String[]) _j14it2000.next();
 			if (line[1].matches(".*Month "+DayKey.getMonth(dayKey.toString())+", Day "+DayKey.getDay(dayKey.toString())+".*")) {
 				break;
 			}
 			lineNumberStart++;
 		}
 		for (int i = lineNumberStart+1; i < list.size(); i++) {
-			String[] line = list.get(i);
+			String[] line = (String[]) list.get(i);
 			if (line[1].matches(".*Month \\d, Day \\d.*")) {
 				lineNumberEnd = i;
 				break;
 			}
 		}
 		for (int i = lineNumberStart; i < lineNumberEnd; i++) {
-			String[] line = list.get(i);
+			String[] line = (String[]) list.get(i);
 			try {
 				docFiltered.insertString(docFiltered.getLength(),getAliasName(line[0]),docFiltered.getStyle(getStyleName(line[0])));
 				docFiltered.insertString(docFiltered.getLength(), " - " + line[1] + "\n", docFiltered.getStyle("regular"));
@@ -419,7 +424,8 @@ public class RealmLogWindow extends JFrame {
 		int day = 0;
 		Pattern monthPattern = Pattern.compile("Month \\d");
 		Pattern dayPattern = Pattern.compile("Day \\d");
-		for (String[] line : list) {
+		for (java.util.Iterator _j14it2001 = (list).iterator(); _j14it2001.hasNext(); ) {
+		  String[] line = (String[]) _j14it2001.next();
 			if (line[1].matches(".*Month \\d, Day \\d.*")) {
 				Matcher monthMatcher = monthPattern.matcher(line[1]);
 				monthMatcher.find();

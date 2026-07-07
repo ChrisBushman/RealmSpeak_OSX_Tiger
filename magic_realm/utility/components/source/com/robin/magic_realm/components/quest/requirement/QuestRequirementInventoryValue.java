@@ -20,10 +20,11 @@ public class QuestRequirementInventoryValue extends QuestRequirementLoot {
 	}
 
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {		
-		ArrayList<GameObject> items = filterObjectsForRequirement(character,character.getInventory(),logger);
+		ArrayList items = filterObjectsForRequirement(character,character.getInventory(),logger);
 		int goldValue = 0;
 		int fameValue = 0;
-		for (GameObject item : items) {
+		for (java.util.Iterator _j14it2317 = (items).iterator(); _j14it2317.hasNext(); ) {
+		  GameObject item = (GameObject) _j14it2317.next();
 			goldValue = goldValue + item.getThisInt("base_price");
 			fameValue = fameValue + item.getThisInt("fame");
 		}

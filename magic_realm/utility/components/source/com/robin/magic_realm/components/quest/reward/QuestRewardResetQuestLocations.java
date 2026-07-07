@@ -20,7 +20,8 @@ public class QuestRewardResetQuestLocations extends QuestReward {
 	public void processReward(JFrame frame, CharacterWrapper character) {
 		if (resetAllLocations() || getQuestLocation() == null) {
 			Quest quest = getParentQuest();
-			for (QuestLocation location : quest.getLocations()) {
+			for (java.util.Iterator _j14it2445 = (quest.getLocations()).iterator(); _j14it2445.hasNext(); ) {
+			  QuestLocation location = (QuestLocation) _j14it2445.next();
 				location.clearLockAddress();
 				location.resolveQuestStart(frame, character);
 			}
@@ -60,7 +61,7 @@ public class QuestRewardResetQuestLocations extends QuestReward {
 		return null;
 	}
 
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup, LOCATION);
 	}
 }

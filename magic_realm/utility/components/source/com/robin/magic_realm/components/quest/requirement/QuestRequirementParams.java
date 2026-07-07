@@ -14,7 +14,7 @@ public class QuestRequirementParams {
 	public String actionName;
 	public CharacterActionType actionType = CharacterActionType.Unknown; // default
 	public String dayKey;
-	public ArrayList<GameObject> objectList =  new ArrayList<GameObject>();
+	public ArrayList objectList =  new ArrayList();
 	public ColorMagic burnedColor;
 	
 	// Search stuff
@@ -37,7 +37,7 @@ public class QuestRequirementParams {
 		targetOfSearch = null;
 	}
 	public String asString() {
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList list = new ArrayList();
 		list.add(timeOfCall.toString());
 		list.add(actionName);
 		list.add(dayKey);
@@ -47,27 +47,29 @@ public class QuestRequirementParams {
 		list.add(searchHadAnEffect?"T":"F");
 		list.add(targetOfSearch==null?"null":targetOfSearch.getStringId());
 		if (objectList!=null) {
-			for(GameObject res:objectList) {
+			for (java.util.Iterator _j14it2340 = (objectList).iterator(); _j14it2340.hasNext(); ) {
+			  GameObject res = (GameObject) _j14it2340.next();
 				if (res!=null) list.add(res.getStringId());
 			}
 		}
 		return StringUtilities.collectionToString(list,"@");
 	}
 	public static QuestRequirementParams valueOf(String s,GameData gameData) {
-		ArrayList<String> list = StringUtilities.stringToCollection(s,"@",true);
+		ArrayList list = StringUtilities.stringToCollection(s,"@",true);
 		QuestRequirementParams qp = new QuestRequirementParams();
 		if (list.size()>=8) {
-			qp.timeOfCall = GamePhaseType.valueOf(list.get(0));
-			qp.actionName = list.get(1)==null?null:list.get(1);
-			qp.dayKey = list.get(2)==null?null:list.get(2);
-			qp.actionType = CharacterActionType.valueOf(list.get(3));
-			qp.dieResult = Integer.parseInt(list.get(4));
-			qp.searchType = SearchResultType.valueOf(list.get(5));
+			qp.timeOfCall = GamePhaseType.valueOf((String) list.get(0));
+			qp.actionName = list.get(1)==null?null:(String) list.get(1);
+			qp.dayKey = list.get(2)==null?null:(String) list.get(2);
+			qp.actionType = CharacterActionType.valueOf((String) list.get(3));
+			qp.dieResult = Integer.parseInt((String) list.get(4));
+			qp.searchType = SearchResultType.valueOf((String) list.get(5));
 			qp.searchHadAnEffect = "T".equals(list.get(6));
-			qp.targetOfSearch = readGameObject(list.get(7),gameData);
+			qp.targetOfSearch = readGameObject((String) list.get(7),gameData);
 		}
 		if (list.size()>8) {
-			for(String val:list.subList(8,list.size())) {
+			for (java.util.Iterator _j14it2341 = (list.subList(8,list.size())).iterator(); _j14it2341.hasNext(); ) {
+			  String val = (String) _j14it2341.next();
 				qp.objectList.add(readGameObject(val,gameData));
 			}
 		}

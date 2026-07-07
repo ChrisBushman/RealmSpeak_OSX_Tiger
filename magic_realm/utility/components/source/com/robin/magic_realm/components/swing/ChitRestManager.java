@@ -39,12 +39,14 @@ public class ChitRestManager extends ChitManager {
 	protected int totalPossibleCount() {
 		int val = 0;
 		if (!character.hasCurse(Constants.WITHER)) { // only include fatigued chits if WITHER isn't in effect
-			for (ChitComponent chitComponent : fatiguedChits.getAllChits()) {
+			for (java.util.Iterator _j14it1927 = (fatiguedChits.getAllChits()).iterator(); _j14it1927.hasNext(); ) {
+			  ChitComponent chitComponent = (ChitComponent) _j14it1927.next();
 				CharacterActionChitComponent chit = (CharacterActionChitComponent)chitComponent;
 				val += chit.getEffortAsterisks();
 			}
 		}
-		for (ChitComponent chitComponent : woundedChits.getAllChits()) {
+		for (java.util.Iterator _j14it1928 = (woundedChits.getAllChits()).iterator(); _j14it1928.hasNext(); ) {
+		  ChitComponent chitComponent = (ChitComponent) _j14it1928.next();
 			CharacterActionChitComponent chit = (CharacterActionChitComponent)chitComponent;
 			int effort = chit.getEffortAsterisks();
 			if (effort==0) {
@@ -155,7 +157,8 @@ public class ChitRestManager extends ChitManager {
 		
 	}
 	private boolean areActiveEffortChitsForChange() {
-		for (ChitComponent chit : activeChits.getAllChits()) {
+		for (java.util.Iterator _j14it1929 = (activeChits.getAllChits()).iterator(); _j14it1929.hasNext(); ) {
+		  ChitComponent chit = (ChitComponent) _j14it1929.next();
 			if (chit.isActionChit()) {
 				CharacterActionChitComponent aChit = (CharacterActionChitComponent)chit;
 				if (!aChit.isColor() && aChit.getEffortAsterisks()==1) {
@@ -175,13 +178,13 @@ public class ChitRestManager extends ChitManager {
 		wrapper.setCharacterLevel(4);
 		wrapper.updateLevelAttributes(hostPrefs);
 		wrapper.initChits();
-		ArrayList<CharacterActionChitComponent> list = new ArrayList<CharacterActionChitComponent>(wrapper.getAllChits());
+		ArrayList list = new ArrayList(wrapper.getAllChits());
 		for (int i=2;i<5;i+=2) {
-			CharacterActionChitComponent aChit = list.get(i);
+			CharacterActionChitComponent aChit = (CharacterActionChitComponent) list.get(i);
 			aChit.makeFatigued();
 		}
 		for (int i=8;i<10;i++) {
-			CharacterActionChitComponent aChit = list.get(i);
+			CharacterActionChitComponent aChit = (CharacterActionChitComponent) list.get(i);
 			aChit.makeWounded();
 		}
 //		(new Curse(new JFrame())).applyThree(wrapper);
@@ -196,7 +199,8 @@ public class ChitRestManager extends ChitManager {
 		wrapper.setCharacterLevel(4);
 		wrapper.updateLevelAttributes(hostPrefs);
 		wrapper.initChits();
-		for(CharacterActionChitComponent chit:wrapper.getAllChits()) {
+		for (java.util.Iterator _j14it1930 = (wrapper.getAllChits()).iterator(); _j14it1930.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it1930.next();
 			if (chit.isMagic() && chit.getMagicType().equals("VII")) {
 				chit.makeFatigued();
 			}

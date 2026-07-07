@@ -4,14 +4,12 @@ import com.robin.magic_realm.components.wrapper.CombatWrapper;
 
 public class UnassignEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		context.Target.clearTargets();
 		CombatWrapper aCombat = new CombatWrapper(context.Target.getGameObject());
 		aCombat.setSheetOwner(false);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 	}
 

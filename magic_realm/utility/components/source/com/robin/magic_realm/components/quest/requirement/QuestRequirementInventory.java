@@ -27,12 +27,13 @@ public class QuestRequirementInventory extends QuestRequirementLoot {
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
 		boolean reqActive = mustBeActive();
 		boolean reqDeactive = mustBeDeactive();
-		ArrayList<GameObject> matches;
+		ArrayList matches;
 		if (reqActive && reqParams.actionType==CharacterActionType.ActivatingItem) {
 			reqActive = false; // since we already know we are activating the item, don't test for it later (actually causes a problem with the Chest which is opened instead of activated!)
 			matches = filterObjectsForRequirement(character,reqParams.objectList,logger);
-			ArrayList<GameObject> inventory = filterObjectsForRequirement(character,character.getInventory(),logger);
-			for (GameObject item : inventory) {
+			ArrayList inventory = filterObjectsForRequirement(character,character.getInventory(),logger);
+			for (java.util.Iterator _j14it2323 = (inventory).iterator(); _j14it2323.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it2323.next();
 				if (!item.hasThisAttribute(Constants.ACTIVATED)) {
 					logger.fine(item.getName()+" must be activated.");
 				}
@@ -46,9 +47,10 @@ public class QuestRequirementInventory extends QuestRequirementLoot {
 		}
 		int n = getNumber();
 		int found = matches.size();
-		ArrayList<GameObject> validMatches = new ArrayList<GameObject>();
+		ArrayList validMatches = new ArrayList();
 		if (found>=n) {
-			for(GameObject match:matches) {
+			for (java.util.Iterator _j14it2324 = (matches).iterator(); _j14it2324.hasNext(); ) {
+			  GameObject match = (GameObject) _j14it2324.next();
 					if (reqActive && !match.hasThisAttribute(Constants.ACTIVATED)) {
 						logger.fine(match.getName()+" must be activated.");
 						found--;
@@ -64,7 +66,8 @@ public class QuestRequirementInventory extends QuestRequirementLoot {
 			if (mustBeExactTheNumber()) {
 				if (found==n) {
 					if (markItems()) {
-						for (GameObject validItem : validMatches) {
+						for (java.util.Iterator _j14it2325 = (validMatches).iterator(); _j14it2325.hasNext(); ) {
+						  GameObject validItem = (GameObject) _j14it2325.next();
 							validItem.setThisAttribute(QuestConstants.QUEST_MARK,getParentQuest().getGameObject().getStringId());
 						}
 					}
@@ -74,7 +77,8 @@ public class QuestRequirementInventory extends QuestRequirementLoot {
 			else {
 				if (found>=n) {
 					if (markItems()) {
-						for (GameObject validItem : validMatches) {
+						for (java.util.Iterator _j14it2326 = (validMatches).iterator(); _j14it2326.hasNext(); ) {
+						  GameObject validItem = (GameObject) _j14it2326.next();
 							validItem.setThisAttribute(QuestConstants.QUEST_MARK,getParentQuest().getGameObject().getStringId());
 						}
 					}
@@ -87,7 +91,7 @@ public class QuestRequirementInventory extends QuestRequirementLoot {
 	}
 
 	protected String buildDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must ");
 		sb.append(mustBeActive()?"activate ":"own ");
 		int num = getNumber();

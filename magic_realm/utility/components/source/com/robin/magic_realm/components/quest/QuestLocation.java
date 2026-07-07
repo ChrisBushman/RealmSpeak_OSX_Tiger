@@ -35,13 +35,13 @@ public class QuestLocation extends GameObjectWrapper {
 		super(go);
 	}
 	public String getDescription() {
-		ArrayList<String> list = getChoiceAddresses();
+		ArrayList list = getChoiceAddresses();
 		String locList = list == null ? "" : StringUtilities.collectionToString(list, ",");
 		LocationType type = getLocationType();
 		LocationClearingType lc = getLocationClearingType();
 		LocationTileSideType ts = getLocationTileSideType();
 		
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append(type.getDescriptionPrefix());
 		sb.append(" ");
 		if (ts != LocationTileSideType.Any) {
@@ -73,14 +73,14 @@ public class QuestLocation extends GameObjectWrapper {
 		GameObject quest = getGameObject().getHeldBy();
 		return quest.getName();
 	}
-	private ArrayList<String> getValidAddresses() {
-		ArrayList<String> addresses = new ArrayList<String>();
+	private ArrayList getValidAddresses() {
+		ArrayList addresses = new ArrayList();
 		String lock = getLockAddress();
 		if (lock!=null) {
 			addresses.add(lock);
 		}
 		else {
-			ArrayList<String> choices = getChoiceAddresses();
+			ArrayList choices = getChoiceAddresses();
 			if (choices!=null) {
 				addresses.addAll(choices); // the only time this should happen, is with "Any" or "Lock"
 			}
@@ -96,24 +96,27 @@ public class QuestLocation extends GameObjectWrapper {
 			resolveStepStart(frame,character);
 		}
 		
-		ArrayList<RealmComponent> allPieces = new ArrayList<RealmComponent>();
+		ArrayList allPieces = new ArrayList();
 		
-		ArrayList<String> addresses = getValidAddresses();
+		ArrayList addresses = getValidAddresses();
 		if (addresses.isEmpty()) {
-			ArrayList<TileLocation> validLocations = fetchAllLocations(getGameData());
-			for (TileLocation tl : validLocations) {
+			ArrayList validLocations = fetchAllLocations(getGameData());
+			for (java.util.Iterator _j14it2194 = (validLocations).iterator(); _j14it2194.hasNext(); ) {
+			  TileLocation tl = (TileLocation) _j14it2194.next();
 				allPieces.addAll(tl.tile.getAllClearingComponents());
 			}
-			return allPieces.toArray(new RealmComponent[0]);
+			return (RealmComponent[]) allPieces.toArray(new RealmComponent[0]);
 		}
 		
 		LocationTileSideType tileSideType = getLocationTileSideType();
 		LocationClearingType clearingType = getLocationClearingType();
 		
-		for(String address:addresses) {
-			ArrayList<RealmComponent> pieces = fetchPieces(getGameData(),address,false);
+		for (java.util.Iterator _j14it2195 = (addresses).iterator(); _j14it2195.hasNext(); ) {
+		  String address = (String) _j14it2195.next();
+			ArrayList pieces = fetchPieces(getGameData(),address,false);
 			if (pieces!=null) {
-				for (RealmComponent rc : pieces) {
+				for (java.util.Iterator _j14it2196 = (pieces).iterator(); _j14it2196.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it2196.next();
 					TileLocation location = rc.getCurrentLocation();					
 					if (location != null && tileSideType.matches(location.tile) && clearingType.matches(location.clearing)) {
 						allPieces.add(rc);
@@ -122,10 +125,12 @@ public class QuestLocation extends GameObjectWrapper {
 			}
 			else {
 				TileLocation tl = fetchTileLocation(getGameData(),address);
-				ArrayList<TileLocation> validLocations = getAllAllowedClearingsForTileLocation(tl);
+				ArrayList validLocations = getAllAllowedClearingsForTileLocation(tl);
 				if (validLocations != null) {
-					for (TileLocation validLocation : validLocations) {	
-						for(RealmComponent rc : validLocation.clearing.getClearingComponents()) {
+					for (java.util.Iterator _j14it2197 = (validLocations).iterator(); _j14it2197.hasNext(); ) {
+					  TileLocation validLocation = (TileLocation) _j14it2197.next();	
+						for (java.util.Iterator _j14it2198 = (validLocation.clearing.getClearingComponents()).iterator(); _j14it2198.hasNext(); ) {
+						  RealmComponent rc = (RealmComponent) _j14it2198.next();
 							if (rc.isChit()) {
 								allPieces.add(rc);
 							}
@@ -134,7 +139,7 @@ public class QuestLocation extends GameObjectWrapper {
 				}
 			}
 		}
-		return allPieces.toArray(new RealmComponent[0]);
+		return (RealmComponent[]) allPieces.toArray(new RealmComponent[0]);
 	}
 	/**
 	 * This will test to see if the character is at a location supported by this object.  If the location type is "Lock" then any success will also lock the address.
@@ -153,7 +158,7 @@ public class QuestLocation extends GameObjectWrapper {
 			resolveStepStart(frame,character);
 		}
 		
-		ArrayList<String> addressesToTest = getValidAddresses();
+		ArrayList addressesToTest = getValidAddresses();
 		
 		TileLocation current = character.getCurrentLocation();
 		
@@ -165,9 +170,9 @@ public class QuestLocation extends GameObjectWrapper {
 		
 		if (addressesToTest.isEmpty()) return true; // If there are NO addresses, then anything is allowed
 		
-		ArrayList<RealmComponent> clearingComponents = new ArrayList<RealmComponent>();
+		ArrayList clearingComponents = new ArrayList();
 		if (specificObject!=null) {
-			clearingComponents= new ArrayList<RealmComponent>();
+			clearingComponents= new ArrayList();
 			clearingComponents.add(RealmComponent.getRealmComponent(specificObject));
 		}
 		else {
@@ -183,15 +188,18 @@ public class QuestLocation extends GameObjectWrapper {
 					}
 				}
 			}
-			for(GameObject go:character.getInventory()) {
+			for (java.util.Iterator _j14it2199 = (character.getInventory()).iterator(); _j14it2199.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2199.next();
 				clearingComponents.add(RealmComponent.getRealmComponent(go));
 			}
-			for(RealmComponent rc:character.getFollowingHirelings()) {
+			for (java.util.Iterator _j14it2200 = (character.getFollowingHirelings()).iterator(); _j14it2200.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2200.next();
 				clearingComponents.add(RealmComponent.getRealmComponent(rc.getGameObject()));
 			}
 		}
 		String matchingAddress = null;
-		for(String address:addressesToTest) {
+		for (java.util.Iterator _j14it2201 = (addressesToTest).iterator(); _j14it2201.hasNext(); ) {
+		  String address = (String) _j14it2201.next();
 			TileLocation tl = fetchTileLocation(getGameData(),address);
 			if (tl!=null && current!=null) {
 				if ((isSameTile() && tl.tile.equals(current.tile))
@@ -200,7 +208,7 @@ public class QuestLocation extends GameObjectWrapper {
 						break;
 				}
 			}
-			ArrayList<RealmComponent> pieces = fetchPieces(getGameData(),address,true);
+			ArrayList pieces = fetchPieces(getGameData(),address,true);
 			if (CollectionUtility.containsAny(clearingComponents,pieces)) {
 				matchingAddress = address;
 				break;
@@ -235,7 +243,7 @@ public class QuestLocation extends GameObjectWrapper {
 			return false;
 		}
 		
-		ArrayList<String> addressesToTest = getValidAddresses();
+		ArrayList addressesToTest = getValidAddresses();
 		LocationClearingType clearingType = getLocationClearingType();
 		LocationTileSideType tileSideType = getLocationTileSideType();
 		
@@ -243,7 +251,7 @@ public class QuestLocation extends GameObjectWrapper {
 		if (tileSideType!=LocationTileSideType.Any && !tileSideType.matches(loc.tile)) return false;
 		if (addressesToTest.isEmpty()) return true; // If there are NO addresses, then anything is allowed
 		
-		ArrayList<RealmComponent> clearingComponents;
+		ArrayList clearingComponents;
 		if (isSameTile()) {
 			clearingComponents = loc.tile.getAllClearingComponents(); 
 		}
@@ -252,7 +260,8 @@ public class QuestLocation extends GameObjectWrapper {
 			clearingComponents.addAll(loc.clearing.getClearingComponents());
 		}
 		String matchingAddress = null;
-		for(String address:addressesToTest) {
+		for (java.util.Iterator _j14it2202 = (addressesToTest).iterator(); _j14it2202.hasNext(); ) {
+		  String address = (String) _j14it2202.next();
 			TileLocation tl = fetchTileLocation(getGameData(),address);
 			if (tl!=null) {
 				if ((isSameTile() && tl.tile.equals(loc.tile))
@@ -261,7 +270,7 @@ public class QuestLocation extends GameObjectWrapper {
 						break;
 				}
 			}
-			ArrayList<RealmComponent> pieces = fetchPieces(getGameData(),address,true);
+			ArrayList pieces = fetchPieces(getGameData(),address,true);
 			if (CollectionUtility.containsAny(clearingComponents,pieces)) {
 				matchingAddress = address;
 				break;
@@ -278,11 +287,11 @@ public class QuestLocation extends GameObjectWrapper {
 			if (setLocationAddressByClonedQuest()) return;
 		}
 		
-		ArrayList<String> choices = getChoiceAddresses();
+		ArrayList choices = getChoiceAddresses();
 		if (choices==null || choices.size()==0) return;
 		if (choices.size()==1) {
 			// This is easy
-			setLockAddress(choices.get(0));
+			setLockAddress((String) choices.get(0));
 			if (locationForClonedQuests()) {
 				setLocationAddressByClonedQuest();
 			}
@@ -294,7 +303,7 @@ public class QuestLocation extends GameObjectWrapper {
 		LocationType type = getLocationType();
 		if (type==LocationType.QuestRandom) {
 			int r = RandomNumber.getRandom(choices.size());
-			setLockAddress(choices.get(r));
+			setLockAddress((String) choices.get(r));
 			message = getTagName()+" is at the "+getLockAddress().toUpperCase();
 			character.addNote(getGameObject(),getQuestName(),message);
 			if (!hideNotification()) {
@@ -321,11 +330,11 @@ public class QuestLocation extends GameObjectWrapper {
 		}
 		
 		String message = null;
-		ArrayList<String> choices = getChoiceAddresses();
+		ArrayList choices = getChoiceAddresses();
 		LocationType type = getLocationType();
 		if (type==LocationType.StepRandom) {
 			int r = RandomNumber.getRandom(choices.size());
-			setLockAddress(choices.get(r));
+			setLockAddress((String) choices.get(r));
 			message = getTagName()+" is at the "+getLockAddress().toUpperCase();
 			character.addNote(getGameObject(),getQuestName(),message);
 			if (!hideNotification()) {
@@ -342,11 +351,12 @@ public class QuestLocation extends GameObjectWrapper {
 			setLocationAddressForClonedQuests(message);
 		}
 	}
-	private void forcePlayerPick(JFrame frame,ArrayList<String> choices) {
+	private void forcePlayerPick(JFrame frame,ArrayList choices) {
 		// assume that the location type was already verified (needs to be QuestChoice or StepChoice) ...
 		GameObject quest = getGameObject().getHeldBy();
 		ButtonOptionDialog chooser = new ButtonOptionDialog(frame,ImageCache.getIcon("quests/token"),"Which location would you like to choose for "+getTagName()+"?",quest.getName(),false);
-		for(String choice:choices) {
+		for (java.util.Iterator _j14it2203 = (choices).iterator(); _j14it2203.hasNext(); ) {
+		  String choice = (String) _j14it2203.next();
 			chooser.addSelectionObject(choice);
 		}
 		chooser.setVisible(true);
@@ -415,7 +425,7 @@ public class QuestLocation extends GameObjectWrapper {
 		setBoolean(LOC_FOR_CLONED_QUESTS,val);
 	}
 	
-	public ArrayList<String> getChoiceAddresses() {
+	public ArrayList getChoiceAddresses() {
 		return getList(CHOICE_ADDRESSES);
 	}
 	
@@ -445,16 +455,17 @@ public class QuestLocation extends GameObjectWrapper {
 		return val==null?LocationTileSideType.Any:LocationTileSideType.valueOf(val);
 	}
 	
-	public ArrayList<TileLocation> getAllAllowedClearingsForTileLocation(TileLocation location) {
+	public ArrayList getAllAllowedClearingsForTileLocation(TileLocation location) {
 		LocationTileSideType tileSideType = getLocationTileSideType();
 		LocationClearingType clearingType = getLocationClearingType();
-		ArrayList<TileLocation> locations = new ArrayList<TileLocation>();
-		ArrayList<ClearingDetail> clearingsToCheck = new ArrayList<ClearingDetail>();
+		ArrayList locations = new ArrayList();
+		ArrayList clearingsToCheck = new ArrayList();
 		if (location == null) {
 			return null;
 		}
 		if (location.clearing == null) {
-			for(ClearingDetail cl : location.tile.getClearings()) {
+			for (java.util.Iterator _j14it2204 = (location.tile.getClearings()).iterator(); _j14it2204.hasNext(); ) {
+			  ClearingDetail cl = (ClearingDetail) _j14it2204.next();
 				clearingsToCheck.add(cl);
 			}
 		}
@@ -462,7 +473,8 @@ public class QuestLocation extends GameObjectWrapper {
 			clearingsToCheck.add(location.clearing);
 		}
 		
-		for (ClearingDetail cl : clearingsToCheck) {
+		for (java.util.Iterator _j14it2205 = (clearingsToCheck).iterator(); _j14it2205.hasNext(); ) {
+		  ClearingDetail cl = (ClearingDetail) _j14it2205.next();
 			if (tileSideType.matches(location.tile) && clearingType.matches(cl)) {
 				TileLocation validLocation = new TileLocation(location.tile, cl, false);
 				locations.add(validLocation);
@@ -520,11 +532,12 @@ public class QuestLocation extends GameObjectWrapper {
 		return null;
 	}
 
-	private static ArrayList<RealmComponent> fetchPieces(GameData gameData, String val,boolean onlySeen) {
-		ArrayList<GameObject> gos = gameData.getGameObjectsByNameIgnoreCase(val);
+	private static ArrayList fetchPieces(GameData gameData, String val,boolean onlySeen) {
+		ArrayList gos = gameData.getGameObjectsByNameIgnoreCase(val);
 		if (gos.isEmpty()) return null;
-		ArrayList<RealmComponent> ret = new ArrayList<RealmComponent>();
-		for (GameObject go : gos) {
+		ArrayList ret = new ArrayList();
+		for (java.util.Iterator _j14it2206 = (gos).iterator(); _j14it2206.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2206.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc==null) continue;
 			if (rc.isStateChit() || rc.isDwelling() || rc.isMonster() || rc.isNative() || rc.isItem() || rc.isGoldSpecial() || rc.isTreasureLocation() || rc.isGuild() || rc.isGate() || rc.isVisitor() || rc.isTraveler()) {
@@ -536,7 +549,7 @@ public class QuestLocation extends GameObjectWrapper {
 		return ret.isEmpty() ? null : ret;
 	}
 	
-	public ArrayList<TileLocation> fetchAllLocations(JFrame frame, CharacterWrapper character, GameData gameData) {
+	public ArrayList fetchAllLocations(JFrame frame, CharacterWrapper character, GameData gameData) {
 		if (needsResolution() && frame != null && character != null) {
 			if (getLocationType()==LocationType.Lock) {
 				RealmLogging.logMessage(QuestConstants.QUEST_ERROR,"Can't fetch locations for a LOCK type of location without requiring the character to first visit that location.");
@@ -547,17 +560,18 @@ public class QuestLocation extends GameObjectWrapper {
 		return fetchAllLocations(gameData);
 	}
 	
-	public ArrayList<TileLocation> fetchAllLocations(GameData gameData) {
-		ArrayList<String> addresses = getValidAddresses();
-		ArrayList<TileLocation> allTileLocations = new ArrayList<TileLocation>();
+	public ArrayList fetchAllLocations(GameData gameData) {
+		ArrayList addresses = getValidAddresses();
+		ArrayList allTileLocations = new ArrayList();
 		
 		if (addresses.isEmpty()) {
-			ArrayList<GameObject> gameObjects = getGameObject().getGameData().getGameObjects();
-			for (GameObject go : gameObjects) {
+			ArrayList gameObjects = getGameObject().getGameData().getGameObjects();
+			for (java.util.Iterator _j14it2207 = (gameObjects).iterator(); _j14it2207.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2207.next();
 				if(go.hasThisAttribute("tile")) {
 					TileComponent tc = (TileComponent) RealmComponent.getRealmComponent(go);
 					TileLocation tileLocation = new TileLocation(tc);
-					ArrayList<TileLocation> validLocations = this.getAllAllowedClearingsForTileLocation(tileLocation);
+					ArrayList validLocations = this.getAllAllowedClearingsForTileLocation(tileLocation);
 					if (validLocations != null) {
 						allTileLocations.addAll(this.getAllAllowedClearingsForTileLocation(tileLocation));
 					}
@@ -565,18 +579,20 @@ public class QuestLocation extends GameObjectWrapper {
 			}
 		}
 		
-		for (String address : addresses) {
+		for (java.util.Iterator _j14it2208 = (addresses).iterator(); _j14it2208.hasNext(); ) {
+		  String address = (String) _j14it2208.next();
 			TileLocation location = fetchTileLocation(gameData, address);
-			ArrayList<TileLocation> validLocations = this.getAllAllowedClearingsForTileLocation(location);
+			ArrayList validLocations = this.getAllAllowedClearingsForTileLocation(location);
 			if (validLocations != null) {
 				allTileLocations.addAll(validLocations);
 			}
-			ArrayList<GameObject> gos = gameData.getGameObjectsByNameIgnoreCase(address);
+			ArrayList gos = gameData.getGameObjectsByNameIgnoreCase(address);
 			if (!gos.isEmpty()) {
-				for (GameObject go : gos) {
+				for (java.util.Iterator _j14it2209 = (gos).iterator(); _j14it2209.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it2209.next();
 					RealmComponent rc = RealmComponent.getRealmComponent(go);
 					if (rc==null) continue;
-					ArrayList<TileLocation> validPieceLocations = this.getAllAllowedClearingsForTileLocation(rc.getCurrentLocation());
+					ArrayList validPieceLocations = this.getAllAllowedClearingsForTileLocation(rc.getCurrentLocation());
 					if (validPieceLocations != null) {
 						allTileLocations.addAll(validPieceLocations);
 					}
@@ -594,9 +610,11 @@ public class QuestLocation extends GameObjectWrapper {
 	private boolean setLocationAddressByClonedQuest() {
 		GameObject questGo = getGameObject().getHeldBy();
 		Quest quest = new Quest(questGo);
-		for (GameObject clonedQuestGo : quest.findClones(getGameData().getGameObjects())) {
+		for (java.util.Iterator _j14it2210 = (quest.findClones(getGameData().getGameObjects())).iterator(); _j14it2210.hasNext(); ) {
+		  GameObject clonedQuestGo = (GameObject) _j14it2210.next();
 			Quest clonedQuest = new Quest(clonedQuestGo);
-			for (QuestLocation loc : clonedQuest.getLocations()) {
+			for (java.util.Iterator _j14it2211 = (clonedQuest.getLocations()).iterator(); _j14it2211.hasNext(); ) {
+			  QuestLocation loc = (QuestLocation) _j14it2211.next();
 				if (loc.getTagName().matches(this.getTagName())) {
 					if (loc.getLockAddress()!=null&&loc.getLockAddress().length() > 0) {
 						this.setLockAddress(loc.getLockAddress());
@@ -612,9 +630,11 @@ public class QuestLocation extends GameObjectWrapper {
 		if (this.getLockAddress()==null || this.getLockAddress().length() == 0) return;
 		GameObject questGo = getGameObject().getHeldBy();
 		Quest quest = new Quest(questGo);
-		for (GameObject clonedQuestGo : quest.findClones(getGameData().getGameObjects())) {
+		for (java.util.Iterator _j14it2212 = (quest.findClones(getGameData().getGameObjects())).iterator(); _j14it2212.hasNext(); ) {
+		  GameObject clonedQuestGo = (GameObject) _j14it2212.next();
 			Quest clonedQuest = new Quest(clonedQuestGo);
-			for (QuestLocation loc : clonedQuest.getLocations()) {
+			for (java.util.Iterator _j14it2213 = (clonedQuest.getLocations()).iterator(); _j14it2213.hasNext(); ) {
+			  QuestLocation loc = (QuestLocation) _j14it2213.next();
 				if (loc.getTagName().matches(this.getTagName())) {
 					loc.setLockAddress(this.getLockAddress());
 					if (message!=null && clonedQuest.getOwner()!=null) {

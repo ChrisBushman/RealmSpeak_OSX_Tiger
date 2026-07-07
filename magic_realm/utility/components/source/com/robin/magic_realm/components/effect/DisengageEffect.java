@@ -8,18 +8,19 @@ import com.robin.magic_realm.components.wrapper.CombatWrapper;
 
 public class DisengageEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		CombatWrapper combat = context.getCombatTarget();
 
 		// Remove all attackers and targets
-		ArrayList<GameObject> attackers = combat.getAttackers();
+		ArrayList attackers = combat.getAttackers();
 
-		for (GameObject a : attackers) {
+		for (java.util.Iterator _j14it2046 = (attackers).iterator(); _j14it2046.hasNext(); ) {
+		  GameObject a = (GameObject) _j14it2046.next();
 			RealmComponent.getRealmComponent(a).clearTargets();
 		}
 
-		for (GameObject a : attackers) {
+		for (java.util.Iterator _j14it2047 = (attackers).iterator(); _j14it2047.hasNext(); ) {
+		  GameObject a = (GameObject) _j14it2047.next();
 			CombatWrapper cw = new CombatWrapper(a);
 			if (cw.getAttackerCount() > 0) {
 				cw.setSheetOwner(true);
@@ -29,7 +30,6 @@ public class DisengageEffect implements ISpellEffect {
 		combat.removeAllAttackers();
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 	}
 

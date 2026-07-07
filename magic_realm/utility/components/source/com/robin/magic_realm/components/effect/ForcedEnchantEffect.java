@@ -5,7 +5,6 @@ import com.robin.magic_realm.components.attribute.ColorMagic;
 
 public class ForcedEnchantEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		CharacterActionChitComponent chit = (CharacterActionChitComponent)context.Target;
 		String change = context.Spell.getGameObject().getThisAttribute(chit.getMagicType());
@@ -15,7 +14,6 @@ public class ForcedEnchantEffect implements ISpellEffect {
 		chit.enchant(ColorMagic.makeColorMagic(change,true).getColorNumber());
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		CharacterActionChitComponent chit = (CharacterActionChitComponent)context.Target;
 		if (chit.isColor()) {

@@ -30,10 +30,27 @@ public class QuestRewardSummonMonster extends QuestReward {
 	public static final String LOCATION = "_loc";
 	public static final String MARK = "_mark";
 	
-	public static enum SummonType {
-		NewMonster,
-		SummonFromSetupCard,
-		SummonFromSetupCardOrMap
+	public static final class SummonType {
+		private final String _name;
+		private final int _ordinal;
+		private SummonType(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final SummonType NewMonster = new SummonType("NewMonster", 0);
+		public static final SummonType SummonFromSetupCard = new SummonType("SummonFromSetupCard", 1);
+		public static final SummonType SummonFromSetupCardOrMap = new SummonType("SummonFromSetupCardOrMap", 2);
+
+		private static final SummonType[] _VALUES = { NewMonster, SummonFromSetupCard, SummonFromSetupCardOrMap };
+		public static SummonType[] values() { SummonType[] r = new SummonType[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static SummonType valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	public QuestRewardSummonMonster(GameObject go) {
@@ -49,8 +66,9 @@ public class QuestRewardSummonMonster extends QuestReward {
 			monster.setThisAttribute(Constants.SUMMONED);
 		}
 		else {
-			ArrayList<GameObject> monsters = getGameData().getGameObjectsByName(getMonsterKeyName());
-			for (GameObject validMonster : monsters) {
+			ArrayList monsters = getGameData().getGameObjectsByName(getMonsterKeyName());
+			for (java.util.Iterator _j14it2348 = (monsters).iterator(); _j14it2348.hasNext(); ) {
+			  GameObject validMonster = (GameObject) _j14it2348.next();
 				if (getSummonType() == SummonType.SummonFromSetupCard && validMonster.getHeldBy() != SetupCardUtility.getDenizenHolder(validMonster)) continue;
 				monster = validMonster;
 				SetupCardUtility.resetDenizen(monster);
@@ -62,7 +80,7 @@ public class QuestRewardSummonMonster extends QuestReward {
 		if (locationOnly()) {
 			QuestLocation loc = getQuestLocation();
 			if (loc == null) return;
-			ArrayList<TileLocation> validLocations = new ArrayList<TileLocation>();
+			ArrayList validLocations = new ArrayList();
 			validLocations = loc.fetchAllLocations(frame, character, getGameData());
 			if(validLocations.isEmpty()) {
 				logger.fine("QuestLocation "+loc.getName()+" doesn't have any valid locations!");
@@ -73,11 +91,12 @@ public class QuestRewardSummonMonster extends QuestReward {
 			}
 			if (randomLocation()) {
 				int random = RandomNumber.getRandom(validLocations.size());
-				TileLocation tileLocation = validLocations.get(random);
+				TileLocation tileLocation = (TileLocation) validLocations.get(random);
 				tileLocation.clearing.add(monster,null);
 			}
 			else {
-				for (TileLocation location : validLocations) {
+				for (java.util.Iterator _j14it2349 = (validLocations).iterator(); _j14it2349.hasNext(); ) {
+				  TileLocation location = (TileLocation) _j14it2349.next();
 					GameObject summonMonster = monster.copy();
 					location.clearing.add(summonMonster, null);
 				}
@@ -89,9 +108,9 @@ public class QuestRewardSummonMonster extends QuestReward {
 			if (markDenizens()) {
 				monster.setThisAttribute(QuestConstants.QUEST_MARK,getParentQuest().getGameObject().getStringId());
 			}
-			ArrayList<ClearingDetail> clearings = character.getCurrentLocation().tile.getClearings();
+			ArrayList clearings = character.getCurrentLocation().tile.getClearings();
 			int random = RandomNumber.getRandom(clearings.size());
-			clearings.get(random).add(monster,null);
+			((ClearingDetail) clearings.get(random)).add(monster,null);
 			return;
 		}
 		character.getCurrentLocation().clearing.add(monster,null);
@@ -105,7 +124,7 @@ public class QuestRewardSummonMonster extends QuestReward {
 	
 	public String getDescription() {
 		if (locationOnly() && getQuestLocation() != null) {
-			StringBuilder sb = new StringBuilder();
+			StringBuffer sb = new StringBuffer();
 			sb.append(getMonsterKeyName()+" is summoned in ");
 			if (randomLocation()) {
 				sb.append("a random clearing of ");
@@ -175,7 +194,7 @@ public class QuestRewardSummonMonster extends QuestReward {
 		setString(LOCATION,location.getGameObject().getStringId());
 	}
 	
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}
 }

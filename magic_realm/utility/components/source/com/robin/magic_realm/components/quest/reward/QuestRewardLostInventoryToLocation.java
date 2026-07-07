@@ -27,7 +27,7 @@ public class QuestRewardLostInventoryToLocation extends QuestReward {
 	}
 	
 	public String getDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("All lost inventory will be sent to ");
 		sb.append(getQuestLocation());
 		sb.append(".");
@@ -58,7 +58,7 @@ public class QuestRewardLostInventoryToLocation extends QuestReward {
 		return null;
 	}
 	
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}
 }

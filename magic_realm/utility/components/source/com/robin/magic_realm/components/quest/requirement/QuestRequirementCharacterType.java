@@ -29,28 +29,19 @@ public class QuestRequirementCharacterType extends QuestRequirement {
 		if (mustBeTransmorphed() && transmorph == null) {
 			return false;
 		}
-		switch(getType()) {
-			case Denizen:
-				if (!rc.isDenizen() && transmorph != null && !transmorphRc.isDenizen()) return false;
-				break;
-			case Native:
-				if (!rc.isNative() && transmorph != null && !transmorphRc.isNative()) return false;
-				break;
-			case Monster:
-				if (!rc.isMonster() && transmorph != null && !transmorphRc.isMonster()) return false;
-				break;
-			case Animal:
-				if (transmorph != null && !transmorphRc.isTransformAnimal()) return false;
-				break;
-			case Mist:
-				if (!character.isMistLike()) return false;
-				break;
-			case Statue:
-				if (!character.isStatue()) return false;
-				break;
-			case Any:
-			default:
-				break;
+		TransmorphType _type = getType();
+		if (_type == TransmorphType.Denizen) {
+			if (!rc.isDenizen() && transmorph != null && !transmorphRc.isDenizen()) return false;
+		} else if (_type == TransmorphType.Native) {
+			if (!rc.isNative() && transmorph != null && !transmorphRc.isNative()) return false;
+		} else if (_type == TransmorphType.Monster) {
+			if (!rc.isMonster() && transmorph != null && !transmorphRc.isMonster()) return false;
+		} else if (_type == TransmorphType.Animal) {
+			if (transmorph != null && !transmorphRc.isTransformAnimal()) return false;
+		} else if (_type == TransmorphType.Mist) {
+			if (!character.isMistLike()) return false;
+		} else if (_type == TransmorphType.Statue) {
+			if (!character.isStatue()) return false;
 		}
 		if (getRegExFilter() != null && getRegExFilter().length() > 0) {
 			Pattern pattern = Pattern.compile(getRegExFilter());

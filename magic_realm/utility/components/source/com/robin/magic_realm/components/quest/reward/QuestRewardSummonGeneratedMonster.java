@@ -31,25 +31,42 @@ public class QuestRewardSummonGeneratedMonster extends QuestReward {
 	public static final String FAME = "_fame";
 	public static final String NOTORIETY = "_not";
 		
-	public static enum MonsterType {
-		Basilisk,
-		Eagle,
-		Bear,
-		Wolf,
-		Hawk,
-		Squirrel,
-		Skeleton,
-		SkeletonArcher,
-		SkeletonSwordsman,
-		ZombieM5H6,
-		ZombieM5T5,
-		ZombieM4M6,
-		Blob,
-		Wasp,
-		AirElemental,
-		EarthElemental,
-		FireElemental,
-		WaterElemental,
+	public static final class MonsterType {
+		private final String _name;
+		private final int _ordinal;
+		private MonsterType(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final MonsterType Basilisk = new MonsterType("Basilisk", 0);
+		public static final MonsterType Eagle = new MonsterType("Eagle", 1);
+		public static final MonsterType Bear = new MonsterType("Bear", 2);
+		public static final MonsterType Wolf = new MonsterType("Wolf", 3);
+		public static final MonsterType Hawk = new MonsterType("Hawk", 4);
+		public static final MonsterType Squirrel = new MonsterType("Squirrel", 5);
+		public static final MonsterType Skeleton = new MonsterType("Skeleton", 6);
+		public static final MonsterType SkeletonArcher = new MonsterType("SkeletonArcher", 7);
+		public static final MonsterType SkeletonSwordsman = new MonsterType("SkeletonSwordsman", 8);
+		public static final MonsterType ZombieM5H6 = new MonsterType("ZombieM5H6", 9);
+		public static final MonsterType ZombieM5T5 = new MonsterType("ZombieM5T5", 10);
+		public static final MonsterType ZombieM4M6 = new MonsterType("ZombieM4M6", 11);
+		public static final MonsterType Blob = new MonsterType("Blob", 12);
+		public static final MonsterType Wasp = new MonsterType("Wasp", 13);
+		public static final MonsterType AirElemental = new MonsterType("AirElemental", 14);
+		public static final MonsterType EarthElemental = new MonsterType("EarthElemental", 15);
+		public static final MonsterType FireElemental = new MonsterType("FireElemental", 16);
+		public static final MonsterType WaterElemental = new MonsterType("WaterElemental", 17);
+
+		private static final MonsterType[] _VALUES = { Basilisk, Eagle, Bear, Wolf, Hawk, Squirrel, Skeleton, SkeletonArcher, SkeletonSwordsman, ZombieM5H6, ZombieM5T5, ZombieM4M6, Blob, Wasp, AirElemental, EarthElemental, FireElemental, WaterElemental };
+		public static MonsterType[] values() { MonsterType[] r = new MonsterType[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static MonsterType valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	public QuestRewardSummonGeneratedMonster(GameObject go) {
@@ -57,85 +74,59 @@ public class QuestRewardSummonGeneratedMonster extends QuestReward {
 	}
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
-		ArrayList<GameObject> monsters = new ArrayList<GameObject>();
+		ArrayList monsters = new ArrayList();
 		
 		MonsterCreator mc = null;
-		switch (getMonsterType()) {
-			case Skeleton:
-			case SkeletonArcher:
-			case SkeletonSwordsman:
-			case ZombieM5H6:
-			case ZombieM5T5:
-			case ZombieM4M6:
-			case Blob:
-			case Wasp:
-				mc = new MonsterCreator("QuestRewardSummonGeneratedMonster");
-				break;
-			default:
-				break;
+		MonsterType _mt = getMonsterType();
+		if (_mt == MonsterType.Skeleton || _mt == MonsterType.SkeletonArcher || _mt == MonsterType.SkeletonSwordsman
+				|| _mt == MonsterType.ZombieM5H6 || _mt == MonsterType.ZombieM5T5 || _mt == MonsterType.ZombieM4M6
+				|| _mt == MonsterType.Blob || _mt == MonsterType.Wasp) {
+			mc = new MonsterCreator("QuestRewardSummonGeneratedMonster");
 		}
-		
+
 		for (int i = 0; i < getAmount(); i++) {
-			switch (getMonsterType()) {
-			case Basilisk:
+			if (_mt == MonsterType.Basilisk) {
 				monsters.add((new SummonAnimal(frame)).createAnimal(getGameData(), SummonAnimal.AnimalType.Basilisk));
-				break;
-			case Eagle:
+			} else if (_mt == MonsterType.Eagle) {
 				monsters.add((new SummonAnimal(frame)).createAnimal(getGameData(), SummonAnimal.AnimalType.Basilisk));
-				break;
-			case Bear:
+			} else if (_mt == MonsterType.Bear) {
 				monsters.add((new SummonAnimal(frame)).createAnimal(getGameData(), SummonAnimal.AnimalType.Basilisk));
-				break;
-			case Wolf:
+			} else if (_mt == MonsterType.Wolf) {
 				monsters.add((new SummonAnimal(frame)).createAnimal(getGameData(), SummonAnimal.AnimalType.Basilisk));
-				break;
-			case Hawk:
+			} else if (_mt == MonsterType.Hawk) {
 				monsters.add((new SummonAnimal(frame)).createAnimal(getGameData(), SummonAnimal.AnimalType.Basilisk));
-				break;
-			case Squirrel:
+			} else if (_mt == MonsterType.Squirrel) {
 				monsters.add((new SummonAnimal(frame)).createAnimal(getGameData(), SummonAnimal.AnimalType.Basilisk));
-				break;
-			case Skeleton:
+			} else if (_mt == MonsterType.Skeleton) {
 				monsters.add(RaiseDead.createSkeleton(mc, getGameData()));
-				break;
-			case SkeletonArcher:
+			} else if (_mt == MonsterType.SkeletonArcher) {
 				monsters.add(RaiseDead.createSkeletonArcher(mc, getGameData()));
-				break;
-			case SkeletonSwordsman:
+			} else if (_mt == MonsterType.SkeletonSwordsman) {
 				monsters.add(RaiseDead.createSkeletonSwordsman(mc, getGameData()));
-				break;
-			case ZombieM5H6:
+			} else if (_mt == MonsterType.ZombieM5H6) {
 				monsters.add(RaiseDead.createZombie(mc, getGameData(),0));
-				break;
-			case ZombieM5T5:
+			} else if (_mt == MonsterType.ZombieM5T5) {
 				monsters.add(RaiseDead.createZombie(mc, getGameData(),1));
-				break;
-			case ZombieM4M6:
+			} else if (_mt == MonsterType.ZombieM4M6) {
 				monsters.add(RaiseDead.createZombie(mc, getGameData(),2));
-				break;
-			case Blob:
+			} else if (_mt == MonsterType.Blob) {
 				monsters.add(SetupCardUtility.createBlob(mc, getGameData()));
-				break;
-			case Wasp:
+			} else if (_mt == MonsterType.Wasp) {
 				monsters.add(SetupCardUtility.createWasp(mc, getGameData()));
-				break;
-			case AirElemental:
+			} else if (_mt == MonsterType.AirElemental) {
 				monsters.add((new SummonElemental(frame)).createElemental(getGameData(), SummonElemental.ElementalType.Water));
-				break;
-			case EarthElemental:
+			} else if (_mt == MonsterType.EarthElemental) {
 				monsters.add((new SummonElemental(frame)).createElemental(getGameData(), SummonElemental.ElementalType.Water));
-				break;
-			case FireElemental:
+			} else if (_mt == MonsterType.FireElemental) {
 				monsters.add((new SummonElemental(frame)).createElemental(getGameData(), SummonElemental.ElementalType.Fire));
-				break;
-			case WaterElemental:
+			} else if (_mt == MonsterType.WaterElemental) {
 				monsters.add((new SummonElemental(frame)).createElemental(getGameData(), SummonElemental.ElementalType.Water));
-				break;
 			}
 		}
 		
 		if (customStats()) {
-			for (GameObject monster:monsters) {
+			for (java.util.Iterator _j14it2358 = (monsters).iterator(); _j14it2358.hasNext(); ) {
+			  GameObject monster = (GameObject) _j14it2358.next();
 				monster.setThisAttribute("notoriety",getNotoriety());
 				monster.setThisAttribute("fame",getFame());
 			}
@@ -144,7 +135,7 @@ public class QuestRewardSummonGeneratedMonster extends QuestReward {
 		if (locationOnly()) {
 			QuestLocation loc = getQuestLocation();
 			if (loc == null) return;
-			ArrayList<TileLocation> validLocations = new ArrayList<TileLocation>();
+			ArrayList validLocations = new ArrayList();
 			validLocations = loc.fetchAllLocations(frame, character, getGameData());
 			if(validLocations.isEmpty()) {
 				logger.fine("QuestLocation "+loc.getName()+" doesn't have any valid locations!");
@@ -152,14 +143,17 @@ public class QuestRewardSummonGeneratedMonster extends QuestReward {
 			}
 			if (randomLocation()) {
 				int random = RandomNumber.getRandom(validLocations.size());
-				TileLocation tileLocation = validLocations.get(random);
-				for (GameObject monster : monsters) {
+				TileLocation tileLocation = (TileLocation) validLocations.get(random);
+				for (java.util.Iterator _j14it2359 = (monsters).iterator(); _j14it2359.hasNext(); ) {
+				  GameObject monster = (GameObject) _j14it2359.next();
 					tileLocation.clearing.add(monster,null);
 				}
 			}
 			else {
-				for (TileLocation location : validLocations) {
-					for (GameObject monster : monsters) {
+				for (java.util.Iterator _j14it2360 = (validLocations).iterator(); _j14it2360.hasNext(); ) {
+				  TileLocation location = (TileLocation) _j14it2360.next();
+					for (java.util.Iterator _j14it2361 = (monsters).iterator(); _j14it2361.hasNext(); ) {
+					  GameObject monster = (GameObject) _j14it2361.next();
 						GameObject summonMonster = monster.copy();
 						location.clearing.add(summonMonster, null);
 					}
@@ -169,21 +163,23 @@ public class QuestRewardSummonGeneratedMonster extends QuestReward {
 		}
 		
 		if (randomClearing()) {
-			ArrayList<ClearingDetail> clearings = character.getCurrentLocation().tile.getClearings();
+			ArrayList clearings = character.getCurrentLocation().tile.getClearings();
 			int random = RandomNumber.getRandom(clearings.size());
-			for (GameObject monster : monsters) {
-				clearings.get(random).add(monster,null);
+			for (java.util.Iterator _j14it2362 = (monsters).iterator(); _j14it2362.hasNext(); ) {
+			  GameObject monster = (GameObject) _j14it2362.next();
+				((ClearingDetail) clearings.get(random)).add(monster,null);
 			}
 			return;
 		}
 		
-		for (GameObject monster : monsters) {
+		for (java.util.Iterator _j14it2363 = (monsters).iterator(); _j14it2363.hasNext(); ) {
+		  GameObject monster = (GameObject) _j14it2363.next();
 			character.getCurrentLocation().clearing.add(monster,null);
 		}
 	}
 		
 	public String getDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append(getAmount()+" ");
 		sb.append(getMonsterType());
 		if (getAmount()>1) {
@@ -252,7 +248,7 @@ public class QuestRewardSummonGeneratedMonster extends QuestReward {
 		setString(LOCATION,location.getGameObject().getStringId());
 	}
 	
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}
 	

@@ -33,7 +33,7 @@ public class QuestRewardQuestVps extends QuestReward {
 	}
 	
 	public String getDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		if (substract()) {
 			sb.append("Substract "+"VPs of ");
 		}

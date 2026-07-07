@@ -49,30 +49,31 @@ public class QuestRewardCompanion extends QuestReward {
 			if(!character.getCurrentLocation().clearing.isEdge()) {
 				character.getCurrentLocation().clearing.add(companion,null);
 			} else {
-				ArrayList<PathDetail> path = character.getCurrentLocation().clearing.getConnectedPaths();
-				ClearingDetail connectedClearing = path.get(0).findConnection(character.getCurrentLocation().clearing);
+				ArrayList path = character.getCurrentLocation().clearing.getConnectedPaths();
+				ClearingDetail connectedClearing = ((PathDetail) path.get(0)).findConnection(character.getCurrentLocation().clearing);
 				connectedClearing.add(companion,null);
 			}
 			if (locationOnly()) {
 				QuestLocation loc = getQuestLocation();
 				if (loc == null) return;
-				ArrayList<TileLocation> validLocations = new ArrayList<TileLocation>();
+				ArrayList validLocations = new ArrayList();
 				validLocations = loc.fetchAllLocations(frame, character, getGameData());
 				if(validLocations.isEmpty()) {
 					logger.fine("QuestLocation "+loc.getName()+" doesn't have any valid locations!");
 					return;
 				}
 				int random = RandomNumber.getRandom(validLocations.size());
-				TileLocation tileLocation = validLocations.get(random);
+				TileLocation tileLocation = (TileLocation) validLocations.get(random);
 				tileLocation.clearing.add(companion,null);
 			}
 		}
 		else {
 			GamePool pool = new GamePool(character.getGameData().getGameObjects());
-			ArrayList<GameObject> companionsExisting = new ArrayList<GameObject>();
+			ArrayList companionsExisting = new ArrayList();
 			companionsExisting.addAll(pool.find(getCompanionQuery()));
 			companionsExisting.addAll(pool.find("name="+getCompanionKeyName()));
-			for (GameObject companion : companionsExisting ) {
+			for (java.util.Iterator _j14it2347 = (companionsExisting).iterator(); _j14it2347.hasNext(); ) {
+			  GameObject companion = (GameObject) _j14it2347.next();
 				RealmComponent companionRc = RealmComponent.getRealmComponent(companion);
 				if (companionRc != null && companionRc.getOwnerId() != null && companionRc.getOwnerId().matches(String.valueOf(character.getGameObject().getId()))) {
 					character.removeHireling(companion);
@@ -96,7 +97,7 @@ public class QuestRewardCompanion extends QuestReward {
 	}
 	
 	public String getDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append(getCompanionKeyName());
 		if (getGainType()==GainType.Gain) {
 			sb.append(" joins as a companion");
@@ -164,7 +165,7 @@ public class QuestRewardCompanion extends QuestReward {
 	public void setQuestLocation(QuestLocation location) {
 		setString(LOCATION,location.getGameObject().getStringId());
 	}
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}
 }

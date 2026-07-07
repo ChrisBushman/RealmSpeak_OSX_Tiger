@@ -28,7 +28,7 @@ public class QuestRewardVisitor extends QuestReward {
 	public void processReward(JFrame frame, CharacterWrapper character) {
 		String actionDescription;
 		ChitAcquisitionType at = getAcquisitionType();
-		ArrayList<GameObject> objects;
+		ArrayList objects;
 		if (at == ChitAcquisitionType.Lose) {
 			actionDescription = ": Select ONE visitor to lose.";
 			objects = character.getInactiveInventory();
@@ -37,12 +37,12 @@ public class QuestRewardVisitor extends QuestReward {
 			actionDescription = ": Select ONE visitor to join you.";
 			objects = getGameData().getGameObjects();
 		}
-		ArrayList<GameObject> selectionObjects = getObjectList(objects, at, getVisitorRegex());
+		ArrayList selectionObjects = getObjectList(objects, at, getVisitorRegex());
 		if (selectionObjects.size() == 0)
 			return; // no real reward!
 		GameObject selected = null;
 		if (selectionObjects.size() == 1) {
-			selected = selectionObjects.get(0);
+			selected = (GameObject) selectionObjects.get(0);
 		}
 		else {
 			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame, getTitleForDialog() + actionDescription, false);
@@ -62,9 +62,9 @@ public class QuestRewardVisitor extends QuestReward {
 					character.getCurrentLocation().clearing.add(selected,character);
 				}
 				else {
-					ArrayList<ClearingDetail> clearings = loc.tile.getClearings();
+					ArrayList clearings = loc.tile.getClearings();
 					int random = RandomNumber.getRandom(clearings.size());
-					clearings.get(random).add(selected,character);
+					((ClearingDetail) clearings.get(random)).add(selected,character);
 				}
 			}
 		}
@@ -79,11 +79,12 @@ public class QuestRewardVisitor extends QuestReward {
 		}
 	}
 
-	private static ArrayList<GameObject> getObjectList(ArrayList<GameObject> sourceObjects, ChitAcquisitionType at, String regEx) {
+	private static ArrayList getObjectList(ArrayList sourceObjects, ChitAcquisitionType at, String regEx) {
 		Pattern pattern = (regEx == null || regEx.length() == 0) ? null : Pattern.compile(regEx);
 		GamePool pool = new GamePool(sourceObjects);
-		ArrayList<GameObject> objects = new ArrayList<GameObject>();
-		for (GameObject go : pool.find("visitor")) {
+		ArrayList objects = new ArrayList();
+		for (java.util.Iterator _j14it2364 = (pool.find("visitor")).iterator(); _j14it2364.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2364.next();
 			if (pattern == null || pattern.matcher(go.getName()).find()) {
 				if (at == ChitAcquisitionType.Available) {
 					// Make sure these are not already hired
@@ -98,7 +99,7 @@ public class QuestRewardVisitor extends QuestReward {
 	}
 
 	public String getDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append(getVisitorRegex());
 		ChitAcquisitionType at = getAcquisitionType();
 		if (at == ChitAcquisitionType.Lose) {

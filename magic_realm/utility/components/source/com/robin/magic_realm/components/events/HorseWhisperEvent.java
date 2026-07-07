@@ -24,26 +24,26 @@ public class HorseWhisperEvent implements IEvent {
 	}
 	public void expire(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_HORSE_WHISPER);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_HORSE_WHISPER);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2484 = (ids).iterator(); _j14it2484.hasNext(); ) {
+			  String id = (String) _j14it2484.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				tile.removeThisAttribute(Constants.EVENT_HORSE_WHISPER);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_HORSE_WHISPER,id);
 			}
 		}
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
 		String text = "";
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_HORSE_WHISPER);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_HORSE_WHISPER);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2485 = (ids).iterator(); _j14it2485.hasNext(); ) {
+			  String id = (String) _j14it2485.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				text = text + tile.getNameWithNumber() + ", ";
 			}

@@ -4,38 +4,71 @@ import javax.swing.ImageIcon;
 
 import com.robin.general.swing.ImageCache;
 
-public enum QuestStepState {
-	None,		// This only happens when you are building quests!
-	Pending,	// Gray - Still steps that must be completed before this step can be considered
-	Ready,		// Gold - Requirements have not been met yet, but should be checked each time
-	Finished,	// Gold with green check - Requirements have been met, and rewards have been divied out
-	Failed,		// Gold with red X - Another step that preempts this step was already completed (also, if step becomes impossible...)
-	;
+public final class QuestStepState {
+	private final String _name;
+	private final int _ordinal;
+	private QuestStepState(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+	public String toString() { return _name; }
+	public String name() { return _name; }
+	public int ordinal() { return _ordinal; }
+	public boolean equals(Object o) { return this == o; }
+	public int hashCode() { return _ordinal; }
+	private int _thisOrdinal() { return _ordinal; }
+
+	public static final QuestStepState None = new QuestStepState("None", 0);
+	public static final QuestStepState Pending = new QuestStepState("Pending", 1);
+	public static final QuestStepState Ready = new QuestStepState("Ready", 2);
+	public static final QuestStepState Finished = new QuestStepState("Finished", 3);
+	public static final QuestStepState Failed = new QuestStepState("Failed", 4);
+
+	private static final QuestStepState[] _VALUES = { None, Pending, Ready, Finished, Failed };
+	public static QuestStepState[] values() { QuestStepState[] r = new QuestStepState[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+	public static QuestStepState valueOf(String s) {
+		for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+		throw new IllegalArgumentException(s);
+	}
+
+	// --- enum methods ---
 	public static int tokenSizePercent = 60;
 	private static ImageIcon readyIcon = ImageCache.getIcon("quests/token",tokenSizePercent);
 	private static ImageIcon pendingIcon = ImageCache.getIcon("quests/tokenpending",tokenSizePercent);
 	private static ImageIcon finishedIcon = ImageCache.getIcon("quests/tokendone",tokenSizePercent);
 	private static ImageIcon failedIcon = ImageCache.getIcon("quests/tokenfail",tokenSizePercent);
-	
+
 	public ImageIcon getIcon() {
-		switch(this) {
-			case None:			return readyIcon;
-			case Pending:		return pendingIcon;
-			case Ready:			return readyIcon;
-			case Finished:		return finishedIcon;
-			case Failed:		return failedIcon;
-		}
+		if (this == None) {
+				return null;
+			}
+			else if (this == Pending) {
+				return pendingIcon;
+			}
+			else if (this == Ready) {
+				return readyIcon;
+			}
+			else if (this == Finished) {
+				return finishedIcon;
+			}
+			else if (this == Failed) {
+				return failedIcon;
+			}
 		return null;
 	}
 	public String getTooltip() {
-		switch(this) {
-			case Pending:		return "PENDING - Previous steps must be completed first.";
-			case Ready:			return "READY - Meet requirements to get reward, and move to next step.";
-			case Finished:		return "FINISHED - Step has been completed.";
-			case Failed:		return "FAILED - Step was failed.";
-			case None:			break;
-			default:			break;
-		}
+		if (this == None) {
+				return null;
+			}
+			else if (this == Pending) {
+				return "Quest Pending";
+			}
+			else if (this == Ready) {
+				return "Quest Ready";
+			}
+			else if (this == Finished) {
+				return "Quest Step Finished";
+			}
+			else if (this == Failed) {
+				return "Quest Step Failed";
+			}
 		return null;
 	}
 }

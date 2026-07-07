@@ -22,24 +22,27 @@ public class QuestRewardScareMonsters extends QuestReward {
 		if (!current.isInClearing()) return;
 		
 		// Get all the monsters
-		ArrayList<MonsterChitComponent> monsters = new ArrayList<MonsterChitComponent>();
-		for(RealmComponent rc:current.clearing.getClearingComponents()) {
+		ArrayList monsters = new ArrayList();
+		for (java.util.Iterator _j14it2400 = (current.clearing.getClearingComponents()).iterator(); _j14it2400.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2400.next();
 			if (rc.isMonster() && rc.getOwnerId()==null) { // I'm going for uncontrolled monsters only here
 				monsters.add((MonsterChitComponent)rc);
 			}
 		}
 		
 		// Get all the other clearings
-		ArrayList<ClearingDetail> otherClearings = new ArrayList<ClearingDetail>();
-		for(ClearingDetail clearing:current.tile.getClearings()) {
+		ArrayList otherClearings = new ArrayList();
+		for (java.util.Iterator _j14it2401 = (current.tile.getClearings()).iterator(); _j14it2401.hasNext(); ) {
+		  ClearingDetail clearing = (ClearingDetail) _j14it2401.next();
 			if (clearing.getNum()==current.clearing.getNum()) continue;
 			otherClearings.add(clearing);
 		}
 		
 		// Now distribute! (jeese, excited enough)
-		for(MonsterChitComponent monster:monsters) {
+		for (java.util.Iterator _j14it2402 = (monsters).iterator(); _j14it2402.hasNext(); ) {
+		  MonsterChitComponent monster = (MonsterChitComponent) _j14it2402.next();
 			int r = RandomNumber.getRandom(otherClearings.size());
-			ClearingDetail otherClearing = otherClearings.get(r);
+			ClearingDetail otherClearing = (ClearingDetail) otherClearings.get(r);
 			ClearingUtility.moveToLocation(monster.getGameObject(),otherClearing.getTileLocation());
 		}
 	}

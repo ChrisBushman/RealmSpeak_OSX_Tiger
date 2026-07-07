@@ -82,30 +82,33 @@ public abstract class Search extends RealmTable {
 		qp.searchHadAnEffect = note!=null;
 		character.testQuestRequirements(getParentFrame(),qp);
 	}
-	protected ArrayList<ImageIcon> convertPathDetailToImageIcon(ArrayList<PathDetail> paths) {
-		ArrayList<ImageIcon> list = new ArrayList<ImageIcon>();
+	protected ArrayList convertPathDetailToImageIcon(ArrayList paths) {
+		ArrayList list = new ArrayList();
 		if (paths!=null) {
-			for (PathDetail path:paths) {
+			for (java.util.Iterator _j14it2163 = (paths).iterator(); _j14it2163.hasNext(); ) {
+			  PathDetail path = (PathDetail) _j14it2163.next();
 				list.add(new PathIcon(path));
 			}
 		}
 		return list;
 	}
-	protected ArrayList<ImageIcon> convertRealmComponentToImageIcon(ArrayList<RealmComponent> chits) {
-		ArrayList<ImageIcon> list = new ArrayList<ImageIcon>();
+	protected ArrayList convertRealmComponentToImageIcon(ArrayList chits) {
+		ArrayList list = new ArrayList();
 		if (chits!=null) {
-			for (RealmComponent rc:chits) {
+			for (java.util.Iterator _j14it2164 = (chits).iterator(); _j14it2164.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2164.next();
 				list.add(getIconForSearch(rc));
 			}
 		}
 		return list;
 	}
-	protected ArrayList<PathDetail> getAllUndiscoveredPaths(CharacterWrapper character) {
-		ArrayList<PathDetail> list = new ArrayList<PathDetail>();
+	protected ArrayList getAllUndiscoveredPaths(CharacterWrapper character) {
+		ArrayList list = new ArrayList();
 		ClearingDetail currentClearing = getCurrentClearing(character);
-		ArrayList<PathDetail> passages = currentClearing.getConnectedPaths();
+		ArrayList passages = currentClearing.getConnectedPaths();
 		if (passages==null) return list;
-		for (PathDetail path : passages) {
+		for (java.util.Iterator _j14it2165 = (passages).iterator(); _j14it2165.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it2165.next();
 			if (path.isHidden()) {
 				if (!character.hasHiddenPathDiscovery(path.getFullPathKey())) {
 					list.add(path);
@@ -114,12 +117,13 @@ public abstract class Search extends RealmTable {
 		}
 		return list;
 	}
-	protected ArrayList<PathDetail> getAllUndiscoveredPassages(CharacterWrapper character) {
-		ArrayList<PathDetail> list = new ArrayList<PathDetail>();
+	protected ArrayList getAllUndiscoveredPassages(CharacterWrapper character) {
+		ArrayList list = new ArrayList();
 		ClearingDetail currentClearing = getCurrentClearing(character);
-		ArrayList<PathDetail> passages = currentClearing.getConnectedPaths();
+		ArrayList passages = currentClearing.getConnectedPaths();
 		if (passages==null) return list;
-		for (PathDetail path : passages) {
+		for (java.util.Iterator _j14it2166 = (passages).iterator(); _j14it2166.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it2166.next();
 			if (path.isSecret()) {
 				if (!character.hasSecretPassageDiscovery(path.getFullPathKey())) {
 					list.add(path);
@@ -128,10 +132,11 @@ public abstract class Search extends RealmTable {
 		}
 		return list;
 	}
-	protected ArrayList<RealmComponent> getAllDiscoverableChits(CharacterWrapper character,boolean onlyUndiscovered) {
-		ArrayList<RealmComponent> list = new ArrayList<RealmComponent>();
+	protected ArrayList getAllDiscoverableChits(CharacterWrapper character,boolean onlyUndiscovered) {
+		ArrayList list = new ArrayList();
 		ClearingDetail currentClearing = getCurrentClearing(character);
-		for (RealmComponent rc:currentClearing.getClearingComponents()) {
+		for (java.util.Iterator _j14it2167 = (currentClearing.getClearingComponents()).iterator(); _j14it2167.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2167.next();
 			if (rc.getGameObject().hasThisAttribute("chit")
 					&& rc.getGameObject().hasThisAttribute("seen")) { // Only "seen" chits should be added as hints
 				if (rc.getGameObject().hasThisAttribute("discovery")) {
@@ -168,9 +173,10 @@ public abstract class Search extends RealmTable {
 		// Discover treasure locations in current clearing
 		String message = "Discover chit(s) - Found ";
 		ClearingDetail currentClearing = getCurrentClearing(character);
-		Collection<RealmComponent> allChits = currentClearing.getClearingComponents();
+		Collection allChits = currentClearing.getClearingComponents();
 		int count=0;
-		for (RealmComponent rc : allChits) {
+		for (java.util.Iterator _j14it2168 = (allChits).iterator(); _j14it2168.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2168.next();
 			// only discover discovery chits
 			if (rc.getGameObject().hasThisAttribute("chit")) {
 				boolean foundSomething = discoverChit(getParentFrame(),character,currentClearing,rc,qp,getListener(),usesMagicSight);
@@ -206,7 +212,7 @@ public abstract class Search extends RealmTable {
 			return true;
 		}
 		else if (rc.getGameObject().hasThisAttribute("minor_tl")) {
-			GameObject thing = rc.getGameObject().getHold().get(0); // better be one thing there!
+			GameObject thing = (GameObject) rc.getGameObject().getHold().get(0); // better be one thing there!
 			if (thing.hasThisAttribute("spell")) {
 				if (character.canLearn(thing)) {
 					discoveryName = discoveryName + " (learned "+thing.getName()+")";
@@ -232,8 +238,9 @@ public abstract class Search extends RealmTable {
 				
 				if (rc.isGate()) {
 					GamePool pool = new GamePool(character.getGameData().getGameObjects());
-					ArrayList<GameObject> characters = pool.find(CharacterWrapper.NAME_KEY);
-					for (GameObject otherCharacterGo : characters) {
+					ArrayList characters = pool.find(CharacterWrapper.NAME_KEY);
+					for (java.util.Iterator _j14it2169 = (characters).iterator(); _j14it2169.hasNext(); ) {
+					  GameObject otherCharacterGo = (GameObject) _j14it2169.next();
 						CharacterWrapper otherCharacter = new CharacterWrapper(otherCharacterGo);
 						if (otherCharacter.hasActiveInventoryThisKey(Constants.GATE_MASTER)) {
 							otherCharacter.addOtherChitDiscovery(rc.getGameObject().getName());
@@ -246,8 +253,9 @@ public abstract class Search extends RealmTable {
 		return false;
 	}
 	protected String doPaths(CharacterWrapper character) {
-		ArrayList<PathDetail> list = getAllUndiscoveredPaths(character);
-		for (PathDetail path:list) {
+		ArrayList list = getAllUndiscoveredPaths(character);
+		for (java.util.Iterator _j14it2170 = (list).iterator(); _j14it2170.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it2170.next();
 			character.addHiddenPathDiscovery(path.getFullPathKey());
 		}
 		QuestRequirementParams qp = new QuestRequirementParams();
@@ -263,8 +271,9 @@ public abstract class Search extends RealmTable {
 		return ret;
 	}
 	protected String doPassages(CharacterWrapper character) {
-		ArrayList<PathDetail> list = getAllUndiscoveredPassages(character);
-		for (PathDetail path:list) {
+		ArrayList list = getAllUndiscoveredPassages(character);
+		for (java.util.Iterator _j14it2171 = (list).iterator(); _j14it2171.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it2171.next();
 			character.addSecretPassageDiscovery(path.getFullPathKey());
 		}
 		

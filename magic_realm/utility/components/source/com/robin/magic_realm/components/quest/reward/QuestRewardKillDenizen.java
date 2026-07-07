@@ -40,13 +40,13 @@ public class QuestRewardKillDenizen extends QuestReward {
 	}
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
-		ArrayList<GameObject> denizens = new ArrayList<GameObject>();
+		ArrayList denizens = new ArrayList();
 		if (getDenizenNameRegex().length() > 0) {
 			denizens = character.getGameData().getGameObjectsByNameRegex(getDenizenNameRegex());
 		}
 		else {
 			GamePool pool = new GamePool(getGameData().getGameObjects());
-			ArrayList<String> query = new ArrayList<String>();
+			ArrayList query = new ArrayList();
 			query.add("vulnerability");
 			query.add("denizen");
 			denizens.addAll(pool.find(query));
@@ -57,7 +57,8 @@ public class QuestRewardKillDenizen extends QuestReward {
 		if (numberOfDenizens() != 0) {
 			Collections.shuffle(denizens);
 		}
-		for (GameObject denizen : denizens) {
+		for (java.util.Iterator _j14it2393 = (denizens).iterator(); _j14it2393.hasNext(); ) {
+		  GameObject denizen = (GameObject) _j14it2393.next();
 			if (!denizen.hasThisAttribute("vulnerability") || (!denizen.hasThisAttribute("denizen") && !isATransformation(denizen)) || denizen.hasThisAttribute(Constants.DEAD)) continue;
 			GameObject denizenHolder = SetupCardUtility.getDenizenHolder(denizen);
 			if (denizenHolder != null && denizen.getHeldBy() == denizenHolder) continue;
@@ -164,22 +165,22 @@ public class QuestRewardKillDenizen extends QuestReward {
 	private int numberOfDenizens() {
 		return getInt(AMOUNT);
 	}
-	private Boolean requiresMark() {
+	private boolean requiresMark() {
 		return getBoolean(KILL_MARKED);
 	}
-	private Boolean killHirelings() {
+	private boolean killHirelings() {
 		return getBoolean(KILL_HIRELINGS);
 	}
-	private Boolean killCompanions() {
+	private boolean killCompanions() {
 		return getBoolean(KILL_COMPANIONS);
 	}
-	private Boolean killSummoned() {
+	private boolean killSummoned() {
 		return getBoolean(KILL_SUMMONED);
 	}
-	private Boolean killCloned() {
+	private boolean killCloned() {
 		return getBoolean(KILL_CLONED);
 	}
-	private Boolean killOnlyHirelingsCompanionsSummonedMonsters() {
+	private boolean killOnlyHirelingsCompanionsSummonedMonsters() {
 		return getBoolean(KILL_LIMITED);
 	}
 	public RewardType getRewardType() {
@@ -212,7 +213,7 @@ public class QuestRewardKillDenizen extends QuestReward {
 	public void setQuestLocation(QuestLocation location) {
 		setString(LOCATION,location.getGameObject().getStringId());
 	}
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}
 	

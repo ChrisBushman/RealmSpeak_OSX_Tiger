@@ -15,10 +15,27 @@ public class QuestRewardSpellEffectOnTile extends QuestReward {
 	public static final String SPELL = "_spell";
 	public static final String REMOVE = "_remove";
 	
-	public enum EffectOnTile {
-		Fog,
-		FrozenWater,
-		ViolentStorm,
+	public static final class EffectOnTile {
+		private final String _name;
+		private final int _ordinal;
+		private EffectOnTile(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final EffectOnTile Fog = new EffectOnTile("Fog", 0);
+		public static final EffectOnTile FrozenWater = new EffectOnTile("FrozenWater", 1);
+		public static final EffectOnTile ViolentStorm = new EffectOnTile("ViolentStorm", 2);
+
+		private static final EffectOnTile[] _VALUES = { Fog, FrozenWater, ViolentStorm };
+		public static EffectOnTile[] values() { EffectOnTile[] r = new EffectOnTile[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static EffectOnTile valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	public QuestRewardSpellEffectOnTile(GameObject go) {
@@ -27,17 +44,14 @@ public class QuestRewardSpellEffectOnTile extends QuestReward {
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
 		String spell;
-		switch (getSpell()) {
-		case Fog:
+		EffectOnTile _eot = getSpell();
+		if (_eot == EffectOnTile.Fog) {
 			spell = "fog";
-			break;
-		case FrozenWater:
+		} else if (_eot == EffectOnTile.FrozenWater) {
 			spell = "frozen water";
-			break;
-		case ViolentStorm:
+		} else if (_eot == EffectOnTile.ViolentStorm) {
 			spell = "violent storm";
-			break;
-		default:
+		} else {
 			return;
 		}
 		
@@ -61,7 +75,7 @@ public class QuestRewardSpellEffectOnTile extends QuestReward {
 		return EffectOnTile.valueOf(getString(SPELL));
 	}
 	
-	private Boolean remove() {
+	private boolean remove() {
 		return getBoolean(REMOVE);
 	}
 	

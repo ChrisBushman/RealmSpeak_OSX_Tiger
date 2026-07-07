@@ -7,7 +7,6 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class DarkFavorEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		CharacterWrapper target = new CharacterWrapper(context.Target.getGameObject());
 		DieRoller roller = DieRollBuilder.getDieRollBuilder(context.Parent,target,0).createRoller("DarkFavor");
@@ -16,7 +15,6 @@ public class DarkFavorEffect implements ISpellEffect {
 		target.setWeatherFatigue(target.getWeatherFatigue()+fatigue);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 	}
 

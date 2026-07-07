@@ -21,7 +21,7 @@ public abstract class MonsterTable extends RealmTable {
 	public MonsterCreator getMonsterCreator() {
 		return monsterCreator;
 	}
-	public ArrayList<GameObject> getOneOfEach(CharacterWrapper character) {
+	public ArrayList getOneOfEach(CharacterWrapper character) {
 		applyOne(character);
 		applyTwo(character);
 		applyThree(character);

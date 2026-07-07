@@ -30,7 +30,6 @@ public class TransmorphEffect implements ISpellEffect {
 		transmorph = type;
 	}
 	
-	@Override
 	public void apply(SpellEffectContext context) {
 		RealmComponent target = context.Target;
 		CharacterWrapper targetCharacterWrapper = new CharacterWrapper(target.getGameObject());
@@ -115,15 +114,15 @@ public class TransmorphEffect implements ISpellEffect {
 			}
 		}
 		
-		ArrayList<SpellWrapper> affectingSpells = SpellMasterWrapper.getSpellMaster(context.getGameData()).getAffectingSpells(target.getGameObject());
-		for (SpellWrapper affectingSpell : affectingSpells) {
+		ArrayList affectingSpells = SpellMasterWrapper.getSpellMaster(context.getGameData()).getAffectingSpells(target.getGameObject());
+		for (java.util.Iterator _j14it2053 = (affectingSpells).iterator(); _j14it2053.hasNext(); ) {
+		  SpellWrapper affectingSpell = (SpellWrapper) _j14it2053.next();
 			if (affectingSpell.getGameObject().hasThisAttribute(Constants.BREAK_WHEN_TRANSMORPHED)) {
 				affectingSpell.expireSpell();
 			}
 		}
 	}
 	
-	@Override
 	public void unapply(SpellEffectContext context) {
 		RealmComponent target = context.Target;
 		SpellWrapper spell = context.Spell;
@@ -131,14 +130,15 @@ public class TransmorphEffect implements ISpellEffect {
 		if ("target".equals(transmorph)) {
 			spell.getCaster().setTransmorph(null);
 			
-			ArrayList<GameObject> inv = spell.getCaster().getInventory();
+			ArrayList inv = spell.getCaster().getInventory();
 			
 			// Restore active state of items
 			GameData data = spell.getGameObject().getGameData();
-			ArrayList<String> list = spell.getList(Constants.ACTIVATED_ITEMS);
+			ArrayList list = spell.getList(Constants.ACTIVATED_ITEMS);
 			
 			if (list!=null) {
-				for (String id : list) {
+				for (java.util.Iterator _j14it2054 = (list).iterator(); _j14it2054.hasNext(); ) {
+				  String id = (String) _j14it2054.next();
 					GameObject go = data.getGameObject(Long.valueOf(id));
 					if (go!=null && inv.contains(go)) { // only do this if the item still exists in inventory
 						TreasureUtility.doActivate(null, spell.getCaster(),go,new ChangeListener() {
@@ -199,9 +199,10 @@ public class TransmorphEffect implements ISpellEffect {
 					character.addGold(gold); // add gold, in case transmorphed character picked up some gold!
 				}
 				
-				ArrayList<GameObject> hold = new ArrayList<GameObject>();
+				ArrayList hold = new ArrayList();
 				hold.addAll(spell.getGameObject().getHold());
-				for (GameObject go : hold) {
+				for (java.util.Iterator _j14it2055 = (hold).iterator(); _j14it2055.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it2055.next();
 					if (RealmComponent.getRealmComponent(go).isItem()) {
 						character.getGameObject().add(go);
 					}
@@ -297,14 +298,16 @@ public class TransmorphEffect implements ISpellEffect {
 			// Move all inventory to the spell, so it doesn't appear in window anymore,
 			// but will on double-click of the spell.  This should also disable inventory
 			// without changing its active/inactive location			
-			for (GameObject i : character.getInventory()) {
+			for (java.util.Iterator _j14it2056 = (character.getInventory()).iterator(); _j14it2056.hasNext(); ) {
+			  GameObject i = (GameObject) _j14it2056.next();
 				if (RealmComponent.getRealmComponent(i).isItem()) {
 					spell.getGameObject().add(i);
 				}
 			}
 			}
 			else {
-				for (GameObject item : character.getInventory()) {
+				for (java.util.Iterator _j14it2057 = (character.getInventory()).iterator(); _j14it2057.hasNext(); ) {
+				  GameObject item = (GameObject) _j14it2057.next();
 					RealmComponent rc = RealmComponent.getRealmComponent(item);
 					if (rc.isItem() && !rc.getGameObject().hasThisAttribute("color_source")) {
 						rc.setActivated(false);
@@ -318,9 +321,10 @@ public class TransmorphEffect implements ISpellEffect {
 			// Mists cannot have a followers!
 			CharacterWrapper character = new CharacterWrapper(target.getGameObject());
 			character.setStopFollowing(true);
-			ArrayList<CharacterWrapper> followers = character.getActionFollowers();
+			ArrayList followers = character.getActionFollowers();
 			if (followers!=null) {
-				for (CharacterWrapper follower : followers) {
+				for (java.util.Iterator _j14it2058 = (followers).iterator(); _j14it2058.hasNext(); ) {
+				  CharacterWrapper follower = (CharacterWrapper) _j14it2058.next();
 					if (!follower.getGameObject().hasThisAttribute(Constants.IGNORE_MIST_LIKE)) {
 						character.removeActionFollower(follower,null,null);
 					}
@@ -379,7 +383,8 @@ public class TransmorphEffect implements ISpellEffect {
 			combat.removeAllAttackers();
 			
 			SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(target.getGameObject().getGameData());
-			for (SpellWrapper attackingSpell : sm.getAffectingSpells(target.getGameObject())) {
+			for (java.util.Iterator _j14it2059 = (sm.getAffectingSpells(target.getGameObject())).iterator(); _j14it2059.hasNext(); ) {
+			  SpellWrapper attackingSpell = (SpellWrapper) _j14it2059.next();
 				if (attackingSpell.isActive() && !attackingSpell.hasAffectedTargets() &&  attackingSpell.getGameObject() != spell.getGameObject()) {
 					attackingSpell.removeTarget(target.getGameObject());
 					if (attackingSpell.getTargetCount() == 0) {
@@ -395,8 +400,9 @@ public class TransmorphEffect implements ISpellEffect {
 			RealmLogging.logMessage(spell.getCaster().getGameObject().getName(),"Turns into the "+target.getGameObject().getName());
 		}
 		// Record which belongings are active, before inactivating them
-		ArrayList<GameObject> inactivated = spell.getCaster().inactivateAllBelongings();
-		for (GameObject go:inactivated) {
+		ArrayList inactivated = spell.getCaster().inactivateAllBelongings();
+		for (java.util.Iterator _j14it2060 = (inactivated).iterator(); _j14it2060.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2060.next();
 			spell.addListItem(Constants.ACTIVATED_ITEMS,go.getStringId());
 		}
 		spell.getCaster().setTransmorph(target.getGameObject());

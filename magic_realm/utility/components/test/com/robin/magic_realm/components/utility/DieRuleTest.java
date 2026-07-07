@@ -38,13 +38,13 @@ public class DieRuleTest extends TestBaseWithLoader {
 	public void testRuinsTileName() {
 		GameObject go = findGameObject("Ruins");
 		TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
-		ArrayList<String> list = tile.getChitDescriptionList();
+		ArrayList list = tile.getChitDescriptionList();
 		DieRule dr = new DieRule(null,"-1:locate:%ruins%");
 		Assert.assertTrue(dr.conditionsMet("locate",list));
 	}
 	@Test
 	public void testRuinsChit() {
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList list = new ArrayList();
 		list.add("cliff");
 		list.add("ruins m");
 		list.add("flutter");
@@ -54,7 +54,7 @@ public class DieRuleTest extends TestBaseWithLoader {
 	}
 	@Test
 	public void testLostCityChit() {
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList list = new ArrayList();
 		list.add("cliff");
 		list.add("lost city b");
 		list.add("flutter");
@@ -65,13 +65,13 @@ public class DieRuleTest extends TestBaseWithLoader {
 	public void testWoodsTile() {
 		GameObject go = findGameObject("Deep Woods");
 		TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
-		ArrayList<String> list = tile.getChitDescriptionList();
+		ArrayList list = tile.getChitDescriptionList();
 		DieRule dr = new DieRule(null,"-1:locate:% woods");
 		Assert.assertTrue(dr.conditionsMet("locate",list));
 	}
 	@Test
 	public void testNotWoods() {
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList list = new ArrayList();
 		list.add("cliff");
 		list.add("lost city b");
 		list.add("flutter");
@@ -81,11 +81,13 @@ public class DieRuleTest extends TestBaseWithLoader {
 	}
 	@Test
 	public void testAllDieModsLists() {
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add(Constants.DIEMOD);
-		ArrayList<GameObject> dieModObjs = findGameObjects(query);
-		for (GameObject go:dieModObjs) {
-			for (String blockName : go.getAttributeBlockNames()) {
+		ArrayList dieModObjs = findGameObjects(query);
+		for (java.util.Iterator _j14it1305 = (dieModObjs).iterator(); _j14it1305.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1305.next();
+			for (java.util.Iterator _j14it1306 = (go.getAttributeBlockNames()).iterator(); _j14it1306.hasNext(); ) {
+			  String blockName = (String) _j14it1306.next();
 				if (!go.hasAttribute(blockName,Constants.DIEMOD)) continue;
 				go.getAttributeList(blockName,Constants.DIEMOD);
 			}

@@ -18,7 +18,6 @@ public class QuestRewardCurse extends QuestReward {
 		super(go);
 	}
 
-	@Override
 	public void processReward(JFrame frame, CharacterWrapper character) {
 		if (removeCurses()) {
 			character.removeAllCurses();
@@ -37,11 +36,9 @@ public class QuestRewardCurse extends QuestReward {
 		curse.apply(character,roller);
 	}
 	
-	@Override
 	public RewardType getRewardType() {
 		return RewardType.Curse;
 	}
-	@Override
 	public String getDescription() {
 		if (removeCurses()) {
 			return "Remove all curses from the character.";
@@ -52,7 +49,7 @@ public class QuestRewardCurse extends QuestReward {
 		String dieRoll = getString(DIE_ROLL);
 		return getDieRoll(DieRollType.valueOf(dieRoll));
 	}
-	private Boolean removeCurses() {
+	private boolean removeCurses() {
 		return getBoolean(REMOVE_CURSES);
 	}
 }

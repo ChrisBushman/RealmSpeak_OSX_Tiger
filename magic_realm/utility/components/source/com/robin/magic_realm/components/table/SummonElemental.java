@@ -17,11 +17,28 @@ public class SummonElemental extends MonsterTable {
 
 	public static final String KEY = "SummonElemental";
 	
-	public enum ElementalType {
-		Earth,
-		Fire,
-		Water,
-		Air
+	public static final class ElementalType {
+		private final String _name;
+		private final int _ordinal;
+		private ElementalType(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final ElementalType Earth = new ElementalType("Earth", 0);
+		public static final ElementalType Fire = new ElementalType("Fire", 1);
+		public static final ElementalType Water = new ElementalType("Water", 2);
+		public static final ElementalType Air = new ElementalType("Air", 3);
+
+		private static final ElementalType[] _VALUES = { Earth, Fire, Water, Air };
+		public static ElementalType[] values() { ElementalType[] r = new ElementalType[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static ElementalType valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	public SummonElemental(JFrame frame) {
@@ -88,44 +105,43 @@ public class SummonElemental extends MonsterTable {
 	}
 	public GameObject createElemental(GameData data, ElementalType type) {
 		GameObject elemental = getMonsterCreator().createOrReuseMonster(data);
-		switch(type) {
-			case Earth:
-				getMonsterCreator().setupGameObject(elemental,"Earth Elemental","earth","T",true);
-				MonsterCreator.setupSide(elemental,"light","T",0,4,0,6,"tan");
-				MonsterCreator.setupSide(elemental,"dark","RED",0,4,0,6,"red");
-				elemental.setAttribute("dark","pins");
-				elemental.setThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE,"WarOfTheGods-monsters-elemental-earth");
-				elemental.setThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE,"wesnoth/units/addons");
-				elemental.setThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE,"0.9");
-				elemental.setThisAttribute(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE,"9");
-				break;
-			case Fire:
-				getMonsterCreator().setupGameObject(elemental,"Fire Elemental","fire","H",false);
-				MonsterCreator.setupSide(elemental,"light","H",2,6,1,4,"lightorange");
-				MonsterCreator.setupSide(elemental,"dark","H",1,2,1,6,"orange");
-				elemental.setThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE,"WarOfTheGods-monsters-elemental-fire1");
-				elemental.setThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE,"wesnoth/units/addons");
-				elemental.setThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE,"0.9");
-				elemental.setThisAttribute(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE,"9");
-				break;
-			case Water:
-				getMonsterCreator().setupGameObject(elemental,"Water Elemental","water","H",false);
-				MonsterCreator.setupSide(elemental,"light","H",0,4,0,2,"lightblue");
-				MonsterCreator.setupSide(elemental,"dark","H",0,2,0,4,"blue");
-				elemental.setThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE,"Reign_of_the_Lords-elementals-nymph");
-				elemental.setThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE,"wesnoth/units/addons");
-				elemental.setThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE,"0.9");
-				elemental.setThisAttribute(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE,"9");
-				break;
-			case Air:
-				getMonsterCreator().setupGameObject(elemental,"Air Elemental","air","M",false,true);
-				MonsterCreator.setupSide(elemental,"light","M",0,3,0,4,"white");
-				MonsterCreator.setupSide(elemental,"dark","H",0,4,0,4,"gray");
-				elemental.setThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE,"dust-devil");
-				elemental.setThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE,"wesnoth/units/monsters");
-				elemental.setThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE,"0.9");
-				elemental.setThisAttribute(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE,"9");
-				break;
+		ElementalType _et = type;
+		if (_et == ElementalType.Earth) {
+			getMonsterCreator().setupGameObject(elemental,"Earth Elemental","earth","T",true);
+			MonsterCreator.setupSide(elemental,"light","T",0,4,0,6,"tan");
+			MonsterCreator.setupSide(elemental,"dark","RED",0,4,0,6,"red");
+			elemental.setAttribute("dark","pins");
+			elemental.setThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE,"WarOfTheGods-monsters-elemental-earth");
+			elemental.setThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE,"wesnoth/units/addons");
+			elemental.setThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE,"0.9");
+			elemental.setThisAttribute(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE,"9");
+		}
+		else if (_et == ElementalType.Fire) {
+			getMonsterCreator().setupGameObject(elemental,"Fire Elemental","fire","H",false);
+			MonsterCreator.setupSide(elemental,"light","H",2,6,1,4,"lightorange");
+			MonsterCreator.setupSide(elemental,"dark","H",1,2,1,6,"orange");
+			elemental.setThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE,"WarOfTheGods-monsters-elemental-fire1");
+			elemental.setThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE,"wesnoth/units/addons");
+			elemental.setThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE,"0.9");
+			elemental.setThisAttribute(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE,"9");
+		}
+		else if (_et == ElementalType.Water) {
+			getMonsterCreator().setupGameObject(elemental,"Water Elemental","water","H",false);
+			MonsterCreator.setupSide(elemental,"light","H",0,4,0,2,"lightblue");
+			MonsterCreator.setupSide(elemental,"dark","H",0,2,0,4,"blue");
+			elemental.setThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE,"Reign_of_the_Lords-elementals-nymph");
+			elemental.setThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE,"wesnoth/units/addons");
+			elemental.setThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE,"0.9");
+			elemental.setThisAttribute(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE,"9");
+		}
+		else if (_et == ElementalType.Air) {
+			getMonsterCreator().setupGameObject(elemental,"Air Elemental","air","M",false,true);
+			MonsterCreator.setupSide(elemental,"light","M",0,3,0,4,"white");
+			MonsterCreator.setupSide(elemental,"dark","H",0,4,0,4,"gray");
+			elemental.setThisAttribute(Constants.ICON_TYPE+Constants.ALTERNATIVE,"dust-devil");
+			elemental.setThisAttribute(Constants.ICON_FOLDER+Constants.ALTERNATIVE,"wesnoth/units/monsters");
+			elemental.setThisAttribute(Constants.ICON_SIZE+Constants.ALTERNATIVE,"0.9");
+			elemental.setThisAttribute(Constants.ICON_Y_OFFSET+Constants.ALTERNATIVE,"9");
 		}
 		elemental.setThisAttribute(Constants.ELEMENTAL);
 		return elemental;
@@ -141,7 +157,7 @@ public class SummonElemental extends MonsterTable {
 			tl.clearing.add(elemental,null);
 		}
 	}
-	public ArrayList<GameObject> getOneOfEach(CharacterWrapper character) {
+	public ArrayList getOneOfEach(CharacterWrapper character) {
 		applyTwo(character);
 		applyThree(character);
 		applyFour(character);

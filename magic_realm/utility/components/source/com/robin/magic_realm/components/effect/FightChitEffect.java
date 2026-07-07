@@ -7,7 +7,6 @@ import com.robin.magic_realm.components.utility.Constants;
 
 public class FightChitEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		GameObject spellObj = context.Spell.getGameObject();
 		
@@ -30,7 +29,6 @@ public class FightChitEffect implements ISpellEffect {
 		}
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		GameObject spellObj = context.Spell.getGameObject();
 		

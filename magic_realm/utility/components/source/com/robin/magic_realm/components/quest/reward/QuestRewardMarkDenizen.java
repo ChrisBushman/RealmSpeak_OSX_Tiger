@@ -27,11 +27,12 @@ public class QuestRewardMarkDenizen extends QuestReward {
 		String regex = getDenizenRegEx().trim();
 		Pattern pattern = regex.length()==0?null:Pattern.compile(regex);
 		int markedDenizen = 0;
-		ArrayList<RealmComponent> denizens = current.clearing.getClearingComponents();
+		ArrayList denizens = current.clearing.getClearingComponents();
 		if (getDenizenAmount()!=0) {
 			Collections.shuffle(denizens);
 		}
-		for (RealmComponent rc:denizens) {
+		for (java.util.Iterator _j14it2418 = (denizens).iterator(); _j14it2418.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2418.next();
 			if (pattern==null || pattern.matcher(rc.getGameObject().getName()).find()) {
 				rc.getGameObject().setThisAttribute(QuestConstants.QUEST_MARK,getParentQuest().getGameObject().getStringId());
 				markedDenizen++;

@@ -6,14 +6,14 @@ import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class NullifyEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		if (context.Target.isCharacter()) {
 			context.getCharacterTarget().nullifyCurses();
 		}
 		
 		SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(context.Spell.getGameObject().getGameData());
-		for (SpellWrapper spell:sm.getAffectingSpells(context.Target.getGameObject())) {
+		for (java.util.Iterator _j14it2050 = (sm.getAffectingSpells(context.Target.getGameObject())).iterator(); _j14it2050.hasNext(); ) {
+		  SpellWrapper spell = (SpellWrapper) _j14it2050.next();
 			if (context.Spell.getGameObject().equals(spell.getGameObject())) continue;
 			if (spell.isNullified()) continue;
 			if (spell.isActive() && spell.hasAffectedTargets()) {
@@ -27,7 +27,6 @@ public class NullifyEffect implements ISpellEffect {
 		}
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {	
 		if (context.Target.isCharacter()) {
 			context.getCharacterTarget().restoreCurses();

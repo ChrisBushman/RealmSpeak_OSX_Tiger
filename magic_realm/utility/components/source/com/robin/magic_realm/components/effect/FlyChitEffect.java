@@ -6,7 +6,6 @@ import com.robin.magic_realm.components.utility.Constants;
 
 public class FlyChitEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		// A Fly spell.  Create a Fly Chit
 		GameObject spellObj = context.Spell.getGameObject();
@@ -26,7 +25,6 @@ public class FlyChitEffect implements ISpellEffect {
 		}
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		// A Fly spell.  Destroy the FLY Chit, and remove it from the target.
 		GameObject spellObj = context.Spell.getGameObject();

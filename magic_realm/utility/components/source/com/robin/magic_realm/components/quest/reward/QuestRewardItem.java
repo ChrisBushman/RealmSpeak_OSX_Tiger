@@ -42,13 +42,14 @@ public class QuestRewardItem extends QuestReward {
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
 		String actionDescription;
-		ArrayList<GameObject> objects;
+		ArrayList objects;
 		if (isGain()) {
 			actionDescription = ": Select ONE item to gain.";
 			if (getGainType()==ItemGainType.GainFromNativeHq || getGainType()==ItemGainType.GainClonedFromNativeHq) {
-				ArrayList<GameObject> filteredHq = getNativeHqs();
-				ArrayList<GameObject> sourceObjects = new ArrayList<GameObject>();
-				for (GameObject hq : filteredHq) {
+				ArrayList filteredHq = getNativeHqs();
+				ArrayList sourceObjects = new ArrayList();
+				for (java.util.Iterator _j14it2372 = (filteredHq).iterator(); _j14it2372.hasNext(); ) {
+				  GameObject hq = (GameObject) _j14it2372.next();
 					sourceObjects.addAll(hq.getHold());
 				}
 				objects = getObjectList(sourceObjects,getChitTypes(),getItemRegex());
@@ -63,11 +64,12 @@ public class QuestRewardItem extends QuestReward {
 		}
 		
 		if (requiresMark()) {
-			ArrayList<GameObject> objectsToCheck = new ArrayList<GameObject>();
+			ArrayList objectsToCheck = new ArrayList();
 			objectsToCheck.addAll(objects);
 			objects.clear();
 			String questId = getParentQuest().getGameObject().getStringId();
-			for (GameObject item : objectsToCheck) {
+			for (java.util.Iterator _j14it2373 = (objectsToCheck).iterator(); _j14it2373.hasNext(); ) {
+			  GameObject item = (GameObject) _j14it2373.next();
 				String mark = item.getThisAttribute(QuestConstants.QUEST_MARK);
 				if (mark==null || !mark.equals(questId)) continue;
 				objects.add(item);
@@ -76,13 +78,13 @@ public class QuestRewardItem extends QuestReward {
 		
 		GameObject selected = null;
 		if (objects.size()==1) {
-			selected = objects.get(0);
+			selected = (GameObject) objects.get(0);
 		}
 		else if(objects.size()==0) {
 			return;
 		}
 		else if (selectRandom()) {
-			selected = objects.get(RandomNumber.getRandom(objects.size()));
+			selected = (GameObject) objects.get(RandomNumber.getRandom(objects.size()));
 		}
 		else {
 			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,getTitleForDialog()+actionDescription,false);
@@ -110,33 +112,27 @@ public class QuestRewardItem extends QuestReward {
 			return;
 		}
 		if (TreasureUtility.doDeactivate(null,character,selected,forceDeactivation())) { // null JFrame so that character isn't hit with any popups
-			switch (getGainType()) {
-			case RemoveFromGame:
+			ItemGainType _igt = getGainType();
+			if (_igt == ItemGainType.RemoveFromGame) {
 				selected.getHeldBy().remove(selected);
-				break;
-			case LoseToClearing:
+			} else if (_igt == ItemGainType.LoseToClearing) {
 				TileLocation location = character.getCurrentLocation();
 				if (location.clearing == null) {
 					location.setRandomClearing();
 				}
 				ClearingUtility.moveToLocation(selected,location);
-				break;
-			case LoseToLocation:
+			} else if (_igt == ItemGainType.LoseToLocation) {
 				lostItem(selected);
-				break;
-			case LoseToNativeHq:
-				ArrayList<GameObject> filteredHq = getNativeHqs();
+			} else if (_igt == ItemGainType.LoseToNativeHq) {
+				ArrayList filteredHq = getNativeHqs();
 				if (filteredHq.isEmpty()) {
 					JOptionPane.showMessageDialog(frame,"The "+selected.getName()+" could not be removed from your inventory (no matching NativeHQ found).","Quest Error",JOptionPane.ERROR_MESSAGE);
 					return;
 				}
-				GameObject nativeHq = filteredHq.get(RandomNumber.getRandom(filteredHq.size()));
+				GameObject nativeHq = (GameObject) filteredHq.get(RandomNumber.getRandom(filteredHq.size()));
 				nativeHq.add(selected);
-				break;
-			default:
-			case LoseToChartOfAppearance:
+			} else {
 				lostItemToDefault(selected);
-				break;
 			}
 		}
 		else {
@@ -196,16 +192,18 @@ public class QuestRewardItem extends QuestReward {
 		return getBoolean(RANDOM);
 	}
 	
-	public ArrayList<ChitItemType> getChitTypes() {
+	public ArrayList getChitTypes() {
 		return ChitItemType.listToTypes(getList(ITEM_CHITTYPES));
 	}
 	
-	public static ArrayList<GameObject> getObjectList(ArrayList<GameObject> sourceObjects,ArrayList<ChitItemType> chitItemTypes,String regEx) {
+	public static ArrayList getObjectList(ArrayList sourceObjects,ArrayList chitItemTypes,String regEx) {
 		Pattern pattern = (regEx==null || regEx.length()==0)?null:Pattern.compile(regEx);
-		ArrayList<GameObject> objects = new ArrayList<GameObject>();
+		ArrayList objects = new ArrayList();
 		GamePool pool = new GamePool(sourceObjects);
-		for(ChitItemType cit:chitItemTypes) {
-			for(GameObject obj:pool.extract(Arrays.asList(cit.getKeyVals()))) {
+		for (java.util.Iterator _j14it2374 = (chitItemTypes).iterator(); _j14it2374.hasNext(); ) {
+		  ChitItemType cit = (ChitItemType) _j14it2374.next();
+			for (java.util.Iterator _j14it2375 = (pool.extract(Arrays.asList(cit.getKeyVals()))).iterator(); _j14it2375.hasNext(); ) {
+			  GameObject obj = (GameObject) _j14it2375.next();
 				if (pattern==null || pattern.matcher(obj.getName()).find()) {
 					objects.add(obj);
 				}
@@ -214,13 +212,14 @@ public class QuestRewardItem extends QuestReward {
 		return objects;
 	}
 	
-	private ArrayList<GameObject> getNativeHqs() {
+	private ArrayList getNativeHqs() {
 		GamePool pool = new GamePool(getGameData().getGameObjects());
-		ArrayList<GameObject> allHq = pool.find("native,rank=HQ");
-		ArrayList<GameObject> filteredHq = new ArrayList<GameObject>();
+		ArrayList allHq = pool.find("native,rank=HQ");
+		ArrayList filteredHq = new ArrayList();
 		String regEx = getNativeRegex();
 		Pattern pattern = (regEx==null || regEx.length()==0)?null:Pattern.compile(regEx);
-		for(GameObject hq:allHq) {
+		for (java.util.Iterator _j14it2376 = (allHq).iterator(); _j14it2376.hasNext(); ) {
+		  GameObject hq = (GameObject) _j14it2376.next();
 			if (pattern==null || pattern.matcher(hq.getName()).find()) {
 				filteredHq.add(hq);
 			}

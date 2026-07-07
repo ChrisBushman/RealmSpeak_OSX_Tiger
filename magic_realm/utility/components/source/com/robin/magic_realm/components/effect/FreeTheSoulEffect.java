@@ -10,7 +10,6 @@ import com.robin.magic_realm.components.wrapper.CombatWrapper;
 
 public class FreeTheSoulEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		if (context.Target.getGameObject().hasThisAttribute(Constants.GHOST)||context.Target.getGameObject().hasThisAttribute(Constants.WRAITH)
 				||context.Target.getGameObject().hasThisAttribute(Constants.GHOUL)||context.Target.getGameObject().hasThisAttribute(Constants.SKELETON)
@@ -21,7 +20,7 @@ public class FreeTheSoulEffect implements ISpellEffect {
 				RealmLogging.logMessage(context.Caster.getName(),"Free the Soul: Kills "+context.Target.getGameObject().getName());
 				CombatWrapper combat = context.getCombatTarget();
 				combat.setKilledBy(context.Caster);
-				combat.setKilledLength(18);
+				combat.setKilledLength(Integer.valueOf(18));
 				combat.setKilledSpeed(context.Spell.getAttackSpeed());
 				if (context.Target.getHorse()!=null) {
 					killHorse(context);
@@ -48,11 +47,10 @@ public class FreeTheSoulEffect implements ISpellEffect {
 		RealmLogging.logMessage(context.Caster.getName(),"Free the Soul: Kills "+horseGo.getName());
 		CombatWrapper combatHorse = new CombatWrapper(horseGo);
 		combatHorse.setKilledBy(context.Caster);
-		combatHorse.setKilledLength(18);
+		combatHorse.setKilledLength(Integer.valueOf(18));
 		combatHorse.setKilledSpeed(context.Spell.getAttackSpeed());
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 	}
 

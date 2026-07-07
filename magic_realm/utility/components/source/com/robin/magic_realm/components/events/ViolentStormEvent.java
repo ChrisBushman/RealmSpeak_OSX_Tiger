@@ -13,7 +13,7 @@ public class ViolentStormEvent implements IEvent {
 	private static final String title = "Violent Storm";
 	private static final String description = "A random hex and all adjacent hexes are affected by the Violent Storm.";
 	public void applyBirdsong(GameData data) {
-		ArrayList<TileComponent> tiles = RealmEvents.chooseRandomAndAdjacentTiles(data);
+		ArrayList tiles = RealmEvents.chooseRandomAndAdjacentTiles(data);
 		if (tiles!=null && !tiles.isEmpty()) {
 			GameObject config = RealmEvents.findEventsConfig(data);
 			DieRoller dieRoller = new DieRoller();
@@ -32,7 +32,8 @@ public class ViolentStormEvent implements IEvent {
 			else {
 				phasesLost = 1;
 			}
-			for (TileComponent tile : tiles) {
+			for (java.util.Iterator _j14it2458 = (tiles).iterator(); _j14it2458.hasNext(); ) {
+			  TileComponent tile = (TileComponent) _j14it2458.next();
 				tile.getGameObject().setThisAttribute(Constants.EVENT_VIOLENT_STORM,phasesLost);
 				RealmEvents.addEffectForTile(config,Constants.EVENT_VIOLENT_STORM,tile.getGameObject().getStringId());
 				RealmLogging.logMessage("Event","Violent Storm: "+phasesLost+" phase"+(phasesLost==1?"":"s")+" lost on entry on tile "+tile.getGameObject().getNameWithNumber());
@@ -43,27 +44,27 @@ public class ViolentStormEvent implements IEvent {
 	}
 	public void expire(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_VIOLENT_STORM);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_VIOLENT_STORM);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2459 = (ids).iterator(); _j14it2459.hasNext(); ) {
+			  String id = (String) _j14it2459.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				tile.removeThisAttribute(Constants.EVENT_VIOLENT_STORM);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_VIOLENT_STORM,id);
 			}
 		}
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
 		String text = "";
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_VIOLENT_STORM);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_VIOLENT_STORM);
 		int phasesLost = 0;
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2460 = (ids).iterator(); _j14it2460.hasNext(); ) {
+			  String id = (String) _j14it2460.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				phasesLost = tile.getThisInt(Constants.EVENT_VIOLENT_STORM);
 				text = text + tile.getNameWithNumber() + ", ";

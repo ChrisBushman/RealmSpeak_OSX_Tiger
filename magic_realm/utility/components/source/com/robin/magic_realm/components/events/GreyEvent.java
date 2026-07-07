@@ -16,11 +16,9 @@ public class GreyEvent implements IEvent {
 	public void expire(GameData data) {
 		RealmEvents.removeInfiniteColorMagicSource(data,ColorMagic.Grey);
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		return description;
 	}

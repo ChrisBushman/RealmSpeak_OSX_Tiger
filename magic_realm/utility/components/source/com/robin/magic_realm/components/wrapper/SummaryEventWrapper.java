@@ -15,12 +15,13 @@ public class SummaryEventWrapper extends GameObjectWrapper {
 	public void addSummaryEvent(String val) {
 		addListItem("event",val);
 	}
-	public ArrayList<String> getSummaryEvents() {
-		ArrayList<String> ret = new ArrayList<String>();
+	public ArrayList getSummaryEvents() {
+		ArrayList ret = new ArrayList();
 
-		ArrayList<String> list = getList("event");
+		ArrayList list = getList("event");
 		if (list!=null) {
-			for (String  val : list) {
+			for (java.util.Iterator _j14it1512 = (list).iterator(); _j14it1512.hasNext(); ) {
+			  String val = (String) _j14it1512.next();
 				ret.add(val);
 			}
 		}
@@ -33,10 +34,10 @@ public class SummaryEventWrapper extends GameObjectWrapper {
 	public static SummaryEventWrapper getSummaryEventWrapper(GameData data) {
 		if (SEW_ID==null) {
 			GamePool pool = new GamePool(data.getGameObjects());
-			ArrayList<GameObject> list = pool.find(SUMMARY_EVENT_WRAPPER);
+			ArrayList list = pool.find(SUMMARY_EVENT_WRAPPER);
 			GameObject gm = null;
 			if (list!=null && list.size()==1) {
-				gm = list.iterator().next();
+				gm = (GameObject) list.iterator().next();
 			}
 			if (gm==null) {
 				gm = data.createNewObject();

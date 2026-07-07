@@ -24,7 +24,7 @@ public class OptionSetControl extends JPanel {
 	protected JButton clearOptionSet;
 	
 	private String currentOptionSetName;
-	private ArrayList<String> optionSetNames;
+	private ArrayList optionSetNames;
 	
 	private HostGameSetupDialog hostGui;
 	
@@ -107,10 +107,11 @@ public class OptionSetControl extends JPanel {
 		currentOptionSetName = prefMan.get(CURRENT_OPTION_SET);
 		rebuildOptionSetComboBox();
 	}
-	private static ArrayList<String> findOptionFiles() {
-		ArrayList<String> list = new ArrayList<String>();
+	private static ArrayList findOptionFiles() {
+		ArrayList list = new ArrayList();
 		String[] files = PreferenceManager.getPreferenceFilesAt(OPTION_SET_PATH);
-		for(String file:files) {
+		for (int _j14i1944 = 0; _j14i1944 < files.length; _j14i1944++) {
+		  String file = files[_j14i1944];
 			if (file.toLowerCase().endsWith(".cfg")) {
 				list.add(file.substring(0,file.length()-4));
 			}
@@ -123,8 +124,10 @@ public class OptionSetControl extends JPanel {
 		rebuildOptionSetComboBox();
 	}
 	private void sortOptionNames() {
-		Collections.sort(optionSetNames,new Comparator<String>() {
-			public int compare(String s1,String s2) {
+		Collections.sort(optionSetNames,new Comparator() {
+			public int compare(Object o1,Object o2) {
+				String s1 = (String) o1;
+				String s2 = (String) o2;
 				return s1.compareToIgnoreCase(s2);
 			}
 		});
@@ -145,7 +148,8 @@ public class OptionSetControl extends JPanel {
 		savedOptions.addItem(BLANK_OPTION_SET);
 		savedOptions.setSelectedIndex(0);
 		if (optionSetNames!=null && !optionSetNames.isEmpty()) {
-			for(String optionSetName:optionSetNames) {
+			for (java.util.Iterator _j14it1945 = (optionSetNames).iterator(); _j14it1945.hasNext(); ) {
+			  String optionSetName = (String) _j14it1945.next();
 				savedOptions.addItem(optionSetName);
 			}
 			if (currentOptionSetName!=null) {

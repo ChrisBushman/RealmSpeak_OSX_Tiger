@@ -41,10 +41,11 @@ public class BattleUtility {
 		return speed;
 	}
 
-	public static ArrayList<CharacterActionChitComponent> getPlayedChits(CharacterWrapper character) {
-		ArrayList<CharacterActionChitComponent> list = new ArrayList<CharacterActionChitComponent>();
+	public static ArrayList getPlayedChits(CharacterWrapper character) {
+		ArrayList list = new ArrayList();
 		CombatWrapper combat = new CombatWrapper(character.getGameObject());
-		for (GameObject go:combat.getUsedChits()) {
+		for (java.util.Iterator _j14it2606 = (combat.getUsedChits()).iterator(); _j14it2606.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2606.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc.isActionChit()) { // might be a gloves or boots card...
 				CharacterActionChitComponent chit = (CharacterActionChitComponent)rc;
@@ -52,7 +53,8 @@ public class BattleUtility {
 			}
 		}
 		
-		for (CharacterActionChitComponent chit:character.getActiveAndAlertChits()) {
+		for (java.util.Iterator _j14it2607 = (character.getActiveAndAlertChits()).iterator(); _j14it2607.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2607.next();
 			CombatWrapper combatChit = new CombatWrapper(chit.getGameObject());
 			if (combatChit.hasCombatBox()) {
 				// chit is in play
@@ -68,7 +70,8 @@ public class BattleUtility {
 	public static Effort getEffortUsed(CharacterWrapper character, boolean ignoreBerserk) {
 		// Determine how many effort *s have already been played
 		Effort totalEffort = new Effort();
-		for (CharacterActionChitComponent chit:getPlayedChits(character)) {
+		for (java.util.Iterator _j14it2608 = (getPlayedChits(character)).iterator(); _j14it2608.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2608.next();
 			if (ignoreBerserk && chit.isFightAlert()) continue;
 			totalEffort.addEffort(chit);
 		}
@@ -108,9 +111,10 @@ public class BattleUtility {
 		return attentionMarker;
 	}
 
-	public static ArrayList<RealmComponent> findFightComponentsWithCombatBox(Collection<RealmComponent> list) {
-		ArrayList<RealmComponent> fightChits = new ArrayList<RealmComponent>();
-		for (RealmComponent rc : list) {
+	public static ArrayList findFightComponentsWithCombatBox(Collection list) {
+		ArrayList fightChits = new ArrayList();
+		for (java.util.Iterator _j14it2609 = (list).iterator(); _j14it2609.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2609.next();
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 			if ((combat.getCombatBoxAttack()>0 || combat.getCombatBoxDefense()>0) && (!rc.isActionChit() || combat.getPlacedAsFight() || combat.getPlacedAsParry())) {
 				fightChits.add(rc);
@@ -119,9 +123,10 @@ public class BattleUtility {
 		return fightChits;
 	}
 
-	public static RealmComponent findMoveComponentWithCombatBox(Collection<RealmComponent> list,boolean includeHorse) {
+	public static RealmComponent findMoveComponentWithCombatBox(Collection list,boolean includeHorse) {
 		RealmComponent ret = null;
-		for (RealmComponent rc : list) {
+		for (java.util.Iterator _j14it2610 = (list).iterator(); _j14it2610.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2610.next();
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());
 			if (combat.getCombatBoxDefense()>0 && (!rc.isActionChit() || combat.getPlacedAsMove())) {
 				if (!rc.isHorse() || includeHorse) {
@@ -172,7 +177,7 @@ public class BattleUtility {
 		// REWARDS
 		if (attacker.isCharacter() || attackerOwner!=null) { // Attacker is Character or Hireling
 			// Victim's inventory
-			Collection<GameObject> c = RealmUtility.findInventory(victim);
+			Collection c = RealmUtility.findInventory(victim);
 			if (!c.isEmpty() && victim.isPlayerControlledLeader()) {
 				if (attacker.isPlayerControlledLeader()) {
 					// Victim's stuff is taken by the attacker
@@ -181,7 +186,8 @@ public class BattleUtility {
 									"Gets inventory from the "
 									+victim.getGameObject().getName()
 									+":");
-					for (GameObject thing : c) {
+					for (java.util.Iterator _j14it2611 = (c).iterator(); _j14it2611.hasNext(); ) {
+					  GameObject thing = (GameObject) _j14it2611.next();
 						RealmLogging.logMessage(attacker.getGameObject().getName(),"--> "+thing.getName());
 					}
 				}
@@ -229,7 +235,8 @@ public class BattleUtility {
 	public static void processTreachery(CharacterWrapper activeCharacter,RealmComponent theTarget) {
 		treacheryFlag = true;
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(activeCharacter.getGameData());
-		for (RealmComponent rc:activeCharacter.getAllHirelingsFromSame(theTarget)) {
+		for (java.util.Iterator _j14it2612 = (activeCharacter.getAllHirelingsFromSame(theTarget)).iterator(); _j14it2612.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2612.next();
 			moveToNewSheet(rc,false,false);
 			
 			CombatWrapper combat = new CombatWrapper(rc.getGameObject());

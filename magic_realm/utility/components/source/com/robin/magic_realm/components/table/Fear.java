@@ -24,18 +24,19 @@ public class Fear {
 				return false;
 			}
 			
-			ArrayList<ClearingDetail> possibleClearings = new ArrayList<ClearingDetail>(character.findAvailableClearingMoves(true));
+			ArrayList possibleClearings = new ArrayList(character.findAvailableClearingMoves(true));
 			if (possibleClearings.isEmpty()) {
 				RealmLogging.logMessage(RealmLogging.BATTLE, target.getName() +" cannot run away, as way out exists.");
 				return false;
 			}
-			ClearingDetail selectedClearing =  possibleClearings.get(RandomNumber.getRandom(possibleClearings.size()));
+			ClearingDetail selectedClearing =  (ClearingDetail) possibleClearings.get(RandomNumber.getRandom(possibleClearings.size()));
 			TileLocation runToClearing = new TileLocation(selectedClearing);						
 			ClearingUtility.moveToLocation(character.getGameObject(),runToClearing,true);
 			character.addMoveHistory(character.getCurrentLocation());
 			
 			// All following hirelings need to remain behind
-			for (RealmComponent hireling : character.getFollowingHirelings()) {
+			for (java.util.Iterator _j14it2172 = (character.getFollowingHirelings()).iterator(); _j14it2172.hasNext(); ) {
+			  RealmComponent hireling = (RealmComponent) _j14it2172.next();
 				currentLocation.clearing.add(hireling.getGameObject(),null);
 				if (hireling.getGameObject().hasThisAttribute(Constants.CAPTURE)) {
 					character.removeHireling(hireling.getGameObject());
@@ -44,10 +45,12 @@ public class Fear {
 			}
 		}
 		else {
-			ArrayList<ClearingDetail> possibleClearings = new ArrayList<ClearingDetail>();
-			for (ClearingDetail clearing : currentLocation.tile.getClearings()) {
+			ArrayList possibleClearings = new ArrayList();
+			for (java.util.Iterator _j14it2173 = (currentLocation.tile.getClearings()).iterator(); _j14it2173.hasNext(); ) {
+			  ClearingDetail clearing = (ClearingDetail) _j14it2173.next();
 				boolean addClearing = true;
-				for (RealmComponent rc : clearing.getClearingComponents()) {
+				for (java.util.Iterator _j14it2174 = (clearing.getClearingComponents()).iterator(); _j14it2174.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it2174.next();
 					if (rc.isCharacter() || rc.isHiredOrControlled()) {
 						addClearing = false;
 						break;
@@ -55,7 +58,7 @@ public class Fear {
 				}
 				if (addClearing) possibleClearings.add(clearing);
 			}
-			ClearingDetail selectedClearing =  possibleClearings.get(RandomNumber.getRandom(possibleClearings.size()));
+			ClearingDetail selectedClearing =  (ClearingDetail) possibleClearings.get(RandomNumber.getRandom(possibleClearings.size()));
 			TileLocation runToClearing = new TileLocation(selectedClearing);
 			
 			if (possibleClearings.isEmpty()) {
@@ -70,7 +73,8 @@ public class Fear {
 		
 		// Need to disengage any participants who are targeting the runner!
 		CombatWrapper targetCombat = new CombatWrapper(target);
-		for (RealmComponent attacker : targetCombat.getAttackersAsComponents()) {
+		for (java.util.Iterator _j14it2175 = (targetCombat.getAttackersAsComponents()).iterator(); _j14it2175.hasNext(); ) {
+		  RealmComponent attacker = (RealmComponent) _j14it2175.next();
 			RealmComponent bpTarget = attacker.getTarget();
 			if (bpTarget!=null && bpTarget.getGameObject() == target) {
 				attacker.clearTarget();

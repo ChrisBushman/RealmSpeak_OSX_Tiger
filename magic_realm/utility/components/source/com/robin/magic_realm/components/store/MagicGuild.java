@@ -26,9 +26,9 @@ public class MagicGuild extends GuildStore {
 	public static String JOIN_GUILD_TEXT = "You have fulfilled the join requirement for the Magic Guild. You are now a member of the Magic Guild.";
 	public static String JOIN_GUILD_TITLE = "Joining Magic Guild";
 	
-	private ArrayList<GameObject> greatTreasures;
-	private ArrayList<SpellWrapper> bewitchingSpells;
-	private ArrayList<String> activeCurses;
+	private ArrayList greatTreasures;
+	private ArrayList bewitchingSpells;
+	private ArrayList activeCurses;
 	
 	public MagicGuild(GuildChitComponent guild, CharacterWrapper character) {
 		super(guild, character);
@@ -40,8 +40,9 @@ public class MagicGuild extends GuildStore {
 			return;
 		}
 		
-		greatTreasures = new ArrayList<GameObject>();
-		for (GameObject go:character.getInventory()) {
+		greatTreasures = new ArrayList();
+		for (java.util.Iterator _j14it2537 = (character.getInventory()).iterator(); _j14it2537.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2537.next();
 			if (go.hasThisAttribute("treasure") && go.hasThisAttribute("great")) {
 				greatTreasures.add(go);
 			}
@@ -57,8 +58,9 @@ public class MagicGuild extends GuildStore {
 		chooser.addObjectsToChoose(greatTreasures);
 		chooser.setVisible(true);
 		if (chooser.pressedOkay()) {
-			ArrayList<GameObject> toGive = chooser.getChosenObjects();
-			for(GameObject go:toGive) {
+			ArrayList toGive = chooser.getChosenObjects();
+			for (java.util.Iterator _j14it2538 = (toGive).iterator(); _j14it2538.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2538.next();
 				TradeUtility.loseItem(character,go,trader.getGameObject(),false);
 				go.removeThisAttribute("great");
 			}
@@ -82,14 +84,17 @@ public class MagicGuild extends GuildStore {
 	}
 	private String cureSpellOrCurse(JFrame frame) {
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,"Break which spell/curse?",true);
-		for(SpellWrapper spell:bewitchingSpells) {
+		for (java.util.Iterator _j14it2539 = (bewitchingSpells).iterator(); _j14it2539.hasNext(); ) {
+		  SpellWrapper spell = (SpellWrapper) _j14it2539.next();
 			String optionKey = chooser.generateOption();
 			chooser.addGameObjectToOption(optionKey,spell.getGameObject());
-			for (GameObject hgo : spell.getGameObject().getHold()) {
+			for (java.util.Iterator _j14it2540 = (spell.getGameObject().getHold()).iterator(); _j14it2540.hasNext(); ) {
+			  GameObject hgo = (GameObject) _j14it2540.next();
 				chooser.addGameObjectToOption(optionKey,hgo);
 			}
 		}
-		for (String curse:activeCurses) {
+		for (java.util.Iterator _j14it2541 = (activeCurses).iterator(); _j14it2541.hasNext(); ) {
+		  String curse = (String) _j14it2541.next();
 			chooser.generateOption(curse);
 		}
 		chooser.setVisible(true);
@@ -202,7 +207,8 @@ public class MagicGuild extends GuildStore {
 		if (!character.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT+"_3")) {
 			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
 			if (hostPrefs.hasPref(Constants.GUILDS_FINAL_BENEFIT)) {
-				for (GameObject livingCharacter : RealmUtility.getLivingCharacters(character.getGameData())) {
+				for (java.util.Iterator _j14it2542 = (RealmUtility.getLivingCharacters(character.getGameData())).iterator(); _j14it2542.hasNext(); ) {
+				  GameObject livingCharacter = (GameObject) _j14it2542.next();
 					String guildLivingCharacter = new CharacterWrapper(livingCharacter).getCurrentGuild();
 					if (guildLivingCharacter!=null && guildLivingCharacter.matches(MAGIC_GUILD)) {
 						if (livingCharacter.getId()!=character.getGameObject().getId() && (livingCharacter.hasThisAttribute(Constants.GUILD_BENEFIT+"_3") || livingCharacter.hasThisAttribute(Constants.GUILD_BENEFIT_SUCESSOR))) {
@@ -229,7 +235,8 @@ public class MagicGuild extends GuildStore {
 	}
 	public void unapplyGuildBenefit3(JFrame frame, CharacterWrapper character) {
 		character.getGameObject().removeThisAttribute(Constants.GUILD_BENEFIT+"_3");
-		for (CharacterActionChitComponent chit : character.getAllChits()) {
+		for (java.util.Iterator _j14it2543 = (character.getAllChits()).iterator(); _j14it2543.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2543.next();
 			if (chit.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT+"_3")) {
 				character.getGameObject().remove(chit.getGameObject());
 				chit.getGameObject().clearAllAttributes();

@@ -41,7 +41,7 @@ public class PathIcon extends ImageIcon {
 		Graphics g = bi.getGraphics();
 		g.drawImage(icon.getImage(),2,2,44,44,null);
 		g.setColor(Color.white);
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append(path.getFrom().getNumString());
 		sb.append("-");
 		sb.append(path.getTo().getNumString());
@@ -63,7 +63,8 @@ public class PathIcon extends ImageIcon {
 		crag.setDarkSideUp(); // enchanted
 		ClearingDetail clearing = crag.getClearing(6); // this clearing has both a hidden path, as well as a secret path.
 		IconGroup group = new IconGroup(IconGroup.VERTICAL,2);
-		for(PathDetail path:clearing.getAllConnectedPaths()) {
+		for (java.util.Iterator _j14it1881 = (clearing.getAllConnectedPaths()).iterator(); _j14it1881.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it1881.next();
 			PathIcon icon = new PathIcon(path);
 			group.addIcon(icon);
 		}

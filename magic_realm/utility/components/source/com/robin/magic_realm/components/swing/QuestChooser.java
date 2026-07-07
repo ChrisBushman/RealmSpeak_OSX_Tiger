@@ -18,13 +18,13 @@ public class QuestChooser extends AggressiveDialog {
 
 	private Quest chosenQuest;
 	
-	private ArrayList<Quest> listOfQuests;
+	private ArrayList listOfQuests;
 	private JList questList;
 	private QuestView questView;
 	private JButton okButton;
 	private JButton cancelButton;
 	
-	public QuestChooser(JFrame frame,ArrayList<Quest> listOfQuests,CharacterWrapper character) {
+	public QuestChooser(JFrame frame,ArrayList listOfQuests,CharacterWrapper character) {
 		super(frame,"Quest Chooser",true);
 		this.listOfQuests = listOfQuests;
 		initComponents(character);
@@ -42,7 +42,7 @@ public class QuestChooser extends AggressiveDialog {
 		questList.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
 				int selRow = questList.getSelectedIndex();
-				Quest quest = selRow==-1?null:listOfQuests.get(selRow);
+				Quest quest = selRow==-1?null:(Quest) listOfQuests.get(selRow);
 				questView.updatePanel(quest, character);
 				updateControls();
 			}
@@ -69,7 +69,7 @@ public class QuestChooser extends AggressiveDialog {
 			okButton = new JButton("Ok");
 			okButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
-					chosenQuest = listOfQuests.get(questList.getSelectedIndex());
+					chosenQuest = (Quest) listOfQuests.get(questList.getSelectedIndex());
 					setVisible(false);
 					dispose();
 				}
@@ -81,7 +81,7 @@ public class QuestChooser extends AggressiveDialog {
 		okButton.setEnabled(questList.getSelectedIndex()>=0);
 	}
 
-	public static Quest chooseQuest(JFrame frame,ArrayList<Quest> quests, CharacterWrapper character) {
+	public static Quest chooseQuest(JFrame frame,ArrayList quests, CharacterWrapper character) {
 		if (quests.size()==0) return null;
 		QuestChooser chooser = new QuestChooser(frame,quests,character);
 		chooser.setLocationRelativeTo(null);

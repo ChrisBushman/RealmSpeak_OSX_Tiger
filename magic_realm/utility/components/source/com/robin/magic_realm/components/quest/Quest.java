@@ -47,24 +47,25 @@ public class Quest extends GameObjectWrapper {
 	
 	public static Quest currentQuest;
 
-	private ArrayList<QuestStep> steps;
-	private ArrayList<QuestRule> questRules;
-	private ArrayList<QuestLocation> locations;
-	private ArrayList<QuestMinorCharacter> minorCharacters;
-	private ArrayList<QuestCounter> counters;
+	private ArrayList steps;
+	private ArrayList questRules;
+	private ArrayList locations;
+	private ArrayList minorCharacters;
+	private ArrayList counters;
 	
 	public String filepath; // This is just here so that the builder can save a quest it just loaded for viewDeck() - not guaranteed!
 	
 	public Quest(GameObject go) {
 		super(go);
-		steps = new ArrayList<QuestStep>();
-		questRules = new ArrayList<QuestRule>();
-		locations = new ArrayList<QuestLocation>();
-		minorCharacters = new ArrayList<QuestMinorCharacter>();
-		counters = new ArrayList<QuestCounter>();
+		steps = new ArrayList();
+		questRules = new ArrayList();
+		locations = new ArrayList();
+		minorCharacters = new ArrayList();
+		counters = new ArrayList();
 		
 
-		for (GameObject held : go.getHold()) {
+		for (java.util.Iterator _j14it2214 = (go.getHold()).iterator(); _j14it2214.hasNext(); ) {
+		  GameObject held = (GameObject) _j14it2214.next();
 			if (held.hasThisAttribute(Quest.QUEST_STEP)) {
 				steps.add(new QuestStep(held));
 			}
@@ -78,8 +79,10 @@ public class Quest extends GameObjectWrapper {
 				counters.add(new QuestCounter(held, held.getThisInt("count")));
 			}
 		}
-		Collections.sort(steps, new Comparator<QuestStep>() {
-			public int compare(QuestStep q1, QuestStep q2) {
+		Collections.sort(steps, new Comparator() {
+			public int compare(Object o1, Object o2) {
+				QuestStep q1 = (QuestStep) o1;
+				QuestStep q2 = (QuestStep) o2;
 				return q1.getId() - q2.getId();
 			}
 		});
@@ -87,20 +90,24 @@ public class Quest extends GameObjectWrapper {
 
 	public void autoRepair() {
 		// Repair broken steps
-		for (QuestStep step : steps) {
-			ArrayList<QuestStep> req = filterMissingSteps(step.getRequiredSteps());
+		for (java.util.Iterator _j14it2215 = (steps).iterator(); _j14it2215.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2215.next();
+			ArrayList req = filterMissingSteps(step.getRequiredSteps());
 			step.clearRequiredSteps();
-			for (QuestStep rs : req) {
+			for (java.util.Iterator _j14it2216 = (req).iterator(); _j14it2216.hasNext(); ) {
+			  QuestStep rs = (QuestStep) _j14it2216.next();
 				step.addRequiredStep(rs);
 			}
-			ArrayList<QuestStep> fail = filterMissingSteps(step.getFailSteps());
+			ArrayList fail = filterMissingSteps(step.getFailSteps());
 			step.clearFailSteps();
-			for (QuestStep rs : fail) {
+			for (java.util.Iterator _j14it2217 = (fail).iterator(); _j14it2217.hasNext(); ) {
+			  QuestStep rs = (QuestStep) _j14it2217.next();
 				step.addFailStep(rs);
 			}
-			ArrayList<QuestStep> pre = filterMissingSteps(step.getPreemptedSteps());
+			ArrayList pre = filterMissingSteps(step.getPreemptedSteps());
 			step.clearPreemptedSteps();
-			for (QuestStep rs : pre) {
+			for (java.util.Iterator _j14it2218 = (pre).iterator(); _j14it2218.hasNext(); ) {
+			  QuestStep rs = (QuestStep) _j14it2218.next();
 				step.addPreemptedStep(rs);
 			}
 		}
@@ -108,13 +115,15 @@ public class Quest extends GameObjectWrapper {
 		// Remove unused objects (but only when quest is in a gamedata by itself)
 		if (!getGameData().getGameName().equals(GAME_DATA_NAME))
 			return;
-		ArrayList<GameObject> toRemove = new ArrayList<GameObject>();
-		for (GameObject go : getGameData().getGameObjects()) {
+		ArrayList toRemove = new ArrayList();
+		for (java.util.Iterator _j14it2219 = (getGameData().getGameObjects()).iterator(); _j14it2219.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2219.next();
 			if (go.getId() > 0 && go.getHeldBy() == null) { // Not the quest, and not held by anything... get rid of it!!
 				toRemove.add(go);
 			}
 		}
-		for (GameObject go : toRemove) {
+		for (java.util.Iterator _j14it2220 = (toRemove).iterator(); _j14it2220.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2220.next();
 			getGameData().removeObject(go);
 		}
 		
@@ -127,8 +136,10 @@ public class Quest extends GameObjectWrapper {
 	
 	public void updateActivatePossible() {
 		boolean foundActive = false;
-		for(QuestStep step:getSteps()) {
-			for(QuestRequirement req:step.getRequirements()) {
+		for (java.util.Iterator _j14it2221 = (getSteps()).iterator(); _j14it2221.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2221.next();
+			for (java.util.Iterator _j14it2222 = (step.getRequirements()).iterator(); _j14it2222.hasNext(); ) {
+			  QuestRequirement req = (QuestRequirement) _j14it2222.next();
 				if (req instanceof QuestRequirementActive) {
 					foundActive = true;
 					break;
@@ -139,11 +150,13 @@ public class Quest extends GameObjectWrapper {
 		setBoolean(QuestConstants.ACTIVATEABLE,foundActive);
 	}
 
-	private ArrayList<QuestStep> filterMissingSteps(ArrayList<String> ids) {
-		ArrayList<QuestStep> found = new ArrayList<QuestStep>();
+	private ArrayList filterMissingSteps(ArrayList ids) {
+		ArrayList found = new ArrayList();
 		if (ids != null) {
-			for (String id : ids) {
-				for (QuestStep step : steps) {
+			for (java.util.Iterator _j14it2223 = (ids).iterator(); _j14it2223.hasNext(); ) {
+			  String id = (String) _j14it2223.next();
+				for (java.util.Iterator _j14it2224 = (steps).iterator(); _j14it2224.hasNext(); ) {
+				  QuestStep step = (QuestStep) _j14it2224.next();
 					if (step.getGameObject().getStringId().equals(id)) {
 						found.add(step);
 						break;
@@ -224,7 +237,8 @@ public class Quest extends GameObjectWrapper {
 	}
 
 	public boolean usesMinorCharacter(QuestMinorCharacter mc) {
-		for (QuestStep step : steps) {
+		for (java.util.Iterator _j14it2225 = (steps).iterator(); _j14it2225.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2225.next();
 			if (step.usesMinorCharacter(mc)) {
 				return true;
 			}
@@ -239,7 +253,8 @@ public class Quest extends GameObjectWrapper {
 			return true;
 		}
 
-		for (QuestStep step : steps) {
+		for (java.util.Iterator _j14it2226 = (steps).iterator(); _j14it2226.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2226.next();
 			if (step.usesLocationTag(tag)) {
 				return true;
 			}
@@ -248,9 +263,10 @@ public class Quest extends GameObjectWrapper {
 		return false;
 	}
 
-	public ArrayList<String> getLocationTags() {
-		ArrayList<String> list = new ArrayList<String>();
-		for (QuestLocation loc : getLocations()) {
+	public ArrayList getLocationTags() {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it2227 = (getLocations()).iterator(); _j14it2227.hasNext(); ) {
+		  QuestLocation loc = (QuestLocation) _j14it2227.next();
 			list.add(loc.getTagName());
 		}
 		return list;
@@ -262,7 +278,8 @@ public class Quest extends GameObjectWrapper {
 			return true;
 		}
 
-		for (QuestStep step : steps) {
+		for (java.util.Iterator _j14it2228 = (steps).iterator(); _j14it2228.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2228.next();
 			if (step.usesCounterTag(tag)) {
 				return true;
 			}
@@ -271,31 +288,32 @@ public class Quest extends GameObjectWrapper {
 		return false;
 	}
 
-	public ArrayList<String> getCounterTags() {
-		ArrayList<String> list = new ArrayList<String>();
-		for (QuestCounter counter : getCounters()) {
+	public ArrayList getCounterTags() {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it2229 = (getCounters()).iterator(); _j14it2229.hasNext(); ) {
+		  QuestCounter counter = (QuestCounter) _j14it2229.next();
 			list.add(counter.getTagName());
 		}
 		return list;
 	}
 
-	public ArrayList<QuestLocation> getLocations() {
+	public ArrayList getLocations() {
 		return locations;
 	}
 	
-	public ArrayList<QuestMinorCharacter> getMinorCharacters() {
+	public ArrayList getMinorCharacters() {
 		return minorCharacters;
 	}
 
-	public ArrayList<QuestCounter> getCounters() {
+	public ArrayList getCounters() {
 		return counters;
 	}
 
-	public ArrayList<QuestStep> getSteps() {
+	public ArrayList getSteps() {
 		return steps;
 	}
 
-	public ArrayList<QuestRule> getQuestRules() {
+	public ArrayList getQuestRules() {
 		return questRules;
 	}
 
@@ -317,16 +335,20 @@ public class Quest extends GameObjectWrapper {
 
 	public void clearStates() {
 		clear(STATE);
-		for (QuestState state : QuestState.values()) {
+		QuestState[] _vals2230 = QuestState.values();
+		for (int _i2230 = 0; _i2230 < _vals2230.length; _i2230++) {
+			QuestState state = _vals2230[_i2230];
 			clear(state.toString());
 		}
-		for (QuestStep step : steps) {
+		for (java.util.Iterator _j14it2231 = (steps).iterator(); _j14it2231.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2231.next();
 			step.clearStates();
 		}
 	}
 	
 	private void activateRequirements(CharacterWrapper character) {
-		for(QuestStep step:steps) {
+		for (java.util.Iterator _j14it2232 = (steps).iterator(); _j14it2232.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2232.next();
 			step.activateRequirements(character);
 		}
 	}
@@ -345,7 +367,8 @@ public class Quest extends GameObjectWrapper {
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(getGameData());
 		if (hostPrefs.hasPref(Constants.QST_QUEST_CARDS) || hostPrefs.hasPref(Constants.QST_SR_QUESTS)) {
 			// Get rid of all the clones of this quest by removing from the owning character
-			for (GameObject go : findClones(getGameData().getGameObjects())) {
+			for (java.util.Iterator _j14it2233 = (findClones(getGameData().getGameObjects())).iterator(); _j14it2233.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2233.next();
 				Quest clone = new Quest(go);
 				clone.setState(QuestState.Failed, dayKey, character);
 				clone.removeFromOwner();
@@ -357,10 +380,11 @@ public class Quest extends GameObjectWrapper {
 		return getInt(Quest.QUEST_UNIQUE_ID);
 	}
 
-	public ArrayList<GameObject> findClones(ArrayList<GameObject> objects) {
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
+	public ArrayList findClones(ArrayList objects) {
+		ArrayList list = new ArrayList();
 		GamePool pool = new GamePool(objects);
-		for (GameObject go : pool.find(Quest.QUEST_UNIQUE_ID + "=" + getInt(Quest.QUEST_UNIQUE_ID))) {
+		for (java.util.Iterator _j14it2234 = (pool.find(Quest.QUEST_UNIQUE_ID + "=" + getInt(Quest.QUEST_UNIQUE_ID))).iterator(); _j14it2234.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2234.next();
 			if (go.equals(getGameObject()))
 				continue; // not THIS quest of course!
 			list.add(go);
@@ -426,7 +450,7 @@ public class Quest extends GameObjectWrapper {
 		clear(REQ_RULES);
 	}
 
-	public ArrayList<String> getRequiredRuleKeys() {
+	public ArrayList getRequiredRuleKeys() {
 		return getList(REQ_RULES);
 	}
 
@@ -436,7 +460,8 @@ public class Quest extends GameObjectWrapper {
 		int num = 1;
 		while (true) {
 			String testName = "Location" + (num++);
-			for (QuestLocation test : locations) {
+			for (java.util.Iterator _j14it2235 = (locations).iterator(); _j14it2235.hasNext(); ) {
+			  QuestLocation test = (QuestLocation) _j14it2235.next();
 				if (test.getName().equals(testName)) {
 					testName = null;
 					break;
@@ -464,7 +489,8 @@ public class Quest extends GameObjectWrapper {
 		int num = 1;
 		while (true) {
 			String testName = "MinorChar" + (num++);
-			for (QuestMinorCharacter test : minorCharacters) {
+			for (java.util.Iterator _j14it2236 = (minorCharacters).iterator(); _j14it2236.hasNext(); ) {
+			  QuestMinorCharacter test = (QuestMinorCharacter) _j14it2236.next();
 				if (test.getName().equals(testName)) {
 					testName = null;
 					break;
@@ -494,7 +520,8 @@ public class Quest extends GameObjectWrapper {
 		int num = 1;
 		while (true) {
 			String testName = "Counter" + (num++);
-			for (QuestCounter test : counters) {
+			for (java.util.Iterator _j14it2237 = (counters).iterator(); _j14it2237.hasNext(); ) {
+			  QuestCounter test = (QuestCounter) _j14it2237.next();
 				if (test.getName().equals(testName)) {
 					testName = null;
 					break;
@@ -520,7 +547,7 @@ public class Quest extends GameObjectWrapper {
 		step.init();
 		getGameObject().add(step.getGameObject());
 		if (autoConnect) {
-			QuestStep previousStep = steps.size() > 0 ? steps.get(steps.size() - 1) : null;
+			QuestStep previousStep = steps.size() > 0 ? (QuestStep) steps.get(steps.size() - 1) : null;
 			if (previousStep != null) {
 				step.addRequiredStep(previousStep);
 			}
@@ -532,7 +559,7 @@ public class Quest extends GameObjectWrapper {
 	}
 	
 	public void deleteStepAt(int index) {
-		QuestStep step = steps.get(index);
+		QuestStep step = (QuestStep) steps.get(index);
 		deleteQuestStep(step);
 		renumberSteps();
 	}
@@ -541,7 +568,7 @@ public class Quest extends GameObjectWrapper {
 		int newIndex = index + direction;
 		if (newIndex < 0 || newIndex >= steps.size())
 			return;
-		QuestStep moving = steps.remove(index);
+		QuestStep moving = (QuestStep) steps.remove(index);
 		if (newIndex == steps.size()) {
 			steps.add(moving);
 		}
@@ -553,7 +580,8 @@ public class Quest extends GameObjectWrapper {
 
 	private void renumberSteps() {
 		int n = 1;
-		for (QuestStep step : steps) {
+		for (java.util.Iterator _j14it2238 = (steps).iterator(); _j14it2238.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2238.next();
 			step.setId(n++);
 		}
 	}
@@ -644,7 +672,8 @@ public class Quest extends GameObjectWrapper {
 	public void initialize(JFrame parentFrame, CharacterWrapper character, boolean resetLocation) {
 		setOwner(character);
 		String dayKey = character.getCurrentDayKey();
-		for (QuestStep step : steps) {
+		for (java.util.Iterator _j14it2239 = (steps).iterator(); _j14it2239.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2239.next();
 			step.setState(QuestStepState.Pending, dayKey);
 		}
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(getGameData());
@@ -653,7 +682,8 @@ public class Quest extends GameObjectWrapper {
 		}
 		updateStepStates(dayKey);
 		if (resetLocation) {
-			for (QuestLocation location : getLocations()) {
+			for (java.util.Iterator _j14it2240 = (getLocations()).iterator(); _j14it2240.hasNext(); ) {
+			  QuestLocation location = (QuestLocation) _j14it2240.next();
 				location.resolveQuestStart(parentFrame, character);
 			}
 		}
@@ -670,17 +700,19 @@ public class Quest extends GameObjectWrapper {
 	}
 
 	public void updateStepStates(String dayKey) {
-		Hashtable<String, QuestStep> lookup = new Hashtable<String, QuestStep>();
-		for (QuestStep step : steps) {
+		Hashtable lookup = new Hashtable();
+		for (java.util.Iterator _j14it2241 = (steps).iterator(); _j14it2241.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2241.next();
 			lookup.put(step.getGameObject().getStringId(), step);
 		}
-		for (QuestStep step : steps) {
+		for (java.util.Iterator _j14it2242 = (steps).iterator(); _j14it2242.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2242.next();
 			if (step.getState() != QuestStepState.Pending)
 				continue; // only check pending steps!!
 
 			QuestStepType stepType = step.getLogicType();
 
-			ArrayList<String> requiredSteps = step.getRequiredSteps();
+			ArrayList requiredSteps = step.getRequiredSteps();
 			boolean markAsReady;
 			if (stepType == QuestStepType.And) {
 				// For AND, assume true, and mark false if any unfinished steps are found
@@ -690,10 +722,11 @@ public class Quest extends GameObjectWrapper {
 				// For OR, assume false if any required steps, and mark true if any finished steps are found
 				markAsReady = requiredSteps == null || requiredSteps.isEmpty();
 			}
-			ArrayList<String> failSteps = step.getFailSteps();
+			ArrayList failSteps = step.getFailSteps();
 			if (requiredSteps != null) {
-				for (String reqId : requiredSteps) {
-					QuestStep requiredStep = lookup.get(reqId);
+				for (java.util.Iterator _j14it2243 = (requiredSteps).iterator(); _j14it2243.hasNext(); ) {
+				  String reqId = (String) _j14it2243.next();
+					QuestStep requiredStep = (QuestStep) lookup.get(reqId);
 					if (requiredStep.getState() == QuestStepState.Finished) {
 						if (stepType == QuestStepType.Or) {
 							markAsReady = true;
@@ -725,9 +758,10 @@ public class Quest extends GameObjectWrapper {
 	}
 
 	private void clearJournalEntries() {
-		ArrayList<String> list = getList(JOURNAL_KEYS);
+		ArrayList list = getList(JOURNAL_KEYS);
 		if (list != null) {
-			for (String i : list) {
+			for (java.util.Iterator _j14it2244 = (list).iterator(); _j14it2244.hasNext(); ) {
+			  String i = (String) _j14it2244.next();
 				String blockKey = JOURNAL_KEYS + i;
 				getGameObject().removeAttributeBlock(blockKey);
 			}
@@ -735,11 +769,12 @@ public class Quest extends GameObjectWrapper {
 		}
 	}
 
-	public ArrayList<QuestJournalEntry> getJournalEntries() {
-		ArrayList<QuestJournalEntry> entries = new ArrayList<QuestJournalEntry>();
-		ArrayList<String> list = getList(JOURNAL_KEYS);
+	public ArrayList getJournalEntries() {
+		ArrayList entries = new ArrayList();
+		ArrayList list = getList(JOURNAL_KEYS);
 		if (list != null) {
-			for (String i : list) {
+			for (java.util.Iterator _j14it2245 = (list).iterator(); _j14it2245.hasNext(); ) {
+			  String i = (String) _j14it2245.next();
 				String blockKey = JOURNAL_KEYS + i;
 				QuestStepState entryType = QuestStepState.valueOf(getGameObject().getAttribute(blockKey, "entryType"));
 				String text = getGameObject().getAttribute(blockKey, "text");
@@ -764,7 +799,8 @@ public class Quest extends GameObjectWrapper {
 			reqParams.dayKey = character.getCurrentDayKey();
 		}
 		boolean rewards = false;
-		for (QuestStep step : steps) {
+		for (java.util.Iterator _j14it2246 = (steps).iterator(); _j14it2246.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2246.next();
 			QuestStepState stepState = step.getState();
 			if (stepState == QuestStepState.Ready) {
 				logger.fine("TESTING " + getGameObject().getName() + " step " + step.getId() + ": " + step.getGameObject().getName());
@@ -782,7 +818,8 @@ public class Quest extends GameObjectWrapper {
 				}
 				else {
 					// Mark any steps dependent on fail as READY
-					for(QuestStep ft:step.findPendingFailTriggeredSteps(steps)) {
+					for (java.util.Iterator _j14it2247 = (step.findPendingFailTriggeredSteps(steps)).iterator(); _j14it2247.hasNext(); ) {
+					  QuestStep ft = (QuestStep) _j14it2247.next();
 						ft.setState(QuestStepState.Ready,reqParams.dayKey);
 					}
 					
@@ -805,23 +842,27 @@ public class Quest extends GameObjectWrapper {
 
 	public Quest copyQuestToGameData(GameData gameData) {
 		// Duplicate all the objects in the quest
-		ArrayList<GameObject> allQuestObjects = getGameObject().getAllContainedGameObjects();
-		Hashtable<Long, GameObject> lookup = new Hashtable<Long, GameObject>();
-		for (GameObject questGo : allQuestObjects) {
+		ArrayList allQuestObjects = getGameObject().getAllContainedGameObjects();
+		Hashtable lookup = new Hashtable();
+		for (java.util.Iterator _j14it2248 = (allQuestObjects).iterator(); _j14it2248.hasNext(); ) {
+		  GameObject questGo = (GameObject) _j14it2248.next();
 			GameObject go = gameData.createNewObject(questGo);
-			lookup.put(questGo.getId(), go);
+			lookup.put(Long.valueOf(questGo.getId()), go);
 		}
 
 		// Now make sure the holds are setup correctly
-		for (GameObject questGo : allQuestObjects) {
-			GameObject go = lookup.get(questGo.getId());
-			for (Object obj : questGo.getHold()) {
+		for (java.util.Iterator _j14it2249 = (allQuestObjects).iterator(); _j14it2249.hasNext(); ) {
+		  GameObject questGo = (GameObject) _j14it2249.next();
+			GameObject go = (GameObject) lookup.get(Long.valueOf(questGo.getId()));
+			for (java.util.Iterator _j14it2250 = (questGo.getHold()).iterator(); _j14it2250.hasNext(); ) {
+			  Object obj = (Object) _j14it2250.next();
 				GameObject held = (GameObject) obj;
-				go.add(lookup.get(held.getId()));
+				go.add((GameObject) lookup.get(Long.valueOf(held.getId())));
 			}
 		}
-		Quest quest = new Quest(lookup.get(getGameObject().getId()));
-		for (QuestStep step : quest.getSteps()) {
+		Quest quest = new Quest((GameObject) lookup.get(Long.valueOf(getGameObject().getId())));
+		for (java.util.Iterator _j14it2251 = (quest.getSteps()).iterator(); _j14it2251.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2251.next();
 			step.updateIds(lookup);
 		}
 		return quest;

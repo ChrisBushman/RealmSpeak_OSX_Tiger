@@ -18,34 +18,36 @@ public class MigrateEvent implements IEvent {
 	public void applyBirdsong(GameData data) {
 	}
 	public void applySunset(GameData data) {
-		ArrayList<String> tileTypes = new ArrayList<String>(Arrays.asList("M","C","F","R","W","S"));
+		ArrayList tileTypes = new ArrayList(Arrays.asList(new String[]{"M","C","F","R","W","S"}));
 		TileComponent tile = RealmEvents.chooseRandomTile(data, tileTypes);
 		if (tile!=null) {
 			String type = tile.getTileType();
 			GamePool pool = new GamePool(data.getGameObjects());
-			ArrayList<GameObject> tiles = pool.find("tile,tile_type="+type);
-			GameObject tile2 = tiles.get(RandomNumber.getRandom(tiles.size()));
+			ArrayList tiles = pool.find("tile,tile_type="+type);
+			GameObject tile2 = (GameObject) tiles.get(RandomNumber.getRandom(tiles.size()));
 			GameObject chit1 = null;
-			ArrayList<GameObject> possibleChit1 = new ArrayList<GameObject>();
-			for (GameObject go : tile.getHold()) {
+			ArrayList possibleChit1 = new ArrayList();
+			for (java.util.Iterator _j14it2515 = (tile.getHold()).iterator(); _j14it2515.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2515.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (rc.isWarning()) {
 					possibleChit1.add(go);
 				}
 			}
 			if (possibleChit1!=null && !possibleChit1.isEmpty()) {
-				chit1 = possibleChit1.get(RandomNumber.getRandom(possibleChit1.size()));
+				chit1 = (GameObject) possibleChit1.get(RandomNumber.getRandom(possibleChit1.size()));
 			}
 			GameObject chit2 = null;
-			ArrayList<GameObject> possibleChit2 = new ArrayList<GameObject>();
-			for (GameObject go : tile2.getHold()) {
+			ArrayList possibleChit2 = new ArrayList();
+			for (java.util.Iterator _j14it2516 = (tile2.getHold()).iterator(); _j14it2516.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2516.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (rc.isWarning()) {
 					possibleChit2.add(go);
 				}
 			}
 			if (possibleChit2!=null && !possibleChit2.isEmpty()) {
-				chit2 = possibleChit2.get(RandomNumber.getRandom(possibleChit2.size()));
+				chit2 = (GameObject) possibleChit2.get(RandomNumber.getRandom(possibleChit2.size()));
 			}
 			if (chit1!=null && chit2!=null) {
 				tile.getGameObject().add(chit2);
@@ -62,11 +64,9 @@ public class MigrateEvent implements IEvent {
 	}
 	public void expire(GameData data) {
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		return description;
 	}

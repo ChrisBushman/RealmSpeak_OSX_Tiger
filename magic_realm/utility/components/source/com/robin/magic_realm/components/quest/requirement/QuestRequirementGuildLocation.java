@@ -42,7 +42,6 @@ public class QuestRequirementGuildLocation extends QuestRequirement {
 		return getBoolean(CURRENT_GUILD);
 	}
 
-	@Override
 	public RequirementType getRequirementType() {
 		return RequirementType.GuildLocation;
 	}

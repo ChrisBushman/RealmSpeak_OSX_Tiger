@@ -44,7 +44,7 @@ public class QuestRequirementMissionCampaign extends QuestRequirement {
 	}
 
 	protected String buildDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		CharacterActionType actionType = getActionType();
 		sb.append(actionType.getDescriptor());
 		String regex = getRegExFilter();

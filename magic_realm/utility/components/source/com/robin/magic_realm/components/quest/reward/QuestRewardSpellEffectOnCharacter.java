@@ -15,28 +15,45 @@ public class QuestRewardSpellEffectOnCharacter extends QuestReward {
 	public static final String SPELL = "_spell";
 	public static final String REMOVE = "_remove";
 	
-	public enum EffectOnCharacter {
-		Barkskin,
-		BlazingLightX,
-		Blunt,
-		Camouflage,
-		DivineMight,
-		DivineProtection,
-		DivineShield,
-		GrowWings,
-		HurricaneWinds,
-		Lost,
-		NegativeAura,
-		PeaceWithNature,
-		Premonition,
-		Prophecy,
-		ProtectionFromMagic,
-		Shrink,
-		Slowed,
-		SpiritGuide,
-		TrackersSense,
-		ValeWalker,
-		WaterRun
+	public static final class EffectOnCharacter {
+		private final String _name;
+		private final int _ordinal;
+		private EffectOnCharacter(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final EffectOnCharacter Barkskin = new EffectOnCharacter("Barkskin", 0);
+		public static final EffectOnCharacter BlazingLightX = new EffectOnCharacter("BlazingLightX", 1);
+		public static final EffectOnCharacter Blunt = new EffectOnCharacter("Blunt", 2);
+		public static final EffectOnCharacter Camouflage = new EffectOnCharacter("Camouflage", 3);
+		public static final EffectOnCharacter DivineMight = new EffectOnCharacter("DivineMight", 4);
+		public static final EffectOnCharacter DivineProtection = new EffectOnCharacter("DivineProtection", 5);
+		public static final EffectOnCharacter DivineShield = new EffectOnCharacter("DivineShield", 6);
+		public static final EffectOnCharacter GrowWings = new EffectOnCharacter("GrowWings", 7);
+		public static final EffectOnCharacter HurricaneWinds = new EffectOnCharacter("HurricaneWinds", 8);
+		public static final EffectOnCharacter Lost = new EffectOnCharacter("Lost", 9);
+		public static final EffectOnCharacter NegativeAura = new EffectOnCharacter("NegativeAura", 10);
+		public static final EffectOnCharacter PeaceWithNature = new EffectOnCharacter("PeaceWithNature", 11);
+		public static final EffectOnCharacter Premonition = new EffectOnCharacter("Premonition", 12);
+		public static final EffectOnCharacter Prophecy = new EffectOnCharacter("Prophecy", 13);
+		public static final EffectOnCharacter ProtectionFromMagic = new EffectOnCharacter("ProtectionFromMagic", 14);
+		public static final EffectOnCharacter Shrink = new EffectOnCharacter("Shrink", 15);
+		public static final EffectOnCharacter Slowed = new EffectOnCharacter("Slowed", 16);
+		public static final EffectOnCharacter SpiritGuide = new EffectOnCharacter("SpiritGuide", 17);
+		public static final EffectOnCharacter TrackersSense = new EffectOnCharacter("TrackersSense", 18);
+		public static final EffectOnCharacter ValeWalker = new EffectOnCharacter("ValeWalker", 19);
+		public static final EffectOnCharacter WaterRun = new EffectOnCharacter("WaterRun", 20);
+
+		private static final EffectOnCharacter[] _VALUES = { Barkskin, BlazingLightX, Blunt, Camouflage, DivineMight, DivineProtection, DivineShield, GrowWings, HurricaneWinds, Lost, NegativeAura, PeaceWithNature, Premonition, Prophecy, ProtectionFromMagic, Shrink, Slowed, SpiritGuide, TrackersSense, ValeWalker, WaterRun };
+		public static EffectOnCharacter[] values() { EffectOnCharacter[] r = new EffectOnCharacter[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static EffectOnCharacter valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	public QuestRewardSpellEffectOnCharacter(GameObject go) {
@@ -45,32 +62,24 @@ public class QuestRewardSpellEffectOnCharacter extends QuestReward {
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
 		String effect;
-		switch (getSpell()) {
-		case Barkskin:
+		EffectOnCharacter _eoc = getSpell();
+		if (_eoc == EffectOnCharacter.Barkskin) {
 			effect = Constants.BARKSKIN;
-			break;
-		case BlazingLightX:
+		} else if (_eoc == EffectOnCharacter.BlazingLightX) {
 			effect = Constants.TORCH_BEARER;
-			break;
-		case Blunt:
+		} else if (_eoc == EffectOnCharacter.Blunt) {
 			effect = Constants.BLUNT;
-			break;
-		case Camouflage:
+		} else if (_eoc == EffectOnCharacter.Camouflage) {
 			effect = Constants.CAMOUFLAGE;
-			break;
-		case DivineMight:
+		} else if (_eoc == EffectOnCharacter.DivineMight) {
 			effect = Constants.STRONG_MF;
-			break;
-		case DivineProtection:
+		} else if (_eoc == EffectOnCharacter.DivineProtection) {
 			effect = Constants.STRENGTHENED_VULNERABILITY;
-			break;
-		case DivineShield:
+		} else if (_eoc == EffectOnCharacter.DivineShield) {
 			effect = Constants.ADDS_ARMOR;
-			break;
-		case GrowWings:
+		} else if (_eoc == EffectOnCharacter.GrowWings) {
 			effect = Constants.GROW_WINGS;
-			break;	
-		case HurricaneWinds:
+		} else if (_eoc == EffectOnCharacter.HurricaneWinds) {
 			GameObject hurricanWindsOriginal = character.getGameData().getGameObjectByNameIgnoreCase("hurricane winds");
 			if (hurricanWindsOriginal == null) return;
 			GameObject hurricanWinds = hurricanWindsOriginal.copy();
@@ -79,51 +88,38 @@ public class QuestRewardSpellEffectOnCharacter extends QuestReward {
 				hurricanWinds.removeAttribute(SpellWrapper.SPELL_BLOCK_NAME,SpellWrapper.SECONDARY_TARGET);
 				return;
 			}
-			
 			if(character.getCurrentLocation() == null || character.getCurrentLocation().tile == null) return;
-			ArrayList<TileComponent> adjacentTiles = new ArrayList<TileComponent>(character.getCurrentLocation().tile.getAllAdjacentTiles());
-			TileComponent targetTile = adjacentTiles.get(RandomNumber.getRandom(adjacentTiles.size()));
+			ArrayList adjacentTiles = new ArrayList(character.getCurrentLocation().tile.getAllAdjacentTiles());
+			TileComponent targetTile = (TileComponent) adjacentTiles.get(RandomNumber.getRandom(adjacentTiles.size()));
 			SpellWrapper spell = new SpellWrapper(hurricanWinds);
 			spell.setSecondaryTarget(targetTile.getGameObject());
 			character.getGameObject().setThisAttribute(Constants.BLOWS_TARGET,hurricanWinds.getStringId());
 			return;
-		case Lost:
+		} else if (_eoc == EffectOnCharacter.Lost) {
 			effect = Constants.SP_MOVE_IS_RANDOM;
-			break;
-		case NegativeAura:
+		} else if (_eoc == EffectOnCharacter.NegativeAura) {
 			effect = Constants.NEGATIVE_AURA;
-			break;
-		case PeaceWithNature:
+		} else if (_eoc == EffectOnCharacter.PeaceWithNature) {
 			effect = Constants.PEACE_WITH_NATURE;
-			break;
-		case Premonition:
+		} else if (_eoc == EffectOnCharacter.Premonition) {
 			effect = Constants.CHOOSE_TURN;
-			break;
-		case Prophecy:
+		} else if (_eoc == EffectOnCharacter.Prophecy) {
 			effect = Constants.DAYTIME_ACTIONS;
-			break;
-		case ProtectionFromMagic:
+		} else if (_eoc == EffectOnCharacter.ProtectionFromMagic) {
 			effect = Constants.MAGIC_PROTECTION;
-			break;
-		case Shrink:
+		} else if (_eoc == EffectOnCharacter.Shrink) {
 			effect = Constants.SHRINK;
-			break;
-		case Slowed:
+		} else if (_eoc == EffectOnCharacter.Slowed) {
 			effect = Constants.SLOWED;
-			break;
-		case SpiritGuide:
+		} else if (_eoc == EffectOnCharacter.SpiritGuide) {
 			effect = Constants.SPIRIT_GUIDE;
-			break;
-		case TrackersSense:
+		} else if (_eoc == EffectOnCharacter.TrackersSense) {
 			effect = Constants.TRACKERS_SENSE;
-			break;
-		case ValeWalker:
+		} else if (_eoc == EffectOnCharacter.ValeWalker) {
 			effect = Constants.VALE_WALKER;
-			break;
-		case WaterRun:
+		} else if (_eoc == EffectOnCharacter.WaterRun) {
 			effect = Constants.WATER_RUN;
-			break;
-		default:
+		} else {
 			return;
 		}
 		
@@ -138,7 +134,7 @@ public class QuestRewardSpellEffectOnCharacter extends QuestReward {
 		return EffectOnCharacter.valueOf(getString(SPELL));
 	}
 	
-	private Boolean remove() {
+	private boolean remove() {
 		return getBoolean(REMOVE);
 	}
 	

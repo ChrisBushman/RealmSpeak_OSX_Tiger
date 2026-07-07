@@ -7,7 +7,6 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class NoWeightEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		if (context.Target.getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON)) {
 			context.Spell.cancelSpell();
@@ -16,7 +15,6 @@ public class NoWeightEffect implements ISpellEffect {
 		//CJM -- this is checked during getWeight()
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		// Make sure character inventory can handle the new weight that results from losing the NO_WEIGHT effect
 		GameObject heldBy = context.Target.getGameObject().getHeldBy();

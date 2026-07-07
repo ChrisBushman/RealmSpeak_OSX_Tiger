@@ -17,10 +17,10 @@ import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 public abstract class Commerce extends Trade {
 	
 	protected HostPrefWrapper hostPrefs;
-	protected Collection<RealmComponent> merchandise;
+	protected Collection merchandise;
 	private boolean blockBattle = false;
 	
-	public Commerce(JFrame frame,TradeInfo tradeInfo,Collection<RealmComponent> merchandise,HostPrefWrapper hostPrefs) {
+	public Commerce(JFrame frame,TradeInfo tradeInfo,Collection merchandise,HostPrefWrapper hostPrefs) {
 		super(frame,tradeInfo);
 		this.merchandise = merchandise;
 		this.hostPrefs = hostPrefs;
@@ -83,7 +83,8 @@ public abstract class Commerce extends Trade {
 	}
 	protected int getTotalBasePrice(boolean includeBonus) {
 		int totalPrice = 0;
-		for (RealmComponent merchandise : merchandise) {
+		for (java.util.Iterator _j14it2152 = (merchandise).iterator(); _j14it2152.hasNext(); ) {
+		  RealmComponent merchandise = (RealmComponent) _j14it2152.next();
 			totalPrice += TreasureUtility.getBasePrice(tradeInfo.getTrader(),merchandise,includeBonus);
 		}
 		return totalPrice;
@@ -130,7 +131,8 @@ public abstract class Commerce extends Trade {
 		}
 		else {
 			total = (getTotalBasePrice(false) * multi);
-			for (RealmComponent merchandise : merchandise) {
+			for (java.util.Iterator _j14it2153 = (merchandise).iterator(); _j14it2153.hasNext(); ) {
+			  RealmComponent merchandise = (RealmComponent) _j14it2153.next();
 				total += TreasureUtility.getCommerceBonusPrice(tradeInfo.getTrader(),merchandise);
 			}
 		}
@@ -154,8 +156,9 @@ public abstract class Commerce extends Trade {
 	protected String sellItems(CharacterWrapper character, int price) {
 		String result = "";
 		StringBuffer sb = new StringBuffer();
-		ArrayList<GameObject> itemList = new ArrayList<GameObject>();
-		for (RealmComponent merchandise : merchandise) {
+		ArrayList itemList = new ArrayList();
+		for (java.util.Iterator _j14it2154 = (merchandise).iterator(); _j14it2154.hasNext(); ) {
+		  RealmComponent merchandise = (RealmComponent) _j14it2154.next();
 			itemList.add(merchandise.getGameObject());
 			sb.append("You sold the "+merchandise.getGameObject().getName()+" for "+price+" gold.\n");
 			character.addGold(price);
@@ -166,7 +169,7 @@ public abstract class Commerce extends Trade {
 		character.checkInventoryStatus(getParentFrame(),null,getListener());
 		
 		if (merchandise.size()==1) {
-			RealmComponent item = merchandise.iterator().next();
+			RealmComponent item = (RealmComponent) merchandise.iterator().next();
 			result = "Total received for the "+item.getGameObject().getName()+" was "+price+" gold.";
 		}
 		else {
@@ -182,8 +185,9 @@ public abstract class Commerce extends Trade {
 		// Can be multiple items sold
 		int totalGoldReceieved = bonus;
 		StringBuffer sb = new StringBuffer();
-		ArrayList<GameObject> itemList = new ArrayList<GameObject>();
-		for (RealmComponent merchandise : merchandise) {
+		ArrayList itemList = new ArrayList();
+		for (java.util.Iterator _j14it2155 = (merchandise).iterator(); _j14it2155.hasNext(); ) {
+		  RealmComponent merchandise = (RealmComponent) _j14it2155.next();
 			itemList.add(merchandise.getGameObject());
 			int basePrice = TreasureUtility.getBasePrice(tradeInfo.getTrader(),merchandise); // Without commerce rules, the basePrice is the selling price (already figured in by the getBasePrice method)
 			sb.append("You sold the "+merchandise.getGameObject().getName()+" for "+basePrice+" gold.\n");
@@ -205,7 +209,7 @@ public abstract class Commerce extends Trade {
 			character.addGold(bonus,true); // ignore curses here, because its a NET amount which involves some subtraction
 		}
 		if (merchandise.size()==1) {
-			RealmComponent item = merchandise.iterator().next();
+			RealmComponent item = (RealmComponent) merchandise.iterator().next();
 			result = "Total received for the "+item.getGameObject().getName()+" was "+totalGoldReceieved+" gold.";
 		}
 		else {
@@ -216,7 +220,7 @@ public abstract class Commerce extends Trade {
 		handleFoolsGold(character);
 		return result;
 	}
-	private void checkQuestRequirementsAfterSelling(ArrayList<GameObject> itemList, CharacterWrapper character) {
+	private void checkQuestRequirementsAfterSelling(ArrayList itemList, CharacterWrapper character) {
 		QuestRequirementParams params = new QuestRequirementParams();
 		params.actionType = CharacterActionType.Trading;
 		params.actionName = TradeType.Sell.toString();
@@ -237,7 +241,8 @@ public abstract class Commerce extends Trade {
 	}
 	private void handleFoolsGold(CharacterWrapper character) {
 		boolean runAway = false;
-		for (RealmComponent merchandise : merchandise) {
+		for (java.util.Iterator _j14it2156 = (merchandise).iterator(); _j14it2156.hasNext(); ) {
+		  RealmComponent merchandise = (RealmComponent) _j14it2156.next();
 			if (merchandise.getGameObject().hasThisAttribute(Constants.FOOLS_GOLD)) {
 				runAway = true;
 				break;
@@ -248,7 +253,7 @@ public abstract class Commerce extends Trade {
 			setNewTable(newTable);
 		}
 	}
-	public static Commerce createCommerceTable(JFrame frame,CharacterWrapper character,TileLocation currentLocation,RealmComponent trader,Collection<RealmComponent> merchandise,int ignoreBuyDrinksLimit,HostPrefWrapper hostPrefs) {
+	public static Commerce createCommerceTable(JFrame frame,CharacterWrapper character,TileLocation currentLocation,RealmComponent trader,Collection merchandise,int ignoreBuyDrinksLimit,HostPrefWrapper hostPrefs) {
 		if (!hostPrefs.hasPref(Constants.OPT_COMMERCE) && !hostPrefs.hasPref(Constants.SR_ADV_SELLING)) {
 			return new CommerceNone(frame,new TradeInfo(trader),merchandise,hostPrefs);
 		}
@@ -261,7 +266,8 @@ public abstract class Commerce extends Trade {
 			String visitor = trader.getGameObject().getThisAttribute(Constants.VISITOR);
 			if (visitor!=null) {
 				String priceKey = visitor.toLowerCase()+"_price";
-				for (RealmComponent item : merchandise) {
+				for (java.util.Iterator _j14it2157 = (merchandise).iterator(); _j14it2157.hasNext(); ) {
+				  RealmComponent item = (RealmComponent) _j14it2157.next();
 					if (item.getGameObject().hasThisAttribute(priceKey)) {
 						return new SellingVisitor(frame,tradeInfo,merchandise,hostPrefs,tradeInfo.getRelationshipType());
 					}
@@ -269,7 +275,8 @@ public abstract class Commerce extends Trade {
 			}
 			
 			int conditionalBonus = 0;
-			for (RealmComponent item : merchandise) {
+			for (java.util.Iterator _j14it2158 = (merchandise).iterator(); _j14it2158.hasNext(); ) {
+			  RealmComponent item = (RealmComponent) _j14it2158.next();
 				if (TreasureUtility.getFamePrice(item.getGameObject(),trader.getGameObject())>0) {
 					conditionalBonus = 1;
 					break;

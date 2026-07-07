@@ -22,7 +22,7 @@ public class SpellSelector extends AggressiveDialog {
 	private int currentPicks;
 	private int totalPicks;
 	private GameData data;
-	private ArrayList<GameObject> spellChoices;
+	private ArrayList spellChoices;
 	
 	private JPanel enchantPanel;
 	private ChitBinPanel chitBinPanel;
@@ -38,7 +38,7 @@ public class SpellSelector extends AggressiveDialog {
 	private JButton doneButton;
 	private JButton resetButton;
 	
-	private ArrayList<GameObject> spellSelection = null;
+	private ArrayList spellSelection = null;
 	
 	private boolean allowAddSpell;
 	
@@ -64,7 +64,7 @@ public class SpellSelector extends AggressiveDialog {
 	};
 	
 	
-	public SpellSelector(JFrame parent,GameData data,ArrayList<GameObject> spellChoices,int totalPicks) {
+	public SpellSelector(JFrame parent,GameData data,ArrayList spellChoices,int totalPicks) {
 		super(parent,"Spell Selector",true);
 		this.spellChoices = spellChoices;
 		this.totalPicks = totalPicks;
@@ -77,29 +77,36 @@ public class SpellSelector extends AggressiveDialog {
 		int selectedTab = fromTabPanel.getSelectedIndex();
 		fromTabPanel.removeAll();
 		
-		HashLists<String,GameObject> hashList = new HashLists<String,GameObject>();
-		for (GameObject go:spellChoices) {
+		HashLists hashList = new HashLists();
+		for (java.util.Iterator _j14it1939 = (spellChoices).iterator(); _j14it1939.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1939.next();
 			hashList.put(go.getThisAttribute("spell"),go);
 		}
 		
-		ArrayList<String> types = new ArrayList<String>(hashList.keySet());
+		ArrayList types = new ArrayList(hashList.keySet());
 		Collections.sort(types); // not QUITE right, I think...
 		fromPanel = new RealmObjectPanel[types.size()];
 		int n=0;
-		for (String type : types){
+		for (java.util.Iterator _j14it1940 = (types).iterator(); _j14it1940.hasNext(); ) {
+		  String type = (String) _j14it1940.next();
 			fromPanel[n] = new RealmObjectPanel(false,false);
 			fromPanel[n].addMouseListener(selectSpellListener);
-			ArrayList<GameObject> spells = hashList.getList(type);
-			Collections.sort(spells,new Comparator<GameObject>() {
-				public int compare(GameObject g1,GameObject g2) {
+			ArrayList spells = hashList.getList(type);
+			Collections.sort(spells,new Comparator() {
+				public int compare(Object o1,Object o2) {
+					GameObject g1 = (GameObject) o1;
+					GameObject g2 = (GameObject) o2;
 					return g1.getName().compareTo(g2.getName());
 				}
 			});
-			for (GameObject spell:spells) {
+			for (java.util.Iterator _j14it1941 = (spells).iterator(); _j14it1941.hasNext(); ) {
+			  GameObject spell = (GameObject) _j14it1941.next();
 				if (hostPrefs.hasPref(Constants.FE_NO_DUPLICATE_SPELL_RECORDING)) {
 					boolean duplicateSpell = false;
 					if (toPanel!=null && toPanel.getComponents().length!=0) {
-						for (Object selectedSpellObject : toPanel.getComponents()) {
+						java.awt.Component[] _j14arr1942 = toPanel.getComponents();
+						for (int _j14i1942 = 0; _j14i1942 < _j14arr1942.length; _j14i1942++) {
+						  Object selectedSpellObject = _j14arr1942[_j14i1942];
 							if (selectedSpellObject instanceof SpellCardComponent) {
 								GameObject selectedSpell = ((SpellCardComponent) selectedSpellObject).getGameObject();
 								if (spell.getName().toLowerCase().matches(selectedSpell.getName().toLowerCase())) {
@@ -225,7 +232,7 @@ public class SpellSelector extends AggressiveDialog {
 			doneButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
 					if (!isReady()) return;
-					spellSelection = new ArrayList<GameObject>();
+					spellSelection = new ArrayList();
 					if (!spellChoices.isEmpty()) {
 						Collection all = new ArrayList(Arrays.asList(toPanel.getComponents()));
 						for (Iterator i=all.iterator();i.hasNext();) {
@@ -250,7 +257,8 @@ public class SpellSelector extends AggressiveDialog {
 		if (chitBinPanel==null) return true;
 		
 		boolean foundEnchantable = false;
-		for(ChitComponent chit:chitBinPanel.getAllChits()) {
+		for (java.util.Iterator _j14it1943 = (chitBinPanel.getAllChits()).iterator(); _j14it1943.hasNext(); ) {
+		  ChitComponent chit = (ChitComponent) _j14it1943.next();
 			if (chit.isEnchanted()) return true;
 			if (!foundEnchantable && (chit instanceof CharacterActionChitComponent)) {
 				CharacterActionChitComponent aChit = (CharacterActionChitComponent)chit;
@@ -272,7 +280,7 @@ public class SpellSelector extends AggressiveDialog {
 		}
 		return true;
 	}
-	public ArrayList<GameObject> getSpellSelection() {
+	public ArrayList getSpellSelection() {
 		return spellSelection;
 	}
 	private static SpellCardComponent getSpellFromPanel(RealmObjectPanel panel,Point p) {
@@ -292,7 +300,7 @@ public class SpellSelector extends AggressiveDialog {
 		int change = totalPicks-all.size();
 		if (change<0) {
 			// Remove empties
-			ArrayList<Component> newList = new ArrayList<Component>();
+			ArrayList newList = new ArrayList();
 			for (Iterator i=all.iterator();i.hasNext();) {
 				RealmComponent rc = (RealmComponent)i.next();
 				if (change<0 && rc instanceof EmptyCardComponent) {
@@ -326,7 +334,7 @@ public class SpellSelector extends AggressiveDialog {
 		if (sc!=null) {
 			SpellCardComponent nsc = new SpellCardComponent(sc.getGameObject());
 			
-			ArrayList<Component> all = new ArrayList<Component>(Arrays.asList(toPanel.getComponents()));
+			ArrayList all = new ArrayList(Arrays.asList(toPanel.getComponents()));
 			for (int i=0;i<all.size();i++) {
 				CardComponent card = (CardComponent)all.get(i);
 				if (card instanceof EmptyCardComponent) {
@@ -342,7 +350,7 @@ public class SpellSelector extends AggressiveDialog {
 	private void removeSelection(Point p) {
 		SpellCardComponent sc = getSpellFromPanel(toPanel,p);
 		if (sc!=null) {
-			ArrayList<Component> all = new ArrayList<Component>(Arrays.asList(toPanel.getComponents()));
+			ArrayList all = new ArrayList(Arrays.asList(toPanel.getComponents()));
 			int n = all.indexOf(sc);
 			all.remove(n);
 			all.add(n,new EmptyCardComponent());
@@ -356,7 +364,7 @@ public class SpellSelector extends AggressiveDialog {
 		}
 	}
 	public void setChits(CharacterWrapper character) {
-		ArrayList<StateChitComponent> chits = character.getAllMagicStateChits();
+		ArrayList chits = character.getAllMagicStateChits();
 		ChitBinLayout layout = new ChitBinLayout(chits);
 		chitBinPanel = new ChitBinPanel(layout,12,1) {
 			public boolean canClickChit(ChitComponent aChit) {
@@ -384,7 +392,7 @@ public class SpellSelector extends AggressiveDialog {
 			}
 		});
 		for (int i=0;i<chits.size();i++) {
-			StateChitComponent chit = chits.get(i);
+			StateChitComponent chit = (StateChitComponent) chits.get(i);
 			chitBinPanel.addChit(chit, i);
 		}
 		enchantPanel.add(chitBinPanel,"Center");
@@ -406,22 +414,24 @@ public class SpellSelector extends AggressiveDialog {
 		RealmLoader loader = new RealmLoader();
 		GameData data = loader.getData();
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> choices = new ArrayList<GameObject>();//pool.find("spell");
+		ArrayList choices = new ArrayList();//pool.find("spell");
 		choices.addAll(pool.find("spell=V"));
 		choices.addAll(pool.find("spell=VI"));
 		choices.addAll(pool.find("spell=VII"));
 		choices.addAll(pool.find("spell=VIII"));
 		JFrame dummy = new JFrame();
 		SpellSelector sel = new SpellSelector(dummy,data,choices,4);
-		ArrayList<GameObject> chits = pool.find("character_chit=witch_king,action=magic");
-		Collections.sort(chits,new Comparator<GameObject>() {
-			public int compare(GameObject o1, GameObject o2) {
-				int m1 = RealmUtility.convertMod(o1.getThisAttribute("magic"));
-				int m2 = RealmUtility.convertMod(o2.getThisAttribute("magic"));
+		ArrayList chits = pool.find("character_chit=witch_king,action=magic");
+		Collections.sort(chits,new Comparator() {
+			public int compare(Object o1, Object o2) {
+				GameObject g1 = (GameObject) o1;
+				GameObject g2 = (GameObject) o2;
+				int m1 = RealmUtility.convertMod(g1.getThisAttribute("magic"));
+				int m2 = RealmUtility.convertMod(g2.getThisAttribute("magic"));
 				int ret = m1 - m2;
 				if (ret==0) {
-					int s1 = o1.getThisInt("speed");
-					int s2 = o2.getThisInt("speed");
+					int s1 = g1.getThisInt("speed");
+					int s2 = g2.getThisInt("speed");
 					ret = s1 - s2;
 				}
 				return ret;

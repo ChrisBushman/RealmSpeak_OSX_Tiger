@@ -74,14 +74,14 @@ public class QuestRewardCustomTreasure extends QuestReward {
 		if (locationOnly()) {
 			QuestLocation loc = getQuestLocation();
 			if (loc == null) return;
-			ArrayList<TileLocation> validLocations = new ArrayList<TileLocation>();
+			ArrayList validLocations = new ArrayList();
 			validLocations = loc.fetchAllLocations(frame, character, getGameData());
 			if(validLocations.isEmpty()) {
 				logger.fine("QuestLocation "+loc.getName()+" doesn't have any valid locations!");
 				return;
 			}
 			int random = RandomNumber.getRandom(validLocations.size());
-			TileLocation tileLocation = validLocations.get(random);
+			TileLocation tileLocation = (TileLocation) validLocations.get(random);
 			tileLocation.clearing.add(customTreasure,null);
 		}
 		else {
@@ -143,7 +143,7 @@ public class QuestRewardCustomTreasure extends QuestReward {
 	public void setQuestLocation(QuestLocation location) {
 		setString(LOCATION,location.getGameObject().getStringId());
 	}
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}
 }

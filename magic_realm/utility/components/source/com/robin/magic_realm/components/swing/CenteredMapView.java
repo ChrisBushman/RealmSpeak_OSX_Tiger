@@ -71,13 +71,13 @@ public class CenteredMapView extends JComponent {
 
 	public static final int MAP_BORDER = 10;
 	
-	protected Hashtable<Point,TileComponent> mapGrid;
-	protected Hashtable<Point, Rectangle> mapGridCoor;
+	protected Hashtable mapGrid;
+	protected Hashtable mapGridCoor;
 	protected Dimension tileSize = new Dimension(TileComponent.TILE_WIDTH,TileComponent.TILE_HEIGHT);
 	
 	// These are needed for map building
-	protected Hashtable<Point, Tile> planningMapGrid;	// Point:Tile
-	protected ArrayList<Point> availablePositions;
+	protected Hashtable planningMapGrid;	// Point:Tile
+	protected ArrayList availablePositions;
 	
 	protected Point mouseHover = null;
 	protected Point sticky = null;
@@ -109,11 +109,11 @@ public class CenteredMapView extends JComponent {
 	private TileLocation currentTileLocation = null;
 	
 	private String mapAttentionMessage = null;
-	private ArrayList<String> mapAttentionMessage2 = null;
+	private ArrayList mapAttentionMessage2 = null;
 	
 	private String markClearingAlertText = null;
 	
-	private ArrayList<TileLocation> clearingPlot = null; // a collection of TileLocation objects to indicate a path to be drawn on the map
+	private ArrayList clearingPlot = null; // a collection of TileLocation objects to indicate a path to be drawn on the map
 	
 	private TileComponent viewTile = null;
 	
@@ -124,10 +124,10 @@ public class CenteredMapView extends JComponent {
 	
 	private MapRightClickMenu mapRightClickMenu;
 	
-	private Hashtable<Point, Color> positionColors; // a hashtable to mark positions on the map that may not have a tile!
+	private Hashtable positionColors; // a hashtable to mark positions on the map that may not have a tile!
 	
-	private ArrayList<ChangeListener> changeListeners = null;
-	private ArrayList<ActionListener> actionListeners = null;
+	private ArrayList changeListeners = null;
+	private ArrayList actionListeners = null;
 	private boolean hasClearingSelectionInProgess = false;
 	
 	private boolean mapReady = false;
@@ -143,8 +143,8 @@ public class CenteredMapView extends JComponent {
 	
 	private int chatLineBufferSize = 10;
 	private int chatLinesToShow = 10;
-	private ArrayList<ChatLine> chatLines;
-	private Hashtable<String,ChatStyle> chatStyles;
+	private ArrayList chatLines;
+	private Hashtable chatStyles;
 	
 	private int interpolation = 0;
 	private String rendering = "interpolation";
@@ -168,17 +168,18 @@ public class CenteredMapView extends JComponent {
 		this.gameData = data;
 		game = GameWrapper.findGame(gameData);
 		calendar = RealmCalendar.getCalendar(data);
-		mapGrid = new Hashtable<Point, TileComponent>();
-		planningMapGrid = new Hashtable<Point, Tile>();
-		availablePositions = new ArrayList<Point>();
-		chatLines = new ArrayList<ChatLine>();
-		chatStyles = new Hashtable<String,ChatStyle>();
-		for (ChatStyle style:ChatStyle.styles) {
+		mapGrid = new Hashtable();
+		planningMapGrid = new Hashtable();
+		availablePositions = new ArrayList();
+		chatLines = new ArrayList();
+		chatStyles = new Hashtable();
+		for (int _j14i1946 = 0; _j14i1946 < ChatStyle.styles.length; _j14i1946++) {
+		  ChatStyle style = ChatStyle.styles[_j14i1946];
 			chatStyles.put(style.getStyleName(),style);
 		}
 		anchorTileName = findAnchorTileName();
 		
-		positionColors = new Hashtable<Point, Color>();
+		positionColors = new Hashtable();
 		
 		updateGrid();
 		
@@ -286,7 +287,8 @@ public class CenteredMapView extends JComponent {
 	}
 	private String findAnchorTileName() {
 		GamePool pool = new GamePool(gameData.getGameObjects());
-		for (GameObject obj : pool.find("tile")) {
+		for (java.util.Iterator _j14it1947 = (pool.find("tile")).iterator(); _j14it1947.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it1947.next();
 			if (obj.hasThisAttribute(Constants.ANCHOR_TILE)) {
 				return obj.getName();
 			}
@@ -328,7 +330,7 @@ public class CenteredMapView extends JComponent {
 	}
 	public void addChangeListener(ChangeListener listener) {
 		if (changeListeners==null) {
-			changeListeners = new ArrayList<ChangeListener>();
+			changeListeners = new ArrayList();
 		}
 		if (!changeListeners.contains(listener)) {
 			changeListeners.add(listener);
@@ -345,14 +347,15 @@ public class CenteredMapView extends JComponent {
 	private void fireStateChanged() {
 		if (changeListeners!=null) {
 			ChangeEvent ev = new ChangeEvent(this);
-			for (ChangeListener listener : changeListeners) {
+			for (java.util.Iterator _j14it1948 = (changeListeners).iterator(); _j14it1948.hasNext(); ) {
+			  ChangeListener listener = (ChangeListener) _j14it1948.next();
 				listener.stateChanged(ev);
 			}
 		}
 	}
 	public void addActionListener(ActionListener listener) {
 		if (actionListeners==null) {
-			actionListeners = new ArrayList<ActionListener>();
+			actionListeners = new ArrayList();
 		}
 		if (!actionListeners.contains(listener)) {
 			actionListeners.add(listener);
@@ -369,7 +372,8 @@ public class CenteredMapView extends JComponent {
 	private void fireActionPerformed(int id,String command) {
 		if (actionListeners!=null) {
 			ActionEvent ev = new ActionEvent(this,id,command);
-			for (ActionListener listener : actionListeners) {
+			for (java.util.Iterator _j14it1949 = (actionListeners).iterator(); _j14it1949.hasNext(); ) {
+			  ActionListener listener = (ActionListener) _j14it1949.next();
 				listener.actionPerformed(ev);
 			}
 		}
@@ -387,8 +391,9 @@ public class CenteredMapView extends JComponent {
 		return mapGrid.get(pos)!=null;
 	}
 	public void updateTilesStyle() {
-		ArrayList<GameObject> tileObjects = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
-		for (GameObject obj : tileObjects) {
+		ArrayList tileObjects = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
+		for (java.util.Iterator _j14it1950 = (tileObjects).iterator(); _j14it1950.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it1950.next();
 			TileComponent tc = (TileComponent)RealmComponent.getRealmComponent(obj);
 			tc.initFilepaths();
 			tc.doRepaint();
@@ -399,13 +404,14 @@ public class CenteredMapView extends JComponent {
 		planningMapGrid.clear();
 		availablePositions.clear();
 		RealmObjectMaster.getRealmObjectMaster(gameData).resetTileObjects();
-		Collection<GameObject> tileObjects = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
+		Collection tileObjects = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
 		
 		// Add all the tiles
 		String anchorTileName = this.anchorTileName;
 		int emptyCount = 0;
-		ArrayList<Point> points = new ArrayList<Point>();
-		for (GameObject obj : tileObjects) {
+		ArrayList points = new ArrayList();
+		for (java.util.Iterator _j14it1951 = (tileObjects).iterator(); _j14it1951.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it1951.next();
 			if (obj.hasThisAttribute(Constants.ANCHOR_TILE)) {
 				anchorTileName = obj.toString();
 			}
@@ -430,8 +436,9 @@ public class CenteredMapView extends JComponent {
 		if (emptyCount>0) {
 			if (emptyCount<tileObjects.size()) {
 				// Add a border of empty tiles
-				ArrayList<Point> pos = Tile.findAvailableMapPositions(planningMapGrid,anchorTileName);
-				for (Point gp : pos) {
+				ArrayList pos = Tile.findAvailableMapPositions(planningMapGrid,anchorTileName);
+				for (java.util.Iterator _j14it1952 = (pos).iterator(); _j14it1952.hasNext(); ) {
+				  Point gp = (Point) _j14it1952.next();
 					EmptyTileComponent empty = new EmptyTileComponent();
 					availablePositions.add(gp);
 					addTile(empty,gp);
@@ -459,12 +466,12 @@ public class CenteredMapView extends JComponent {
 	public void clearMapAttentionMessage() {
 		this.mapAttentionMessage = null;
 	}
-	public ArrayList<String> getMapAttentionMessage2() {
+	public ArrayList getMapAttentionMessage2() {
 		return mapAttentionMessage2;
 	}
 	public void addMapAttentionMessage2(String val) {
 		if(this.mapAttentionMessage2==null) {
-			mapAttentionMessage2 = new ArrayList<String>();
+			mapAttentionMessage2 = new ArrayList();
 		}
 		this.mapAttentionMessage2.add(val);
 	}
@@ -531,8 +538,9 @@ public class CenteredMapView extends JComponent {
 		return null;
 	}
 	private Point findGridPos(TileComponent tile) {
-		for (Point gridPos : mapGrid.keySet()) {
-			TileComponent t = mapGrid.get(gridPos);
+		for (java.util.Iterator _j14it1953 = (mapGrid.keySet()).iterator(); _j14it1953.hasNext(); ) {
+		  Point gridPos = (Point) _j14it1953.next();
+			TileComponent t = (TileComponent) mapGrid.get(gridPos);
 			if (tile==t) { // found it
 				return gridPos;
 			}
@@ -638,7 +646,8 @@ public class CenteredMapView extends JComponent {
 		markAdjacentTiles(tile,setMark,0);
 	}
 	public void markAdjacentTiles(TileComponent tile,boolean setMark,int recurse) {
-		for (TileComponent adj:tile.getAllAdjacentTiles()) {
+		for (java.util.Iterator _j14it1954 = (tile.getAllAdjacentTiles()).iterator(); _j14it1954.hasNext(); ) {
+		  TileComponent adj = (TileComponent) _j14it1954.next();
 			if (adj.isMarked()!=setMark) {
 				adj.setMarked(setMark);
 			}
@@ -650,7 +659,8 @@ public class CenteredMapView extends JComponent {
 		repaint();
 	}
 	public void markAllTiles(boolean setMark) {
-		for (TileComponent tile : mapGrid.values()) {
+		for (java.util.Iterator _j14it1955 = (mapGrid.values()).iterator(); _j14it1955.hasNext(); ) {
+		  TileComponent tile = (TileComponent) _j14it1955.next();
 			if (tile.isMarked()!=setMark) {
 				tile.setMarked(setMark);
 			}
@@ -658,10 +668,12 @@ public class CenteredMapView extends JComponent {
 		replot = true;
 		repaint();
 	}
-	public ArrayList<ClearingDetail> getAllMarkedClearings() {
-		ArrayList<ClearingDetail> list = new ArrayList<ClearingDetail>();
-		for (TileComponent tile :  mapGrid.values()) {
-			for (ClearingDetail clearing : tile.getClearings()) {
+	public ArrayList getAllMarkedClearings() {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it1956 = (mapGrid.values()).iterator(); _j14it1956.hasNext(); ) {
+		  TileComponent tile = (TileComponent) _j14it1956.next();
+			for (java.util.Iterator _j14it1957 = (tile.getClearings()).iterator(); _j14it1957.hasNext(); ) {
+			  ClearingDetail clearing = (ClearingDetail) _j14it1957.next();
 				if (clearing.isMarked()) {
 					list.add(clearing);
 				}
@@ -670,8 +682,10 @@ public class CenteredMapView extends JComponent {
 		return list;
 	}
 	public void markAllClearings(boolean setMark) {
-		for (TileComponent tile : mapGrid.values()) {
-			for (ClearingDetail clearing : tile.getClearings()) {
+		for (java.util.Iterator _j14it1958 = (mapGrid.values()).iterator(); _j14it1958.hasNext(); ) {
+		  TileComponent tile = (TileComponent) _j14it1958.next();
+			for (java.util.Iterator _j14it1959 = (tile.getClearings()).iterator(); _j14it1959.hasNext(); ) {
+			  ClearingDetail clearing = (ClearingDetail) _j14it1959.next();
 				if (clearing.isMarked()!=setMark) {
 					clearing.setMarked(setMark);
 				}
@@ -682,22 +696,25 @@ public class CenteredMapView extends JComponent {
 	}
 	public void markAllMapEdges(boolean setMark) {
 		String anchorTileName = this.anchorTileName;
-		ArrayList<ClearingDetail> allMapEdges = new ArrayList<ClearingDetail>();
-		for (TileComponent tile : mapGrid.values()) {
+		ArrayList allMapEdges = new ArrayList();
+		for (java.util.Iterator _j14it1960 = (mapGrid.values()).iterator(); _j14it1960.hasNext(); ) {
+		  TileComponent tile = (TileComponent) _j14it1960.next();
 			allMapEdges.addAll(tile.getMapEdges());
 			if (tile.getGameObject().hasThisAttribute(Constants.ANCHOR_TILE)) {
 				anchorTileName = tile.toString();
 			}
 		}
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(gameData);
-		Collection<String> keyVals = GamePool.makeKeyVals(hostPrefs.getGameKeyVals());
-		Hashtable<Point, Tile> mapGrid = Tile.readMap(gameData,keyVals);
-		for (ClearingDetail detail:allMapEdges) {
+		Collection keyVals = GamePool.makeKeyVals(hostPrefs.getGameKeyVals());
+		Hashtable mapGrid = Tile.readMap(gameData,keyVals);
+		for (java.util.Iterator _j14it1961 = (allMapEdges).iterator(); _j14it1961.hasNext(); ) {
+		  ClearingDetail detail = (ClearingDetail) _j14it1961.next();
 			// Only mark those edges that are actually connected to the Borderland
-			Tile mapTile = mapGrid.get(Tile.getPositionFromGameObject(detail.getParent().getGameObject()));
-			ArrayList<PathDetail> paths = detail.getConnectedPaths();
+			Tile mapTile = (Tile) mapGrid.get(Tile.getPositionFromGameObject(detail.getParent().getGameObject()));
+			ArrayList paths = detail.getConnectedPaths();
 			if (paths!=null) {
-				for (PathDetail path:paths) {
+				for (java.util.Iterator _j14it1962 = (paths).iterator(); _j14it1962.hasNext(); ) {
+				  PathDetail path = (PathDetail) _j14it1962.next();
 					ClearingDetail other = path.findConnection(detail);
 					if (mapTile.connectsToTilename(mapGrid,"clearing_"+other.getNum(),anchorTileName)) {
 						detail.setMarked(setMark);
@@ -708,17 +725,20 @@ public class CenteredMapView extends JComponent {
 		}
 	}
 	public static void markMapEdges(ClearingDetail clearing,boolean setMark) {
-		for (PathDetail path : clearing.getConnectedPaths()) {
+		for (java.util.Iterator _j14it1963 = (clearing.getConnectedPaths()).iterator(); _j14it1963.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it1963.next();
 			if (path.connectsToMapEdge()) {
 				path.getEdgeAsClearing().setMarked(setMark);
 			}
 		}
 	}
 	public void markClearings(String clearingType,boolean setMark) {
-		for (TileComponent tile : mapGrid.values()) {
-			ArrayList<ClearingDetail> c = tile.getClearings(clearingType);
+		for (java.util.Iterator _j14it1964 = (mapGrid.values()).iterator(); _j14it1964.hasNext(); ) {
+		  TileComponent tile = (TileComponent) _j14it1964.next();
+			ArrayList c = tile.getClearings(clearingType);
 			if (!c.isEmpty()) {
-				for (ClearingDetail clearing : c) {
+				for (java.util.Iterator _j14it1965 = (c).iterator(); _j14it1965.hasNext(); ) {
+				  ClearingDetail clearing = (ClearingDetail) _j14it1965.next();
 					clearing.setMarked(setMark);
 				}
 //				tile.doRepaint(); // KEEP FOR NOW
@@ -728,11 +748,13 @@ public class CenteredMapView extends JComponent {
 		repaint();
 	}
 	public void markClearingsInTilesWithType(String type, boolean setMark) {
-		for (TileComponent tile : mapGrid.values()) {
+		for (java.util.Iterator _j14it1966 = (mapGrid.values()).iterator(); _j14it1966.hasNext(); ) {
+		  TileComponent tile = (TileComponent) _j14it1966.next();
 			if (!tile.getTileType().matches(type)) continue;
-			ArrayList<ClearingDetail> c = tile.getClearings();
+			ArrayList c = tile.getClearings();
 			if (!c.isEmpty()) {
-				for (ClearingDetail clearing : c) {
+				for (java.util.Iterator _j14it1967 = (c).iterator(); _j14it1967.hasNext(); ) {
+				  ClearingDetail clearing = (ClearingDetail) _j14it1967.next();
 					clearing.setMarked(setMark);
 				}
 //				tile.doRepaint(); // KEEP FOR NOW
@@ -746,11 +768,12 @@ public class CenteredMapView extends JComponent {
 		replot = true;
 		repaint();
 	}
-	public void markClearings(ArrayList<ClearingDetail> clearings,boolean setMark) {
+	public void markClearings(ArrayList clearings,boolean setMark) {
 		markClearings(clearings,setMark,null);
 	}
-	public void markClearings(ArrayList<ClearingDetail> clearings,boolean setMark,Color color) {
-		for (ClearingDetail clearing : clearings) {
+	public void markClearings(ArrayList clearings,boolean setMark,Color color) {
+		for (java.util.Iterator _j14it1968 = (clearings).iterator(); _j14it1968.hasNext(); ) {
+		  ClearingDetail clearing = (ClearingDetail) _j14it1968.next();
 			clearing.setMarked(setMark);
 			if (color!=null) {
 				clearing.setMarkColor(color);
@@ -761,8 +784,9 @@ public class CenteredMapView extends JComponent {
 		repaint();
 	}
 	public void markClearingConnections(ClearingDetail clearing,boolean setMark) {
-		ArrayList<PathDetail> c = clearing.getConnectedPaths();
-		for (PathDetail path : c) {
+		ArrayList c = clearing.getConnectedPaths();
+		for (java.util.Iterator _j14it1969 = (c).iterator(); _j14it1969.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it1969.next();
 			ClearingDetail connectedClearing = path.findConnection(clearing);
 			connectedClearing.setMarked(setMark);
 //			connectedClearing.getParent().doRepaint(); // KEEP FOR NOW
@@ -770,17 +794,19 @@ public class CenteredMapView extends JComponent {
 		replot = true;
 		repaint();
 	}
-	public ArrayList<ClearingDetail> markClearingsInTile(TileComponent tile,Collection<String> types,boolean includeAdjacent) {
+	public ArrayList markClearingsInTile(TileComponent tile,Collection types,boolean includeAdjacent) {
 //		tile.doRepaint(); // KEEP FOR NOW
-		ArrayList<ClearingDetail> list = new ArrayList<ClearingDetail>();
-		for (ClearingDetail clearing : tile.getClearings()) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it1970 = (tile.getClearings()).iterator(); _j14it1970.hasNext(); ) {
+		  ClearingDetail clearing = (ClearingDetail) _j14it1970.next();
 			if (types==null||types.contains(clearing.getType())) {
 				clearing.setMarked(true);
 				list.add(clearing);
 			}
 		}
 		if (includeAdjacent) {
-			for (TileComponent adj : tile.getAllAdjacentTiles()) {
+			for (java.util.Iterator _j14it1971 = (tile.getAllAdjacentTiles()).iterator(); _j14it1971.hasNext(); ) {
+			  TileComponent adj = (TileComponent) _j14it1971.next();
 				list.addAll(markClearingsInTile(adj,types,false));
 			}
 		}
@@ -796,7 +822,7 @@ public class CenteredMapView extends JComponent {
 		if (tl!=null) {
 			int monsterDie = RandomNumber.getHighLow(1,6); // Change number here for testing
 			if (tl.hasClearing()) {
-				SetupCardUtility.summonMonsters(new ArrayList<GameObject>(),tl,gameData,true,true,monsterDie,null,-1);
+				SetupCardUtility.summonMonsters(new ArrayList(),tl,gameData,true,true,monsterDie,null,-1);
 			}
 			else {
 				SetupCardUtility.resetDenizens(gameData,monsterDie,false);
@@ -809,10 +835,11 @@ public class CenteredMapView extends JComponent {
 		double normalX = (p.x - offset.x)/scale;
 		double normalY = (p.y - offset.y)/scale;
 		Point normal = new Point((int)normalX,(int)normalY);
-		for (Point gridPos : mapGridCoor.keySet()) {
-			Rectangle rect = mapGridCoor.get(gridPos);
+		for (java.util.Iterator _j14it1972 = (mapGridCoor.keySet()).iterator(); _j14it1972.hasNext(); ) {
+		  Point gridPos = (Point) _j14it1972.next();
+			Rectangle rect = (Rectangle) mapGridCoor.get(gridPos);
 			if (rect.contains(normal)) {
-				TileComponent tile = mapGrid.get(gridPos);
+				TileComponent tile = (TileComponent) mapGrid.get(gridPos);
 				if (tile!=null) { // not sure how this is possible, but it happened once during map builder
 					Shape shape = tile.getShape(rect.x,rect.y,tileSize.width);
 					if (shape.contains(normal)) {
@@ -848,7 +875,7 @@ public class CenteredMapView extends JComponent {
 		}
 //		tileSize = tile.getTileSize();
 	}
-	public Collection<TileComponent> getTiles() {
+	public Collection getTiles() {
 		return mapGrid.values();
 	}
 	
@@ -868,8 +895,8 @@ public class CenteredMapView extends JComponent {
 		int minY = Integer.MAX_VALUE;
 		int maxX = Integer.MIN_VALUE;
 		int maxY = Integer.MIN_VALUE;
-		for (Enumeration<Point> e=mapGrid.keys();e.hasMoreElements();) {
-			Point pos = e.nextElement();
+		for (Enumeration e=mapGrid.keys();e.hasMoreElements();) {
+			Point pos = (Point) e.nextElement();
 			int x = pos.x * colWidth;
 			int y = (pos.x * rowAdjust) + (pos.y * rowHeight);
 			if (x<minX) {
@@ -901,8 +928,9 @@ public class CenteredMapView extends JComponent {
 		offset.x = borderRect.x + (borderRect.width>>1);
 		offset.y = borderRect.y + (borderRect.height>>1);
 		
-		mapGridCoor = new Hashtable<Point, Rectangle>();
-		for (Point gridPos : mapGrid.keySet()) {
+		mapGridCoor = new Hashtable();
+		for (java.util.Iterator _j14it1973 = (mapGrid.keySet()).iterator(); _j14it1973.hasNext(); ) {
+		  Point gridPos = (Point) _j14it1973.next();
 			Point plotPos = convertGridToCoordinate(gridPos);
 			Rectangle rect = new Rectangle(plotPos.x,plotPos.y,tileSize.width,tileSize.height);
 			mapGridCoor.put(gridPos,rect);
@@ -945,7 +973,8 @@ public class CenteredMapView extends JComponent {
 		if (mr!=lastMapRepaint) {
 			replot = true;
 			lastMapRepaint = mr;
-			for (GameObject go:RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects()) {
+			for (java.util.Iterator _j14it1974 = (RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects()).iterator(); _j14it1974.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it1974.next();
 				go.bumpVersion();
 			}
 		}
@@ -1000,7 +1029,8 @@ public class CenteredMapView extends JComponent {
 		if (clearingPlot!=null && clearingPlot.size()>1) {
 			g.setColor(Color.yellow);
 			Point last = null;
-			for (TileLocation tl : clearingPlot) {
+			for (java.util.Iterator _j14it1975 = (clearingPlot).iterator(); _j14it1975.hasNext(); ) {
+			  TileLocation tl = (TileLocation) _j14it1975.next();
 				g.setStroke(tl.hasClearing()?PLOT_PATH_STROKE:PLOT_OFFROAD_PATH_STROKE);
 				Point p = findLocationPoint(tl);
 				if (p!=last) { // only draw if the points are different (hence a line)
@@ -1020,10 +1050,11 @@ public class CenteredMapView extends JComponent {
 		
 		// Draw position colors, if any
 		g.setStroke(THIN_STROKE);
-		for (Point pos : positionColors.keySet()) {
-			Color c = positionColors.get(pos);
+		for (java.util.Iterator _j14it1976 = (positionColors.keySet()).iterator(); _j14it1976.hasNext(); ) {
+		  Point pos = (Point) _j14it1976.next();
+			Color c = (Color) positionColors.get(pos);
 			g.setColor(c);
-			Rectangle plotPos = mapGridCoor.get(pos);
+			Rectangle plotPos = (Rectangle) mapGridCoor.get(pos);
 			if (plotPos==null) {
 				Point p = convertGridToCoordinate(pos);
 				plotPos = new Rectangle(p.x,p.y,1,1); // the width and height are just dummy numbers here
@@ -1140,24 +1171,26 @@ public class CenteredMapView extends JComponent {
 			Dimension maxSize = getSize();
 			int contentsX = 5;
 			int contentsY = 5;
-			Collection<RealmComponent> c = currentTileLocation.tile.getOffroadRealmComponents();
+			Collection c = currentTileLocation.tile.getOffroadRealmComponents();
 			if (currentTileLocation.clearing!=null) {
 				c.addAll(currentTileLocation.clearing.getClearingComponents());
 			}
 			if (!c.isEmpty()) {
-				ArrayList<RealmComponent> seenContents = new ArrayList<RealmComponent>();
-				ArrayList<RealmComponent> plainSightContents = new ArrayList<RealmComponent>(); // These are the dropped (not abandoned) items in the clearing
+				ArrayList seenContents = new ArrayList();
+				ArrayList plainSightContents = new ArrayList(); // These are the dropped (not abandoned) items in the clearing
 				
 				// First, see if there are any spells affecting this tile
 				SpellMasterWrapper spellMaster = SpellMasterWrapper.getSpellMaster(gameData);
-				ArrayList<SpellWrapper> spells = spellMaster.getAffectingSpells(currentTileLocation.tile.getGameObject());
-				for (SpellWrapper spell:spells) {
+				ArrayList spells = spellMaster.getAffectingSpells(currentTileLocation.tile.getGameObject());
+				for (java.util.Iterator _j14it1977 = (spells).iterator(); _j14it1977.hasNext(); ) {
+				  SpellWrapper spell = (SpellWrapper) _j14it1977.next();
 					RealmComponent rc = RealmComponent.getRealmComponent(spell.getGameObject());
 					seenContents.add(rc);
 				}
 				
 				// Now check all the rest
-				for (RealmComponent rc : c) {
+				for (java.util.Iterator _j14it1978 = (c).iterator(); _j14it1978.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it1978.next();
 					if (rc instanceof StateChitComponent) {
 						StateChitComponent state = (StateChitComponent)rc;
 						if (!state.hasBeenSeen()) {
@@ -1181,14 +1214,15 @@ public class CenteredMapView extends JComponent {
 			}
 			
 			// Add color magic
-			ArrayList<ColorMagic> colorMagic = new ArrayList<ColorMagic>();
+			ArrayList colorMagic = new ArrayList();
 			if (currentTileLocation.hasClearing()) {
 				colorMagic.addAll(currentTileLocation.clearing.getAllSourcesOfColor(true));
 			}
 			contentsX = 5;
 			contentsY = ChitComponent.S_CHIT_SIZE + 5;
-			ArrayList<ColorMagic> unique = new ArrayList<ColorMagic>();
-			for (ColorMagic cm : colorMagic) {
+			ArrayList unique = new ArrayList();
+			for (java.util.Iterator _j14it1979 = (colorMagic).iterator(); _j14it1979.hasNext(); ) {
+			  ColorMagic cm = (ColorMagic) _j14it1979.next();
 				if (!unique.contains(cm)) {
 					ImageIcon icon = cm.getIcon();
 					g.drawImage(icon.getImage(),contentsX,contentsY,null);
@@ -1261,7 +1295,8 @@ public class CenteredMapView extends JComponent {
 			g.setFont(MAP_ATTENTION_FONT);
 			g.setColor(Color.black);
 			int textLine = 0;
-			for (String text : mapAttentionMessage2) {
+			for (java.util.Iterator _j14it1980 = (mapAttentionMessage2).iterator(); _j14it1980.hasNext(); ) {
+			  String text = (String) _j14it1980.next();
 				GraphicsUtil.drawCenteredString(g,r.x,r.y-2+10-10*numberOfTextLines+textLine*20,r.width,r.height,text);
 				if (textLine%2!=1) {
 					g.setFont(MAP_ATTENTION_FONT_SMALL);
@@ -1293,10 +1328,11 @@ public class CenteredMapView extends JComponent {
 //g.setColor(Color.red);
 //g.fillOval((int)offset.x-10,(int)offset.y-10,20,20);
 	}
-	private static void drawMouseHoverContents(Graphics2D g,ArrayList<RealmComponent> contents,int contentsX,int contentsY,Dimension maxSize) {
+	private static void drawMouseHoverContents(Graphics2D g,ArrayList contents,int contentsX,int contentsY,Dimension maxSize) {
 		Rectangle[] plot = new Rectangle[contents.size()];
 		int n=0;
-		for (RealmComponent rc:contents) {
+		for (java.util.Iterator _j14it1981 = (contents).iterator(); _j14it1981.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1981.next();
 			Dimension d = rc.getSize();
 			plot[n++] = new Rectangle(contentsX,contentsY,d.width,d.height);
 			contentsX += d.width;
@@ -1315,7 +1351,8 @@ public class CenteredMapView extends JComponent {
 		
 		// Finally, draw them
 		n=0;
-		for (RealmComponent rc : contents) {
+		for (java.util.Iterator _j14it1982 = (contents).iterator(); _j14it1982.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it1982.next();
 			Rectangle r = plot[n++];
 			rc.paint(g.create(r.x,r.y,r.width,r.height));
 		}
@@ -1323,12 +1360,12 @@ public class CenteredMapView extends JComponent {
 	private void paintMap(Graphics g1,boolean tileShadow) {
 		Graphics2D g = (Graphics2D)g1;
 		
-		ArrayList<Point> sortedKeys = new ArrayList<Point>(mapGrid.keySet());
+		ArrayList sortedKeys = new ArrayList(mapGrid.keySet());
 		
-		Collections.sort(sortedKeys,new Comparator<Point>() {
-			public int compare(Point o1,Point o2) {
-				Point p1 = o1;
-				Point p2 = o2;
+		Collections.sort(sortedKeys,new Comparator() {
+			public int compare(Object o1,Object o2) {
+				Point p1 = (Point) o1;
+				Point p2 = (Point) o2;
 				int d = p1.x-p2.x;
 				if (d==0) {
 					d = p1.y-p2.y;
@@ -1344,11 +1381,12 @@ public class CenteredMapView extends JComponent {
 		// The key here, is that not every tile gets painted, even though tile.paintTo is called for every tile!
 		// The tileLayer serves as a map "memory" so that the tiles don't have to be completely drawn every time.
 		Graphics tileGraphics = tileLayer.getGraphics();
-		for (Point gridPos : sortedKeys) {
-			TileComponent tile = mapGrid.get(gridPos);
+		for (java.util.Iterator _j14it1983 = (sortedKeys).iterator(); _j14it1983.hasNext(); ) {
+		  Point gridPos = (Point) _j14it1983.next();
+			TileComponent tile = (TileComponent) mapGrid.get(gridPos);
 			if (tile!=null) { // tile might be null if the grid is reset in the middle of a paint
 				tile.useShadow(tileShadow);
-				Rectangle plotPos = mapGridCoor.get(gridPos);
+				Rectangle plotPos = (Rectangle) mapGridCoor.get(gridPos);
 				tile.paintTo(tileGraphics,plotPos.x,plotPos.y,tileSize.width+4,tileSize.height+4);
 			}
 		}
@@ -1358,8 +1396,9 @@ public class CenteredMapView extends JComponent {
 		// embellishments (all playing pieces) are ALWAYS drawn
 		if (showEmbellishments) {
 			ChitDisplayOption displayOption = mapRightClickMenu.getDisplayOption();
-			for (Point gridPos : sortedKeys) {
-				TileComponent tile = mapGrid.get(gridPos);
+			for (java.util.Iterator _j14it1984 = (sortedKeys).iterator(); _j14it1984.hasNext(); ) {
+			  Point gridPos = (Point) _j14it1984.next();
+				TileComponent tile = (TileComponent) mapGrid.get(gridPos);
 				if (tile instanceof EmptyTileComponent) continue; 
 				tile.drawEmbellishments(g,displayOption);
 			}
@@ -1372,7 +1411,7 @@ public class CenteredMapView extends JComponent {
 		this.replot = replot;
 	}
 	
-	public void setClearingPlot(ArrayList<TileLocation> clearingPlot) {
+	public void setClearingPlot(ArrayList clearingPlot) {
 		this.clearingPlot = clearingPlot;
 		repaint();
 	}
@@ -1552,7 +1591,7 @@ public class CenteredMapView extends JComponent {
 						}
 						tile.removeThisAttribute(ClearingDetail.BL_CONNECT);
 						while (tile.getHold().size()>0) {
-							tile.remove(tile.getHold().get(0));
+							tile.remove((com.robin.game.objects.GameObject) tile.getHold().get(0));
 						}
 						gameData.removeObject(tile);
 					}
@@ -1659,9 +1698,10 @@ public class CenteredMapView extends JComponent {
 					// Use the trade dialog to show detail
 					RealmTradeDialog viewer = new RealmTradeDialog(new JFrame(),"Contents of "+clearing.fullString(),false,false,false);
 					viewer.setRevealAll(false);
-					ArrayList<RealmComponent> cc = clearing.getClearingComponents();
-					ArrayList<RealmComponent> all = new ArrayList<RealmComponent>();
-					for (RealmComponent rc:cc) {
+					ArrayList cc = clearing.getClearingComponents();
+					ArrayList all = new ArrayList();
+					for (java.util.Iterator _j14it1985 = (cc).iterator(); _j14it1985.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it1985.next();
 						all.add(rc);
 						if (rc.isNative()) {
 							NativeSteedChitComponent horse = (NativeSteedChitComponent)rc.getHorse();
@@ -1724,7 +1764,8 @@ public class CenteredMapView extends JComponent {
 //			availableMapPositions.add(new Point(0,0));
 //		}
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(gameData);
-		for (Point gp : availablePositions) {
+		for (java.util.Iterator _j14it1986 = (availablePositions).iterator(); _j14it1986.hasNext(); ) {
+		  Point gp = (Point) _j14it1986.next();
 			boolean valid = Tile.isMappingPossibility(planningMapGrid,tile,gp,tileBeingPlaced.getRotation(),anchorTileName,hostPrefs.hasPref(Constants.MAP_BUILDING_HILL_TILES),false,false);
 			EmptyTileComponent empty = (EmptyTileComponent)mapGrid.get(gp);
 			empty.setValidPosition(valid);
@@ -1737,10 +1778,11 @@ public class CenteredMapView extends JComponent {
 		this.tileBeingPlaced = null;
 		this.tileImageIcon = null;
 	}
-	public ArrayList<Tile> getPlaceables(GameObject tile) {
+	public ArrayList getPlaceables(GameObject tile) {
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(gameData);
-		ArrayList<Tile> placeables = new ArrayList<Tile>();
-		for (Point gp : availablePositions) {
+		ArrayList placeables = new ArrayList();
+		for (java.util.Iterator _j14it1987 = (availablePositions).iterator(); _j14it1987.hasNext(); ) {
+		  Point gp = (Point) _j14it1987.next();
 			for (int r=0;r<6;r++) {
 				Tile t = new Tile(tile);
 				if (Tile.isMappingPossibility(planningMapGrid,t,gp,r,anchorTileName,hostPrefs.hasPref(Constants.MAP_BUILDING_HILL_TILES),false,false)) {
@@ -1753,20 +1795,21 @@ public class CenteredMapView extends JComponent {
 	/**
 	 * Places a single tile, randomly, from a collection of tiles
 	 */
-	public void placeRandom(ChangeListener listener,Collection<GameObject> tiles) {
+	public void placeRandom(ChangeListener listener,Collection tiles) {
 		clearTileBeingPlaced(); // just in case
 		this.tilePlacementListener = listener;
-		ArrayList<Tile> placeables = new ArrayList<Tile>();
+		ArrayList placeables = new ArrayList();
 		boolean earlyExit = false;
-		Hashtable<String, Integer> hashPlaceableCount = new Hashtable<String, Integer>();
-		for (GameObject go : tiles) {
+		Hashtable hashPlaceableCount = new Hashtable();
+		for (java.util.Iterator _j14it1988 = (tiles).iterator(); _j14it1988.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1988.next();
 			earlyExit = false;
 			if (go.hasThisAttribute(Constants.ANCHOR_TILE) && !go.hasThisAttribute(Constants.BOARD_NUMBER)) {
 				placeables.clear();
 				earlyExit = true;
 			}
-			Collection<Tile> c = getPlaceables(go);
-			hashPlaceableCount.put(go.getName(),c.size());
+			Collection c = getPlaceables(go);
+			hashPlaceableCount.put(go.getName(),new Integer(c.size()));
 			placeables.addAll(c);
 			if (earlyExit) {
 				break;
@@ -1775,7 +1818,7 @@ public class CenteredMapView extends JComponent {
 		
 		if (!placeables.isEmpty()) {
 			int r = RandomNumber.getRandom(placeables.size());
-			Tile t = placeables.get(r);
+			Tile t = (Tile) placeables.get(r);
 			tileBeingPlaced = (TileComponent)RealmComponent.getRealmComponent(t.getGameObject());
 			tileBeingPlaced.setRotation(t.getRotation());
 			addPlacementToMap(t.getMapPosition());
@@ -1835,14 +1878,14 @@ public class CenteredMapView extends JComponent {
 			}
 		}
 	}
-	public ArrayList<ClearingDetail> getAllOccupiedClearings() {
-		ArrayList<ClearingDetail> list = new ArrayList<ClearingDetail>();
-		ArrayList<Point> sortedKeys = new ArrayList<Point>(mapGrid.keySet());
+	public ArrayList getAllOccupiedClearings() {
+		ArrayList list = new ArrayList();
+		ArrayList sortedKeys = new ArrayList(mapGrid.keySet());
 		
-		Collections.sort(sortedKeys,new Comparator<Point>() {
-			public int compare(Point o1,Point o2) {
-				Point p1 = o1;
-				Point p2 = o2;
+		Collections.sort(sortedKeys,new Comparator() {
+			public int compare(Object o1,Object o2) {
+				Point p1 = (Point) o1;
+				Point p2 = (Point) o2;
 				int d = p1.x-p2.x;
 				if (d==0) {
 					d = p1.y-p2.y;
@@ -1851,13 +1894,16 @@ public class CenteredMapView extends JComponent {
 			}
 		});
 		
-		for (Point gridPos : sortedKeys) {
-			TileComponent tile = mapGrid.get(gridPos);
+		for (java.util.Iterator _j14it1989 = (sortedKeys).iterator(); _j14it1989.hasNext(); ) {
+		  Point gridPos = (Point) _j14it1989.next();
+			TileComponent tile = (TileComponent) mapGrid.get(gridPos);
 			if (tile!=null) { // tile might be null if the grid is reset in the middle of a paint
-				for (ClearingDetail clearing:tile.getClearings()) {
-					ArrayList<RealmComponent> components = clearing.getClearingComponents();
+				for (java.util.Iterator _j14it1990 = (tile.getClearings()).iterator(); _j14it1990.hasNext(); ) {
+				  ClearingDetail clearing = (ClearingDetail) _j14it1990.next();
+					ArrayList components = clearing.getClearingComponents();
 					boolean show = false;
-					for (RealmComponent rc:components) {
+					for (java.util.Iterator _j14it1991 = (components).iterator(); _j14it1991.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it1991.next();
 						if (rc.isStateChit()) {
 							StateChitComponent state = (StateChitComponent)rc;
 							if (state.hasBeenSeen()) {
@@ -1887,7 +1933,7 @@ public class CenteredMapView extends JComponent {
 
 		int maxHeaderWidth = 0;
 		for (int i=0;i<chatLinesToShow && i<chatLines.size();i++) {
-			ChatLine line = chatLines.get(i);
+			ChatLine line = (ChatLine) chatLines.get(i);
 			TextType tt = new TextType(line.getHeader(),2000,"CHAT");
 			int w = tt.getWidth(g);
 			maxHeaderWidth = Math.max(maxHeaderWidth,w);
@@ -1896,8 +1942,8 @@ public class CenteredMapView extends JComponent {
 		maxHeaderWidth += 40;
 		
 		for (int i=0;i<chatLinesToShow && i<chatLines.size();i++) {
-			ChatLine line = chatLines.get(i);
-			ChatStyle style = chatStyles.get(line.getTextStyleName());
+			ChatLine line = (ChatLine) chatLines.get(i);
+			ChatStyle style = (ChatStyle) chatStyles.get(line.getTextStyleName());
 			TextType tt = new TextType(line.getText(),chatWidth,"CHAT");
 			int h = tt.getHeight(g); 
 			y -= h;
@@ -1918,9 +1964,10 @@ public class CenteredMapView extends JComponent {
 	}
 	private GameObject chooseTile() {
 		GamePool pool = new GamePool(gameData.getGameObjects());
-		Hashtable<String, GameObject> hash = new Hashtable<String, GameObject>();
-		ArrayList<String> tileList = new ArrayList<String>();
-		for (GameObject tile : pool.find("tile")) {
+		Hashtable hash = new Hashtable();
+		ArrayList tileList = new ArrayList();
+		for (java.util.Iterator _j14it1992 = (pool.find("tile")).iterator(); _j14it1992.hasNext(); ) {
+		  GameObject tile = (GameObject) _j14it1992.next();
 			if (!tile.hasAttribute(Tile.MAP_GRID, Tile.MAP_POSITION)) {
 				tileList.add(tile.getName());
 				hash.put(tile.getName(), tile);
@@ -1933,10 +1980,11 @@ public class CenteredMapView extends JComponent {
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(gameData);
 		RealmLoader rl = new RealmLoader();
 		GamePool pool = new GamePool(rl.getData().getGameObjects());
-		Hashtable<String, GameObject> hash = new Hashtable<String, GameObject>();
+		Hashtable hash = new Hashtable();
 		GamePool existingPool = new GamePool(gameData.getGameObjects());
-		ArrayList<String> existingTileNames = new ArrayList<String>();
-		for (GameObject tile : existingPool.find("tile")) {
+		ArrayList existingTileNames = new ArrayList();
+		for (java.util.Iterator _j14it1993 = (existingPool.find("tile")).iterator(); _j14it1993.hasNext(); ) {
+		  GameObject tile = (GameObject) _j14it1993.next();
 			existingTileNames.add(tile.getName());
 		}
 		
@@ -1945,8 +1993,9 @@ public class CenteredMapView extends JComponent {
 			searchKey = "a_tile";
 		}
 		
-		ArrayList<String> tileList = new ArrayList<String>();
-		for (GameObject tile : pool.find(searchKey)) {
+		ArrayList tileList = new ArrayList();
+		for (java.util.Iterator _j14it1994 = (pool.find(searchKey)).iterator(); _j14it1994.hasNext(); ) {
+		  GameObject tile = (GameObject) _j14it1994.next();
 			if (!existingTileNames.contains(tile.getName())) {
 				tileList.add(tile.getName());				
 				hash.put(tile.getName(), tile);
@@ -1956,9 +2005,10 @@ public class CenteredMapView extends JComponent {
 	}
 	private GameObject chooseTileToRemove() {
 		GamePool pool = new GamePool(gameData.getGameObjects());
-		Hashtable<String, GameObject> hash = new Hashtable<String, GameObject>();
-		ArrayList<String> tileList = new ArrayList<String>();
-		for (GameObject tile : pool.find("tile")) {
+		Hashtable hash = new Hashtable();
+		ArrayList tileList = new ArrayList();
+		for (java.util.Iterator _j14it1995 = (pool.find("tile")).iterator(); _j14it1995.hasNext(); ) {
+		  GameObject tile = (GameObject) _j14it1995.next();
 			if (!tile.hasAttribute(Tile.MAP_GRID,Tile.MAP_POSITION)) {
 				tileList.add(tile.getName());		
 				hash.put(tile.getName(), tile);
@@ -1966,16 +2016,16 @@ public class CenteredMapView extends JComponent {
 		}
 		return tileChooser("Select a tile to remove", tileList,hash);
 	}
-	private GameObject tileChooser(String headline, ArrayList<String> tileList, Hashtable<String, GameObject> tileHash) {
+	private GameObject tileChooser(String headline, ArrayList tileList, Hashtable tileHash) {
 		Collections.sort(tileList);
 		ListChooser chooser = new ListChooser(new JFrame(), headline, tileList);
 		chooser.setDoubleClickEnabled(true);
 		chooser.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		chooser.setLocationRelativeTo(this);
 		chooser.setVisible(true);
-		Vector<String> v = chooser.getSelectedItems();
+		Vector v = chooser.getSelectedItems();
 		if (v != null && !v.isEmpty()) {
-			return tileHash.get(v.get(0));
+			return (com.robin.game.objects.GameObject) tileHash.get(v.get(0));
 		}
 		return null;
 	}

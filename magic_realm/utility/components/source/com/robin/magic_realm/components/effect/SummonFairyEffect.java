@@ -8,7 +8,6 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class SummonFairyEffect implements ISpellEffect {
 	
-	@Override
 	public void apply(SpellEffectContext context) {
 		CharacterWrapper character = context.getCharacterTarget();
 		GameData data = character.getGameObject().getGameData();
@@ -22,7 +21,6 @@ public class SummonFairyEffect implements ISpellEffect {
 		SpellUtility.bringSummonToClearing(character, summon, context.Spell, creator.getMonstersCreated());
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		SpellUtility.unsummonCompanions(context.Spell);
 	}

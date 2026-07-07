@@ -16,10 +16,10 @@ public class QuestRequirementMinorCharacter extends QuestRequirement {
 		super(go);
 	}
 
-	@Override
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
 		String test = getMinorCharacterName();
-		for (GameObject go:character.getMinorCharacters()) {
+		for (java.util.Iterator _j14it2303 = (character.getMinorCharacters()).iterator(); _j14it2303.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2303.next();
 			if (test.equals(go.getName())) {
 				return true;
 			}
@@ -28,12 +28,10 @@ public class QuestRequirementMinorCharacter extends QuestRequirement {
 		return false;
 	}
 
-	@Override
 	public RequirementType getRequirementType() {
 		return RequirementType.MinorCharacter;
 	}
 
-	@Override
 	protected String buildDescription() {
 		return "Only when "+getMinorCharacterName()+" is present.";
 	}

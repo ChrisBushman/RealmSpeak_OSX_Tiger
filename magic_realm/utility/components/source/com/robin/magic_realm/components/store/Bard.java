@@ -38,7 +38,8 @@ public class Bard extends Store {
 
 	public String doService(JFrame frame) {
 		ButtonOptionDialog chooser = new ButtonOptionDialog(frame,trader.getIcon(),"Which service?",getTraderName(),true);
-		for (Story story:storiesForSale) {
+		for (int _j14i2527 = 0; _j14i2527 < storiesForSale.length; _j14i2527++) {
+		  Story story = storiesForSale[_j14i2527];
 			chooser.addSelectionObject(story,fame>=story.getFameCost());
 		}
 		chooser.setVisible(true);
@@ -66,7 +67,7 @@ public class Bard extends Store {
 			return generateString("Sold","Lost","Gained");
 		}
 		private String generateString(String verb,String lose,String gain) {
-			StringBuilder sb = new StringBuilder();
+			StringBuffer sb = new StringBuffer();
 			sb.append(verb);
 			sb.append(" ");
 			sb.append(storyName);

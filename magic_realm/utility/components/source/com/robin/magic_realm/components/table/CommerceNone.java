@@ -10,7 +10,7 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class CommerceNone extends Commerce {
-	public CommerceNone(JFrame frame,TradeInfo tradeInfo,Collection<RealmComponent> merchandise,HostPrefWrapper hostPrefs) {
+	public CommerceNone(JFrame frame,TradeInfo tradeInfo,Collection merchandise,HostPrefWrapper hostPrefs) {
 		super(frame,tradeInfo,merchandise,hostPrefs);
 	}
 	public boolean hideRoller() {

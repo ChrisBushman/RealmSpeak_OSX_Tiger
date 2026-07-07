@@ -502,8 +502,58 @@ public class Constants {
 	public static final String GARGOYLE = "gargoyle";
 	public static final String VIPER = "viper";
 	public static final String SERPENT = "serpent";
-	public enum MONSTER_TYPES {
-		DRAGON, DRAKE, WYRM, DEMON, DEVIL, IMP, ELEMENTAY, ANOMALY, GOLEM, ORC, GOBLIN, OGRE, TROLL, GIANT, FROST_GIANT, SPIDER, OCTOPUS, SCORPION, BAT, WOLF, BEAST, VAMPIRE, SUCCUBUS, GHOST, GHOUL, ZOMBIE, SKELETON, WRAITH, COLOSSUS, TITAN, MINOTAUR, GARGYLE, VIPER, SERPENT
+	public static final class MONSTER_TYPES {
+		private final String _name;
+		private final int _ordinal;
+		private MONSTER_TYPES(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final MONSTER_TYPES DRAGON = new MONSTER_TYPES("DRAGON", 0);
+		public static final MONSTER_TYPES DRAKE = new MONSTER_TYPES("DRAKE", 1);
+		public static final MONSTER_TYPES WYRM = new MONSTER_TYPES("WYRM", 2);
+		public static final MONSTER_TYPES DEMON = new MONSTER_TYPES("DEMON", 3);
+		public static final MONSTER_TYPES DEVIL = new MONSTER_TYPES("DEVIL", 4);
+		public static final MONSTER_TYPES IMP = new MONSTER_TYPES("IMP", 5);
+		public static final MONSTER_TYPES ELEMENTAY = new MONSTER_TYPES("ELEMENTAY", 6);
+		public static final MONSTER_TYPES ANOMALY = new MONSTER_TYPES("ANOMALY", 7);
+		public static final MONSTER_TYPES GOLEM = new MONSTER_TYPES("GOLEM", 8);
+		public static final MONSTER_TYPES ORC = new MONSTER_TYPES("ORC", 9);
+		public static final MONSTER_TYPES GOBLIN = new MONSTER_TYPES("GOBLIN", 10);
+		public static final MONSTER_TYPES OGRE = new MONSTER_TYPES("OGRE", 11);
+		public static final MONSTER_TYPES TROLL = new MONSTER_TYPES("TROLL", 12);
+		public static final MONSTER_TYPES GIANT = new MONSTER_TYPES("GIANT", 13);
+		public static final MONSTER_TYPES FROST_GIANT = new MONSTER_TYPES("FROST_GIANT", 14);
+		public static final MONSTER_TYPES SPIDER = new MONSTER_TYPES("SPIDER", 15);
+		public static final MONSTER_TYPES OCTOPUS = new MONSTER_TYPES("OCTOPUS", 16);
+		public static final MONSTER_TYPES SCORPION = new MONSTER_TYPES("SCORPION", 17);
+		public static final MONSTER_TYPES BAT = new MONSTER_TYPES("BAT", 18);
+		public static final MONSTER_TYPES WOLF = new MONSTER_TYPES("WOLF", 19);
+		public static final MONSTER_TYPES BEAST = new MONSTER_TYPES("BEAST", 20);
+		public static final MONSTER_TYPES VAMPIRE = new MONSTER_TYPES("VAMPIRE", 21);
+		public static final MONSTER_TYPES SUCCUBUS = new MONSTER_TYPES("SUCCUBUS", 22);
+		public static final MONSTER_TYPES GHOST = new MONSTER_TYPES("GHOST", 23);
+		public static final MONSTER_TYPES GHOUL = new MONSTER_TYPES("GHOUL", 24);
+		public static final MONSTER_TYPES ZOMBIE = new MONSTER_TYPES("ZOMBIE", 25);
+		public static final MONSTER_TYPES SKELETON = new MONSTER_TYPES("SKELETON", 26);
+		public static final MONSTER_TYPES WRAITH = new MONSTER_TYPES("WRAITH", 27);
+		public static final MONSTER_TYPES COLOSSUS = new MONSTER_TYPES("COLOSSUS", 28);
+		public static final MONSTER_TYPES TITAN = new MONSTER_TYPES("TITAN", 29);
+		public static final MONSTER_TYPES MINOTAUR = new MONSTER_TYPES("MINOTAUR", 30);
+		public static final MONSTER_TYPES GARGYLE = new MONSTER_TYPES("GARGYLE", 31);
+		public static final MONSTER_TYPES VIPER = new MONSTER_TYPES("VIPER", 32);
+		public static final MONSTER_TYPES SERPENT = new MONSTER_TYPES("SERPENT", 33);
+
+		private static final MONSTER_TYPES[] _VALUES = { DRAGON, DRAKE, WYRM, DEMON, DEVIL, IMP, ELEMENTAY, ANOMALY, GOLEM, ORC, GOBLIN, OGRE, TROLL, GIANT, FROST_GIANT, SPIDER, OCTOPUS, SCORPION, BAT, WOLF, BEAST, VAMPIRE, SUCCUBUS, GHOST, GHOUL, ZOMBIE, SKELETON, WRAITH, COLOSSUS, TITAN, MINOTAUR, GARGYLE, VIPER, SERPENT };
+		public static MONSTER_TYPES[] values() { MONSTER_TYPES[] r = new MONSTER_TYPES[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static MONSTER_TYPES valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	public static final String GIANT_CLUB = "giant_club";
@@ -1060,11 +1110,28 @@ public class Constants {
 	public static final String QST_QUEST_CARDS = "QuestingTheRealm";
 	public static final String QST_GUILD_QUESTS = "GuildQuests";
 	public static final String QST_SR_QUESTS = "SuperRealmQuests";
-	public enum QuestDeckMode {
-		QtR,
-		BoQ,
-		GQ,
-		SR
+	public static final class QuestDeckMode {
+		private final String _name;
+		private final int _ordinal;
+		private QuestDeckMode(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final QuestDeckMode QtR = new QuestDeckMode("QtR", 0);
+		public static final QuestDeckMode BoQ = new QuestDeckMode("BoQ", 1);
+		public static final QuestDeckMode GQ = new QuestDeckMode("GQ", 2);
+		public static final QuestDeckMode SR = new QuestDeckMode("SR", 3);
+
+		private static final QuestDeckMode[] _VALUES = { QtR, BoQ, GQ, SR };
+		public static QuestDeckMode[] values() { QuestDeckMode[] r = new QuestDeckMode[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static QuestDeckMode valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	public static final Stroke THICK_STROKE = new BasicStroke(3);

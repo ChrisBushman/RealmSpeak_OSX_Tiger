@@ -7,9 +7,9 @@ import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class FreeSpellEffect implements ISpellEffect {
 	
-	@Override
 	public void apply(SpellEffectContext context) {
-		for (GameObject held : context.Target.getHold()) {
+		for (java.util.Iterator _j14it2061 = (context.Target.getHold()).iterator(); _j14it2061.hasNext(); ) {
+		  GameObject held = (GameObject) _j14it2061.next();
 			if (held.hasThisAttribute(RealmComponent.SPELL)) {
 				SpellWrapper targetSpell = new SpellWrapper(held);
 				context.Spell.getGameObject().setThisAttribute(Constants.FREED_SPELL,held.getStringId());
@@ -22,7 +22,6 @@ public class FreeSpellEffect implements ISpellEffect {
 		}		
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		context.Spell.getGameObject().removeThisAttribute(Constants.FREED_SPELL);
 		GameObject incantationObject = context.Spell.getIncantationObject();

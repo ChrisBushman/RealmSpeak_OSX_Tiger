@@ -24,9 +24,9 @@ public class ThievesGuild extends GuildStore {
 	public static String JOIN_GUILD_TEXT = "You have fulfilled the join requirement for the Thieves Guild. You are now a member of the Thieves Guild.";
 	public static String JOIN_GUILD_TITLE = "Joining Thieves Guild";
 	
-	private ArrayList<TileComponent> tilesWithUnknownPaths;
-	private ArrayList<TileComponent> tilesWithUnknownPassages;
-	private ArrayList<GameObject> openable;
+	private ArrayList tilesWithUnknownPaths;
+	private ArrayList tilesWithUnknownPassages;
+	private ArrayList openable;
 
 	public ThievesGuild(GuildChitComponent guild, CharacterWrapper character) {
 		super(guild, character);
@@ -37,10 +37,11 @@ public class ThievesGuild extends GuildStore {
 			return;
 		}
 		
-		tilesWithUnknownPaths = new ArrayList<TileComponent>();
-		tilesWithUnknownPassages = new ArrayList<TileComponent>();
+		tilesWithUnknownPaths = new ArrayList();
+		tilesWithUnknownPassages = new ArrayList();
 		RealmObjectMaster rom = RealmObjectMaster.getRealmObjectMaster(character.getGameData());
-		for (GameObject go:rom.getTileObjects()) {
+		for (java.util.Iterator _j14it2547 = (rom.getTileObjects()).iterator(); _j14it2547.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2547.next();
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
 			if (pathsToDiscover(tile.getHiddenPaths(true)).size()>0) {
 				tilesWithUnknownPaths.add(tile);
@@ -50,16 +51,18 @@ public class ThievesGuild extends GuildStore {
 			}
 		}
 		
-		openable = new ArrayList<GameObject>();
-		for (GameObject go:character.getInventory()) {
+		openable = new ArrayList();
+		for (java.util.Iterator _j14it2548 = (character.getInventory()).iterator(); _j14it2548.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2548.next();
 			if (go.getName().startsWith("Chest") && go.hasThisAttribute(Constants.NEEDS_OPEN)) {
 				openable.add(go);
 			}
 		}
 	}
-	protected ArrayList<String> pathsToDiscover(ArrayList<PathDetail> paths) {
-		ArrayList<String> toDiscover = new ArrayList<String>();
-		for (PathDetail path:paths) {
+	protected ArrayList pathsToDiscover(ArrayList paths) {
+		ArrayList toDiscover = new ArrayList();
+		for (java.util.Iterator _j14it2549 = (paths).iterator(); _j14it2549.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it2549.next();
 			String pathKey = path.getFullPathKey();
 			if ((path.isHidden() && !character.hasHiddenPathDiscovery(pathKey))
 					|| (path.isSecret() && !character.hasSecretPassageDiscovery(pathKey))) {
@@ -68,15 +71,16 @@ public class ThievesGuild extends GuildStore {
 		}
 		return toDiscover;
 	}
-	private String revealHidden(JFrame frame,ArrayList<TileComponent> list) {
+	private String revealHidden(JFrame frame,ArrayList list) {
 		return reveal(frame,list,true);
 	}
-	private String revealSecret(JFrame frame,ArrayList<TileComponent> list) {
+	private String revealSecret(JFrame frame,ArrayList list) {
 		return reveal(frame,list,false);
 	}
-	private String reveal(JFrame frame,ArrayList<TileComponent> list,boolean hidden) {
+	private String reveal(JFrame frame,ArrayList list,boolean hidden) {
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,"Which tile to reveal "+(hidden?"hidden paths":"secret passages")+"?",true);
-		for (TileComponent tile:list) {
+		for (java.util.Iterator _j14it2550 = (list).iterator(); _j14it2550.hasNext(); ) {
+		  TileComponent tile = (TileComponent) _j14it2550.next();
 			chooser.addRealmComponent(tile,true);
 		}
 		chooser.setVisible(true);
@@ -89,14 +93,16 @@ public class ThievesGuild extends GuildStore {
 	}
 	private void reveal(TileComponent tile,boolean hidden) {
 		if (hidden) {
-			for (String pathKey:pathsToDiscover(tile.getHiddenPaths(true))) {
+			for (java.util.Iterator _j14it2551 = (pathsToDiscover(tile.getHiddenPaths(true))).iterator(); _j14it2551.hasNext(); ) {
+			  String pathKey = (String) _j14it2551.next();
 				if (!character.hasHiddenPathDiscovery(pathKey)) {
 					character.addHiddenPathDiscovery(pathKey);
 				}
 			}
 		}
 		else {
-			for (String pathKey:pathsToDiscover(tile.getSecretPassages(true))) {
+			for (java.util.Iterator _j14it2552 = (pathsToDiscover(tile.getSecretPassages(true))).iterator(); _j14it2552.hasNext(); ) {
+			  String pathKey = (String) _j14it2552.next();
 				if (!character.hasSecretPassageDiscovery(pathKey)) {
 					character.addSecretPassageDiscovery(pathKey);
 				}
@@ -181,7 +187,8 @@ public class ThievesGuild extends GuildStore {
 		if (!character.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT+"_3")) {
 			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
 			if (hostPrefs.hasPref(Constants.GUILDS_FINAL_BENEFIT)) {
-				for (GameObject livingCharacter : RealmUtility.getLivingCharacters(character.getGameData())) {
+				for (java.util.Iterator _j14it2553 = (RealmUtility.getLivingCharacters(character.getGameData())).iterator(); _j14it2553.hasNext(); ) {
+				  GameObject livingCharacter = (GameObject) _j14it2553.next();
 					String guildLivingCharacter = new CharacterWrapper(livingCharacter).getCurrentGuild();
 					if (guildLivingCharacter!=null && guildLivingCharacter.matches(THIEVES_GUILD)) {
 						if (livingCharacter.getId()!=character.getGameObject().getId() &&  (livingCharacter.hasThisAttribute(Constants.GUILD_BENEFIT+"_3") || livingCharacter.hasThisAttribute(Constants.GUILD_BENEFIT_SUCESSOR))) {
@@ -207,7 +214,8 @@ public class ThievesGuild extends GuildStore {
 	}
 	public void unapplyGuildBenefit3(JFrame frame, CharacterWrapper character) {
 		character.getGameObject().removeThisAttribute(Constants.GUILD_BENEFIT+"_3");
-		for (CharacterActionChitComponent chit : character.getAllChits()) {
+		for (java.util.Iterator _j14it2554 = (character.getAllChits()).iterator(); _j14it2554.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2554.next();
 			if (chit.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT+"_3")) {
 				character.getGameObject().remove(chit.getGameObject());
 				chit.getGameObject().clearAllAttributes();

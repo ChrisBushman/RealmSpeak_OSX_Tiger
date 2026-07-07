@@ -10,7 +10,7 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class CommerceNeutral extends Commerce {
-	public CommerceNeutral(JFrame frame,TradeInfo tradeInfo,Collection<RealmComponent> merchandise,HostPrefWrapper hostPrefs) {
+	public CommerceNeutral(JFrame frame,TradeInfo tradeInfo,Collection merchandise,HostPrefWrapper hostPrefs) {
 		super(frame,tradeInfo,merchandise,hostPrefs);
 	}
 	public String getCommerceTableName() {

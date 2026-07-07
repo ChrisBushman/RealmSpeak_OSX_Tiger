@@ -35,7 +35,8 @@ public class SellHold extends Store {
 	
 	public String doService(JFrame frame) {
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,"Buy which?",true);
-		for(GameObject go:new ArrayList<GameObject>(trader.getHold())) {
+		for (java.util.Iterator _j14it2533 = (new ArrayList(trader.getHold())).iterator(); _j14it2533.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2533.next();
 			int basePrice = go.getThisInt("base_price");
 			chooser.addGameObject(go,basePrice+" gold",DisplayOption.FaceUp);
 		}

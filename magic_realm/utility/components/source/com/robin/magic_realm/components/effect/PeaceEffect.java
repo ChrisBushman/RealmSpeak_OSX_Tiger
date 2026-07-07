@@ -9,13 +9,13 @@ import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class PeaceEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		CombatWrapper combat = context.getCombatTarget();
 		
 		boolean attacked = false;
-		ArrayList<GameObject> attackers = combat.getAttackers();
-		for (GameObject go:attackers) {
+		ArrayList attackers = combat.getAttackers();
+		for (java.util.Iterator _j14it2032 = (attackers).iterator(); _j14it2032.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2032.next();
 			if (!go.equals(context.Caster)) {
 				attacked = true;
 			}
@@ -44,7 +44,6 @@ public class PeaceEffect implements ISpellEffect {
 		}
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		//Rulebook: This 'peace' cannot be broken before it expires.
 	}

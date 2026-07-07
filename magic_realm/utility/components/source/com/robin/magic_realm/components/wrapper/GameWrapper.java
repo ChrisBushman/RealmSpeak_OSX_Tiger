@@ -79,8 +79,8 @@ public class GameWrapper extends GameObjectWrapper {
 	public boolean isGameOver() {
 		return getState()==GAME_STATE_GAMEOVER;
 	}
-	public static Collection<String> getKeyVals() {
-		ArrayList<String> keyVals = new ArrayList<String>();
+	public static Collection getKeyVals() {
+		ArrayList keyVals = new ArrayList();
 		keyVals.add(GAME_STATE);
 		return keyVals;
 	}
@@ -300,12 +300,13 @@ public class GameWrapper extends GameObjectWrapper {
 	public void addRegeneratedDenizen(GameObject go) {
 		addListItem(GAME_LAST_REGEN,go.getStringId());
 	}
-	public ArrayList<GameObject> getRegeneratedDenizens() {
-		ArrayList<String> ids = getList(GAME_LAST_REGEN);
+	public ArrayList getRegeneratedDenizens() {
+		ArrayList ids = getList(GAME_LAST_REGEN);
 		if (ids!=null) {
 			if (!ids.isEmpty()) {
-				ArrayList<GameObject> list = new ArrayList<GameObject>();
-				for (String id : ids) {
+				ArrayList list = new ArrayList();
+				for (java.util.Iterator _j14it1513 = (ids).iterator(); _j14it1513.hasNext(); ) {
+				  String id = (String) _j14it1513.next();
 					list.add(getGameObject().getGameData().getGameObject(Long.valueOf(id)));
 				}
 				return list;
@@ -328,11 +329,12 @@ public class GameWrapper extends GameObjectWrapper {
 	public boolean hasTravelerKnowledge(GameObject traveler) {
 		return hasListItem(GAME_TRAVELERS,traveler.getStringId());
 	}
-	public ArrayList<GameObject> getTravelerKnowledge() {
-		ArrayList<GameObject> travelers = new ArrayList<GameObject>();
-		ArrayList<String> list = getList(GAME_TRAVELERS);
+	public ArrayList getTravelerKnowledge() {
+		ArrayList travelers = new ArrayList();
+		ArrayList list = getList(GAME_TRAVELERS);
 		if (list!=null) {
-			for(String i : list) {
+			for (java.util.Iterator _j14it1514 = (list).iterator(); _j14it1514.hasNext(); ) {
+			  String i = (String) _j14it1514.next();
 				travelers.add(getGameObject().getGameObjectFromId(i));
 			}
 		}
@@ -349,12 +351,12 @@ public class GameWrapper extends GameObjectWrapper {
 		for (int i=0;i<=qid;i++) {
 			String qAttribute = GAME_Q_PREFIX+i;
 			if (getGameObject().hasAttribute(GAME_BLOCK,qAttribute)) {
-				ArrayList<String> list = getList(qAttribute);
-				String test = list.get(0);
+				ArrayList list = getList(qAttribute);
+				String test = (String) list.get(0);
 				if (test.equals(answeringPlayerName)) {
 					String[] ret = new String[2];
-					ret[0] = list.get(1); // askingPlayerName
-					ret[1] = list.get(2); // question
+					ret[0] = (String) list.get(1); // askingPlayerName
+					ret[1] = (String) list.get(2); // question
 					getGameObject().removeAttribute(GAME_BLOCK,qAttribute); // remove so it doesn't get asked twice!
 					return ret;
 				}
@@ -369,11 +371,11 @@ public class GameWrapper extends GameObjectWrapper {
 		for (int i=0;i<=qid;i++) {
 			String iAttribute = GAME_I_PREFIX+i;
 			if (getGameObject().hasAttribute(GAME_BLOCK,iAttribute)) {
-				ArrayList<String> list = getList(iAttribute);
-				String test = list.get(0);
+				ArrayList list = getList(iAttribute);
+				String test = (String) list.get(0);
 				if (test.equals(player)) {
 					String[] ret = new String[1];
-					ret[0] = list.get(1); // GameObjectId
+					ret[0] = (String) list.get(1); // GameObjectId
 					getGameObject().removeAttribute(GAME_BLOCK,iAttribute); // remove so it doesn't get shown twice!
 					return ret;
 				}
@@ -387,9 +389,9 @@ public class GameWrapper extends GameObjectWrapper {
 	public static GameWrapper findGame(GameData data) {
 		if (GAME_ID==null) {
 			GamePool pool = new GamePool(data.getGameObjects());
-			ArrayList<GameObject> list = pool.find(getKeyVals());
+			ArrayList list = pool.find(getKeyVals());
 			if (list.size()==1) {
-				GameObject gw = list.get(0);
+				GameObject gw = (GameObject) list.get(0);
 				GAME_ID = Long.valueOf(gw.getId());
 				return new GameWrapper(gw);
 			}

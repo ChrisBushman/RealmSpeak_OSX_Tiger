@@ -154,7 +154,8 @@ public class HostGameSetupDialog extends AggressiveDialog {
 		questQtrOption.setSelected(hostPrefs.hasPref(Constants.QST_QUEST_CARDS));
 		questGuildsOption.setSelected(hostPrefs.hasPref(Constants.QST_GUILD_QUESTS));
 		questSrOption.setSelected(hostPrefs.hasPref(Constants.QST_SR_QUESTS));
-		for (String key : optionPane.getGameOptionKeys()) {
+		for (java.util.Iterator _j14it2016 = (optionPane.getGameOptionKeys()).iterator(); _j14it2016.hasNext(); ) {
+		  String key = (String) _j14it2016.next();
 			optionPane.setOption(key,hostPrefs.hasPref(key));
 		}
 		String season = hostPrefs.getStartingSeason();
@@ -236,7 +237,8 @@ public class HostGameSetupDialog extends AggressiveDialog {
 		questQtrOption.setSelected(prefMan.getBoolean(Constants.QST_QUEST_CARDS));
 		questGuildsOption.setSelected(prefMan.getBoolean(Constants.QST_GUILD_QUESTS));
 		questSrOption.setSelected(prefMan.getBoolean(Constants.QST_SR_QUESTS));
-		for (String key : optionPane.getGameOptionKeys()) {
+		for (java.util.Iterator _j14it2017 = (optionPane.getGameOptionKeys()).iterator(); _j14it2017.hasNext(); ) {
+		  String key = (String) _j14it2017.next();
 			optionPane.setOption(key,prefMan.getBoolean(key));
 		}
 		String name = prefMan.get("startingSeason");
@@ -298,7 +300,8 @@ public class HostGameSetupDialog extends AggressiveDialog {
 		prefMan.set(Constants.QST_GUILD_QUESTS,questGuildsOption.isSelected());
 		prefMan.set(Constants.QST_SR_QUESTS,questSrOption.isSelected());
 		
-		for (String key : optionPane.getGameOptionKeys()) {
+		for (java.util.Iterator _j14it2018 = (optionPane.getGameOptionKeys()).iterator(); _j14it2018.hasNext(); ) {
+		  String key = (String) _j14it2018.next();
 			prefMan.set(key,optionPane.getOption(key));
 		}
 		Object obj = startingSeason.getSelectedItem();
@@ -806,13 +809,13 @@ public class HostGameSetupDialog extends AggressiveDialog {
 			minMapRating.setPaintTicks(true);
 			minMapRating.setPaintLabels(true);
 			minMapRating.setOrientation(SwingConstants.VERTICAL);
-			Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
-			labelTable.put( 0, new JLabel("0 - Any (Fast)  ") );
-			labelTable.put( 1, new JLabel("1") );
-			labelTable.put( 2, new JLabel("2") );
-			labelTable.put( 3, new JLabel("3") );
-			labelTable.put( 4, new JLabel("4") );
-			labelTable.put( 5, new JLabel("5 - Smart (Long)  ") );
+			Hashtable labelTable = new Hashtable();
+			labelTable.put( new Integer(0), new JLabel("0 - Any (Fast)  ") );
+			labelTable.put( new Integer(1), new JLabel("1") );
+			labelTable.put( new Integer(2), new JLabel("2") );
+			labelTable.put( new Integer(3), new JLabel("3") );
+			labelTable.put( new Integer(4), new JLabel("4") );
+			labelTable.put( new Integer(5), new JLabel("5 - Smart (Long)  ") );
 			minMapRating.setLabelTable( labelTable );
 			minMapRating.setPreferredSize(new Dimension(180, 220));
 			minMapRating.setMinimumSize(new Dimension(180, 100));
@@ -1341,7 +1344,8 @@ public class HostGameSetupDialog extends AggressiveDialog {
 		vpsToAchieve.setText("5");
 		questCards.setText("0");
 		
-		for (String key : optionPane.getGameOptionKeys()) {
+		for (java.util.Iterator _j14it2019 = (optionPane.getGameOptionKeys()).iterator(); _j14it2019.hasNext(); ) {
+		  String key = (String) _j14it2019.next();
 			optionPane.setOption(key,false);
 		}
 		optionPane.setOption(Constants.OPT_BLOCKING_PHASES,true);
@@ -1472,8 +1476,8 @@ public class HostGameSetupDialog extends AggressiveDialog {
 	
 	public static int readInt(String val) {
 		try {
-			Integer n = Integer.parseInt(val);
-			return n.intValue();
+			int n = Integer.parseInt(val);
+			return n;
 		}
 		catch(NumberFormatException ex) {
 			// ignore
@@ -1558,7 +1562,8 @@ public class HostGameSetupDialog extends AggressiveDialog {
 			hostPrefs.setStartingSeason(obj.toString());
 		}
 		
-		for (String optionKey : optionPane.getGameOptionKeys()) {
+		for (java.util.Iterator _j14it2020 = (optionPane.getGameOptionKeys()).iterator(); _j14it2020.hasNext(); ) {
+		  String optionKey = (String) _j14it2020.next();
 			hostPrefs.setPref(optionKey,optionPane.getOption(optionKey));
 		}
 		
@@ -1591,7 +1596,7 @@ public class HostGameSetupDialog extends AggressiveDialog {
 			return;
 		}
 		
-		ArrayList<String> recipients = new ArrayList<String>();
+		ArrayList recipients = new ArrayList();
 		recipients.add(address);
 		String error = RealmMail.sendMail(smtp,address,recipients,gameTitle.getText(),"Test","This is a test of the e-mail notification setup within RealmSpeak.  If you receieved this e-mail by mistake, please ignore it.");
 		if (error!=null) {

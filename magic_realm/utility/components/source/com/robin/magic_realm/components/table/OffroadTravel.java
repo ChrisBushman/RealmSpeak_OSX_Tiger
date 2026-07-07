@@ -135,17 +135,17 @@ public class OffroadTravel extends Search {
 		return RESULT_OTHERS[5];
 	}
 	
-	private ArrayList<String> getClearingsOfSameSide() {
+	private ArrayList getClearingsOfSameSide() {
 		int side = 0;
 		int currentClearingNum = current.clearing.getNum();
 		String sideString = current.tile.getStatSide();
 		boolean sideExists = false;
-		ArrayList<String> list = null;
+		ArrayList list = null;
 		for (int i = 0; i<=5; i++) {
-			list = (ArrayList<String>) current.tile.getGameObject().getAttributeBlock(sideString).get(Constants.OFFROAD_TRAVEL_SIDE+"_"+i);
+			list = (ArrayList) current.tile.getGameObject().getAttributeBlock(sideString).get(Constants.OFFROAD_TRAVEL_SIDE+"_"+i);
 			if (list!=null && !list.isEmpty()) {
 				for (int j=0; j<list.size(); j++) {
-					if (list.get(j).matches(String.valueOf(currentClearingNum))) {
+					if (((String) list.get(j)).matches(String.valueOf(currentClearingNum))) {
 						sideExists = true;
 						break;
 					}
@@ -224,19 +224,22 @@ public class OffroadTravel extends Search {
 		return null;
 	}
 	private void markPaths(CharacterWrapper character) {
-		ArrayList<PathDetail> list = getAllUndiscoveredPaths(character);
-		for (PathDetail path:list) {
+		ArrayList list = getAllUndiscoveredPaths(character);
+		for (java.util.Iterator _j14it2147 = (list).iterator(); _j14it2147.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it2147.next();
 			character.addHiddenPathDiscovery(path.getFullPathKey());
 		}
 	}
 	private void chooseClearing(CharacterWrapper character) {
 		CenteredMapView.getSingleton().setMarkClearingAlertText("Travel to which clearing?");
 		if (current.hasClearing() && current.tile.getGameObject().hasThisAttribute(Constants.OFFROAD_TRAVEL_SIDES)) {
-			for (String num : getClearingsOfSameSide()) {
+			for (java.util.Iterator _j14it2148 = (getClearingsOfSameSide()).iterator(); _j14it2148.hasNext(); ) {
+			  String num = (String) _j14it2148.next();
 				CenteredMapView.getSingleton().markClearing(current.tile.getClearing(num), true);
 			}
 		} else {
-			for (ClearingDetail cl : current.tile.getClearings()) {
+			for (java.util.Iterator _j14it2149 = (current.tile.getClearings()).iterator(); _j14it2149.hasNext(); ) {
+			  ClearingDetail cl = (ClearingDetail) _j14it2149.next();
 				CenteredMapView.getSingleton().markClearing(cl, true);
 			}
 		}
@@ -249,11 +252,11 @@ public class OffroadTravel extends Search {
 	private void randomClearing(CharacterWrapper character) {
 		ClearingDetail selectedClearing = null;
 		if (current.tile.getGameObject().hasThisAttribute(Constants.OFFROAD_TRAVEL_SIDES)) {
-			ArrayList<String> availableClearings = getClearingsOfSameSide();
-			String selectedClearingNum = availableClearings.get(RandomNumber.getRandom(availableClearings.size()));
+			ArrayList availableClearings = getClearingsOfSameSide();
+			String selectedClearingNum = (String) availableClearings.get(RandomNumber.getRandom(availableClearings.size()));
 			selectedClearing = current.tile.getClearing(selectedClearingNum);
 		} else {
-			selectedClearing = current.tile.getClearings().get(RandomNumber.getRandom(current.tile.getClearingCount()));
+			selectedClearing = (ClearingDetail) current.tile.getClearings().get(RandomNumber.getRandom(current.tile.getClearingCount()));
 		}
 		character.setOffroadTravelClearing(selectedClearing.getNum());
 		character.setOffroadTravelLost(false);

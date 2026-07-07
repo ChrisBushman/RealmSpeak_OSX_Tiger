@@ -19,7 +19,7 @@ public class QuestRequirementLocationExists extends QuestRequirement {
 	
 	protected boolean testFulfillsRequirement(JFrame frame,CharacterWrapper character,QuestRequirementParams reqParams) {
 		QuestLocation location = getQuestLocation();
-		ArrayList<TileLocation> allLocations = location.fetchAllLocations(frame, character, character.getGameData());
+		ArrayList allLocations = location.fetchAllLocations(frame, character, character.getGameData());
 		return allLocations!=null && !allLocations.isEmpty();
 	}
 		
@@ -49,7 +49,7 @@ public class QuestRequirementLocationExists extends QuestRequirement {
 		return null;
 	}
 	
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}
 }

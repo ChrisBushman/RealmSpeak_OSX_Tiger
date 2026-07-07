@@ -24,7 +24,8 @@ public class QuestRequirementRelationship extends QuestRequirement {
 
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
 		Pattern pattern = Pattern.compile(getNativesRegex().toLowerCase());
-		for (GameObject nativeGroup : getRepresentativeNatives(character)) {
+		for (java.util.Iterator _j14it2302 = (getRepresentativeNatives(character)).iterator(); _j14it2302.hasNext(); ) {
+		  GameObject nativeGroup = (GameObject) _j14it2302.next();
 			if (getNativesRegex().length() == 0 || pattern.matcher(nativeGroup.getName().toLowerCase()).find()) {
 					if (exceedAllowed() && character.getRelationship(nativeGroup) >= getRelationshipLevel()) {
 						return true;
@@ -65,14 +66,14 @@ public class QuestRequirementRelationship extends QuestRequirement {
 	private String getNativesRegex() {
 		return getString(NATIVE_GROUP);
 	}
-	public static ArrayList<GameObject> getRepresentativeNatives(CharacterWrapper character) {
+	public static ArrayList getRepresentativeNatives(CharacterWrapper character) {
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());
-		ArrayList<String> queryNatives = new ArrayList<String>();
-		ArrayList<String> queryVisitors = new ArrayList<String>();
+		ArrayList queryNatives = new ArrayList();
+		ArrayList queryVisitors = new ArrayList();
 		queryNatives.add("native");
 		queryNatives.add("rank=HQ");
 		queryVisitors.add(Constants.VISITOR);
-		ArrayList<GameObject> representativeNatives = pool.find(queryNatives);
+		ArrayList representativeNatives = pool.find(queryNatives);
 		representativeNatives.addAll(pool.find(queryVisitors));
 		return representativeNatives;
 	}

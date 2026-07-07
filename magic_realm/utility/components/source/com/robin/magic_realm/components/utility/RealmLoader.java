@@ -27,9 +27,10 @@ public class RealmLoader {
 	public void cleanupData(String keyVals) {
 		long maxid = master.getMaxId();
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> found = pool.find(keyVals);
-		ArrayList<GameObject> toDelete = new ArrayList<GameObject>();
-		for (GameObject go : data.getGameObjects()) {
+		ArrayList found = pool.find(keyVals);
+		ArrayList toDelete = new ArrayList();
+		for (java.util.Iterator _j14it2683 = (data.getGameObjects()).iterator(); _j14it2683.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2683.next();
 			if (go.getId()<=maxid) { // only consider objects in the master
 				if (!found.contains(go)) {
 					// Make sure it isn't held by...
@@ -43,7 +44,8 @@ public class RealmLoader {
 				}
 			}
 		}
-		for (GameObject go:toDelete) {
+		for (java.util.Iterator _j14it2684 = (toDelete).iterator(); _j14it2684.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2684.next();
 			data.removeObject(go);
 		}
 	}
@@ -59,7 +61,7 @@ public class RealmLoader {
 	public static void main(String[] args) {
 		RealmLoader loader = new RealmLoader();
 		GamePool pool = new GamePool(loader.getData().getGameObjects());
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add("rw_expansion_1");
 		query.add("treasure");
 		String tab = "\t";
@@ -75,7 +77,8 @@ public class RealmLoader {
 				+tab+"Gold"
 				+tab+"Text"
 				);
-		for(GameObject go:pool.find(query)) {
+		for (java.util.Iterator _j14it2685 = (pool.find(query)).iterator(); _j14it2685.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2685.next();
 			int twt = go.getThisInt("treasure_within_treasure");
 			String great = go.hasThisAttribute("great")?"Great":" ";
 			String large = twt==0?(go.getThisAttribute("treasure").equals("large")?"Large":" "):("P"+twt);

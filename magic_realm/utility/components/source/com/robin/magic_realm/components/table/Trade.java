@@ -48,7 +48,8 @@ public abstract class Trade extends RealmTable {
 				// Monsters
 				info.setGroupName(tradeInfo.getGameObject().getName());
 			}
-			for (RealmComponent rc:currentLocation.clearing.getClearingComponents()) {
+			for (java.util.Iterator _j14it2150 = (currentLocation.clearing.getClearingComponents()).iterator(); _j14it2150.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2150.next();
 				if (tradeInfo.isNative() && rc.isNative() && info.getGroupName().equals(rc.getGameObject().getThisAttribute("native"))) {
 					info.bumpGroupCount();
 				}

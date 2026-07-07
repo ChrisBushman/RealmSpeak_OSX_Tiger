@@ -8,7 +8,6 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class CurseEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		CharacterWrapper character = context.getCharacterTarget();
 		CharacterWrapper caster = context.getCharacterCaster();
@@ -22,7 +21,6 @@ public class CurseEffect implements ISpellEffect {
 
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 	}
 

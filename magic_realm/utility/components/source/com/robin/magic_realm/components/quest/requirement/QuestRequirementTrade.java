@@ -47,7 +47,8 @@ public class QuestRequirementTrade extends QuestRequirement {
 				String itemRegex = getTradeItemRegEx();
 				Pattern itemPattern = itemRegex!=null && itemRegex.trim().length()>0?Pattern.compile(itemRegex):null;
 
-				for (GameObject go:reqParams.objectList) {
+				for (java.util.Iterator _j14it2322 = (reqParams.objectList).iterator(); _j14it2322.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it2322.next();
 					RealmComponent rc = RealmComponent.getRealmComponent(go);
 					if ((!tradeItem() && !tradeTreasure() && !tradeSpell()) ||
 							(tradeItem() && rc.isItem()) || (tradeTreasure() && rc.isTreasure()) || (tradeSpell() && rc.isSpell())) {							
@@ -87,7 +88,7 @@ public class QuestRequirementTrade extends QuestRequirement {
 	
 	protected String buildDescription() {
 		TradeType tt = getTradeType();
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must ");
 		sb.append(tt.toString().toLowerCase());
 		if (tradeItem()) {

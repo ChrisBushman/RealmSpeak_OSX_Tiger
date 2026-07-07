@@ -18,7 +18,8 @@ public class QuestRewardClonedQuestsFailed extends QuestReward {
 	public void processReward(JFrame frame,CharacterWrapper character) {
 		GameObject questGo = getGameObject().getHeldBy();
 		Quest quest = new Quest(questGo);
-		for (GameObject clonedQuestGo : quest.findClones(getGameData().getGameObjects())) {
+		for (java.util.Iterator _j14it2387 = (quest.findClones(getGameData().getGameObjects())).iterator(); _j14it2387.hasNext(); ) {
+		  GameObject clonedQuestGo = (GameObject) _j14it2387.next();
 			Quest clonedQuest = new Quest(clonedQuestGo);
 			if (clonedQuest.getOwner()==null) continue;
 			clonedQuest.setState(QuestState.Failed,clonedQuest.getOwner().getCurrentDayKey(), clonedQuest.getOwner());

@@ -12,10 +12,11 @@ import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class SellingAlly extends Commerce {
 	private int conditionalBonus = 0;
-	public SellingAlly(JFrame frame,TradeInfo tradeInfo,Collection<RealmComponent> merchandise,HostPrefWrapper hostPrefs) {
+	public SellingAlly(JFrame frame,TradeInfo tradeInfo,Collection merchandise,HostPrefWrapper hostPrefs) {
 		super(frame,tradeInfo,merchandise,hostPrefs);
 		this.conditionalBonus = 0;
-		for (RealmComponent item : merchandise) {
+		for (java.util.Iterator _j14it2081 = (merchandise).iterator(); _j14it2081.hasNext(); ) {
+		  RealmComponent item = (RealmComponent) _j14it2081.next();
 			if (TreasureUtility.getFamePrice(item.getGameObject(),tradeInfo.getGameObject())>0) {
 				this.conditionalBonus = 1;
 				break;

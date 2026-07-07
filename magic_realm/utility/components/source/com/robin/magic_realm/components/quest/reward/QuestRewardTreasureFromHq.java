@@ -29,13 +29,13 @@ public class QuestRewardTreasureFromHq extends QuestReward {
 		super(go);
 	}
 
-	@Override
 	public void processReward(JFrame frame, CharacterWrapper character) {
 		GamePool pool = new GamePool(getGameData().getGameObjects());
-		ArrayList<GameObject> sourceObjects = pool.find("rank=HQ");
-		ArrayList<GameObject> objects = getObjectList(sourceObjects,getHqRegex(),character);
-		ArrayList<GameObject> validObjects = new ArrayList<GameObject>();
-		for (GameObject object : objects) {
+		ArrayList sourceObjects = pool.find("rank=HQ");
+		ArrayList objects = getObjectList(sourceObjects,getHqRegex(),character);
+		ArrayList validObjects = new ArrayList();
+		for (java.util.Iterator _j14it2367 = (objects).iterator(); _j14it2367.hasNext(); ) {
+		  GameObject object = (GameObject) _j14it2367.next();
 			if (!object.hasThisAttribute(Constants.CLONED)) {
 				validObjects.add(object);
 			}
@@ -46,7 +46,7 @@ public class QuestRewardTreasureFromHq extends QuestReward {
 		}
 		GameObject selected = null;
 		if (validObjects.size()==1) {
-			selected = validObjects.get(0);
+			selected = (GameObject) validObjects.get(0);
 		}
 		else {
 			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,getTitleForDialog()+" Select a HQ to recieve treasure from:",false);
@@ -56,9 +56,10 @@ public class QuestRewardTreasureFromHq extends QuestReward {
 		}
 		
 		GameObject holder = SetupCardUtility.getDenizenHolder(selected);
-		ArrayList<GameObject> hold = new ArrayList<GameObject>(holder.getHold());
-		ArrayList<GameObject> treasures = new ArrayList<GameObject>();
-		for(Object o:hold) {
+		ArrayList hold = new ArrayList(holder.getHold());
+		ArrayList treasures = new ArrayList();
+		for (java.util.Iterator _j14it2368 = (hold).iterator(); _j14it2368.hasNext(); ) {
+		  Object o = (Object) _j14it2368.next();
 			RealmComponent rc = RealmComponent.getRealmComponent((GameObject)o);
 			if (rc.isTreasure()) {
 				treasures.add((GameObject)o);
@@ -69,48 +70,39 @@ public class QuestRewardTreasureFromHq extends QuestReward {
 			return;
 		}
 		GameObject treasure = null;
-		switch(getDrawType()) {
-			case Top:
-				treasure = treasures.get(0);
-				break;
-			case Bottom:
-				treasure = treasures.get(treasures.size()-1);
-				break;
-			case Random:
-				treasure = treasures.get(RandomNumber.getRandom(treasures.size()));
-				break;
-			case Choice:
-				RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,getTitleForDialog()+" Which treasure?",false);
-				chooser.addGameObjects(treasures,true);
-				chooser.setVisible(true);
-				treasure = chooser.getFirstSelectedComponent().getGameObject();
-				break;
+		DrawType _dt = getDrawType();
+		if (_dt == DrawType.Top) {
+			treasure = (GameObject) treasures.get(0);
+		} else if (_dt == DrawType.Bottom) {
+			treasure = (GameObject) treasures.get(treasures.size()-1);
+		} else if (_dt == DrawType.Random) {
+			treasure = (GameObject) treasures.get(RandomNumber.getRandom(treasures.size()));
+		} else if (_dt == DrawType.Choice) {
+			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,getTitleForDialog()+" Which treasure?",false);
+			chooser.addGameObjects(treasures,true);
+			chooser.setVisible(true);
+			treasure = chooser.getFirstSelectedComponent().getGameObject();
 		}		
 		if (treasure!=null) { // shouldn't ever be null
 			Loot.addItemToCharacter(frame,null,character,treasure);
 		}
 	}
 	
-	@Override
 	public RewardType getRewardType() {
 		return RewardType.TreasureFromHq;
 	}
 
-	@Override
 	public String getDescription() {
-		StringBuilder sb = new StringBuilder();
-		switch(getDrawType()) {
-			case Top:
-				sb.append("Take the top");
-				break;
-			case Bottom:
-				sb.append("Take the bottom");
-				break;
-			case Choice:
-				sb.append("Choose a");
-				break;
-			case Random:
-				sb.append("Get a random");
+		StringBuffer sb = new StringBuffer();
+		DrawType _dt2 = getDrawType();
+		if (_dt2 == DrawType.Top) {
+			sb.append("Take the top");
+		} else if (_dt2 == DrawType.Bottom) {
+			sb.append("Take the bottom");
+		} else if (_dt2 == DrawType.Choice) {
+			sb.append("Choose a");
+		} else if (_dt2 == DrawType.Random) {
+			sb.append("Get a random");
 		}
 		sb.append(" treasure from /");
 		sb.append(getHqRegex());
@@ -130,8 +122,8 @@ public class QuestRewardTreasureFromHq extends QuestReward {
 		return getBoolean(CLEARING);
 	}
 	
-	private ArrayList<GameObject> getObjectList(ArrayList<GameObject> sourceObjects,String regEx, CharacterWrapper character) {
-		ArrayList<GameObject> objects = new ArrayList<GameObject>();
+	private ArrayList getObjectList(ArrayList sourceObjects,String regEx, CharacterWrapper character) {
+		ArrayList objects = new ArrayList();
 		TileLocation loc = null;
 		if (sameClearing()) {
 			loc = character.getCurrentLocation();
@@ -139,7 +131,8 @@ public class QuestRewardTreasureFromHq extends QuestReward {
 		}
 		
 		Pattern pattern = (regEx==null || regEx.length()==0)?null:Pattern.compile(regEx);
-		for(GameObject obj:sourceObjects) {
+		for (java.util.Iterator _j14it2369 = (sourceObjects).iterator(); _j14it2369.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it2369.next();
 			if (pattern==null || pattern.matcher(obj.getName()).find()) {
 				if (sameClearing()) {
 					RealmComponent rc = RealmComponent.getRealmComponent(obj);

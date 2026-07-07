@@ -108,13 +108,14 @@ public class Curse extends RealmTable {
 			// Cannot have ANY active effort asterisks
 			character.applyCurse(Constants.WITHER);
 			
-			ArrayList<CharacterActionChitComponent> toFatigue = new ArrayList<CharacterActionChitComponent>();
+			ArrayList toFatigue = new ArrayList();
 			toFatigue.addAll(character.getActiveEffortChits());
 			toFatigue.addAll(character.getAlertedChits());
 			toFatigue.addAll(character.getColorChits());
 			
 			// Fatigue all active effort asterisks here
-			for (CharacterActionChitComponent chit : toFatigue) {
+			for (java.util.Iterator _j14it2160 = (toFatigue).iterator(); _j14it2160.hasNext(); ) {
+			  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2160.next();
 				chit.makeFatigued();
 				harm = true;
 			}

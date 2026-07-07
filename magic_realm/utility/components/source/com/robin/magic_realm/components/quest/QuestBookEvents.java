@@ -33,36 +33,40 @@ public class QuestBookEvents extends GameObjectWrapper {
 	}
 	
 	public void setupEvents(JFrame frame,CharacterWrapper character) {
-		for(Quest card:getEvents()) {
+		for (java.util.Iterator _j14it2288 = (getEvents()).iterator(); _j14it2288.hasNext(); ) {
+		  Quest card = (Quest) _j14it2288.next();
 			if (card.getState()!=QuestState.New && !card.isMultipleUse()) continue; // skip all play cards that are no longer new (completed or failed)
 			Quest quest = card.copyQuestToGameData(getGameData());
 			quest.setState(QuestState.Assigned, character.getCurrentDayKey(), character); // indicates when the quest was first assigned
 			character.addQuest(frame,quest);
 		}
 	}
-	private ArrayList<GameObject> getEventsAsObjects() {
-		ArrayList<GameObject> allPlay = new ArrayList<GameObject>();
-		ArrayList<String> list = getList(QUEST_EVENT_LIST);
+	private ArrayList getEventsAsObjects() {
+		ArrayList allPlay = new ArrayList();
+		ArrayList list = getList(QUEST_EVENT_LIST);
 		if (list!=null && list.size()>0) {
-			for(String questId : list) {
+			for (java.util.Iterator _j14it2289 = (list).iterator(); _j14it2289.hasNext(); ) {
+			  String questId = (String) _j14it2289.next();
 				GameObject go = getGameData().getGameObject(Long.valueOf(questId));
 				allPlay.add(go);
 			}
 		}
 		return allPlay;
 	}
-	private ArrayList<Quest> getEvents() {
-		ArrayList<Quest> events = new ArrayList<Quest>();
-		for(GameObject go:getEventsAsObjects()) {
+	private ArrayList getEvents() {
+		ArrayList events = new ArrayList();
+		for (java.util.Iterator _j14it2290 = (getEventsAsObjects()).iterator(); _j14it2290.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2290.next();
 			Quest quest = new Quest(go);
 			events.add(quest);
 		}
 		return events;
 	}
 	
-	public ArrayList<String> getAllEventNames() {
-		ArrayList<String> events = new ArrayList<String>();
-		for(GameObject go:getEventsAsObjects()) {
+	public ArrayList getAllEventNames() {
+		ArrayList events = new ArrayList();
+		for (java.util.Iterator _j14it2291 = (getEventsAsObjects()).iterator(); _j14it2291.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2291.next();
 			events.add(go.getName());
 		}
 		return events;
@@ -74,7 +78,7 @@ public class QuestBookEvents extends GameObjectWrapper {
 			GamePool pool = new GamePool(data.getGameObjects());
 			GameObject go = pool.findFirst(QUEST_BOOK_KEY);
 			if (go!=null) {
-				BOOK_ID = go.getId();
+				BOOK_ID = Long.valueOf(go.getId());
 				return new QuestBookEvents(go);
 			}
 		}

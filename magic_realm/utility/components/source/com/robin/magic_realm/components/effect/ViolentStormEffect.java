@@ -8,7 +8,6 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class ViolentStormEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		// Need to roll on the Violent Storm table...
 		CharacterWrapper castingCharacter = context.Spell.getCaster();
@@ -34,7 +33,6 @@ public class ViolentStormEffect implements ISpellEffect {
 		context.Target.getGameObject().setThisAttribute(Constants.SP_STORMY,phasesLost);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		context.Target.getGameObject().removeThisAttribute(Constants.SP_STORMY);
 	}

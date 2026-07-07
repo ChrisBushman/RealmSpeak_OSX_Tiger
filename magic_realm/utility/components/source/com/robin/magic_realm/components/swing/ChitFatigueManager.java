@@ -89,7 +89,8 @@ public class ChitFatigueManager extends ChitManager {
 		return currentCount==-1 || move<0 || fight<0 || magic<0;
 	}
 	protected boolean canMakeChange() {
-		for (ChitComponent chit : fatiguedChits.getAllChits()) {
+		for (java.util.Iterator _j14it1931 = (fatiguedChits.getAllChits()).iterator(); _j14it1931.hasNext(); ) {
+		  ChitComponent chit = (ChitComponent) _j14it1931.next();
 			CharacterActionChitComponent aChit = (CharacterActionChitComponent)chit;
 			int effort = aChit.getEffortAsterisks();
 			if (effort==1 && validChit(aChit,true)) {
@@ -141,7 +142,8 @@ public class ChitFatigueManager extends ChitManager {
 	}
 	protected int totalPossibleCount() {
 		int val = 0;
-		for (ChitComponent chit : activeChits.getAllChits()) {
+		for (java.util.Iterator _j14it1932 = (activeChits.getAllChits()).iterator(); _j14it1932.hasNext(); ) {
+		  ChitComponent chit = (ChitComponent) _j14it1932.next();
 			if (chit.isActionChit() && validChit((CharacterActionChitComponent)chit)) {
 				int effort = ((CharacterActionChitComponent)chit).getEffortAsterisks();
 				val += effort;
@@ -149,7 +151,8 @@ public class ChitFatigueManager extends ChitManager {
 			}
 		}
 		// fatigued chits are wounded one at a time after this (this can only happen when special weather conditions are in play)
-		for (ChitComponent chit : fatiguedChits.getAllChits()) {
+		for (java.util.Iterator _j14it1933 = (fatiguedChits.getAllChits()).iterator(); _j14it1933.hasNext(); ) {
+		  ChitComponent chit = (ChitComponent) _j14it1933.next();
 			if (chit.isActionChit() && validChit((CharacterActionChitComponent)chit)) {
 				val += 1; // effort has no effect at this point
 			}
@@ -158,7 +161,8 @@ public class ChitFatigueManager extends ChitManager {
 		return val;
 	}
 	private boolean areActiveEffortChits() {
-		for (ChitComponent chit : activeChits.getAllChits()) {
+		for (java.util.Iterator _j14it1934 = (activeChits.getAllChits()).iterator(); _j14it1934.hasNext(); ) {
+		  ChitComponent chit = (ChitComponent) _j14it1934.next();
 			if (chit.isActionChit()) {
 				CharacterActionChitComponent aChit = (CharacterActionChitComponent)chit;
 				if (validChit(aChit) && !aChit.isColor() && aChit.getEffortAsterisks()>0) {
@@ -169,7 +173,8 @@ public class ChitFatigueManager extends ChitManager {
 		return false;
 	}
 	private boolean areColorChits() {
-		for (ChitComponent chit : activeChits.getAllChits()) {
+		for (java.util.Iterator _j14it1935 = (activeChits.getAllChits()).iterator(); _j14it1935.hasNext(); ) {
+		  ChitComponent chit = (ChitComponent) _j14it1935.next();
 			if (chit.isActionChit()) {
 				CharacterActionChitComponent aChit = (CharacterActionChitComponent)chit;
 				if (validChit(aChit) && aChit.isColor()) {
@@ -367,14 +372,15 @@ public class ChitFatigueManager extends ChitManager {
 		wrapper.initChits();
 		
 		// artifically fatigue and wound some chits
-		ArrayList<CharacterActionChitComponent> list = new ArrayList<CharacterActionChitComponent>(wrapper.getAllChits());
+		ArrayList list = new ArrayList(wrapper.getAllChits());
 		Collections.sort(list);
 		int n=0;
-		for (CharacterActionChitComponent aChit : list) {
+		for (java.util.Iterator _j14it1936 = (list).iterator(); _j14it1936.hasNext(); ) {
+		  CharacterActionChitComponent aChit = (CharacterActionChitComponent) _j14it1936.next();
 			System.out.println((n++)+" "+aChit.getGameObject().getName());
 		}
 		
-		CharacterActionChitComponent aChit = list.get(1);
+		CharacterActionChitComponent aChit = (CharacterActionChitComponent) list.get(1);
 		aChit.getGameObject().setThisAttribute("action","FLY");
 		aChit.getGameObject().setThisAttribute("effort","1");
 		
@@ -383,7 +389,7 @@ public class ChitFatigueManager extends ChitManager {
 //			aChit = (CharacterActionChitComponent)list.get(i);
 //			aChit.makeWounded();
 //		}
-		aChit = list.get(11);
+		aChit = (CharacterActionChitComponent) list.get(11);
 		aChit.enchant();
 //		(new Curse(new JFrame())).applyThree(wrapper);
 		return wrapper;
@@ -397,12 +403,12 @@ public class ChitFatigueManager extends ChitManager {
 		wrapper.initChits();
 		
 		// artifically fatigue and wound some chits
-		ArrayList<CharacterActionChitComponent> list = new ArrayList<CharacterActionChitComponent>(wrapper.getAllChits());
+		ArrayList list = new ArrayList(wrapper.getAllChits());
 		Collections.sort(list);
 		if (preFatigue) {
-			CharacterActionChitComponent aChit = list.get(3);
+			CharacterActionChitComponent aChit = (CharacterActionChitComponent) list.get(3);
 			aChit.makeFatigued();
-			aChit = list.get(7);
+			aChit = (CharacterActionChitComponent) list.get(7);
 			aChit.makeFatigued();
 		}
 //		//for (int i=4;i<11;i++) {

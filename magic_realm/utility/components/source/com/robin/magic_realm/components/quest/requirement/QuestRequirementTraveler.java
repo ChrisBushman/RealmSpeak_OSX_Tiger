@@ -24,7 +24,8 @@ public class QuestRequirementTraveler extends QuestRequirement {
 		if (loc==null || !loc.isInClearing()) return false;
 		Pattern pattern = Pattern.compile(getRegExFilter());
 		String questId = getParentQuest().getGameObject().getStringId();
-		for (RealmComponent traveler : loc.clearing.getClearingComponents()) {
+		for (java.util.Iterator _j14it2294 = (loc.clearing.getClearingComponents()).iterator(); _j14it2294.hasNext(); ) {
+		  RealmComponent traveler = (RealmComponent) _j14it2294.next();
 			if (getRegExFilter().length() == 0 || pattern.matcher(traveler.getGameObject().getName()).find()) {
 				if (requiresMark()) {
 					String mark = traveler.getGameObject().getThisAttribute(QuestConstants.QUEST_MARK);

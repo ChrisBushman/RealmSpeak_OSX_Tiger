@@ -23,8 +23,8 @@ public class FightersGuild extends GuildStore {
 	private static String ADVANCEMENT_SERVICE = "Pay "+FAME_PRICE+" FAME to advance to next level.";
 	public static String JOIN_GUILD_LOG_MESSAGE = "Fulfilled the join requirement for the Fighters Guild.";
 	
-	private ArrayList<CharacterActionChitComponent> restableChits;
-	private ArrayList<ArmorChitComponent> repairableArmor;
+	private ArrayList restableChits;
+	private ArrayList repairableArmor;
 	
 	public FightersGuild(GuildChitComponent guild, CharacterWrapper character) {
 		super(guild, character);
@@ -39,13 +39,14 @@ public class FightersGuild extends GuildStore {
 			return;
 		}
 		
-		restableChits = new ArrayList<CharacterActionChitComponent>();
+		restableChits = new ArrayList();
 		if (!character.hasCurse(Constants.WITHER)) {
 			restableChits.addAll(character.getFatiguedChits());
 		}
 		
-		repairableArmor = new ArrayList<ArmorChitComponent>();
-		for(GameObject go:character.getActiveInventory()) {
+		repairableArmor = new ArrayList();
+		for (java.util.Iterator _j14it2528 = (character.getActiveInventory()).iterator(); _j14it2528.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2528.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc.isArmor()) {
 				repairableArmor.add((ArmorChitComponent)rc);
@@ -71,14 +72,16 @@ public class FightersGuild extends GuildStore {
 			boolean freeAdvancement = isFreeAdvancement(selected);
 			if (REST_SERVICE.equals(selected)) {
 				character.addGold(-5);
-				for (CharacterActionChitComponent chit:restableChits) {
+				for (java.util.Iterator _j14it2529 = (restableChits).iterator(); _j14it2529.hasNext(); ) {
+				  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2529.next();
 					chit.makeActive();
 				}
 				return "Rested all MOVE/FIGHT chits.";
 			}
 			else if (REPAIR_SERVICE.equals(selected)) {
 				character.addGold(-10);
-				for (ArmorChitComponent armor:repairableArmor) {
+				for (java.util.Iterator _j14it2530 = (repairableArmor).iterator(); _j14it2530.hasNext(); ) {
+				  ArmorChitComponent armor = (ArmorChitComponent) _j14it2530.next();
 					armor.setIntact(true);
 				}
 				return "Repaired all active armor.";
@@ -128,7 +131,8 @@ public class FightersGuild extends GuildStore {
 		if (!character.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT+"_3")) {
 			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
 			if (hostPrefs.hasPref(Constants.GUILDS_FINAL_BENEFIT)) {
-				for (GameObject livingCharacter : RealmUtility.getLivingCharacters(character.getGameData())) {
+				for (java.util.Iterator _j14it2531 = (RealmUtility.getLivingCharacters(character.getGameData())).iterator(); _j14it2531.hasNext(); ) {
+				  GameObject livingCharacter = (GameObject) _j14it2531.next();
 					String guildLivingCharacter = new CharacterWrapper(livingCharacter).getCurrentGuild();
 					if (guildLivingCharacter!=null && guildLivingCharacter.matches(FIGHTERS_GUILD)) {
 						if (livingCharacter.getId()!=character.getGameObject().getId() && (livingCharacter.hasThisAttribute(Constants.GUILD_BENEFIT+"_3") || livingCharacter.hasThisAttribute(Constants.GUILD_BENEFIT_SUCESSOR))) {
@@ -154,7 +158,8 @@ public class FightersGuild extends GuildStore {
 	}
 	public void unapplyGuildBenefit3(JFrame frame, CharacterWrapper character) {
 		character.getGameObject().removeThisAttribute(Constants.GUILD_BENEFIT+"_3");
-		for (CharacterActionChitComponent chit : character.getAllChits()) {
+		for (java.util.Iterator _j14it2532 = (character.getAllChits()).iterator(); _j14it2532.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2532.next();
 			if (chit.getGameObject().hasThisAttribute(Constants.GUILD_BENEFIT+"_3")) {
 				character.getGameObject().remove(chit.getGameObject());
 				chit.getGameObject().clearAllAttributes();

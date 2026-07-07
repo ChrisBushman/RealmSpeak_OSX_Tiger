@@ -27,8 +27,9 @@ public class StealTablesCommon {
 	private static void stealChoice(JFrame frame, CharacterWrapper character, RealmComponent victim, String tableName, boolean allItems, boolean treasures, boolean horse, boolean armor) {
 		GameObject holder = SetupCardUtility.getDenizenHolder(victim.getGameObject());
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,"Select item to steal:",false);
-		ArrayList<GameObject> holdToNote = new ArrayList<GameObject>();
-		for(GameObject item:holder.getHold()) {
+		ArrayList holdToNote = new ArrayList();
+		for (java.util.Iterator _j14it2075 = (holder.getHold()).iterator(); _j14it2075.hasNext(); ) {
+		  GameObject item = (GameObject) _j14it2075.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(item);
 			if ((allItems || (treasures && rc.isTreasure()) || (horse && rc.isHorse()) || (armor && rc.isArmor())) && (rc.isItem() || rc.isTreasure())) {
 				if (rc.isTreasure()) {

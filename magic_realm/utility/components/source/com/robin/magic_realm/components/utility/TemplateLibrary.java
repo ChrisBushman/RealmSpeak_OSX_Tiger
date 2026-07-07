@@ -20,7 +20,7 @@ public class TemplateLibrary {
 	}
 	
 	private GamePool dataPool;
-	private Hashtable<String,GameObject> templateHash;
+	private Hashtable templateHash;
 	
 	public static TemplateLibrary reinitSingleton() {
 		singleton = new TemplateLibrary();
@@ -29,23 +29,25 @@ public class TemplateLibrary {
 	private TemplateLibrary() {
 		RealmLoader loader = new RealmLoader();
 		dataPool = new GamePool(loader.getData().getGameObjects());
-		templateHash = new Hashtable<String,GameObject>();
+		templateHash = new Hashtable();
 		addQuery(dataPool,WEAPON_QUERY);
 		addQuery(dataPool,CHARACTER_QUERY);
 		addQuery(dataPool,ARMOR_QUERY);
 	}
 	private void addQuery(GamePool pool,String query) {
-		ArrayList<GameObject> items = pool.find(query);
-		for (GameObject go:items) {
+		ArrayList items = pool.find(query);
+		for (java.util.Iterator _j14it2794 = (items).iterator(); _j14it2794.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2794.next();
 			String name = go.getName();
 			if (!templateHash.containsKey(name)) {
 				addTemplate(name,go);
 			}
 		}
 	}
-	public ArrayList<String> getAllWeaponNames() {
-		ArrayList<String> names = new ArrayList<String>();
-		for (String name:getAllNames()) {
+	public ArrayList getAllWeaponNames() {
+		ArrayList names = new ArrayList();
+		for (java.util.Iterator _j14it2795 = (getAllNames()).iterator(); _j14it2795.hasNext(); ) {
+		  String name = (String) _j14it2795.next();
 			GameObject go = getWeaponTemplate(name);
 			if (go!=null) {
 				names.add(name);
@@ -53,9 +55,10 @@ public class TemplateLibrary {
 		}
 		return names;
 	}
-	public ArrayList<String> getAllArmorNames() {
-		ArrayList<String> names = new ArrayList<String>();
-		for (String name:getAllNames()) {
+	public ArrayList getAllArmorNames() {
+		ArrayList names = new ArrayList();
+		for (java.util.Iterator _j14it2796 = (getAllNames()).iterator(); _j14it2796.hasNext(); ) {
+		  String name = (String) _j14it2796.next();
 			GameObject go = getArmorTemplate(name);
 			if (go!=null) {
 				names.add(name);
@@ -64,7 +67,7 @@ public class TemplateLibrary {
 		return names;
 	}
 	public GameObject getWeaponTemplate(String name) {
-		GameObject go = templateHash.get(name);
+		GameObject go = (GameObject) templateHash.get(name);
 		if (go!=null && go.hasAllKeyVals(WEAPON_QUERY)) {
 			return go;
 		}
@@ -74,7 +77,7 @@ public class TemplateLibrary {
 		return getWeaponTemplate(name)!=null;
 	}
 	public GameObject getArmorTemplate(String name) {
-		GameObject go = templateHash.get(name);
+		GameObject go = (GameObject) templateHash.get(name);
 		if (go!=null && go.hasAllKeyVals(ARMOR_QUERY)) {
 			return go;
 		}
@@ -84,15 +87,16 @@ public class TemplateLibrary {
 		return getArmorTemplate(name)!=null;
 	}
 	public GameObject getCharacterTemplate(String name) {
-		GameObject go = templateHash.get(name);
+		GameObject go = (GameObject) templateHash.get(name);
 		if (go!=null && go.hasAllKeyVals(CHARACTER_QUERY)) {
 			return go;
 		}
 		return null;
 	}
-	public ArrayList<String> getAllCharacterTemplateNames() {
-		ArrayList<String> names = new ArrayList<String>();
-		for (String name:getAllNames()) {
+	public ArrayList getAllCharacterTemplateNames() {
+		ArrayList names = new ArrayList();
+		for (java.util.Iterator _j14it2797 = (getAllNames()).iterator(); _j14it2797.hasNext(); ) {
+		  String name = (String) _j14it2797.next();
 			GameObject go = getCharacterTemplate(name);
 			if (go!=null) {
 				names.add(name);
@@ -100,8 +104,8 @@ public class TemplateLibrary {
 		}
 		return names;
 	}
-	public ArrayList<String> getAllNames() {
-		return new ArrayList<String>(templateHash.keySet());
+	public ArrayList getAllNames() {
+		return new ArrayList(templateHash.keySet());
 	}
 	private void addTemplate(String name,GameObject go) {
 		templateHash.put(name,go);
@@ -111,27 +115,28 @@ public class TemplateLibrary {
 	}
 	
 	public GameObject getCompanionTemplate(String name,String query,boolean includeHorse) {
-		GameObject template = templateHash.get(name);
+		GameObject template = (GameObject) templateHash.get(name);
 		if (template==null) {
 			if (query.startsWith("Transform|")) {
-				ArrayList<GameObject> list = dataPool.find("name=Transform");
+				ArrayList list = dataPool.find("name=Transform");
 				if (list!=null && !list.isEmpty()) {
-					GameObject go = list.get(0);
+					GameObject go = (GameObject) list.get(0);
 					String block = query.substring(10);
 					template = GameObject.createEmptyGameObject();
 					SpellWrapper.copyTransformToObject(go,block,template);
 				}
 			}
 			else {
-				ArrayList<GameObject> list = dataPool.find(query);
+				ArrayList list = dataPool.find(query);
 				if (list!=null && !list.isEmpty()) {
-					GameObject go = list.get(0);
+					GameObject go = (GameObject) list.get(0);
 					template = GameObject.createEmptyGameObject();
 					template.copyAttributesFrom(go);
 					
 					// Get steeds
 					if(includeHorse) {
-						for (GameObject held : go.getHold()) {
+						for (java.util.Iterator _j14it2798 = (go.getHold()).iterator(); _j14it2798.hasNext(); ) {
+						  GameObject held = (GameObject) _j14it2798.next();
 							GameObject heldTemplate = GameObject.createEmptyGameObject();
 							heldTemplate.copyAttributesFrom(held);
 							heldTemplate.setAttribute("trot","chit_color","paleyellow");
@@ -164,7 +169,8 @@ public class TemplateLibrary {
 		GameObject companion = gameData.createNewObject();
 		companion.copyAttributesFrom(go);
 		// Get steeds
-		for (GameObject held : go.getHold()) {
+		for (java.util.Iterator _j14it2799 = (go.getHold()).iterator(); _j14it2799.hasNext(); ) {
+		  GameObject held = (GameObject) _j14it2799.next();
 			GameObject heldTemplate = gameData.createNewObject();
 			heldTemplate.copyAttributesFrom(held);
 			companion.add(heldTemplate);

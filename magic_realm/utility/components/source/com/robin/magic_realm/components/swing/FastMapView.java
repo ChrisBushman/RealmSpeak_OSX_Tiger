@@ -33,7 +33,7 @@ public class FastMapView extends JComponent {
 	
 	// Data
 	private GameData gameData;
-	private Hashtable<Point, TileComponent> mapGrid;
+	private Hashtable mapGrid;
 	
 	// Map Drawing
 	private double scale = 1.0;
@@ -123,9 +123,10 @@ public class FastMapView extends JComponent {
 		});
 	}
 	public void updateGrid() {
-		mapGrid = new Hashtable<Point, TileComponent>();
-		Collection<GameObject> tileObjects = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
-		for (GameObject go : tileObjects) {
+		mapGrid = new Hashtable();
+		Collection tileObjects = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
+		for (java.util.Iterator _j14it1868 = (tileObjects).iterator(); _j14it1868.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1868.next();
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
 			tile.setAlwaysPaint(true);
 			String pos = go.getAttribute("mapGrid","mapPosition");
@@ -147,8 +148,8 @@ public class FastMapView extends JComponent {
 		int minY = Integer.MAX_VALUE;
 		int maxX = Integer.MIN_VALUE;
 		int maxY = Integer.MIN_VALUE;
-		for (Enumeration<Point> e=mapGrid.keys();e.hasMoreElements();) {
-			Point pos = e.nextElement();
+		for (Enumeration e=mapGrid.keys();e.hasMoreElements();) {
+			Point pos = (Point) e.nextElement();
 			int x = pos.x * colWidth;
 			int y = (pos.x * rowAdjust) + (pos.y * rowHeight);
 			if (x<minX) {
@@ -194,9 +195,10 @@ public class FastMapView extends JComponent {
 		AffineTransform at = AffineTransform.getScaleInstance(scale,scale);
 		g.setTransform(at);
 		
-		for (Point gp : mapGrid.keySet()) {
+		for (java.util.Iterator _j14it1869 = (mapGrid.keySet()).iterator(); _j14it1869.hasNext(); ) {
+		  Point gp = (Point) _j14it1869.next();
 			Point p = convertGridToCoordinate(gp);
-			TileComponent tile = mapGrid.get(gp);
+			TileComponent tile = (TileComponent) mapGrid.get(gp);
 			tile.paintTo(g,p.x+offset.x,p.y+offset.y,TILE_SIZE.width,TILE_SIZE.height);
 		}
 	}

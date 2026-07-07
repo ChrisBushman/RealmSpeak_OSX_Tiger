@@ -54,7 +54,7 @@ public class RealmCalendar {
 	
 	private static RealmCalendar currentCalendar = null;
 	
-	private Hashtable<Integer,GameObject> seasonsHash;
+	private Hashtable seasonsHash;
 	private GameWrapper game;
 	private GameData gameData;
 	private String currentWeather;
@@ -85,7 +85,7 @@ public class RealmCalendar {
 	private String tourGuideSecondaryTarget;
 	private ImageIcon seasonIcon;
 	private ImageIcon fullSeasonIcon;
-	private ArrayList<ColorMagic> seventhDayColors;
+	private ArrayList seventhDayColors;
 	private boolean usingWeather;
 	private boolean unpredictableWeather = false;
 	
@@ -141,11 +141,11 @@ public class RealmCalendar {
 		if (currentMonth!=month || currentSeason==null || forceUpdate) {
 			currentMonth = month;
 			if (seasonOffset==-1) {
-				currentSeason = seasonsHash.get(0);
+				currentSeason = (GameObject) seasonsHash.get(new Integer(0));
 			}
 			else {
 				int n = ((currentMonth+seasonOffset-1)%NUMBER_OF_SEASONS)+1;
-				currentSeason = seasonsHash.get(n);
+				currentSeason = (GameObject) seasonsHash.get(new Integer(n));
 			}
 			changes = true;
 		}
@@ -228,7 +228,7 @@ public class RealmCalendar {
 		// Magic is a bit more involved
 		String magic = currentSeason.getThisAttribute("magic");
 		StringTokenizer tokens = new StringTokenizer(magic,",");
-		seventhDayColors = new ArrayList<ColorMagic>();
+		seventhDayColors = new ArrayList();
 		if (hostPrefs.hasPref(Constants.SR_ALTERNATING_7TH_DAY_MAGIC) && currentSeason.getThisInt("season")==0) {
 			String color = null;
 			if(tokens.hasMoreTokens()) {
@@ -261,26 +261,27 @@ public class RealmCalendar {
 		}
 	}
 	private void loadSeasonsHash() {
-		seasonsHash = new Hashtable<Integer,GameObject>();
+		seasonsHash = new Hashtable();
 		GamePool pool = new GamePool(gameData.getGameObjects());
-		ArrayList<GameObject> list = pool.find("season");
-		for (GameObject go : list) {
+		ArrayList list = pool.find("season");
+		for (java.util.Iterator _j14it2555 = (list).iterator(); _j14it2555.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2555.next();
 			Integer n = go.getInteger("this","season");
 			seasonsHash.put(n,go);
 		}
 	}
 	private int getIndexOf(String seasonName) {
-		ArrayList<GameObject> list = getAllSeasons();
+		ArrayList list = getAllSeasons();
 		for (int i=0;i<list.size();i++) {
-			GameObject go = list.get(i);
+			GameObject go = (GameObject) list.get(i);
 			if (go.getName().equals(seasonName)) {
 				return i;
 			}
 		}
 		throw new IllegalArgumentException("Invalid argument: "+seasonName);
 	}
-	public ArrayList<GameObject> getAllSeasons() {
-		ArrayList<GameObject> list = new ArrayList<GameObject>(seasonsHash.values());
+	public ArrayList getAllSeasons() {
+		ArrayList list = new ArrayList(seasonsHash.values());
 		Collections.sort(list,seasonComparator);
 		return list;
 	}
@@ -403,9 +404,9 @@ public class RealmCalendar {
 		updateSeason(month);
 		return currentSeason.getAttribute(currentWeather,key);
 	}
-	public ArrayList<ColorMagic> getColorMagic(int month,int day) {
+	public ArrayList getColorMagic(int month,int day) {
 		updateSeason(month);
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList colors = new ArrayList();
 		
 		if (day==7) {
 			colors.addAll(seventhDayColors);
@@ -423,9 +424,9 @@ public class RealmCalendar {
 		return colors;
 	}
 	public String getColorMagicName(int month,int day) {
-		Collection<ColorMagic> c = getColorMagic(month,day);
+		Collection c = getColorMagic(month,day);
 		if (c.size()==1) {
-			ColorMagic cm = c.iterator().next();
+			ColorMagic cm = (ColorMagic) c.iterator().next();
 			return cm.getColorName();
 		}
 		else if (c.size()==2) {
@@ -490,14 +491,16 @@ public class RealmCalendar {
 	public static void reset() {
 		currentCalendar = null;
 	}
-	public static ArrayList<GameObject> findSeasons(GameData data) {
+	public static ArrayList findSeasons(GameData data) {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> list = pool.find("season");
+		ArrayList list = pool.find("season");
 		Collections.sort(list,seasonComparator);
 		return list;
 	}
-	private static final Comparator<GameObject> seasonComparator = new Comparator<GameObject>() {
-		public int compare(GameObject go1, GameObject go2) {
+	private static final Comparator seasonComparator = new Comparator() {
+		public int compare(Object o1, Object o2) {
+			GameObject go1 = (GameObject) o1;
+			GameObject go2 = (GameObject) o2;
 			int n1 = go1.getThisInt("season");
 			int n2 = go2.getThisInt("season");
 			return n1-n2;

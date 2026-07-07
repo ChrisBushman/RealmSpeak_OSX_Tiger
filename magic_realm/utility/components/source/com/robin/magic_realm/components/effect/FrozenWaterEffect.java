@@ -4,7 +4,6 @@ import com.robin.magic_realm.components.utility.Constants;
 
 public class FrozenWaterEffect implements ISpellEffect {	
 	
-	@Override
 	public void apply(SpellEffectContext context) {
 		TileComponent targetTile = context.getTileTarget();
 		if(!targetTile.getGameObject().hasThisAttribute(Constants.FROZEN_WATER)){
@@ -12,7 +11,6 @@ public class FrozenWaterEffect implements ISpellEffect {
 		}
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		TileComponent targetTile = context.getTileTarget();
 		if(targetTile.getGameObject().hasThisAttribute(Constants.FROZEN_WATER)){

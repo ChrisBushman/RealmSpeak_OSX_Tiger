@@ -19,27 +19,78 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class QuestRewardMoveDenizen extends QuestReward {
 	
-	public enum MoveOption {
-		CharactersTile,
-		CharactersClearing,
-		Location
+	public static final class MoveOption {
+		private final String _name;
+		private final int _ordinal;
+		private MoveOption(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final MoveOption CharactersTile = new MoveOption("CharactersTile", 0);
+		public static final MoveOption CharactersClearing = new MoveOption("CharactersClearing", 1);
+		public static final MoveOption Location = new MoveOption("Location", 2);
+
+		private static final MoveOption[] _VALUES = { CharactersTile, CharactersClearing, Location };
+		public static MoveOption[] values() { MoveOption[] r = new MoveOption[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static MoveOption valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
-	public enum MoveFromOption {
-		Everywhere,
-		CharactersTile,
-		CharactersClearing
+	public static final class MoveFromOption {
+		private final String _name;
+		private final int _ordinal;
+		private MoveFromOption(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final MoveFromOption Everywhere = new MoveFromOption("Everywhere", 0);
+		public static final MoveFromOption CharactersTile = new MoveFromOption("CharactersTile", 1);
+		public static final MoveFromOption CharactersClearing = new MoveFromOption("CharactersClearing", 2);
+
+		private static final MoveFromOption[] _VALUES = { Everywhere, CharactersTile, CharactersClearing };
+		public static MoveFromOption[] values() { MoveFromOption[] r = new MoveFromOption[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static MoveFromOption valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
-	public enum ClearingSelection {
-		Random,
-		One,
-		Two,
-		Three,
-		Four,
-		Five,
-		Six,
-		RandomForEachDenizen
+	public static final class ClearingSelection {
+		private final String _name;
+		private final int _ordinal;
+		private ClearingSelection(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final ClearingSelection Random = new ClearingSelection("Random", 0);
+		public static final ClearingSelection One = new ClearingSelection("One", 1);
+		public static final ClearingSelection Two = new ClearingSelection("Two", 2);
+		public static final ClearingSelection Three = new ClearingSelection("Three", 3);
+		public static final ClearingSelection Four = new ClearingSelection("Four", 4);
+		public static final ClearingSelection Five = new ClearingSelection("Five", 5);
+		public static final ClearingSelection Six = new ClearingSelection("Six", 6);
+		public static final ClearingSelection RandomForEachDenizen = new ClearingSelection("RandomForEachDenizen", 7);
+
+		private static final ClearingSelection[] _VALUES = { Random, One, Two, Three, Four, Five, Six, RandomForEachDenizen };
+		public static ClearingSelection[] values() { ClearingSelection[] r = new ClearingSelection[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static ClearingSelection valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	public static final String DENIZEN_REGEX = "_drx";
@@ -60,12 +111,13 @@ public class QuestRewardMoveDenizen extends QuestReward {
 	}
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
-		ArrayList<GameObject> denizens = character.getGameData().getGameObjectsByNameRegex(getDenizenNameRegex());
+		ArrayList denizens = character.getGameData().getGameObjectsByNameRegex(getDenizenNameRegex());
 		QuestLocation loc = getQuestLocation();
 		TileLocation charactersLoc= character.getCurrentLocation();
-		ArrayList<GameObject> denizensToMove = new ArrayList<GameObject>();
+		ArrayList denizensToMove = new ArrayList();
 		String questId = getParentQuest().getGameObject().getStringId();
-		for (GameObject denizen : denizens) {
+		for (java.util.Iterator _j14it2394 = (denizens).iterator(); _j14it2394.hasNext(); ) {
+		  GameObject denizen = (GameObject) _j14it2394.next();
 			RealmComponent denizenRc = RealmComponent.getRealmComponent(denizen);
 			if (denizenRc == null || (!denizenRc.isDenizen() && !denizenRc.isTraveler())) continue;
 			TileLocation denizenLoc = denizenRc.getCurrentLocation();
@@ -102,32 +154,32 @@ public class QuestRewardMoveDenizen extends QuestReward {
 			Collections.shuffle(denizensToMove);
 		}
 		
-		switch (getMoveOption()) {
-			case CharactersClearing:
-				if(character.getCurrentLocation() == null || character.getCurrentLocation().clearing == null) return;
-				TileLocation charactersClearing = character.getCurrentLocation();
-				moveDenizens(charactersClearing, denizensToMove, numberOfDenizens());
-				return;
-			case CharactersTile:
-				if(character.getCurrentLocation() == null) return;
-				TileLocation charactersTile = character.getCurrentLocation();
-				moveDenizensToTile(charactersTile, denizensToMove, numberOfDenizens());
-				return;
-			case Location:
-				ArrayList<TileLocation> locations = loc.fetchAllLocations(frame, character, character.getGameData());
-				moveDenizensToLocation(locations, denizensToMove);
-				break;
+		MoveOption _mo = getMoveOption();
+		if (_mo == MoveOption.CharactersClearing) {
+			if(character.getCurrentLocation() == null || character.getCurrentLocation().clearing == null) return;
+			TileLocation charactersClearing = character.getCurrentLocation();
+			moveDenizens(charactersClearing, denizensToMove, numberOfDenizens());
+			return;
+		} else if (_mo == MoveOption.CharactersTile) {
+			if(character.getCurrentLocation() == null) return;
+			TileLocation charactersTile = character.getCurrentLocation();
+			moveDenizensToTile(charactersTile, denizensToMove, numberOfDenizens());
+			return;
+		} else if (_mo == MoveOption.Location) {
+			ArrayList locations = loc.fetchAllLocations(frame, character, character.getGameData());
+			moveDenizensToLocation(locations, denizensToMove);
 		}
 	}
 	
-	private static void moveDenizens(TileLocation locationToMove, ArrayList<GameObject> denizensToMove, int numberOfDenizensToMove) {
+	private static void moveDenizens(TileLocation locationToMove, ArrayList denizensToMove, int numberOfDenizensToMove) {
 		int movedDenizens = 0;
-		for (GameObject denizen : denizensToMove) {
+		for (java.util.Iterator _j14it2395 = (denizensToMove).iterator(); _j14it2395.hasNext(); ) {
+		  GameObject denizen = (GameObject) _j14it2395.next();
 			if(!locationToMove.clearing.isEdge()) {
 				locationToMove.clearing.add(denizen,null);
 			} else {
-				ArrayList<PathDetail> path = locationToMove.clearing.getConnectedPaths();
-				ClearingDetail connectedClearing = path.get(0).findConnection(locationToMove.clearing);
+				ArrayList path = locationToMove.clearing.getConnectedPaths();
+				ClearingDetail connectedClearing = ((PathDetail) path.get(0)).findConnection(locationToMove.clearing);
 				connectedClearing.add(denizen,null);
 			}
 			movedDenizens++;
@@ -136,106 +188,96 @@ public class QuestRewardMoveDenizen extends QuestReward {
 			}
 		}
 	}
-	private static void moveDenizensToClearing(TileLocation locationToMove, int clearingNumber, ArrayList<GameObject> denizensToMove, int numberOfDenizensToMove) {
+	private static void moveDenizensToClearing(TileLocation locationToMove, int clearingNumber, ArrayList denizensToMove, int numberOfDenizensToMove) {
 		locationToMove.clearing = locationToMove.tile.getClearing(clearingNumber);
 		if (locationToMove.clearing != null) {
 			moveDenizens(locationToMove, denizensToMove, numberOfDenizensToMove);
 		}
 	}
-	private void moveDenizensToTile(TileLocation tileToMove, ArrayList<GameObject> denizensToMove, int numberOfDenizensToMove) {
-		switch (getClearing()) {
-			case Random:
-				int random = RandomNumber.getRandom(tileToMove.tile.getClearingCount());
-				tileToMove.clearing = tileToMove.tile.getClearings().get(random);
-				moveDenizens(tileToMove, denizensToMove, numberOfDenizensToMove);
-				return;
-			case One:
-				moveDenizensToClearing(tileToMove, 1, denizensToMove, numberOfDenizensToMove);
-				break;
-			case Two:
-				moveDenizensToClearing(tileToMove, 2, denizensToMove, numberOfDenizensToMove);
-				break;
-			case Three:
-				moveDenizensToClearing(tileToMove, 3, denizensToMove, numberOfDenizensToMove);
-				break;
-			case Four:
-				moveDenizensToClearing(tileToMove, 4, denizensToMove, numberOfDenizensToMove);
-				break;
-			case Five:
-				moveDenizensToClearing(tileToMove, 5, denizensToMove, numberOfDenizensToMove);
-				break;
-			case Six:
-				moveDenizensToClearing(tileToMove, 6, denizensToMove, numberOfDenizensToMove);
-				break;
-			case RandomForEachDenizen:
-				int movedDenizens = 0;
-				for (GameObject denizen : denizensToMove) {
-					int randomForDenizen = RandomNumber.getRandom(tileToMove.tile.getClearingCount());
-					tileToMove.clearing = tileToMove.tile.getClearings().get(randomForDenizen);
-					tileToMove.clearing.add(denizen, null);
-					movedDenizens++;
-					if (numberOfDenizens() != 0 && movedDenizens>=numberOfDenizens()) {
-						break;
-					}
+	private void moveDenizensToTile(TileLocation tileToMove, ArrayList denizensToMove, int numberOfDenizensToMove) {
+		ClearingSelection _cs = getClearing();
+		if (_cs == ClearingSelection.Random) {
+			int random = RandomNumber.getRandom(tileToMove.tile.getClearingCount());
+			tileToMove.clearing = (ClearingDetail) tileToMove.tile.getClearings().get(random);
+			moveDenizens(tileToMove, denizensToMove, numberOfDenizensToMove);
+			return;
+		} else if (_cs == ClearingSelection.One) {
+			moveDenizensToClearing(tileToMove, 1, denizensToMove, numberOfDenizensToMove);
+		} else if (_cs == ClearingSelection.Two) {
+			moveDenizensToClearing(tileToMove, 2, denizensToMove, numberOfDenizensToMove);
+		} else if (_cs == ClearingSelection.Three) {
+			moveDenizensToClearing(tileToMove, 3, denizensToMove, numberOfDenizensToMove);
+		} else if (_cs == ClearingSelection.Four) {
+			moveDenizensToClearing(tileToMove, 4, denizensToMove, numberOfDenizensToMove);
+		} else if (_cs == ClearingSelection.Five) {
+			moveDenizensToClearing(tileToMove, 5, denizensToMove, numberOfDenizensToMove);
+		} else if (_cs == ClearingSelection.Six) {
+			moveDenizensToClearing(tileToMove, 6, denizensToMove, numberOfDenizensToMove);
+		} else if (_cs == ClearingSelection.RandomForEachDenizen) {
+			int movedDenizens = 0;
+			for (java.util.Iterator _j14it2396 = (denizensToMove).iterator(); _j14it2396.hasNext(); ) {
+			  GameObject denizen = (GameObject) _j14it2396.next();
+				int randomForDenizen = RandomNumber.getRandom(tileToMove.tile.getClearingCount());
+				tileToMove.clearing = (ClearingDetail) tileToMove.tile.getClearings().get(randomForDenizen);
+				tileToMove.clearing.add(denizen, null);
+				movedDenizens++;
+				if (numberOfDenizens() != 0 && movedDenizens>=numberOfDenizens()) {
+					break;
 				}
 			}
+		}
 	}
-	private void moveDenizensToLocation(ArrayList<TileLocation> locations, ArrayList<GameObject> denizensToMove) {
+	private void moveDenizensToLocation(ArrayList locations, ArrayList denizensToMove) {
 		int movedDenizens = 0;
 		int numberOfDenizensToMove = numberOfDenizens();
-		switch (getClearing()) {
-			case Random:
-				int random = RandomNumber.getRandom(locations.size());
-				TileLocation locationToMove = locations.get(random);
-				for (GameObject denizen : denizensToMove) {
-					locationToMove.clearing.add(denizen, null);
-					movedDenizens++;
-					if (numberOfDenizensToMove != 0 && movedDenizens>=numberOfDenizensToMove) {
-						break;
-					}
+		ClearingSelection _cs2 = getClearing();
+		if (_cs2 == ClearingSelection.Random) {
+			int random = RandomNumber.getRandom(locations.size());
+			TileLocation locationToMove = (TileLocation) locations.get(random);
+			for (java.util.Iterator _j14it2397 = (denizensToMove).iterator(); _j14it2397.hasNext(); ) {
+			  GameObject denizen = (GameObject) _j14it2397.next();
+				locationToMove.clearing.add(denizen, null);
+				movedDenizens++;
+				if (numberOfDenizensToMove != 0 && movedDenizens>=numberOfDenizensToMove) {
+					break;
 				}
-				break;
-			case One:
-				moveDenizensToLocationToClearing(locations, 1, denizensToMove, numberOfDenizensToMove);
-				break;
-			case Two:
-				moveDenizensToLocationToClearing(locations, 2, denizensToMove, numberOfDenizensToMove);
-				break;
-			case Three:
-				moveDenizensToLocationToClearing(locations, 3, denizensToMove, numberOfDenizensToMove);
-				break;
-			case Four:
-				moveDenizensToLocationToClearing(locations, 4, denizensToMove, numberOfDenizensToMove);
-				break;
-			case Five:
-				moveDenizensToLocationToClearing(locations, 5, denizensToMove, numberOfDenizensToMove);
-				break;
-			case Six:
-				moveDenizensToLocationToClearing(locations, 6, denizensToMove, numberOfDenizensToMove);
-				break;
-			case RandomForEachDenizen:
-				for (GameObject denizen : denizensToMove) {
-					int randomForDenizen = RandomNumber.getRandom(locations.size());
-					TileLocation locationToMoveForDenizen = locations.get(randomForDenizen);
-					locationToMoveForDenizen.clearing.add(denizen, null);
-					movedDenizens++;
-					if (numberOfDenizensToMove != 0 && movedDenizens>=numberOfDenizensToMove) {
-						break;
-					}
-				}
-				break;
 			}
+		} else if (_cs2 == ClearingSelection.One) {
+			moveDenizensToLocationToClearing(locations, 1, denizensToMove, numberOfDenizensToMove);
+		} else if (_cs2 == ClearingSelection.Two) {
+			moveDenizensToLocationToClearing(locations, 2, denizensToMove, numberOfDenizensToMove);
+		} else if (_cs2 == ClearingSelection.Three) {
+			moveDenizensToLocationToClearing(locations, 3, denizensToMove, numberOfDenizensToMove);
+		} else if (_cs2 == ClearingSelection.Four) {
+			moveDenizensToLocationToClearing(locations, 4, denizensToMove, numberOfDenizensToMove);
+		} else if (_cs2 == ClearingSelection.Five) {
+			moveDenizensToLocationToClearing(locations, 5, denizensToMove, numberOfDenizensToMove);
+		} else if (_cs2 == ClearingSelection.Six) {
+			moveDenizensToLocationToClearing(locations, 6, denizensToMove, numberOfDenizensToMove);
+		} else if (_cs2 == ClearingSelection.RandomForEachDenizen) {
+			for (java.util.Iterator _j14it2398 = (denizensToMove).iterator(); _j14it2398.hasNext(); ) {
+			  GameObject denizen = (GameObject) _j14it2398.next();
+				int randomForDenizen = RandomNumber.getRandom(locations.size());
+				TileLocation locationToMoveForDenizen = (TileLocation) locations.get(randomForDenizen);
+				locationToMoveForDenizen.clearing.add(denizen, null);
+				movedDenizens++;
+				if (numberOfDenizensToMove != 0 && movedDenizens>=numberOfDenizensToMove) {
+					break;
+				}
+			}
+		}
 	}
-	private static void moveDenizensToLocationToClearing(ArrayList<TileLocation> locations, int clearingNumber, ArrayList<GameObject> denizensToMove, int numberOfDenizensToMove) {
-		ArrayList<TileLocation> validLocations = new ArrayList<TileLocation>();
-		for (TileLocation loc : locations) {
+	private static void moveDenizensToLocationToClearing(ArrayList locations, int clearingNumber, ArrayList denizensToMove, int numberOfDenizensToMove) {
+		ArrayList validLocations = new ArrayList();
+		for (java.util.Iterator _j14it2399 = (locations).iterator(); _j14it2399.hasNext(); ) {
+		  TileLocation loc = (TileLocation) _j14it2399.next();
 			if (loc.clearing.getNum() == clearingNumber) {
 				validLocations.add(loc);
 			}
 		}
 		if (!validLocations.isEmpty()) {
 			int random = RandomNumber.getRandom(validLocations.size());
-			TileLocation selectedLocation = validLocations.get(random);
+			TileLocation selectedLocation = (TileLocation) validLocations.get(random);
 			moveDenizens(selectedLocation, denizensToMove, numberOfDenizensToMove);
 		}
 	}
@@ -277,19 +319,19 @@ public class QuestRewardMoveDenizen extends QuestReward {
 	private boolean needsMark() {
 		return getBoolean(MARK);
 	}
-	private Boolean moveHirelings() {
+	private boolean moveHirelings() {
 		return getBoolean(MOVE_HIRELINGS);
 	}
-	private Boolean moveCompanions() {
+	private boolean moveCompanions() {
 		return getBoolean(MOVE_COMPANIONS);
 	}
-	private Boolean moveSummoned() {
+	private boolean moveSummoned() {
 		return getBoolean(MOVE_SUMMONED);
 	}
-	private Boolean moveTravelers() {
+	private boolean moveTravelers() {
 		return getBoolean(MOVE_TRAVELERS);
 	}
-	private Boolean moveOnlySpecificOnes() {
+	private boolean moveOnlySpecificOnes() {
 		return getBoolean(MOVE_LIMITED);
 	}
 	public RewardType getRewardType() {
@@ -313,7 +355,7 @@ public class QuestRewardMoveDenizen extends QuestReward {
 	public void setQuestLocation(QuestLocation location) {
 		setString(LOCATION,location.getGameObject().getStringId());
 	}
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}
 	

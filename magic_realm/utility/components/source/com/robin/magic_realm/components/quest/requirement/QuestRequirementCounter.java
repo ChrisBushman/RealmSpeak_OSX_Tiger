@@ -38,7 +38,7 @@ public class QuestRequirementCounter extends QuestRequirement {
 				getParentQuest().addJournalEntry("REQ" + getGameObject().getStringId(), QuestStepState.Finished, buildDescriptionText() + "  Done!");
 			}
 			else {
-				StringBuilder sb = new StringBuilder(buildDescriptionText());
+				StringBuffer sb = new StringBuffer(buildDescriptionText());
 				sb.append("  Still need ");
 				sb.append(getTargetValue() - counter.getCount());
 				sb.append(".");
@@ -83,7 +83,7 @@ public class QuestRequirementCounter extends QuestRequirement {
 	private boolean subceedAllowed() {
 		return getBoolean(SUBCEED_TARGET_VALUE);
 	}
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,COUNTER);
 	}
 	public boolean usesAutoJournal() {

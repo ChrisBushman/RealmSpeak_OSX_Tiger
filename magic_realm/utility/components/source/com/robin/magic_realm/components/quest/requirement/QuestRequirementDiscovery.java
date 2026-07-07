@@ -18,9 +18,10 @@ public class QuestRequirementDiscovery extends QuestRequirement {
 	}
 
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
-		ArrayList<String> discoveryKeys = character.getAllDiscoveryKeys();
+		ArrayList discoveryKeys = character.getAllDiscoveryKeys();
 		String keyToFind = getDiscoveryKey();
-		for (String val:discoveryKeys) {
+		for (java.util.Iterator _j14it2300 = (discoveryKeys).iterator(); _j14it2300.hasNext(); ) {
+		  String val = (String) _j14it2300.next();
 			if (val.startsWith(keyToFind)) { // Using startsWith, to ignore board number (for now)
 				return true;
 			}
@@ -30,7 +31,7 @@ public class QuestRequirementDiscovery extends QuestRequirement {
 	}
 
 	protected String buildDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must have discovery for \"");
 		sb.append(getDiscoveryKey());
 		sb.append("\".");

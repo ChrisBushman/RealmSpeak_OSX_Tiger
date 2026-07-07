@@ -14,10 +14,11 @@ public class FrozenRiverEvent implements IEvent {
 	private static final String title = "Frozen River";
 	private static final String description = "A random River hex and all adjacent hexes have their water clearings frozen until the end of the week.";
 	public void applyBirdsong(GameData data) {
-		ArrayList<TileComponent> freezingTiles = RealmEvents.chooseRandomWaterAndAdjacentTiles(data);		
+		ArrayList freezingTiles = RealmEvents.chooseRandomWaterAndAdjacentTiles(data);		
 		if (!freezingTiles.isEmpty()) {
 			GameObject config = RealmEvents.findEventsConfig(data);
-			for (TileComponent tile : freezingTiles) {
+			for (java.util.Iterator _j14it2479 = (freezingTiles).iterator(); _j14it2479.hasNext(); ) {
+			  TileComponent tile = (TileComponent) _j14it2479.next();
 				tile.getGameObject().setThisAttribute(Constants.EVENT_FROZEN_WATER);
 				RealmEvents.addEffectForTile(config,Constants.EVENT_FROZEN_WATER,tile.getGameObject().getStringId());
 				RealmLogging.logMessage("Event","Frozen Water: All water clreaings in "+tile.getGameObject().getNameWithNumber()+" are frozen until the end of the week.");
@@ -30,9 +31,10 @@ public class FrozenRiverEvent implements IEvent {
 		GameWrapper game = GameWrapper.findGame(data);
 		if (RealmCalendar.isSeventhDay(game.getDay())) {
 			GameObject config = RealmEvents.findEventsConfig(data);
-			ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_FROZEN_WATER);
+			ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_FROZEN_WATER);
 			if (ids!=null && !ids.isEmpty()) {
-				for (String id : ids) {
+				for (java.util.Iterator _j14it2480 = (ids).iterator(); _j14it2480.hasNext(); ) {
+				  String id = (String) _j14it2480.next();
 					GameObject tile = data.getGameObject(Long.valueOf(id));
 					tile.removeThisAttribute(Constants.EVENT_FROZEN_WATER);
 					RealmEvents.removeEffectForTile(config,Constants.EVENT_FROZEN_WATER,id);
@@ -40,17 +42,16 @@ public class FrozenRiverEvent implements IEvent {
 			}
 		}
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
 		String text = "";
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_FROZEN_WATER);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_FROZEN_WATER);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2481 = (ids).iterator(); _j14it2481.hasNext(); ) {
+			  String id = (String) _j14it2481.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				text = text + tile.getNameWithNumber() + ", ";
 			}

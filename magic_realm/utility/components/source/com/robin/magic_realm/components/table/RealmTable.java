@@ -50,22 +50,23 @@ public abstract class RealmTable {
 	public ImageIcon getHintIcon(CharacterWrapper character) {
 		return getIconFromList(getHintIcons(character));
 	}
-	protected ImageIcon getIconFromList(ArrayList<ImageIcon> list) {
+	protected ImageIcon getIconFromList(ArrayList list) {
 		if (list!=null && list.size()>0) {
-			if (list.size()==1) return list.get(0);
+			if (list.size()==1) return (ImageIcon) list.get(0);
 			IconGroup group = new IconGroup(IconGroup.HORIZONTAL,2);
-			for(ImageIcon icon:list) {
+			for (java.util.Iterator _j14it2098 = (list).iterator(); _j14it2098.hasNext(); ) {
+			  ImageIcon icon = (ImageIcon) _j14it2098.next();
 				group.addIcon(icon);
 			}
 			return group;
 		}
 		return null;
 	}
-	protected ArrayList<ImageIcon> getHintIcons(CharacterWrapper character) {
+	protected ArrayList getHintIcons(CharacterWrapper character) {
 		return null;
 	}
 	protected void sendMessage(GameData data,String clientName,String title,String message) {
-		ArrayList<String> strings = new ArrayList<String>();
+		ArrayList strings = new ArrayList();
 		strings.add(title);
 		strings.add(message);
 		strings.add(roller==null?"":roller.getStringResult());
@@ -244,8 +245,9 @@ public abstract class RealmTable {
 			return;
 		}
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());
-		ArrayList<GameObject> boxes = pool.find("summon="+locationName.toLowerCase());
-		for (GameObject box : boxes) {
+		ArrayList boxes = pool.find("summon="+locationName.toLowerCase());
+		for (java.util.Iterator _j14it2099 = (boxes).iterator(); _j14it2099.hasNext(); ) {
+		  GameObject box = (GameObject) _j14it2099.next();
 			ClearingUtility.dumpTravelersToTile(tl.tile.getGameObject(),box,tl.clearing.getNum());
 		}
 	}

@@ -9,7 +9,7 @@ import com.robin.general.util.Extensions;
 
 public class ArmorCreator {
 	private String armorKey;
-	private ArrayList<GameObject> armorCreated;
+	private ArrayList armorCreated;
 	
 	public static final int THRUST = 1;
 	public static final int SWING = 2;
@@ -18,13 +18,13 @@ public class ArmorCreator {
 	
 	public ArmorCreator(String key){
 		armorKey = key;
-		armorCreated = new ArrayList<GameObject>();
+		armorCreated = new ArrayList();
 	}
 	
 	public GameObject createOrReuseArmor(GameData data){
 		GamePool pool = new GamePool(data.getGameObjects());
 			
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add(armorKey);
 		query.add(Constants.DESTROYED);
 		GameObject go = pool.findFirst(query);

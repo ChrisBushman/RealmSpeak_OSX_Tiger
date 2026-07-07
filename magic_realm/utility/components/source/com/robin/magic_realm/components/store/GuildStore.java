@@ -17,7 +17,7 @@ public abstract class GuildStore extends Store {
 	protected static String FREE_ADVANCEMENT = "Advance to next level by giving item to guild: ";
 	
 	protected CharacterWrapper character;
-	protected ArrayList<GameObject> advancementObjects; 
+	protected ArrayList advancementObjects; 
 	
 	protected abstract void setupGuildSpecific();
 	protected abstract String doGuildService(JFrame frame,int level);
@@ -60,8 +60,9 @@ public abstract class GuildStore extends Store {
 	}
 
 	private void setupStore() {
-		advancementObjects = new ArrayList<GameObject>();
-		for (GameObject go:character.getInventory()) {
+		advancementObjects = new ArrayList();
+		for (java.util.Iterator _j14it2522 = (character.getInventory()).iterator(); _j14it2522.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2522.next();
 			if (go.hasThisAttribute(Constants.ADVANCEMENT)) {
 				advancementObjects.add(go);
 			}
@@ -72,7 +73,8 @@ public abstract class GuildStore extends Store {
 	protected boolean isFreeAdvancement(String selected) {
 		if (selected.startsWith(FREE_ADVANCEMENT)) {
 			String item = selected.substring(FREE_ADVANCEMENT.length());
-			for (GameObject go:advancementObjects) {
+			for (java.util.Iterator _j14it2523 = (advancementObjects).iterator(); _j14it2523.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2523.next();
 				if (item.equals(go.getName())) {
 					go.getHeldBy().remove(go); // Make object disappear
 					return true;
@@ -84,7 +86,8 @@ public abstract class GuildStore extends Store {
 
 	protected void updateButtonChooser(ButtonOptionDialog chooser,int level) {
 		if (level>=3) return;
-		for (GameObject go:advancementObjects) {
+		for (java.util.Iterator _j14it2524 = (advancementObjects).iterator(); _j14it2524.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2524.next();
 			chooser.addSelectionObject(FREE_ADVANCEMENT+go.getName());
 		}
 	}
@@ -96,7 +99,7 @@ public abstract class GuildStore extends Store {
 		GameObject go = character.getGameData().createNewObject();
 		go.setThisAttribute("character_chit");
 		go.setThisAttribute(Constants.CHIT_EARNED);
-		CharacterActionChitComponent first = character.getAllChits().get(0);
+		CharacterActionChitComponent first = (CharacterActionChitComponent) character.getAllChits().get(0);
 		go.setThisAttribute("icon_folder",first.getGameObject().getThisAttribute("icon_folder"));
 		go.setThisAttribute("icon_type",first.getGameObject().getThisAttribute("icon_type"));
 		character.getGameObject().add(go);
@@ -106,11 +109,12 @@ public abstract class GuildStore extends Store {
 	}
 	
 	protected void chooseFriendlinessGain(JFrame frame) {
-		ArrayList<String> list = trader.getGameObject().getThisAttributeList("allies");
+		ArrayList list = trader.getGameObject().getThisAttributeList("allies");
 		
 		GamePool pool = new GamePool(trader.getGameObject().getGameData().getGameObjects());
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,"The guild advancement includes one friendliness level for one of the following groups:",false);
-		for (String groupName : list) {
+		for (java.util.Iterator _j14it2525 = (list).iterator(); _j14it2525.hasNext(); ) {
+		  String groupName = (String) _j14it2525.next();
 			GameObject leader = pool.findFirst("rank=HQ,native="+groupName);
 			int rel = character.getRelationship(leader);
 			String oldR = RealmUtility.getRelationshipNameFor(rel);

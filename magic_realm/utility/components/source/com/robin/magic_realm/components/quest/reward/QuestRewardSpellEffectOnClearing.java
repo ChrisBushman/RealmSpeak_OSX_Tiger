@@ -15,14 +15,31 @@ public class QuestRewardSpellEffectOnClearing extends QuestReward {
 	public static final String SPELL = "_spell";
 	public static final String REMOVE = "_remove";
 	
-	public enum EffectOnClearing {
-		Bewilder,
-		Blunting,
-		Gravity,
-		MountainSurge,
-		RocksGlow,
-		Sleep,
-		ViolentWinds
+	public static final class EffectOnClearing {
+		private final String _name;
+		private final int _ordinal;
+		private EffectOnClearing(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final EffectOnClearing Bewilder = new EffectOnClearing("Bewilder", 0);
+		public static final EffectOnClearing Blunting = new EffectOnClearing("Blunting", 1);
+		public static final EffectOnClearing Gravity = new EffectOnClearing("Gravity", 2);
+		public static final EffectOnClearing MountainSurge = new EffectOnClearing("MountainSurge", 3);
+		public static final EffectOnClearing RocksGlow = new EffectOnClearing("RocksGlow", 4);
+		public static final EffectOnClearing Sleep = new EffectOnClearing("Sleep", 5);
+		public static final EffectOnClearing ViolentWinds = new EffectOnClearing("ViolentWinds", 6);
+
+		private static final EffectOnClearing[] _VALUES = { Bewilder, Blunting, Gravity, MountainSurge, RocksGlow, Sleep, ViolentWinds };
+		public static EffectOnClearing[] values() { EffectOnClearing[] r = new EffectOnClearing[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static EffectOnClearing valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	public QuestRewardSpellEffectOnClearing(GameObject go) {
@@ -31,29 +48,22 @@ public class QuestRewardSpellEffectOnClearing extends QuestReward {
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
 		String spell;
-		switch (getSpell()) {
-		case Bewilder:
+		EffectOnClearing _eoc = getSpell();
+		if (_eoc == EffectOnClearing.Bewilder) {
 			spell = "bewilder";
-			break;
-		case Blunting:
+		} else if (_eoc == EffectOnClearing.Blunting) {
 			spell = "blunting";
-			break;
-		case Gravity:
+		} else if (_eoc == EffectOnClearing.Gravity) {
 			spell = "gravity";
-			break;
-		case MountainSurge:
+		} else if (_eoc == EffectOnClearing.MountainSurge) {
 			spell = "mountain surge";
-			break;
-		case RocksGlow:
+		} else if (_eoc == EffectOnClearing.RocksGlow) {
 			spell = "rocks glow";
-			break;
-		case Sleep:
+		} else if (_eoc == EffectOnClearing.Sleep) {
 			spell = "sleep";
-			break;
-		case ViolentWinds:
+		} else if (_eoc == EffectOnClearing.ViolentWinds) {
 			spell = "violent winds";
-			break;
-		default:
+		} else {
 			return;
 		}
 		
@@ -78,7 +88,7 @@ public class QuestRewardSpellEffectOnClearing extends QuestReward {
 		return EffectOnClearing.valueOf(getString(SPELL));
 	}
 	
-	private Boolean remove() {
+	private boolean remove() {
 		return getBoolean(REMOVE);
 	}
 	

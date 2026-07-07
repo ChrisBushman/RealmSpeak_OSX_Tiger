@@ -25,10 +25,10 @@ public class CharacterChooser extends AggressiveDialog {
 	
 	private HostPrefWrapper hostPrefs;
 	
-	private ArrayList<GameObject> allCharacterObjects;
-	private ArrayList<GameObject> availableCharacterObjects;
-	private ArrayList<GameObject> availableFighters;
-	private ArrayList<GameObject> availableMagicUsers;
+	private ArrayList allCharacterObjects;
+	private ArrayList availableCharacterObjects;
+	private ArrayList availableFighters;
+	private ArrayList availableMagicUsers;
 	private JLabel characterDisplay;
 	private CharacterListModel listModel;
 	private JList characterList;
@@ -45,7 +45,7 @@ public class CharacterChooser extends AggressiveDialog {
 	private boolean allowCustom;
 	private GameObject chosenCharacter = null;
 	
-	public CharacterChooser(JFrame frame,ArrayList<GameObject> characterObjects,HostPrefWrapper hostPrefs) {
+	public CharacterChooser(JFrame frame,ArrayList characterObjects,HostPrefWrapper hostPrefs) {
 		super(frame,"Choose a character",true);
 		this.hostPrefs = hostPrefs;
 		this.allowCustom = hostPrefs.hasPref(Constants.EXP_CUSTOM_CHARS);
@@ -55,10 +55,11 @@ public class CharacterChooser extends AggressiveDialog {
 		setLocationRelativeTo(frame);
 	}
 	private void buildLists() {
-		availableCharacterObjects = new ArrayList<GameObject>();
-		availableFighters = new ArrayList<GameObject>();
-		availableMagicUsers = new ArrayList<GameObject>();
-		for (GameObject go:allCharacterObjects) {
+		availableCharacterObjects = new ArrayList();
+		availableFighters = new ArrayList();
+		availableMagicUsers = new ArrayList();
+		for (java.util.Iterator _j14it1866 = (allCharacterObjects).iterator(); _j14it1866.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1866.next();
 			boolean custom = go.hasThisAttribute(Constants.CUSTOM_CHARACTER);
 			boolean okayToAdd = false;
 			if (allowCustom && custom && showCustomOption.isSelected()) {
@@ -139,7 +140,7 @@ public class CharacterChooser extends AggressiveDialog {
 		selectRandomButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				int index = RandomNumber.getRandom(availableCharacterObjects.size());
-				characterList.setSelectedValue(availableCharacterObjects.get(index).getName(),true);
+				characterList.setSelectedValue(((GameObject) availableCharacterObjects.get(index)).getName(),true);
 			}
 		});
 		controls.add(selectRandomButton);
@@ -148,7 +149,7 @@ public class CharacterChooser extends AggressiveDialog {
 		selectRandomFighterButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				int index = RandomNumber.getRandom(availableFighters.size());
-				characterList.setSelectedValue(availableFighters.get(index).getName(),true);
+				characterList.setSelectedValue(((GameObject) availableFighters.get(index)).getName(),true);
 			}
 		});
 		controls.add(selectRandomFighterButton);
@@ -157,7 +158,7 @@ public class CharacterChooser extends AggressiveDialog {
 		selectRandomMagicUserButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				int index = RandomNumber.getRandom(availableMagicUsers.size());
-				characterList.setSelectedValue(availableMagicUsers.get(index).getName(),true);
+				characterList.setSelectedValue(((GameObject) availableMagicUsers.get(index)).getName(),true);
 			}
 		});
 		controls.add(selectRandomMagicUserButton);
@@ -175,7 +176,7 @@ public class CharacterChooser extends AggressiveDialog {
 			public void actionPerformed(ActionEvent ev) {
 				int index = characterList.getSelectedIndex();
 				if (index>=0) {
-					chosenCharacter = availableCharacterObjects.get(index);
+					chosenCharacter = (GameObject) availableCharacterObjects.get(index);
 					cleanExit();
 				}
 			}
@@ -209,7 +210,7 @@ public class CharacterChooser extends AggressiveDialog {
 		int index = characterList.getSelectedIndex();
 		GameObject go = null;
 		if (index>=0) {
-			go = availableCharacterObjects.get(index);
+			go = (GameObject) availableCharacterObjects.get(index);
 		}
 		if (go!=null) {
 			characterDisplay.setIcon(getCharacterImage(go));
@@ -227,7 +228,7 @@ public class CharacterChooser extends AggressiveDialog {
 		}
 		public Object getElementAt(int index) {
 			if (index<getSize()) {
-				GameObject go = availableCharacterObjects.get(index);
+				GameObject go = (GameObject) availableCharacterObjects.get(index);
 				return go.getName();
 			}
 			return null;
@@ -241,7 +242,7 @@ public class CharacterChooser extends AggressiveDialog {
 	private class CharacterListCellRenderer extends DefaultListCellRenderer {
 		public Component getListCellRendererComponent(JList list,Object value,int index,boolean isSelected,boolean cellHasFocus) {
 			super.getListCellRendererComponent(list,value,index,isSelected,cellHasFocus);
-			GameObject go = availableCharacterObjects.get(index);
+			GameObject go = (GameObject) availableCharacterObjects.get(index);
 			setIcon(go.hasThisAttribute("fighter")?fighterIcon:magicuserIcon);
 			setFont(go.hasThisAttribute(Constants.CUSTOM_CHARACTER)?ITALIC:NORMAL);
 			return this;
@@ -252,7 +253,7 @@ public class CharacterChooser extends AggressiveDialog {
 			return CustomCharacterLibrary.getSingleton().getCharacterImage(go.getAttribute("level_4","name"));
 		}
 		if (go.hasThisAttribute(Constants.SUPER_REALM) || go.hasThisAttribute("rw_expansion_1_character")) {
-			ArrayList<GameObject> collection = new ArrayList<GameObject>();
+			ArrayList collection = new ArrayList();
 			collection.add(go);
 			collection.addAll(go.getHold());
 			CharacterWrapper character = new CharacterWrapper(go);
@@ -278,10 +279,12 @@ public class CharacterChooser extends AggressiveDialog {
 		RealmLoader loader = new RealmLoader();
 		System.out.println("Done");
 		GamePool pool = new GamePool(loader.getData().getGameObjects());
-		ArrayList<GameObject> availChars = pool.find("character");
+		ArrayList availChars = pool.find("character");
 		HostPrefWrapper hostPrefs = HostPrefWrapper.createDefaultHostPrefs(loader.getData());
-		Collections.sort(availChars,new Comparator<GameObject>() {
-			public int compare(GameObject go1,GameObject go2) {
+		Collections.sort(availChars,new Comparator() {
+			public int compare(Object o1,Object o2) {
+				GameObject go1 = (GameObject) o1;
+				GameObject go2 = (GameObject) o2;
 				return go1.getName().compareTo(go2.getName());
 			}
 		});

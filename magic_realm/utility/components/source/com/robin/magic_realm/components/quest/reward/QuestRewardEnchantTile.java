@@ -27,7 +27,6 @@ public class QuestRewardEnchantTile extends QuestReward {
 		super(go);
 	}
 
-	@Override
 	public void processReward(JFrame frame, CharacterWrapper character) {
 		if (enchantCharactersTile()) {
 			TileComponent tile = character.getCurrentLocation().tile;
@@ -39,22 +38,24 @@ public class QuestRewardEnchantTile extends QuestReward {
 			return;
 		}
 		
-		ArrayList<TileLocation> validLocations = new ArrayList<TileLocation>();
-		ArrayList<TileComponent> validTiles = new ArrayList<TileComponent>();
+		ArrayList validLocations = new ArrayList();
+		ArrayList validTiles = new ArrayList();
 		validLocations = loc.fetchAllLocations(frame, character, getGameData());
-		for (TileLocation location : validLocations) {
+		for (java.util.Iterator _j14it2385 = (validLocations).iterator(); _j14it2385.hasNext(); ) {
+		  TileLocation location = (TileLocation) _j14it2385.next();
 			if (!validTiles.contains(location.tile)) {
 				validTiles.add(location.tile);
 			}
 		}
 		if (affectLocation().matches(ALL_TILES)) {
-			for (TileComponent tile : validTiles) {
+			for (java.util.Iterator _j14it2386 = (validTiles).iterator(); _j14it2386.hasNext(); ) {
+			  TileComponent tile = (TileComponent) _j14it2386.next();
 				SetTileSide(tile);
 			}
 		}
 		else {
 			int random = RandomNumber.getRandom(validTiles.size());
-			TileComponent tile = validTiles.get(random);
+			TileComponent tile = (TileComponent) validTiles.get(random);
 			SetTileSide(tile);
 		}
 	}
@@ -68,11 +69,9 @@ public class QuestRewardEnchantTile extends QuestReward {
 		}
 	}
 	
-	@Override
 	public RewardType getRewardType() {
 		return RewardType.EnchantTile;
 	}
-	@Override
 	public String getDescription() {
 		StringBuffer sb = new StringBuffer();
 		if (enchantCharactersTile()) {
@@ -129,7 +128,7 @@ public class QuestRewardEnchantTile extends QuestReward {
 		}
 		return null;
 	}
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}
 }

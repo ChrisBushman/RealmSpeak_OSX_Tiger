@@ -24,20 +24,19 @@ public class PeacefulDayEvent implements IEvent {
 	}
 	public void expire(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_PEACEFUL_DAY);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_PEACEFUL_DAY);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2462 = (ids).iterator(); _j14it2462.hasNext(); ) {
+			  String id = (String) _j14it2462.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				tile.removeThisAttribute(Constants.EVENT_PEACEFUL_DAY);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_PEACEFUL_DAY,id);
 			}
 		}
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		return description;
 	}

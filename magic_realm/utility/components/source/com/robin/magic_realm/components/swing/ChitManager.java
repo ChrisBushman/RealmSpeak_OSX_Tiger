@@ -40,7 +40,7 @@ public abstract class ChitManager extends AggressiveDialog {
 	private boolean chitsMoved;
 	private boolean countTooLarge = false;
 	
-	private ArrayList<ChitComponent> modifiedChits;
+	private ArrayList modifiedChits;
 	
 	protected abstract int totalPossibleCount();
 	
@@ -71,7 +71,7 @@ public abstract class ChitManager extends AggressiveDialog {
 		setLocationRelativeTo(parent);
 		initComponents(includeCancelButton);
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-		modifiedChits = new ArrayList<ChitComponent>();
+		modifiedChits = new ArrayList();
 	}
 	protected void initialize() {
 		resetChits();
@@ -97,11 +97,12 @@ public abstract class ChitManager extends AggressiveDialog {
 	protected boolean canClickNonActionChits() {
 		return false;
 	}
-	protected void finishedChitUpdate(ArrayList<ChitComponent> chits) {
+	protected void finishedChitUpdate(ArrayList chits) {
 		StringBufferedList active = new StringBufferedList();
 		StringBufferedList fatigued = new StringBufferedList();
 		StringBufferedList wounded = new StringBufferedList();
-		for (ChitComponent chit:modifiedChits) {
+		for (java.util.Iterator _j14it1867 = (modifiedChits).iterator(); _j14it1867.hasNext(); ) {
+		  ChitComponent chit = (ChitComponent) _j14it1867.next();
 			CharacterActionChitComponent actionChit = (CharacterActionChitComponent)chit;
 			if (actionChit.isActive()) active.append(actionChit.getShortName());
 			if (actionChit.isFatigued()) fatigued.append(actionChit.getShortName());
@@ -143,7 +144,7 @@ public abstract class ChitManager extends AggressiveDialog {
 		getContentPane().setLayout(new BorderLayout());
 		masterPanel = new JPanel(new GridLayout(1,3));
 			JPanel activePanel = new JPanel(new BorderLayout());
-				activeChits = new ChitBinPanel(new ChitBinLayout(new ArrayList<StateChitComponent>(character.getCompleteChitList()))) {
+				activeChits = new ChitBinPanel(new ChitBinLayout(new ArrayList(character.getCompleteChitList()))) {
 					public boolean canClickChit(ChitComponent chit) {
 						if (chit.isActionChit()) {
 							return canClickActive((CharacterActionChitComponent)chit);
@@ -168,7 +169,7 @@ public abstract class ChitManager extends AggressiveDialog {
 			activePanel.add(activeChits,"Center");
 		masterPanel.add(activePanel);
 			JPanel fatiguedPanel = new JPanel(new BorderLayout());
-				fatiguedChits = new ChitBinPanel(new ChitBinLayout(new ArrayList<StateChitComponent>(character.getCompleteChitList()))) {
+				fatiguedChits = new ChitBinPanel(new ChitBinLayout(new ArrayList(character.getCompleteChitList()))) {
 					public boolean canClickChit(ChitComponent chit) {
 						if (chit.isActionChit()) {
 							return canClickFatigue((CharacterActionChitComponent)chit);
@@ -193,7 +194,7 @@ public abstract class ChitManager extends AggressiveDialog {
 			fatiguedPanel.add(fatiguedChits,"Center");
 		masterPanel.add(fatiguedPanel);
 			JPanel woundedPanel = new JPanel(new BorderLayout());
-				woundedChits = new ChitBinPanel(new ChitBinLayout(new ArrayList<StateChitComponent>(character.getCompleteChitList()))) {
+				woundedChits = new ChitBinPanel(new ChitBinLayout(new ArrayList(character.getCompleteChitList()))) {
 					public boolean canClickChit(ChitComponent chit) {
 						if (chit.isActionChit()) {
 							return canClickWound((CharacterActionChitComponent)chit);
@@ -271,9 +272,9 @@ public abstract class ChitManager extends AggressiveDialog {
 		activeChits.reset();
 		fatiguedChits.reset();
 		woundedChits.reset();
-		ArrayList<StateChitComponent> list = new ArrayList<StateChitComponent>(character.getCompleteChitList());
+		ArrayList list = new ArrayList(character.getCompleteChitList());
 		for (int i=0;i<list.size();i++) {
-			StateChitComponent chit = list.get(i);
+			StateChitComponent chit = (StateChitComponent) list.get(i);
 			if (chit.isActionChit()) {
 				CharacterActionChitComponent aChit = (CharacterActionChitComponent)chit;
 				if (aChit.isActive() || aChit.isColor()) {

@@ -14,7 +14,7 @@ public class Blacksmith extends Store {
 	
 	private CharacterWrapper character;
 	private double gold;
-	private ArrayList<ArmorChitComponent> repairableArmor;
+	private ArrayList repairableArmor;
 	
 	public Blacksmith(TravelerChitComponent traveler,CharacterWrapper character) {
 		super(traveler);
@@ -27,10 +27,11 @@ public class Blacksmith extends Store {
 			return;
 		}
 		gold = character.getGold();
-		repairableArmor = new ArrayList<ArmorChitComponent>();
+		repairableArmor = new ArrayList();
 		boolean cannotAfford = false;
-		ArrayList<String> distinctNames = new ArrayList<String>(); // so same type isn't shown more than once
-		for(GameObject go:character.getInventory()) {
+		ArrayList distinctNames = new ArrayList(); // so same type isn't shown more than once
+		for (java.util.Iterator _j14it2520 = (character.getInventory()).iterator(); _j14it2520.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2520.next();
 			if (distinctNames.contains(go.getName())) continue;
 			if (go.hasAllKeyVals(HELMET_QUERY)
 					|| go.hasAllKeyVals(SHIELD_QUERY)
@@ -59,7 +60,8 @@ public class Blacksmith extends Store {
 	private static String ARMOR_QUERY = "armor,suitofarmor";
 	public String doService(JFrame frame) {
 		RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,"Which Service?",true);
-		for(ArmorChitComponent armor:repairableArmor) {
+		for (java.util.Iterator _j14it2521 = (repairableArmor).iterator(); _j14it2521.hasNext(); ) {
+		  ArmorChitComponent armor = (ArmorChitComponent) _j14it2521.next();
 			int cost = getCost(armor.getGameObject());
 			chooser.addRealmComponent(armor,"Repair for "+cost+" gold");
 		}

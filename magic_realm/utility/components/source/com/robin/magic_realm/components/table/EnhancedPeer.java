@@ -23,8 +23,7 @@ public class EnhancedPeer extends Peer {
 		}
 		return super.apply(character,inRoller);
 	}
-	@Override
-	protected ArrayList<ImageIcon> getHintIcons(CharacterWrapper character) {
-		return new ArrayList<ImageIcon>();
+	protected ArrayList getHintIcons(CharacterWrapper character) {
+		return new ArrayList();
 	}
 }

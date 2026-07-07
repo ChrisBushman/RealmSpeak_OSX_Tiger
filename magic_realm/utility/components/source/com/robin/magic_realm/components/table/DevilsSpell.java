@@ -29,7 +29,7 @@ public class DevilsSpell extends RealmTable {
 	};
 	
 	private GameObject caster;
-	private ArrayList<GameObject> kills;
+	private ArrayList kills;
 	private boolean harm;
 	private Speed speed;
 	
@@ -37,7 +37,7 @@ public class DevilsSpell extends RealmTable {
 		super(frame,null);
 		this.caster = caster;
 		this.speed = attackSpeed;
-		kills = new ArrayList<GameObject>();
+		kills = new ArrayList();
 	}
 	public boolean harmWasApplied() {
 		return kills.size()>0 || harm;
@@ -60,7 +60,7 @@ public class DevilsSpell extends RealmTable {
 	}
 	public String applyOne(CharacterWrapper character) {
 		String destClientName = DemonsEffects.getDestClientName(caster,character.getGameObject()); // Get this before killing anybody!
-		ArrayList<RealmComponent> killed = DemonsEffects.killEverythingInClearing(character,new Strength("RED"),true,false,speed,caster,false,kills);
+		ArrayList killed = DemonsEffects.killEverythingInClearing(character,new Strength("RED"),true,false,speed,caster,false,kills);
 		
 		StringBuffer message = new StringBuffer();
 		message.append("Fiery Chasm Opens\n\n");
@@ -188,7 +188,7 @@ public class DevilsSpell extends RealmTable {
 		
 		return RESULT[5];
 	}
-	public ArrayList<GameObject> getKills() {
+	public ArrayList getKills() {
 		return kills;
 	}
 	public static DevilsSpell doNow(JFrame parent,GameObject attacker,GameObject target,boolean casterRolls,int redDie,Speed attackSpeed) {

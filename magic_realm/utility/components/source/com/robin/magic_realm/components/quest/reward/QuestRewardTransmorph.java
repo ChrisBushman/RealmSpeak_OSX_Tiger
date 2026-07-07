@@ -18,17 +18,33 @@ public class QuestRewardTransmorph extends QuestReward {
 	public static final String DIE_ROLL = "_dr";
 	public static final String REVERT_TRANSFORMATION = "_revert";
 	
-	public enum TransmorphType {
-		Animal,
-		Statue,
-		Mist
+	public static final class TransmorphType {
+		private final String _name;
+		private final int _ordinal;
+		private TransmorphType(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final TransmorphType Animal = new TransmorphType("Animal", 0);
+		public static final TransmorphType Statue = new TransmorphType("Statue", 1);
+		public static final TransmorphType Mist = new TransmorphType("Mist", 2);
+
+		private static final TransmorphType[] _VALUES = { Animal, Statue, Mist };
+		public static TransmorphType[] values() { TransmorphType[] r = new TransmorphType[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static TransmorphType valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	public QuestRewardTransmorph(GameObject go) {
 		super(go);
 	}
 
-	@Override
 	public void processReward(JFrame frame, CharacterWrapper character) {
 		GameWrapper gameWrapper = GameWrapper.findGame(getGameData());
 		RealmComponent target = RealmComponent.getRealmComponent(character.getGameObject());
@@ -37,23 +53,19 @@ public class QuestRewardTransmorph extends QuestReward {
 		TransmorphEffect transmorph;
 		String transformBlock;
 		GameObject sp;	
-		switch (getTransmorphType()) {
-			default:	
-			case Animal:
-				transmorph = new TransmorphEffect("roll");
-				transformBlock = "roll"+getDieRoll();
-				sp = pool.findFirst("name=Transform");
-				break;
-			case Mist:
-				transmorph = new TransmorphEffect("mist");
-				transformBlock = "mist";
-				sp = pool.findFirst("name=Melt Into Mist");
-				break;
-			case Statue:
-				transmorph = new TransmorphEffect("statue");
-				transformBlock = "statue";
-				sp = pool.findFirst("name=Stone Gaze");
-				break;
+		TransmorphType _tt = getTransmorphType();
+		if (_tt == TransmorphType.Mist) {
+			transmorph = new TransmorphEffect("mist");
+			transformBlock = "mist";
+			sp = pool.findFirst("name=Melt Into Mist");
+		} else if (_tt == TransmorphType.Statue) {
+			transmorph = new TransmorphEffect("statue");
+			transformBlock = "statue";
+			sp = pool.findFirst("name=Stone Gaze");
+		} else { // Animal (default)
+			transmorph = new TransmorphEffect("roll");
+			transformBlock = "roll"+getDieRoll();
+			sp = pool.findFirst("name=Transform");
 		}
 	
 		if (sp == null) return;
@@ -70,11 +82,9 @@ public class QuestRewardTransmorph extends QuestReward {
 		character.setTransmorph(transform);
 	}
 	
-	@Override
 	public RewardType getRewardType() {
 		return RewardType.Transmorph;
 	}
-	@Override
 	public String getDescription() {
 		if (revert()) {
 			return "Character is tranformed back.";

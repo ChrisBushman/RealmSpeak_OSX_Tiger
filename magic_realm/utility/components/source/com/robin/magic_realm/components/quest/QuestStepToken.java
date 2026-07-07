@@ -53,15 +53,17 @@ public class QuestStepToken {
 	public void setSelected(boolean selected) {
 		this.selected = selected;
 	}
-	public boolean allRequiredPresent(ArrayList<QuestStepToken> tokens) {
-		ArrayList<String> all = new ArrayList<String>();
-		ArrayList<String> required = step.getRequiredSteps();
-		ArrayList<String> onfail = step.getFailSteps();
+	public boolean allRequiredPresent(ArrayList tokens) {
+		ArrayList all = new ArrayList();
+		ArrayList required = step.getRequiredSteps();
+		ArrayList onfail = step.getFailSteps();
 		if (required!=null) all.addAll(required);
 		if (onfail!=null) all.addAll(onfail);
-		for(String requiredId : all) {
+		for (java.util.Iterator _j14it2185 = (all).iterator(); _j14it2185.hasNext(); ) {
+		  String requiredId = (String) _j14it2185.next();
 			boolean found = false;
-			for(QuestStepToken token:tokens) {
+			for (java.util.Iterator _j14it2186 = (tokens).iterator(); _j14it2186.hasNext(); ) {
+			  QuestStepToken token = (QuestStepToken) _j14it2186.next();
 				if (!token.isVirtual() && token.getStep().getGameObject().getStringId().equals(requiredId)) {
 					found = true;
 					break;

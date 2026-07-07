@@ -72,10 +72,10 @@ public class Peer extends Search {
 		return "Nothing";
 	}
 
-	@Override
-	protected ArrayList<ImageIcon> getHintIcons(CharacterWrapper character) {
-		ArrayList<ImageIcon> list = new ArrayList<ImageIcon>();
-		for(PathDetail path:getAllUndiscoveredPaths(character)) {
+	protected ArrayList getHintIcons(CharacterWrapper character) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it2151 = (getAllUndiscoveredPaths(character)).iterator(); _j14it2151.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it2151.next();
 			list.add(new PathIcon(path));
 		}
 		return list;

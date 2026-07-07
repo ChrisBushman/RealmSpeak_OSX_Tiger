@@ -34,7 +34,7 @@ public class RealmPaymentDialog extends AggressiveDialog {
 	private CharacterWrapper character;
 	private HostPrefWrapper hostPrefs;
 	
-	private ArrayList<GameObject> onTheTable;
+	private ArrayList onTheTable;
 	
 	private JTextArea info;
 	private JLabel currentInventorySale;
@@ -67,7 +67,7 @@ public class RealmPaymentDialog extends AggressiveDialog {
 		hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameObject().getGameData());
 		mc = RealmComponent.getRealmComponent(merchandise);
 		repair = mc.isArmor() && ((ArmorChitComponent)mc).isDamaged();
-		onTheTable = new ArrayList<GameObject>();
+		onTheTable = new ArrayList();
 		initComponents();
 		setLocationRelativeTo(parent);
 	}
@@ -211,7 +211,8 @@ public class RealmPaymentDialog extends AggressiveDialog {
 		}
 		
 		boolean paidByItem = false;
-		for (GameObject item : onTheTable) {
+		for (java.util.Iterator _j14it1862 = (onTheTable).iterator(); _j14it1862.hasNext(); ) {
+		  GameObject item = (GameObject) _j14it1862.next();
 			if (item.hasThisAttribute(Constants.VALUABLE)) {
 				paidByItem = true;
 				break;
@@ -251,7 +252,8 @@ public class RealmPaymentDialog extends AggressiveDialog {
 		return boon;
 	}
 	private void loseTradeItems() {
-		for (GameObject item : onTheTable) {
+		for (java.util.Iterator _j14it1863 = (onTheTable).iterator(); _j14it1863.hasNext(); ) {
+		  GameObject item = (GameObject) _j14it1863.next();
 			TradeUtility.loseItem(character,item,tradeInfo.getGameObject(),hostPrefs.hasPref(Constants.OPT_GRUDGES)||hostPrefs.hasPref(Constants.SR_ADV_SENTIMENTAL_VALUE));
 			if (item.hasThisAttribute(Constants.FOOLS_GOLD)) {
 				characterNeedsToRunAway = true;
@@ -317,7 +319,7 @@ public class RealmPaymentDialog extends AggressiveDialog {
 		QuestRequirementParams params = new QuestRequirementParams();
 		params.actionType = CharacterActionType.Trading;
 		params.actionName = TradeType.Buy.toString();
-		params.objectList = new ArrayList<GameObject>();
+		params.objectList = new ArrayList();
 		params.objectList.add(merchandise);
 		params.targetOfSearch = tradeInfo.getGameObject();
 		character.testQuestRequirements(frame,params);
@@ -346,8 +348,9 @@ public class RealmPaymentDialog extends AggressiveDialog {
 		return characterNeedsToRunAway;
 	}
 	private void doAdd() {
-		ArrayList<GameObject> unpresentedInventory = new ArrayList<GameObject>();
-		for (GameObject item : character.getInventory()) {
+		ArrayList unpresentedInventory = new ArrayList();
+		for (java.util.Iterator _j14it1864 = (character.getInventory()).iterator(); _j14it1864.hasNext(); ) {
+		  GameObject item = (GameObject) _j14it1864.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(item);
 			if (rc.isItem() && !rc.isNativeHorse() && !item.hasThisAttribute(Constants.CONTROLLED_HORSE)) {
 				unpresentedInventory.add(item);
@@ -358,13 +361,13 @@ public class RealmPaymentDialog extends AggressiveDialog {
 			RealmTradeDialog chooser = new RealmTradeDialog((JFrame)parent,"Add items to TRADE",true,true,false);
 			chooser.setTradeObjects(unpresentedInventory);
 			chooser.setVisible(true);
-			Collection<GameObject> newInventory = chooser.getSelectedObjects();
+			Collection newInventory = chooser.getSelectedObjects();
 			if (newInventory!=null && !newInventory.isEmpty()) {
 				addInventory(newInventory);
 			}
 		}
 	}
-	private void addInventory(Collection<GameObject> newInventory) {
+	private void addInventory(Collection newInventory) {
 		onTheTable.addAll(newInventory);
 		invTradeView.clearSelected();
 		invTradeView.addObjects(newInventory);
@@ -374,11 +377,11 @@ public class RealmPaymentDialog extends AggressiveDialog {
 	private void doRemove() {
 		GameObject[] selGo = invTradeView.getSelectedGameObjects();
 		if (selGo.length>0) {
-			Collection<GameObject> toRemove = new ArrayList<GameObject>(Arrays.asList(selGo));
+			Collection toRemove = new ArrayList(Arrays.asList(selGo));
 			removeInventory(toRemove);
 		}
 	}
-	private void removeInventory(Collection<GameObject> toRemove) {
+	private void removeInventory(Collection toRemove) {
 		onTheTable.removeAll(toRemove);
 		invTradeView.clearSelected();
 		invTradeView.removeAll();
@@ -449,7 +452,8 @@ public class RealmPaymentDialog extends AggressiveDialog {
 	}
 	private int getTradeItemValue() {
 		int invSale = 0;
-		for (GameObject go : onTheTable) {
+		for (java.util.Iterator _j14it1865 = (onTheTable).iterator(); _j14it1865.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1865.next();
 			if (go.hasThisAttribute(Constants.VALUABLE)) return askingPrice;
 			invSale += TreasureUtility.getBasePrice(tradeInfo.getTrader(),RealmComponent.getRealmComponent(go));
 		}

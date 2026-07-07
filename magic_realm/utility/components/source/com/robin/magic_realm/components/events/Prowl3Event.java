@@ -14,9 +14,9 @@ public class Prowl3Event implements IEvent {
 	private static final String description = "An additional row of monsters and natives are prowling this day.";
 	public void applyBirdsong(GameData data) {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<GameObject> mrGameObjects = pool.extract(GameWrapper.getKeyVals());
+		ArrayList mrGameObjects = pool.extract(GameWrapper.getKeyVals());
 		if (mrGameObjects == null || mrGameObjects.isEmpty()) return;
-		GameWrapper game = new GameWrapper(mrGameObjects.get(0));
+		GameWrapper game = new GameWrapper((GameObject) mrGameObjects.get(0));
 		DieRoller monsterDie = game.getMonsterDie();
 		monsterDie.addRedDie();
 		game.setMonsterDie(monsterDie);
@@ -29,11 +29,9 @@ public class Prowl3Event implements IEvent {
 	}
 	public void expire(GameData data) {
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		return description;
 	}

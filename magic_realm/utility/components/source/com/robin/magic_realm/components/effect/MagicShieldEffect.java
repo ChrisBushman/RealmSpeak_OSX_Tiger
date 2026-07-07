@@ -8,7 +8,6 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class MagicShieldEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		CharacterWrapper character = new CharacterWrapper(context.Target.getGameObject());
 		GameObject spell = context.Spell.getGameObject();
@@ -39,7 +38,6 @@ public class MagicShieldEffect implements ISpellEffect {
 		TreasureUtility.doActivate(context.Parent, character, magicShield, null, false);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		if (context.Spell.getGameObject().hasThisAttribute(Constants.MAGIC_SHIELD_ID)) {
 			GameObject magicShield = context.Spell

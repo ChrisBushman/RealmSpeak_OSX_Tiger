@@ -94,7 +94,8 @@ public class HallOfFameView extends JPanel {
 		sb.append(header);
 		sb.append("Score</th>\n<br>");
 		int n=1;
-		for (GameObject go : goList.getHold()) { // should already be in order by score
+		for (java.util.Iterator _j14it1858 = (goList.getHold()).iterator(); _j14it1858.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1858.next(); // should already be in order by score
 			sb.append("<tr>");
 			sb.append("<td align=\"center\"><b>");
 			sb.append(n++);
@@ -124,11 +125,11 @@ public class HallOfFameView extends JPanel {
 		sb.append("</table>");
 		return sb.toString();
 	}
-	private String getNextRow(HallOfFame hof,OrderedHashtable<String, String> hash) {
+	private String getNextRow(HallOfFame hof,OrderedHashtable hash) {
 		StringBuffer sb = new StringBuffer();
 		sb.append("<tr>");
 		
-		ArrayList<String> list = new ArrayList<String>(hash.orderedKeys());
+		ArrayList list = new ArrayList(hash.orderedKeys());
 		int n = list.size();
 		
 		for (int i=0;i<Math.min(n,2);i++) {
@@ -142,8 +143,8 @@ public class HallOfFameView extends JPanel {
 //					|| (n==2 && i!=1)
 //					|| (n==1 && i==1)) {
 //			if (n>=2) {
-				String listName = list.get(0);
-				String title = hash.remove(listName);
+				String listName = (String) list.get(0);
+				String title = (String) hash.remove(listName);
 				sb.append(getTable(title,hof.getHolderFor(listName)));
 				list.remove(listName);
 //			}
@@ -160,7 +161,7 @@ public class HallOfFameView extends JPanel {
 		
 		sb.append("<table cellpadding=\"0\">");
 		
-		OrderedHashtable<String, String> hash = new OrderedHashtable<String, String>();
+		OrderedHashtable hash = new OrderedHashtable();
 		
 		// Do this one separately, so it gets centered on top
 		hash.put(HallOfFame.CAT_OVERALL,"Overall");
@@ -169,9 +170,10 @@ public class HallOfFameView extends JPanel {
 		// The rest will work out
 		hash.put(HallOfFame.CAT_FIGHTERS,"Fighters");
 		hash.put(HallOfFame.CAT_MAGIC_USERS,"Magic Users");
-		ArrayList<String> names = hof.getAllCharacterNames();
+		ArrayList names = hof.getAllCharacterNames();
 		Collections.sort(names);
-		for (String name : names) {
+		for (java.util.Iterator _j14it1859 = (names).iterator(); _j14it1859.hasNext(); ) {
+		  String name = (String) _j14it1859.next();
 			hash.put(name,name+" Top Ten");
 		}
 		while(!hash.isEmpty()) {

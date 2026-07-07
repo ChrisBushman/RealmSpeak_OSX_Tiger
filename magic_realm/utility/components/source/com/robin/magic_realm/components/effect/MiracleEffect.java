@@ -11,7 +11,6 @@ import com.robin.magic_realm.components.wrapper.CombatWrapper;
 public class MiracleEffect implements ISpellEffect {
 	boolean oneTime;
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		//CJM -- required because spell effects fire for EACH target of the spell, which in this case is all of
 		//the members in the native group. We only want this spell to fire ONCE for the entire group. FilcherEffect
@@ -44,7 +43,6 @@ public class MiracleEffect implements ISpellEffect {
 		oneTime = true;
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 
 	}

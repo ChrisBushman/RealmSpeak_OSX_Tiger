@@ -22,7 +22,7 @@ public class QuestRewardJournal extends QuestReward {
 	}
 	
 	public String getDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append(getJournalKey());
 		sb.append("(");
 		sb.append(getEntryType().toString());

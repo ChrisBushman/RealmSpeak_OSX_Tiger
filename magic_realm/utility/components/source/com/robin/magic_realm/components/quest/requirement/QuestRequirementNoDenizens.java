@@ -22,7 +22,6 @@ public class QuestRequirementNoDenizens extends QuestRequirement {
 		super(go);
 	}
 
-	@Override
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
 		TileLocation tl = character.getCurrentLocation();
 		if (tl==null || !tl.isInClearing()) {
@@ -34,8 +33,9 @@ public class QuestRequirementNoDenizens extends QuestRequirement {
 		boolean tilewide = getBoolean(TILE_WIDE);
 		String word = tilewide ? "tile" : "clearing";
 
-		ArrayList<RealmComponent> components = tilewide ? tl.tile.getAllClearingComponents() : tl.clearing.getClearingComponents();
-		for (RealmComponent rc : components) {
+		ArrayList components = tilewide ? tl.tile.getAllClearingComponents() : tl.clearing.getClearingComponents();
+		for (java.util.Iterator _j14it2295 = (components).iterator(); _j14it2295.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2295.next();
 			if (monsters && rc.isMonster()) {
 				logger.fine(character.getName() + " is in a " + word + " with monsters.");
 				return false;
@@ -49,12 +49,10 @@ public class QuestRequirementNoDenizens extends QuestRequirement {
 		return true;
 	}
 
-	@Override
 	public RequirementType getRequirementType() {
 		return RequirementType.NoDenizens;
 	}
 
-	@Override
 	protected String buildDescription() {
 		boolean monsters = getBoolean(NO_MONSTERS);
 		boolean natives = getBoolean(NO_NATIVES);

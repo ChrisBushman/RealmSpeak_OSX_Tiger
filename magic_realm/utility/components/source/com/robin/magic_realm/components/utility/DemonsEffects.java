@@ -26,11 +26,12 @@ public class DemonsEffects {
 		CharacterWrapper destCharacter = new CharacterWrapper(destOwner.getGameObject());
 		return destCharacter.getPlayerName();
 	}
-	public static String getKilledString(ArrayList<RealmComponent> killed) {
+	public static String getKilledString(ArrayList killed) {
 		StringBuffer string = new StringBuffer();
 		if (!killed.isEmpty()) {
 			string.append("\n\n");
-			for (RealmComponent rc:killed) {
+			for (java.util.Iterator _j14it2688 = (killed).iterator(); _j14it2688.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2688.next();
 				string.append("    ");
 				string.append(rc.getGameObject().getName());
 				string.append(" was killed.\n");
@@ -38,12 +39,13 @@ public class DemonsEffects {
 		}
 		return string.toString();
 	}
-	public static ArrayList<RealmComponent> killEverythingInClearing(CharacterWrapper character,Strength power,boolean hiddenAreSafe,boolean charactersAreSafe,Speed speed,GameObject caster, boolean makeDeadWhenKilled, ArrayList<GameObject> kills) {
-		ArrayList<RealmComponent> killed = new ArrayList<RealmComponent>();
+	public static ArrayList killEverythingInClearing(CharacterWrapper character,Strength power,boolean hiddenAreSafe,boolean charactersAreSafe,Speed speed,GameObject caster, boolean makeDeadWhenKilled, ArrayList kills) {
+		ArrayList killed = new ArrayList();
 		TileLocation tl = character.getCurrentLocation();
 		if (tl.isInClearing()) {
-			HashSet<RealmComponent> livingThings = new HashSet<RealmComponent>();
-			for (RealmComponent rc:tl.clearing.getClearingComponents()) {
+			HashSet livingThings = new HashSet();
+			for (java.util.Iterator _j14it2689 = (tl.clearing.getClearingComponents()).iterator(); _j14it2689.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2689.next();
 				if (rc.isPlayerControlledLeader()) {
 					livingThings.add(rc);
 					CharacterWrapper aChar = new CharacterWrapper(rc.getGameObject());
@@ -53,7 +55,8 @@ public class DemonsEffects {
 					livingThings.add(rc);
 				}
 			}
-			for (RealmComponent rc:livingThings) {
+			for (java.util.Iterator _j14it2690 = (livingThings).iterator(); _j14it2690.hasNext(); ) {
+			  RealmComponent rc = (RealmComponent) _j14it2690.next();
 				if (!rc.isMistLike()) {
 					if (!hiddenAreSafe || !rc.isHidden()) {
 						Strength strength = new Strength(rc.getGameObject().getThisAttribute("vulnerability"));
@@ -78,7 +81,7 @@ public class DemonsEffects {
 		
 		return killed;
 	}
-	public static void kill(GameObject go,Speed speed, GameObject caster, boolean makeDeadWhenKilled, ArrayList<GameObject> kills) {
+	public static void kill(GameObject go,Speed speed, GameObject caster, boolean makeDeadWhenKilled, ArrayList kills) {
 		RealmComponent attacker = RealmComponent.getRealmComponent(caster); 
 		RealmComponent victim = RealmComponent.getRealmComponent(go);
 		BattleUtility.handleSpoilsOfWar(attacker,victim);
@@ -91,7 +94,7 @@ public class DemonsEffects {
 		else {
 			CombatWrapper combat = new CombatWrapper(go);
 			combat.setKilledBy(caster);
-			combat.setKilledLength(17);
+			combat.setKilledLength(new Integer(17));
 			combat.setKilledSpeed(speed);
 		}
 	}

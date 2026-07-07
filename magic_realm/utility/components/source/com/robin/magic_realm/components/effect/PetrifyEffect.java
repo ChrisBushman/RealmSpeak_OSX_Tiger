@@ -8,7 +8,6 @@ import com.robin.magic_realm.components.utility.SpellUtility;
 
 public class PetrifyEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		RollResult result = SpellUtility.rollResult(context, "Petrify");
 		
@@ -27,7 +26,6 @@ public class PetrifyEffect implements ISpellEffect {
 	
 
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		ISpellEffect transmorph = new TransmorphEffect("statue");
 		transmorph.unapply(context);

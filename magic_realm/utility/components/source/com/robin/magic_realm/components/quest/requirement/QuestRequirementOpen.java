@@ -21,7 +21,6 @@ public class QuestRequirementOpen extends QuestRequirement {
 		super(go);
 	}
 
-	@Override
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
 		if (characterHasToOpenIt() && reqParams.actionType != CharacterActionType.Open && reqParams.actionType != CharacterActionType.ActivatingItem && reqParams.actionType != CharacterActionType.SearchTable) {
 			return false;
@@ -40,7 +39,7 @@ public class QuestRequirementOpen extends QuestRequirement {
 					}
 				}
 				else if (reqParams.actionType == CharacterActionType.ActivatingItem) {
-					GameObject item = reqParams.objectList.get(0);
+					GameObject item = (GameObject) reqParams.objectList.get(0);
 					String itemName = item != null ? item.getName() : "Item";
 						if (item == null || !pattern.matcher(itemName).find()) {
 							logger.fine(itemName+" does not match regex /"+regex+"/");
@@ -53,8 +52,9 @@ public class QuestRequirementOpen extends QuestRequirement {
 		}
 
 		if (!characterHasToOpenIt()) {
-			ArrayList<GameObject> needsToBeOpened = character.getGameData().getGameObjectsByNameRegex(getRegExFilter());
-			for (GameObject location : needsToBeOpened) {
+			ArrayList needsToBeOpened = character.getGameData().getGameObjectsByNameRegex(getRegExFilter());
+			for (java.util.Iterator _j14it2337 = (needsToBeOpened).iterator(); _j14it2337.hasNext(); ) {
+			  GameObject location = (GameObject) _j14it2337.next();
 				if (!location.hasThisAttribute(Constants.NEEDS_OPEN) && !location.hasThisAttribute(Constants.SEARCH)) {
 					return true;
 				}
@@ -64,13 +64,11 @@ public class QuestRequirementOpen extends QuestRequirement {
 		return false;
 	}
 
-	@Override
 	public RequirementType getRequirementType() {
 		return RequirementType.Open;
 	}
-	@Override
 	protected String buildDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append(getRegExFilter()+" must be opened");
 		if (characterHasToOpenIt()) {
 			sb.append(" by the character");

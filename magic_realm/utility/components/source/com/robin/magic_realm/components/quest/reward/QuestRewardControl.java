@@ -29,12 +29,13 @@ public class QuestRewardControl extends QuestReward {
 	}
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
-		ArrayList<RealmComponent> targets = new ArrayList<RealmComponent>();
+		ArrayList targets = new ArrayList();
 		Pattern pattern = Pattern.compile(getTargetRegex());
 		int affectedDenizens = 0;
 		if (remove()) {
 			targets.addAll(character.getAllHirelings());
-			for (RealmComponent target : targets) {
+			for (java.util.Iterator _j14it2377 = (targets).iterator(); _j14it2377.hasNext(); ) {
+			  RealmComponent target = (RealmComponent) _j14it2377.next();
 				if (!pattern.matcher(target.toString()).find()) continue;
 				character.removeHireling(target.getGameObject());
 				affectedDenizens++;
@@ -45,8 +46,9 @@ public class QuestRewardControl extends QuestReward {
 		
 		if (location()) {
 			QuestLocation loc = getQuestLocation();
-			ArrayList<TileLocation> locations = loc.fetchAllLocations(frame, character, character.getGameData());
-			for (TileLocation location : locations) {
+			ArrayList locations = loc.fetchAllLocations(frame, character, character.getGameData());
+			for (java.util.Iterator _j14it2378 = (locations).iterator(); _j14it2378.hasNext(); ) {
+			  TileLocation location = (TileLocation) _j14it2378.next();
 				if (location.clearing != null) {
 					targets.addAll(location.clearing.getClearingComponents());
 				}
@@ -62,7 +64,8 @@ public class QuestRewardControl extends QuestReward {
 		if (numberOfDenizens()!=0) {
 			Collections.shuffle(targets);
 		}
-		for (RealmComponent target : targets) {
+		for (java.util.Iterator _j14it2379 = (targets).iterator(); _j14it2379.hasNext(); ) {
+		  RealmComponent target = (RealmComponent) _j14it2379.next();
 			if (!pattern.matcher(target.toString()).find()) continue;
 			
 			if (target.isMonster() || target.isNative()) {
@@ -123,7 +126,7 @@ public class QuestRewardControl extends QuestReward {
 	public void setQuestLocation(QuestLocation location) {
 		setString(LOCATION,location.getGameObject().getStringId());
 	}
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}
 }

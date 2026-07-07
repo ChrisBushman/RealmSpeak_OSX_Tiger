@@ -30,14 +30,16 @@ public class QuestRewardPathsPassages extends QuestReward {
 		
 		TileLocation current = character.getCurrentLocation();
 		
-		ArrayList<PathDetail> roads = new ArrayList<PathDetail>();
+		ArrayList roads = new ArrayList();
 		if (mapScope==MapScopeType.Clearing) {
 			if (locationOnly()) {
 				QuestLocation questLoc = getQuestLocation();
 				if (questLoc == null) return;
-				ArrayList<TileLocation> locations = questLoc.fetchAllLocations(frame, character, character.getGameData());
-				for (TileLocation loc : locations) {
-					for(PathDetail path:loc.clearing.getAllConnectedPaths()) {
+				ArrayList locations = questLoc.fetchAllLocations(frame, character, character.getGameData());
+				for (java.util.Iterator _j14it2380 = (locations).iterator(); _j14it2380.hasNext(); ) {
+				  TileLocation loc = (TileLocation) _j14it2380.next();
+					for (java.util.Iterator _j14it2381 = (loc.clearing.getAllConnectedPaths()).iterator(); _j14it2381.hasNext(); ) {
+					  PathDetail path = (PathDetail) _j14it2381.next();
 						if (discoveryType.matches(path)) {
 							roads.add(path);
 						}
@@ -46,7 +48,8 @@ public class QuestRewardPathsPassages extends QuestReward {
 			}
 			else {
 				if (!current.isInClearing()) return;
-				for(PathDetail path:current.clearing.getAllConnectedPaths()) {
+				for (java.util.Iterator _j14it2382 = (current.clearing.getAllConnectedPaths()).iterator(); _j14it2382.hasNext(); ) {
+				  PathDetail path = (PathDetail) _j14it2382.next();
 					if (discoveryType.matches(path)) {
 						roads.add(path);
 					}
@@ -57,8 +60,9 @@ public class QuestRewardPathsPassages extends QuestReward {
 			if (locationOnly()) {
 				QuestLocation questLoc = getQuestLocation();
 				if (questLoc == null) return;
-				ArrayList<TileLocation> locations = questLoc.fetchAllLocations(frame, character, character.getGameData());
-				for (TileLocation loc : locations) {
+				ArrayList locations = questLoc.fetchAllLocations(frame, character, character.getGameData());
+				for (java.util.Iterator _j14it2383 = (locations).iterator(); _j14it2383.hasNext(); ) {
+				  TileLocation loc = (TileLocation) _j14it2383.next();
 					if (discoveryType.matchesSecretPassages()) {
 						roads.addAll(loc.tile.getSecretPassages(true));
 					}
@@ -77,7 +81,8 @@ public class QuestRewardPathsPassages extends QuestReward {
 			}
 		}
 		
-		for(PathDetail road:roads) {
+		for (java.util.Iterator _j14it2384 = (roads).iterator(); _j14it2384.hasNext(); ) {
+		  PathDetail road = (PathDetail) _j14it2384.next();
 			String key = road.getFullPathKey();
 			if (road.isSecret() && !character.hasSecretPassageDiscovery(key)) {
 				character.addSecretPassageDiscovery(key);
@@ -89,32 +94,25 @@ public class QuestRewardPathsPassages extends QuestReward {
 	}
 	
 	public String getDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Immediately discover all ");
 		RoadDiscoveryType rdt = getDiscoveryType();
-		switch(rdt) {
-			case HiddenPaths:
-				sb.append("hidden paths");
-				break;
-			case SecretPassages:
-				sb.append("secret passages");
-				break;
-			case PathsOrPassages:
-				sb.append("hidden paths and secret passages");
-				break;
+		if (rdt == RoadDiscoveryType.HiddenPaths) {
+			sb.append("hidden paths");
+		} else if (rdt == RoadDiscoveryType.SecretPassages) {
+			sb.append("secret passages");
+		} else if (rdt == RoadDiscoveryType.PathsOrPassages) {
+			sb.append("hidden paths and secret passages");
 		}
 		MapScopeType scope = getScopeType();
 		sb.append(" in the");
 		if (!locationOnly() ) {
 			sb.append(" current");
 		}
-		switch(scope) {
-			case Clearing:
-				sb.append(" clearing");
-				break;
-			case Tile:
-				sb.append(" tile");
-				break;
+		if (scope == MapScopeType.Clearing) {
+			sb.append(" clearing");
+		} else if (scope == MapScopeType.Tile) {
+			sb.append(" tile");
 		}
 		if (locationOnly() && getQuestLocation() != null) {
 			sb.append(" of "+getQuestLocation().getName());
@@ -157,7 +155,7 @@ public class QuestRewardPathsPassages extends QuestReward {
 	public void setQuestLocation(QuestLocation location) {
 		setString(LOCATION,location.getGameObject().getStringId());
 	}
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 	}
 }

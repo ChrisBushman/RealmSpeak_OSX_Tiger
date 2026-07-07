@@ -24,20 +24,37 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 	private static final int MAX_GROUP_SIZE = 12;
 	private static final Font font = new Font("Ariel",Font.PLAIN,20);
 	
-	public static enum DisplayOption {
-		Normal,
-		Flipside,
-		SmallIcon,
-		MediumIcon,
-		Darkside,
-		FaceUp,
+	public static final class DisplayOption {
+		private final String _name;
+		private final int _ordinal;
+		private DisplayOption(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final DisplayOption Normal = new DisplayOption("Normal", 0);
+		public static final DisplayOption Flipside = new DisplayOption("Flipside", 1);
+		public static final DisplayOption SmallIcon = new DisplayOption("SmallIcon", 2);
+		public static final DisplayOption MediumIcon = new DisplayOption("MediumIcon", 3);
+		public static final DisplayOption Darkside = new DisplayOption("Darkside", 4);
+		public static final DisplayOption FaceUp = new DisplayOption("FaceUp", 5);
+
+		private static final DisplayOption[] _VALUES = { Normal, Flipside, SmallIcon, MediumIcon, Darkside, FaceUp };
+		public static DisplayOption[] values() { DisplayOption[] r = new DisplayOption[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static DisplayOption valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	private Font TITLE_FONT = new Font("Dialog", Font.BOLD, 14);
 
-	private OrderedHashtable<String, String> textHash;
-	private HashLists<String, ArrayList<RealmComponent>> componentHashLists;
-	private HashLists<Object, ImageIcon> iconHashLists;
+	private OrderedHashtable textHash;
+	private HashLists componentHashLists;
+	private HashLists iconHashLists;
 	
 	private JScrollPane viewComponentsPane;
 	private RealmObjectPanel viewComponentsPanel;
@@ -47,7 +64,7 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 
 	private String selectedKey = null;
 	private String selectedText = null;
-	private ArrayList<RealmComponent> selectedComponents = null;
+	private ArrayList selectedComponents = null;
 	
 	private int hTextPos = SwingConstants.LEADING;
 	private int vTextPos = SwingConstants.CENTER;
@@ -61,18 +78,18 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 
 	public RealmComponentOptionChooser(JFrame parent, String title,boolean includeCancel) {
 		super(parent, "", true);
-		textHash = new OrderedHashtable<String, String>();
-		componentHashLists = new HashLists<String, ArrayList<RealmComponent>>();
-		iconHashLists= new HashLists<Object, ImageIcon>();
+		textHash = new OrderedHashtable();
+		componentHashLists = new HashLists();
+		iconHashLists= new HashLists();
 		initComponents(title,includeCancel);
 		updateLayout();
 	}
 	
 	public RealmComponentOptionChooser(JFrame parent, String title,String cancelButton) {
 		super(parent, "", true);
-		textHash = new OrderedHashtable<String, String>();
-		componentHashLists = new HashLists<String, ArrayList<RealmComponent>>();
-		iconHashLists= new HashLists<Object, ImageIcon>();
+		textHash = new OrderedHashtable();
+		componentHashLists = new HashLists();
+		iconHashLists= new HashLists();
 		initComponents(title,true,cancelButton);
 		updateLayout();
 	}
@@ -137,7 +154,7 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 	}
 	
-	public void setViewComponents(Collection<RealmComponent> c) {
+	public void setViewComponents(Collection c) {
 		viewComponentsPanel.addRealmComponents(c);
 		viewComponentsPane.setVisible(true);
 		pack();
@@ -238,7 +255,7 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 //		updateLayout();
 	}
 
-	private JPanel createButtonPanel(ArrayList<String> keys) {
+	private JPanel createButtonPanel(ArrayList keys) {
 		int totalButtons = keys.size();
 		int columns = (int) Math.sqrt(totalButtons);
 		if (columns==0) {
@@ -266,9 +283,11 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 		}
 		
 		if (sortBiggestFirst) {
-			Collections.sort(keys,new Comparator<String>() {
-				public int compare(String k1, String k2) {
-					ArrayList<ImageIcon> list = iconHashLists.getList(k1);
+			Collections.sort(keys,new Comparator() {
+				public int compare(Object o1, Object o2) {
+					String k1 = (String) o1;
+					String k2 = (String) o2;
+					ArrayList list = iconHashLists.getList(k1);
 					int c1 = list==null?-1:list.size();
 					list = iconHashLists.getList(k2);
 					int c2 = list==null?-1:list.size();
@@ -278,10 +297,11 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 		}
 		
 		int n=0;
-		for (String key:keys) {
-			String text = textHash.get(key);
+		for (java.util.Iterator _j14it2007 = (keys).iterator(); _j14it2007.hasNext(); ) {
+		  String key = (String) _j14it2007.next();
+			String text = (String) textHash.get(key);
 			ArrayList rcs = componentHashLists.getList(key);
-			ArrayList<ImageIcon> icons = iconHashLists.getList(key);
+			ArrayList icons = iconHashLists.getList(key);
 			SelectButton aButton = new SelectButton(key, text, rcs, icons);
 			column[getColumn(rows,columns,n++)].add(aButton);
 			cellCount--;
@@ -297,11 +317,12 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 	}
 
 	private void updateLayout() {
-		ArrayList<String> group = null;
-		ArrayList<ArrayList<String>> send = new ArrayList<ArrayList<String>>();
-		for (String key : textHash.keySet()) {
+		ArrayList group = null;
+		ArrayList send = new ArrayList();
+		for (java.util.Iterator _j14it2008 = (textHash.keySet()).iterator(); _j14it2008.hasNext(); ) {
+		  String key = (String) _j14it2008.next();
 			if (group==null) {
-				group = new ArrayList<String>();
+				group = new ArrayList();
 				send.add(group);
 			}
 			group.add(key);
@@ -317,7 +338,8 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 			buttonPanel.add(tabs,"Center");
 		}
 		int n=1;
-		for (ArrayList<String> list:send) {
+		for (java.util.Iterator _j14it2009 = (send).iterator(); _j14it2009.hasNext(); ) {
+		  ArrayList list = (ArrayList) _j14it2009.next();
 			JPanel panel = createButtonPanel(list);
 			if (tabs==null) {
 				buttonPanel.add(panel,"Center");
@@ -330,12 +352,13 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 		setLocationRelativeTo(null);
 	}
 
-	private static ImageIcon buildIcon(Collection<ImageIcon> icons) {
+	private static ImageIcon buildIcon(Collection icons) {
 		// Determine total size of icon
 		int maxHeight = 0;
 		int totalWidth = 0;
 		int spacer = 2;
-		for (ImageIcon icon : icons) {
+		for (java.util.Iterator _j14it2010 = (icons).iterator(); _j14it2010.hasNext(); ) {
+		  ImageIcon icon = (ImageIcon) _j14it2010.next();
 			Dimension d = new Dimension(icon.getIconWidth(),icon.getIconHeight());
 			if (totalWidth > 0) {
 				totalWidth += spacer;
@@ -351,7 +374,8 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 		BufferedImage image = new BufferedImage(totalWidth, maxHeight, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics g = image.getGraphics();
 		int x = 0;
-		for (ImageIcon icon : icons) {
+		for (java.util.Iterator _j14it2011 = (icons).iterator(); _j14it2011.hasNext(); ) {
+		  ImageIcon icon = (ImageIcon) _j14it2011.next();
 			Dimension d = new Dimension(icon.getIconWidth(),icon.getIconHeight());
 			if (x > 0) {
 				x += spacer;
@@ -363,7 +387,7 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 
 		return new ImageIcon(image);
 	}
-	public ArrayList<RealmComponent> getSelectedComponents() {
+	public ArrayList getSelectedComponents() {
 		return selectedComponents;
 	}
 	/**
@@ -371,7 +395,7 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 	 */
 	public RealmComponent getFirstSelectedComponent() {
 		if (selectedComponents!=null && !selectedComponents.isEmpty()) {
-			return selectedComponents.get(0);
+			return (RealmComponent) selectedComponents.get(0);
 		}
 		return null;
 	}
@@ -380,7 +404,7 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 	 */
 	public RealmComponent getLastSelectedComponent() {
 		if (selectedComponents!=null && !selectedComponents.isEmpty()) {
-			return selectedComponents.get(selectedComponents.size()-1);
+			return (RealmComponent) selectedComponents.get(selectedComponents.size()-1);
 		}
 		return null;
 	}
@@ -398,9 +422,10 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 	 * Convenience method for doing a simple GameObject selection.  If the game object doesn't translate to a
 	 * RealmComponent, then the name is used by itself.
 	 */
-	public void addGameObjects(Collection<GameObject> list,boolean includeName) {
+	public void addGameObjects(Collection list,boolean includeName) {
 		int keyN = 0;
-		for (GameObject go : list) {
+		for (java.util.Iterator _j14it2012 = (list).iterator(); _j14it2012.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2012.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			String key = "N"+(keyN++);
 			addOption(key,(includeName || rc==null)?go.getName():"");
@@ -422,9 +447,10 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 	public void addRealmComponents(Collection list,boolean includeName) {
 		addRealmComponents(list,includeName,DisplayOption.Normal);
 	}
-	public void addRealmComponents(Collection<RealmComponent> list,boolean includeName,DisplayOption displayOption) {
+	public void addRealmComponents(Collection list,boolean includeName,DisplayOption displayOption) {
 		int keyN = 0;
-		for (RealmComponent rc : list) {
+		for (java.util.Iterator _j14it2013 = (list).iterator(); _j14it2013.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2013.next();
 			String key = "N"+(keyN++);
 			addOption(key,includeName?rc.getGameObject().getName():"");
 			addRealmComponentToOption(key,rc,displayOption);
@@ -433,9 +459,10 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 	/**
 	 * Convenience method for doing a simple String selection
 	 */
-	public void addStrings(Collection<String> list) {
+	public void addStrings(Collection list) {
 		int keyN = 0;
-		for (String string : list) {
+		for (java.util.Iterator _j14it2014 = (list).iterator(); _j14it2014.hasNext(); ) {
+		  String string = (String) _j14it2014.next();
 			String key = "N"+(keyN++);
 			addOption(key,string);
 		}
@@ -444,9 +471,9 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 	private class SelectButton extends JButton implements ActionListener {
 		private String key;
 		private String text;
-		private ArrayList<RealmComponent> rcs;
+		private ArrayList rcs;
 
-		public SelectButton(String key, String text, ArrayList<RealmComponent> rcs, Collection<ImageIcon> icons) {
+		public SelectButton(String key, String text, ArrayList rcs, Collection icons) {
 			super(text);
 			this.key = key;
 			this.text = text;
@@ -523,7 +550,7 @@ public class RealmComponentOptionChooser extends AggressiveDialog {
 			}
 		});
 		
-		ArrayList<RealmComponent> testList = new ArrayList<RealmComponent>();
+		ArrayList testList = new ArrayList();
 		testList.add(RealmComponent.getRealmComponent(loader.getData().getGameObjectByName("Bashkar 1")));
 		testList.add(RealmComponent.getRealmComponent(loader.getData().getGameObjectByName("Bashkar 2")));
 		testList.add(RealmComponent.getRealmComponent(loader.getData().getGameObjectByName("Bashkar 3")));

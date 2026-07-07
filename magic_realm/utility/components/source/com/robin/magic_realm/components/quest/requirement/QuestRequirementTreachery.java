@@ -18,21 +18,22 @@ public class QuestRequirementTreachery extends QuestRequirement {
 		super(go);
 	}
 
-	@Override
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
 		CombatWrapper combatCharacter = new CombatWrapper(character.getGameObject());
-		ArrayList<String> ids = combatCharacter.getBetrayedIds();
+		ArrayList ids = combatCharacter.getBetrayedIds();
 		if (ids==null || ids.isEmpty()) {
 			return false;
 		}
 		Pattern pattern = Pattern.compile(getRegExFilter());
-		for (String id : combatCharacter.getBetrayedIds()) {
+		for (java.util.Iterator _j14it2319 = (combatCharacter.getBetrayedIds()).iterator(); _j14it2319.hasNext(); ) {
+		  String id = (String) _j14it2319.next();
 			GameObject victim = character.getGameData().getGameObject(id);
 			if (getRegExFilter().length() == 0 || pattern.matcher(victim.getName()).find()) {
 				if (killInCombat()) {
 					boolean killedVictimInCombat = false;
-					ArrayList<GameObject> kills = character.getKills(character.getCurrentDayKey());
-					for (GameObject kill : kills) {
+					ArrayList kills = character.getKills(character.getCurrentDayKey());
+					for (java.util.Iterator _j14it2320 = (kills).iterator(); _j14it2320.hasNext(); ) {
+					  GameObject kill = (GameObject) _j14it2320.next();
 						if (id.matches(kill.getStringId())) {
 							killedVictimInCombat = true;
 							break;
@@ -44,11 +45,12 @@ public class QuestRequirementTreachery extends QuestRequirement {
 				}
 				
 				CombatWrapper combatVictim = new CombatWrapper(victim);
-				ArrayList<String> traitors = combatVictim.getBetrayedByIds();
+				ArrayList traitors = combatVictim.getBetrayedByIds();
 				if (traitors == null || traitors.isEmpty()) {
 					continue;
 				}
-				for (String traitorId : traitors) {
+				for (java.util.Iterator _j14it2321 = (traitors).iterator(); _j14it2321.hasNext(); ) {
+				  String traitorId = (String) _j14it2321.next();
 					if (traitorId.matches(character.getGameObject().getStringId())) {
 						return true;
 					}
@@ -58,15 +60,13 @@ public class QuestRequirementTreachery extends QuestRequirement {
 		return false;
 	}
 
-	@Override
 	public RequirementType getRequirementType() {
 		return RequirementType.Treachery;
 	}
 
-	@Override
 	protected String buildDescription() {
 		String regex = getRegExFilter();
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must commit treachery");
 		if (nativeOnly() && (regex == null || regex.trim().length()==0)) {
 			sb.append(" to a native");

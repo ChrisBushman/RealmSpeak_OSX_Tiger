@@ -48,13 +48,15 @@ public class Cleric extends Store {
 			chooser.addRealmComponentToOption("heal",rc);
 		}
 		if (needsCurseRemoval) {
-			for (String curse:character.getAllCurses()) {
+			for (java.util.Iterator _j14it2544 = (character.getAllCurses()).iterator(); _j14it2544.hasNext(); ) {
+			  String curse = (String) _j14it2544.next();
 				chooser.addOption(curse,"Remove "+curse+" Curse (5 gold)");
 				chooser.addRealmComponentToOption(curse,rc);
 			}
 		}
 		if (needsCursedItemRemoval) {
-			for (GameObject thing:character.getAllCursedStuff()) {
+			for (java.util.Iterator _j14it2545 = (character.getAllCursedStuff()).iterator(); _j14it2545.hasNext(); ) {
+			  GameObject thing = (GameObject) _j14it2545.next();
 				chooser.addOption(thing.getStringId(),"Remove & Destroy "+thing.getName()+" (5 gold)");
 				chooser.addRealmComponentToOption(thing.getStringId(),RealmComponent.getRealmComponent(thing));
 			}
@@ -74,7 +76,8 @@ public class Cleric extends Store {
 			}
 			else {
 				character.addGold(-5);
-				for (GameObject thing:character.getAllCursedStuff()) {
+				for (java.util.Iterator _j14it2546 = (character.getAllCursedStuff()).iterator(); _j14it2546.hasNext(); ) {
+				  GameObject thing = (GameObject) _j14it2546.next();
 					if (optionKey.equals(thing.getStringId())) {
 						TreasureUtility.removeCursedItem(character,thing);
 						return "The "+thing.getName()+" is destroyed by the Cleric";

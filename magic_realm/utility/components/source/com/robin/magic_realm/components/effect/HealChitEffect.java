@@ -5,15 +5,14 @@ import com.robin.magic_realm.components.RealmComponent;
 
 public class HealChitEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
-		for(RealmComponent rc: context.Spell.getTargets()) {
+		for (java.util.Iterator _j14it2027 = (context.Spell.getTargets()).iterator(); _j14it2027.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2027.next();
 			CharacterActionChitComponent chit = (CharacterActionChitComponent)rc;
 			chit.makeActive();
 		}
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 	}
 

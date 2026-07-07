@@ -54,21 +54,16 @@ public class QuestRequirementAttribute extends QuestRequirement {
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
 		TargetValueType tvt = getTargetValueType();
 		DayKey earliest = null;
-		switch (tvt) {
-			case Game:
-				earliest = null;
-				break;
-			case Quest:
-				earliest = getParentStep().getQuestStartTime();
-				break;
-			case Step:
-				earliest = getParentStep().getQuestStepStartTime();
-				initValueOffset(character);
-				break;
-			case Day:
-				earliest = new DayKey(character.getCurrentDayKey());
-				resetValueOffsetForPastDays(character);
-				break;
+		if (tvt == TargetValueType.Game) {
+			earliest = null;
+		} else if (tvt == TargetValueType.Quest) {
+			earliest = getParentStep().getQuestStartTime();
+		} else if (tvt == TargetValueType.Step) {
+			earliest = getParentStep().getQuestStepStartTime();
+			initValueOffset(character);
+		} else if (tvt == TargetValueType.Day) {
+			earliest = new DayKey(character.getCurrentDayKey());
+			resetValueOffsetForPastDays(character);
 		}
 
 		int targetValue = getRealValue(); // this might be different than value when there are other completed quest cards of the same type
@@ -91,7 +86,7 @@ public class QuestRequirementAttribute extends QuestRequirement {
 				getParentQuest().addJournalEntry("REQ" + getGameObject().getStringId(), QuestStepState.Finished, getDescription(targetValue) + "  Done!");
 			}
 			else {
-				StringBuilder sb = new StringBuilder(getDescription(targetValue));
+				StringBuffer sb = new StringBuffer(getDescription(targetValue));
 				sb.append("  Still need ");
 				sb.append(targetValue - grandTotal);
 				sb.append(".");
@@ -122,16 +117,16 @@ public class QuestRequirementAttribute extends QuestRequirement {
 
 	private double getRecorded(CharacterWrapper character, AttributeType attribute) {
 		if (hasRegExFilter()) return 0; // If there is some kind of regex filter
-		switch (attribute) {
-			case Fame:
-				return character.hasCurse(Constants.DISGUST) ? -1 : character.getFame();
-			case Notoriety:
-				return character.getNotoriety();
-			case Gold:
-				return character.hasCurse(Constants.ASHES) ? -1 : character.getGold();
-			case RecordedSpells:
-				return character.getRecordedSpellCount();
-			default: return 0; // GreatTreasures is never recorded
+		if (attribute == AttributeType.Fame) {
+			return character.hasCurse(Constants.DISGUST) ? -1 : character.getFame();
+		} else if (attribute == AttributeType.Notoriety) {
+			return character.getNotoriety();
+		} else if (attribute == AttributeType.Gold) {
+			return character.hasCurse(Constants.ASHES) ? -1 : character.getGold();
+		} else if (attribute == AttributeType.RecordedSpells) {
+			return character.getRecordedSpellCount();
+		} else {
+			return 0; // GreatTreasures is never recorded
 		}
 	}
 
@@ -142,7 +137,8 @@ public class QuestRequirementAttribute extends QuestRequirement {
 		String regex = getRegExFilter();
 		Pattern pattern = regex == null || regex.trim().length() == 0 ? null : Pattern.compile(regex);
 		int total = 0;
-		for (GameObject go : character.getInventory()) {
+		for (java.util.Iterator _j14it2313 = (character.getInventory()).iterator(); _j14it2313.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2313.next();
 			if (pattern != null && !pattern.matcher(go.getName()).find())
 				continue; // skip inventory that doesn't match regex (if used)
 
@@ -161,15 +157,14 @@ public class QuestRequirementAttribute extends QuestRequirement {
 	}
 
 	private static int getInventoryValue(GameObject go, AttributeType attribute) {
-		switch (attribute) {
-			case Fame:
-				return !go.hasThisAttribute("native") ? go.getThisInt("fame") : 0;
-			case Notoriety:
-				return go.getThisInt("notoriety");
-			case GreatTreasures:
-				return go.hasThisAttribute("great") ? 1 : 0;
-			default:
-				return 0; // no value for gold or recorded spells
+		if (attribute == AttributeType.Fame) {
+			return !go.hasThisAttribute("native") ? go.getThisInt("fame") : 0;
+		} else if (attribute == AttributeType.Notoriety) {
+			return go.getThisInt("notoriety");
+		} else if (attribute == AttributeType.GreatTreasures) {
+			return go.hasThisAttribute("great") ? 1 : 0;
+		} else {
+			return 0; // no value for gold or recorded spells
 		}
 	}
 
@@ -181,10 +176,11 @@ public class QuestRequirementAttribute extends QuestRequirement {
 		String regex = getRegExFilter();
 		Pattern pattern = regex == null || regex.trim().length() == 0 ? null : Pattern.compile(regex);
 		int good = 0;
-		ArrayList<String> dayKeys = character.getAllDayKeys();
+		ArrayList dayKeys = character.getAllDayKeys();
 		if (dayKeys == null)
 			return 0;
-		for (Object obj : dayKeys) {
+		for (java.util.Iterator _j14it2314 = (dayKeys).iterator(); _j14it2314.hasNext(); ) {
+		  Object obj = (Object) _j14it2314.next();
 			String dayKeyString = (String) obj;
 			if (!character.areKills(dayKeyString))
 				continue;
@@ -192,11 +188,11 @@ public class QuestRequirementAttribute extends QuestRequirement {
 			DayKey dayKey = new DayKey(dayKeyString);
 			if (earliest!=null && dayKey.before(earliest)) continue; // can't count kills before the earliest date (if any)
 
-			ArrayList<GameObject> kills = character.getKills(dayKeyString);
-			ArrayList<Spoils> killSpoils = character.getKillSpoils(dayKeyString);
+			ArrayList kills = character.getKills(dayKeyString);
+			ArrayList killSpoils = character.getKillSpoils(dayKeyString);
 			for (int i = 0; i < kills.size(); i++) {
-				GameObject go = kills.get(i);
-				Spoils spoils = killSpoils.get(i);
+				GameObject go = (GameObject) kills.get(i);
+				Spoils spoils = (Spoils) killSpoils.get(i);
 				if (pattern!=null && !pattern.matcher(go.getName()).find()) continue;
 
 				if (attribute == AttributeType.Fame)
@@ -240,7 +236,8 @@ public class QuestRequirementAttribute extends QuestRequirement {
 			if (character != null) {
 				// Count the completed clones of this quest in the character hand and add a multiple of value to the val
 				int count = 0;
-				for (GameObject go : getParentQuest().findClones(character.getAllQuestObjects())) {
+				for (java.util.Iterator _j14it2315 = (getParentQuest().findClones(character.getAllQuestObjects())).iterator(); _j14it2315.hasNext(); ) {
+				  GameObject go = (GameObject) _j14it2315.next();
 					Quest quest = new Quest(go);
 					if (quest.getState().isFinished())
 						count++;
@@ -264,7 +261,7 @@ public class QuestRequirementAttribute extends QuestRequirement {
 	}
 
 	private String getDescription(int realValue) {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must record ");
 		sb.append(realValue);
 		sb.append(" ");

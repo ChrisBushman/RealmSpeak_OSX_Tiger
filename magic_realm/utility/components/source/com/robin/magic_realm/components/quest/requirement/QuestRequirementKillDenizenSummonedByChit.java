@@ -22,7 +22,7 @@ public class QuestRequirementKillDenizenSummonedByChit extends QuestRequirement 
 	}
 
 	protected boolean testFulfillsRequirement(JFrame frame,CharacterWrapper character,QuestRequirementParams reqParams) {
-		ArrayList<GameObject> kills = character.getKills(character.getCurrentDayKey());
+		ArrayList kills = character.getKills(character.getCurrentDayKey());
 		String chitName = getChit().toLowerCase();
 		TileLocation loc = character.getCurrentLocation();
 		if (getTileType()!=null && !getTileType().matches(ANY)) {
@@ -30,13 +30,14 @@ public class QuestRequirementKillDenizenSummonedByChit extends QuestRequirement 
 				return false;
 			}
 		}
-		ArrayList<String> chitNames = new ArrayList<String>();
+		ArrayList chitNames = new ArrayList();
 		if (sameClearing()) {			
 			if (getChit().matches(QuestRequirement.NONE)) {
 				if (loc==null || loc.clearing==null) {
 					return true;
 				}
-				for (RealmComponent rc : loc.clearing.getClearingComponents()) {
+				for (java.util.Iterator _j14it2309 = (loc.clearing.getClearingComponents()).iterator(); _j14it2309.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it2309.next();
 					if (rc.isWarning() || rc.isSound()) {
 						return false;
 					}
@@ -47,7 +48,8 @@ public class QuestRequirementKillDenizenSummonedByChit extends QuestRequirement 
 					return false;
 				}
 				boolean chitInClearing = false;
-				for (RealmComponent rc : loc.clearing.getClearingComponents()) {
+				for (java.util.Iterator _j14it2310 = (loc.clearing.getClearingComponents()).iterator(); _j14it2310.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it2310.next();
 					if (!rc.isWarning() && !rc.isSound()) {
 						continue;
 					}
@@ -70,7 +72,8 @@ public class QuestRequirementKillDenizenSummonedByChit extends QuestRequirement 
 		else {
 			chitNames.add(chitName);
 		}
-		for(GameObject kill:kills) {
+		for (java.util.Iterator _j14it2311 = (kills).iterator(); _j14it2311.hasNext(); ) {
+		  GameObject kill = (GameObject) _j14it2311.next();
 			GameObject holder = SetupCardUtility.getDenizenHolder(kill);
 			if (holder!=null) {
 				String summonList = holder.getThisAttribute("summon");
@@ -86,7 +89,8 @@ public class QuestRequirementKillDenizenSummonedByChit extends QuestRequirement 
 						if (stringTokenizer.hasMoreTokens()) {
 							summonWithoutTileType = stringTokenizer.nextToken().toLowerCase().trim();
 						}
-						for (String chit : chitNames) {
+						for (java.util.Iterator _j14it2312 = (chitNames).iterator(); _j14it2312.hasNext(); ) {
+						  String chit = (String) _j14it2312.next();
 							if (summon.matches(chit) || summonWithoutTileType.matches(chit)) {
 								return true;
 							}
@@ -99,7 +103,7 @@ public class QuestRequirementKillDenizenSummonedByChit extends QuestRequirement 
 	}
 	
 	protected String buildDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must kill a monster summoned by a ");
 		sb.append(getChit());
 		sb.append(" chit");

@@ -39,7 +39,7 @@ public class QuestRequirementHirelings extends QuestRequirement {
 	}
 
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
-		ArrayList<RealmComponent> hirelings;
+		ArrayList hirelings;
 		int amount = 0;
 		if (mustFollow())
 			hirelings = character.getFollowingHirelings();
@@ -47,7 +47,8 @@ public class QuestRequirementHirelings extends QuestRequirement {
 			hirelings = character.getAllHirelings();
 		}
 		Pattern pattern = Pattern.compile(getRegExFilter());
-		for (RealmComponent hireling : hirelings) {
+		for (java.util.Iterator _j14it2316 = (hirelings).iterator(); _j14it2316.hasNext(); ) {
+		  RealmComponent hireling = (RealmComponent) _j14it2316.next();
 			if (getRegExFilter().length() == 0 || pattern.matcher(hireling.getGameObject().getName()).find()) {
 				if (sameLocation() && !(hireling.getCurrentLocation().tile == character.getCurrentLocation().tile && hireling.getCurrentLocation().clearing == character.getCurrentLocation().clearing)) continue;
 				if (checkStats()) {
@@ -55,7 +56,7 @@ public class QuestRequirementHirelings extends QuestRequirement {
 					Strength vul = new Strength();
 					Strength str = new Strength();
 					int sharp = 0;
-					Boolean armored = false;	
+					boolean armored = false;
 					if (hireling.isNative()) {
 						denizen = (NativeChitComponent) hireling;
 						vul = ((NativeChitComponent) denizen).getVulnerability();
@@ -69,7 +70,7 @@ public class QuestRequirementHirelings extends QuestRequirement {
 							Strength str2 = ((NativeChitComponent) denizen).getStrength();
 							str = str.strongerOrEqualTo(str2) ? str : str2;
 							sharp = Math.max(sharp, ((NativeChitComponent) denizen).getSharpness());
-							armored = armored ? armored : ((NativeChitComponent) denizen).isArmored();
+							armored = armored || ((NativeChitComponent) denizen).isArmored();
 							denizen.flip();
 						}
 					}
@@ -86,7 +87,7 @@ public class QuestRequirementHirelings extends QuestRequirement {
 							Strength str2 = ((MonsterChitComponent) denizen).getStrength();
 							str = str.strongerOrEqualTo(str2) ? str : str2;
 							sharp = Math.max(sharp, ((MonsterChitComponent) denizen).getSharpness());
-							armored = armored ? armored : ((MonsterChitComponent) denizen).isArmored();
+							armored = armored || ((MonsterChitComponent) denizen).isArmored();
 							denizen.flip();
 						}
 					}
@@ -94,7 +95,7 @@ public class QuestRequirementHirelings extends QuestRequirement {
 						continue;
 					}
 					Speed attackSpeed = denizen.getAttackSpeed();
-					Integer length = denizen.getLength();
+					int length = denizen.getLength() != null ? denizen.getLength().intValue() : 0;
 					boolean isMissile = denizen.isMissile();
 					Speed moveSpeed = denizen.getMoveSpeed();
 					Speed flySpeed = denizen.getFlySpeed();
@@ -103,14 +104,14 @@ public class QuestRequirementHirelings extends QuestRequirement {
 						Speed attackSpeed2 = denizen.getAttackSpeed();
 						attackSpeed = attackSpeed.fasterThanOrEqual(attackSpeed2) ? attackSpeed : attackSpeed2;
 						Speed moveSpeed2 = denizen.getMoveSpeed();
-						length = Math.max(length, denizen.getLength());
-						isMissile = isMissile ? isMissile : denizen.isMissile();
+						length = Math.max(length, denizen.getLength() != null ? denizen.getLength().intValue() : 0);
+						isMissile = isMissile || denizen.isMissile();
 						moveSpeed = moveSpeed.fasterThanOrEqual(moveSpeed2) ? moveSpeed : moveSpeed2;
 						Speed flySpeed2 = denizen.getFlySpeed();
 						flySpeed = (flySpeed != null && flySpeed.fasterThanOrEqual(flySpeed2)) ? flySpeed : flySpeed2;
 						denizen.flip();
 					}
-					
+
 					if (hireling.isMonster() && includeWeapons()) {
 						MonsterPartChitComponent weapon = ((MonsterChitComponent) denizen).getWeapon();
 						if (weapon != null && !weapon.isDestroyed()) {
@@ -118,7 +119,7 @@ public class QuestRequirementHirelings extends QuestRequirement {
 							str = str.strongerOrEqualTo(weaponStrength) ? str : weaponStrength;
 							Speed weaponSpeed = weapon.getAttackSpeed();
 							attackSpeed = attackSpeed.fasterThanOrEqual(weaponSpeed) ? attackSpeed : weaponSpeed;
-							Integer weaponLength = weapon.getLength();
+							int weaponLength = weapon.getLength() != null ? weapon.getLength().intValue() : 0;
 							length = Math.max(length, weaponLength);
 						}
 					}
@@ -191,7 +192,7 @@ public class QuestRequirementHirelings extends QuestRequirement {
 	private int getSharpness() {
 		return getInt(SHARPNESS);
 	}
-	private Boolean getMissile() {
+	private boolean getMissile() {
 		return getBoolean(MISSILE);
 	}
 	private int getMoveSpeed() {
@@ -200,13 +201,13 @@ public class QuestRequirementHirelings extends QuestRequirement {
 	private int getFlySpeed() {
 		return getInt(FLY_SPEED);
 	}
-	private Boolean getArmored() {
+	private boolean getArmored() {
 		return getBoolean(ARMORED);
 	}
-	private Boolean checkBothSides() {
+	private boolean checkBothSides() {
 		return getBoolean(CHECK_BOTH_SIDES);
 	}
-	private Boolean includeWeapons() {
+	private boolean includeWeapons() {
 		return getBoolean(INCLUDE_WEAPONS);
 	}
 }

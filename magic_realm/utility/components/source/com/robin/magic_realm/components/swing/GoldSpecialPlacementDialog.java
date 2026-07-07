@@ -26,8 +26,8 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 	private CharacterWrapper character;
 	private GameData gameData;
 	
-	private ArrayList<GameObject[]> chits;
-	private ArrayList<GameObject> destinations;
+	private ArrayList chits;
+	private ArrayList destinations;
 	
 	private GoldSpecialChitComponent activeChit;
 	private GameObject activeDestination;
@@ -35,8 +35,8 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 	
 	private JLabel chitIcon;
 	private JEditorPane editorPane;
-	private ArrayList<JToggleButton> chitButtons;
-	private ArrayList<PlaceButton> destButtons;
+	private ArrayList chitButtons;
+	private ArrayList destButtons;
 	
 	private HostPrefWrapper hostPrefs;
 	
@@ -59,7 +59,8 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 		chitIcon.setIcon(rc.getIcon());
 		editorPane.setText(rc.generateHTML(character));
 		editorPane.setCaretPosition(0);
-		for (PlaceButton button:destButtons) {
+		for (java.util.Iterator _j14it1919 = (destButtons).iterator(); _j14it1919.hasNext(); ) {
+		  PlaceButton button = (PlaceButton) _j14it1919.next();
 			button.setEnabled(true);
 		}
 	}
@@ -78,17 +79,17 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 	}
 	private void initData() {
 		RealmObjectMaster rom = RealmObjectMaster.getRealmObjectMaster(gameData);
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add("!"+Constants.GOLD_SPECIAL_PLACED);
 		if (hostPrefs.hasPref(Constants.HOUSE2_IGNORE_CAMPAIGNS)) {
 			query.add("!campaign");
 		}
-		ArrayList<GameObject> gs = new ArrayList<GameObject>(rom.findObjects("gold_special",query));
-		destinations = new ArrayList<GameObject>(rom.findObjects("gold_special_target"));
-		chits = new ArrayList<GameObject[]>();
+		ArrayList gs = new ArrayList(rom.findObjects("gold_special",query));
+		destinations = new ArrayList(rom.findObjects("gold_special_target"));
+		chits = new ArrayList();
 		while (!gs.isEmpty()) {
 			GameObject[] chit = new GameObject[2];
-			chit[0] = gs.remove(0);
+			chit[0] = (GameObject) gs.remove(0);
 			if (chit[0].hasThisAttribute("pairid")) {
 				chit[1] = gameData.getGameObject(Long.valueOf(chit[0].getThisAttribute("pairid")));
 				gs.remove(chit[1]);
@@ -115,9 +116,10 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 		int count = 0;
 		int pageCount = 0;
 		ButtonGroup group = new ButtonGroup();
-		chitButtons = new ArrayList<JToggleButton>();
+		chitButtons = new ArrayList();
 		boolean ignoreCampaigns = hostPrefs.hasPref(Constants.HOUSE2_IGNORE_CAMPAIGNS);
-		for (GameObject[] chit:chits) {
+		for (java.util.Iterator _j14it1920 = (chits).iterator(); _j14it1920.hasNext(); ) {
+		  GameObject[] chit = (GameObject[]) _j14it1920.next();
 			if ((!hostPrefs.usesSuperRealm() && count%6==0) || (hostPrefs.usesSuperRealm() && count%12==0)) {
 				if (buttonGrid!=null) {
 					chitTabs.addTab(String.valueOf(++pageCount),buttonGrid);
@@ -190,8 +192,9 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 		DestinationPanel dPanel = null;
 		count = 0;
 		pageCount = 0;
-		destButtons = new ArrayList<PlaceButton>();
-		for (GameObject go:destinations) {
+		destButtons = new ArrayList();
+		for (java.util.Iterator _j14it1921 = (destinations).iterator(); _j14it1921.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1921.next();
 			if (count%7==0) {
 				if (dPanel!=null) {
 					destTabs.addTab(String.valueOf(++pageCount),dPanel);
@@ -214,7 +217,7 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 			}
 			
 			if (go.getHoldCount()>0) {
-				GameObject hold = go.getHold().get(0);
+				GameObject hold = (GameObject) go.getHold().get(0);
 				destRow.add(new JLabel(hold.getName(),SwingConstants.CENTER));
 			}
 			else {
@@ -240,10 +243,10 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 			public void actionPerformed(ActionEvent ev) {
 				int r;
 				JToggleButton chitButton;
-				while(!(chitButton = (chitButtons.get(RandomNumber.getRandom(chitButtons.size())))).isEnabled());
+				while(!(chitButton = ((JToggleButton)(chitButtons.get(RandomNumber.getRandom(chitButtons.size()))))).isEnabled());
 				chitButton.doClick();
 				r = RandomNumber.getRandom(destButtons.size());
-				destButtons.get(r).doClick();
+				((javax.swing.AbstractButton) destButtons.get(r)).doClick();
 			}
 		});
 		
@@ -264,14 +267,15 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 	}
 	private String getCharacterInfo() {
 		String levelKey = "level_"+character.getCharacterLevel();
-		ArrayList<String> types = character.getGameObject().getAttributeList(levelKey,"spelltypes"); // like [I,VII] (for example)
+		ArrayList types = character.getGameObject().getAttributeList(levelKey,"spelltypes"); // like [I,VII] (for example)
 		String info;
 		if (types==null) {
 			info = character.getGameObject().getName()+" has no spell types.";
 		}
 		else {
 			StringBufferedList list = new StringBufferedList();
-			for (String val : types) {
+			for (java.util.Iterator _j14it1922 = (types).iterator(); _j14it1922.hasNext(); ) {
+			  String val = (String) _j14it1922.next();
 				list.append(val);
 			}
 			info = character.getGameObject().getName()+" can learn<br>spells of type "+list.toString();
@@ -330,17 +334,19 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 	private static void prepMultiboard(HostPrefWrapper hostPrefs,GameData data) {
 		RealmLoader doubleLoader = new RealmLoader();
 		
-		ArrayList<String> appendNames = new ArrayList<String>();
+		ArrayList appendNames = new ArrayList();
 		doubleLoader.cleanupData(hostPrefs.getGameKeyVals());
 		int count = hostPrefs.getMultiBoardCount();
 		for (int n=0;n<count-1;n++) {
 			String appendName = " "+Constants.MULTI_BOARD_APPENDS.substring(n,n+1);
 			appendNames.add(appendName);
 		}
-		for (String appendName:appendNames) {
+		for (java.util.Iterator _j14it1923 = (appendNames).iterator(); _j14it1923.hasNext(); ) {
+		  String appendName = (String) _j14it1923.next();
 			long start = data.getMaxId()+1;
 			doubleLoader.getData().renumberObjectsStartingWith(start);
-			for (GameObject go : doubleLoader.getData().getGameObjects()) {
+			for (java.util.Iterator _j14it1924 = (doubleLoader.getData().getGameObjects()).iterator(); _j14it1924.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it1924.next();
 				if (!go.hasThisAttribute("season")) { // The one exception
 					GameObject dub = data.createNewObject(go.getId());
 					dub.copyFrom(go);
@@ -351,7 +357,8 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 		}
 		
 		// Resolve objects (holds can't be calculated until all are loaded!)
-		for (GameObject obj : data.getGameObjects()) {
+		for (java.util.Iterator _j14it1925 = (data.getGameObjects()).iterator(); _j14it1925.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it1925.next();
 			obj.resolveHold(data.getGameObjectIDHash());
 		}
 		

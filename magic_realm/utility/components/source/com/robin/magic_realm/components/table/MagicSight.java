@@ -38,9 +38,11 @@ public class MagicSight extends Search {
 		
 		boolean foundEnemies = false;
 		// 1)	Find hidden enemies, but only those that have weapon, armor, or horse counters
-		for (RealmComponent rc : character.getCurrentLocation().clearing.getClearingComponents()) {
+		for (java.util.Iterator _j14it2082 = (character.getCurrentLocation().clearing.getClearingComponents()).iterator(); _j14it2082.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2082.next();
 			if (rc.isCharacter() || rc.isNative()) {
-				for (GameObject itemGo : rc.getGameObject().getHold()) {
+				for (java.util.Iterator _j14it2083 = (rc.getGameObject().getHold()).iterator(); _j14it2083.hasNext(); ) {
+				  GameObject itemGo = (GameObject) _j14it2083.next();
 					RealmComponent item = RealmComponent.getRealmComponent(itemGo);
 					if (item.isWeapon() || item.isArmor() || item.isHorse()) {
 						character.addFoundHiddenEnemy(rc.getGameObject());
@@ -52,9 +54,10 @@ public class MagicSight extends Search {
 		}
 		
 		// 2)	Take topmost "counter" (weapon, armor, horse) from any discovered Site in your clearing or cache of belongings
-		ArrayList<RealmComponent> clearingLoot = new ArrayList<RealmComponent>();
-		ArrayList<RealmComponent> components = new ArrayList<RealmComponent>();
-		for (RealmComponent rc : character.getCurrentLocation().clearing.getClearingComponents()) {
+		ArrayList clearingLoot = new ArrayList();
+		ArrayList components = new ArrayList();
+		for (java.util.Iterator _j14it2084 = (character.getCurrentLocation().clearing.getClearingComponents()).iterator(); _j14it2084.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2084.next();
 			if (rc.getGameObject().hasThisAttribute(RealmComponent.TREASURE_LOCATION)) {
 				if (!rc.getGameObject().hasThisAttribute("discovery") ||
 						character.hasTreasureLocationDiscovery(rc.getGameObject().getName())) {
@@ -89,13 +92,13 @@ public class MagicSight extends Search {
 			if (optionKey!=null) { // It better be, without a cancel button!!
 				Loot loot;
 				if ("clearingLoot".equals(optionKey)) {
-					RealmComponent rc = clearingLoot.iterator().next();
+					RealmComponent rc = (RealmComponent) clearingLoot.iterator().next();
 					topmostCounter = rc.getGameObject();
 					loot = (Loot)RealmTable.loot(getParentFrame(),character,character.getCurrentLocation(),getListener(),true);
 				}
 				else {
 					RealmComponent rc = chooser.getFirstSelectedComponent();
-					topmostCounter = getTreasureCounters(rc.getGameObject()).iterator().next();
+					topmostCounter = (GameObject) getTreasureCounters(rc.getGameObject()).iterator().next();
 					loot = (Loot)RealmTable.loot(getParentFrame(),character,rc.getGameObject(),getListener(),true);
 					revealTravelers(character, rc.getGameObject());
 				}
@@ -124,9 +127,11 @@ public class MagicSight extends Search {
 		
 		boolean foundEnemies = false;
 		// 1)	Find hidden enemies, but only those that have treasure cards
-		for (RealmComponent rc : character.getCurrentLocation().clearing.getClearingComponents()) {
+		for (java.util.Iterator _j14it2085 = (character.getCurrentLocation().clearing.getClearingComponents()).iterator(); _j14it2085.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2085.next();
 			if (rc.isCharacter() || rc.isNative()) {
-				for (GameObject itemGo : rc.getGameObject().getHold()) {
+				for (java.util.Iterator _j14it2086 = (rc.getGameObject().getHold()).iterator(); _j14it2086.hasNext(); ) {
+				  GameObject itemGo = (GameObject) _j14it2086.next();
 					RealmComponent item = RealmComponent.getRealmComponent(itemGo);
 					if (item.isTreasure()) {
 						character.addFoundHiddenEnemy(rc.getGameObject());
@@ -138,9 +143,10 @@ public class MagicSight extends Search {
 		}
 		
 		// 2)	Take topmost "treasure card" from any discovered Site in your clearing or cache of belongings
-		ArrayList<RealmComponent> clearingLoot = new ArrayList<RealmComponent>();
-		ArrayList<RealmComponent> components = new ArrayList<RealmComponent>();
-		for (RealmComponent rc : character.getCurrentLocation().clearing.getClearingComponents()) {
+		ArrayList clearingLoot = new ArrayList();
+		ArrayList components = new ArrayList();
+		for (java.util.Iterator _j14it2087 = (character.getCurrentLocation().clearing.getClearingComponents()).iterator(); _j14it2087.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2087.next();
 			boolean added = false;
 			if (rc.getGameObject().hasThisAttribute(RealmComponent.TREASURE_LOCATION)) {
 				if (!rc.getGameObject().hasThisAttribute("discovery") ||
@@ -180,13 +186,13 @@ public class MagicSight extends Search {
 				//GameObject topmostTreasureCard;
 				Loot loot;
 				if ("clearingLoot".equals(optionKey)) {
-					RealmComponent rc = clearingLoot.iterator().next();
+					RealmComponent rc = (RealmComponent) clearingLoot.iterator().next();
 					topmostTreasureCard = rc.getGameObject();
 					loot = (Loot)RealmTable.loot(getParentFrame(),character,character.getCurrentLocation(),getListener(),true);
 				}
 				else {
 					RealmComponent rc = chooser.getFirstSelectedComponent();
-					topmostTreasureCard = TreasureUtility.getTreasureCards(rc.getGameObject()).iterator().next();
+					topmostTreasureCard = (GameObject) TreasureUtility.getTreasureCards(rc.getGameObject()).iterator().next();
 					loot = (Loot)RealmTable.loot(getParentFrame(),character,rc.getGameObject(),getListener(),true);
 					revealTravelers(character, rc.getGameObject());
 				}
@@ -220,7 +226,8 @@ public class MagicSight extends Search {
 		
 		boolean foundEnemies = false;
 		// 1)	Find hidden enemies, but only those that have recorded spells
-		for (RealmComponent rc : character.getCurrentLocation().clearing.getClearingComponents()) {
+		for (java.util.Iterator _j14it2088 = (character.getCurrentLocation().clearing.getClearingComponents()).iterator(); _j14it2088.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2088.next();
 			if (rc.isCharacter()) { // only characters will have recorded spells
 				CharacterWrapper enemyChar = new CharacterWrapper(rc.getGameObject());
 				if (enemyChar.hasSpells()) {
@@ -231,13 +238,14 @@ public class MagicSight extends Search {
 		}
 		
 		// 2)	Look at any one activated artifact/spellbook, or discovered site's spells, and learn any one you want
-		ArrayList<RealmComponent> components = new ArrayList<RealmComponent>();
-		for (RealmComponent rc : character.getCurrentLocation().clearing.getClearingComponents()) {
+		ArrayList components = new ArrayList();
+		for (java.util.Iterator _j14it2089 = (character.getCurrentLocation().clearing.getClearingComponents()).iterator(); _j14it2089.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2089.next();
 			if (rc.getGameObject().hasThisAttribute(RealmComponent.TREASURE_LOCATION)) {
 				if (!rc.getGameObject().hasThisAttribute("discovery") ||
 						character.hasTreasureLocationDiscovery(rc.getGameObject().getName())) {
 					// Site possibility, but does it have any spells?
-					Collection<GameObject> c = SpellUtility.getSpells(rc.getGameObject(),null,true,false);
+					Collection c = SpellUtility.getSpells(rc.getGameObject(),null,true,false);
 					if (c.size()>0) {
 						// Don't worry if there are no spells to learn here
 						components.add(rc);
@@ -246,7 +254,8 @@ public class MagicSight extends Search {
 			}
 		}
 		// check player inventory
-		for (GameObject item : character.getInventory()) {
+		for (java.util.Iterator _j14it2090 = (character.getInventory()).iterator(); _j14it2090.hasNext(); ) {
+		  GameObject item = (GameObject) _j14it2090.next();
 			if (item.hasThisAttribute(Constants.ACTIVATED) && SpellUtility.getSpellCount(item,null,true)>0) {
 				components.add(RealmComponent.getRealmComponent(item));
 			}
@@ -260,7 +269,7 @@ public class MagicSight extends Search {
 			
 			// Since there is no cancel button, the user MUST have selected a site
 			RealmComponent site = chooser.getFirstSelectedComponent();
-			ArrayList<GameObject> spells = SpellUtility.getSpells(site.getGameObject(),null,true,false);
+			ArrayList spells = SpellUtility.getSpells(site.getGameObject(),null,true,false);
 			
 			// Show ALL spells to player (43.6/5)
 			RealmComponentDisplayDialog dialog = new RealmComponentDisplayDialog(getParentFrame(),
@@ -270,14 +279,16 @@ public class MagicSight extends Search {
 			
 			// Add a character note
 			StringBufferedList note = new StringBufferedList();
-			for (GameObject spell:spells) {
+			for (java.util.Iterator _j14it2091 = (spells).iterator(); _j14it2091.hasNext(); ) {
+			  GameObject spell = (GameObject) _j14it2091.next();
 				note.append(spell.getName());
 			}
 			character.addNote(site.getGameObject(),"Perceive Spell",note.toString());
 			
 			// Only offer learnable spells!
-			ArrayList<GameObject> learnableSpells = new ArrayList<GameObject>();
-			for (GameObject spell : spells) {
+			ArrayList learnableSpells = new ArrayList();
+			for (java.util.Iterator _j14it2092 = (spells).iterator(); _j14it2092.hasNext(); ) {
+			  GameObject spell = (GameObject) _j14it2092.next();
 				if (character.canLearn(spell)) {
 					learnableSpells.add(spell);
 				}
@@ -320,9 +331,10 @@ public class MagicSight extends Search {
 		return "Nothing";
 	}
 
-	public static Collection<GameObject> getTreasureCounters(GameObject treasureLocation) {
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
-		for (GameObject obj : treasureLocation.getHold()) {
+	public static Collection getTreasureCounters(GameObject treasureLocation) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it2093 = (treasureLocation.getHold()).iterator(); _j14it2093.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it2093.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(obj);
 			if (rc.isWeapon() || rc.isArmor() || rc.isHorse()) {
 				list.add(obj);
@@ -335,10 +347,10 @@ public class MagicSight extends Search {
 		return getTreasureCounters(treasureLocation).size();
 	}
 	
-	@Override
-	protected ArrayList<ImageIcon> getHintIcons(CharacterWrapper character) {
-		ArrayList<ImageIcon> list = new ArrayList<ImageIcon>();
-		for(RealmComponent rc:getAllDiscoverableChits(character,false)) {
+	protected ArrayList getHintIcons(CharacterWrapper character) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it2094 = (getAllDiscoverableChits(character,false)).iterator(); _j14it2094.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2094.next();
 			list.add(getIconForSearch(rc));
 		}
 		return list;

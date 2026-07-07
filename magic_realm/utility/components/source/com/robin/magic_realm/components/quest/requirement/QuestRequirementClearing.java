@@ -33,7 +33,7 @@ public class QuestRequirementClearing extends QuestRequirement {
 		if (loc == null || loc.clearing == null) return false;
 		if (getTileSide() !=  LocationTileSideType.Any && !getTileSide().matches(loc.tile)) return false;
 		
-		ArrayList<ClearingDetail> clearingsToCheck = new ArrayList<ClearingDetail>();
+		ArrayList clearingsToCheck = new ArrayList();
 		if (checkTile()) {
 			clearingsToCheck.addAll(loc.tile.getClearings());
 		}
@@ -42,7 +42,8 @@ public class QuestRequirementClearing extends QuestRequirement {
 		}
 		
 		if (noChitsToCheck()) {
-			for (ClearingDetail clearing : clearingsToCheck) {
+			for (java.util.Iterator _j14it2328 = (clearingsToCheck).iterator(); _j14it2328.hasNext(); ) {
+			  ClearingDetail clearing = (ClearingDetail) _j14it2328.next();
 				if (getClearingType() != LocationClearingType.Any && !getClearingType().matches(clearing)) continue;
 				return true;
 			}
@@ -50,8 +51,9 @@ public class QuestRequirementClearing extends QuestRequirement {
 		}
 		
 		if (getChitAmount() == 0) return true;
-		ArrayList<RealmComponent> componentsToCheck = new ArrayList<RealmComponent>();
-		for (ClearingDetail clearing : clearingsToCheck) {
+		ArrayList componentsToCheck = new ArrayList();
+		for (java.util.Iterator _j14it2329 = (clearingsToCheck).iterator(); _j14it2329.hasNext(); ) {
+		  ClearingDetail clearing = (ClearingDetail) _j14it2329.next();
 			if (getClearingType() != LocationClearingType.Any && !getClearingType().matches(clearing)) continue;
 			componentsToCheck.addAll(clearing.getDeepClearingComponents());
 		}
@@ -60,7 +62,8 @@ public class QuestRequirementClearing extends QuestRequirement {
 		Pattern pattern = regex.length()==0?null:Pattern.compile(regex);
 		String questId = getParentQuest().getGameObject().getStringId();
 		
-		for (RealmComponent rc : componentsToCheck) {
+		for (java.util.Iterator _j14it2330 = (componentsToCheck).iterator(); _j14it2330.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2330.next();
 			if (pattern != null && !pattern.matcher(rc.getGameObject().getName()).find()) continue;
 			if (getChitType() != null && getChitType() != ChitType.Any && !getChitType().matches(rc)) continue;
 			if (requiresMark()) {
@@ -79,7 +82,7 @@ public class QuestRequirementClearing extends QuestRequirement {
 	}
 	
 	protected String buildDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Character must be in a");
 		if (getTileSide() != LocationTileSideType.Any) {
 			sb.append(" "+getTileSide());

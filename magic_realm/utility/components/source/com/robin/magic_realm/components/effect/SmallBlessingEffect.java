@@ -8,7 +8,6 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class SmallBlessingEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		CharacterWrapper character = context.getCharacterTarget();
 		
@@ -21,7 +20,6 @@ public class SmallBlessingEffect implements ISpellEffect {
 		RealmLogging.logMessage(context.Caster.getName(),"Wish result: "+result);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 	}
 

@@ -20,11 +20,9 @@ public class PrismEvent implements IEvent {
 		RealmEvents.removeInfiniteColorMagicSource(data,ColorMagic.Gold);
 		RealmEvents.removeInfiniteColorMagicSource(data,ColorMagic.Purple);
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		return description;
 	}

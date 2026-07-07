@@ -25,7 +25,7 @@ public class QuestRequirementEnchant extends QuestRequirement {
 			if ((reqParams.objectList==null||reqParams.objectList.isEmpty())) {
 				return false;
 			}
-			GameObject go = reqParams.objectList.get(0);
+			GameObject go = (GameObject) reqParams.objectList.get(0);
 			String chitName = null;
 			if (getChit()!=null) {
 				chitName = getChit().toLowerCase();
@@ -39,7 +39,8 @@ public class QuestRequirementEnchant extends QuestRequirement {
 				TileComponent tile = (TileComponent)tileRc;
 				boolean foundTl = false;
 				boolean foundChit = false;
-				for (RealmComponent rc : tile.getAllClearingComponents()) {
+				for (java.util.Iterator _j14it2327 = (tile.getAllClearingComponents()).iterator(); _j14it2327.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it2327.next();
 					if (foundTl && foundChit) {
 						break;
 					}
@@ -88,7 +89,7 @@ public class QuestRequirementEnchant extends QuestRequirement {
 
 	protected String buildDescription() {
 		if (getType().matches(RealmComponent.TILE)) {
-			StringBuilder sb = new StringBuilder();
+			StringBuffer sb = new StringBuffer();
 			sb.append("Character must enchant a tile");
 			if (getSite()!=null) {
 				sb.append(" with the "+getSite());
@@ -103,7 +104,7 @@ public class QuestRequirementEnchant extends QuestRequirement {
 			return sb.toString();
 		}
 		
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Character must enchant a ");
 		if (getChit()!=null) {
 			sb.append(getChit()+" ");

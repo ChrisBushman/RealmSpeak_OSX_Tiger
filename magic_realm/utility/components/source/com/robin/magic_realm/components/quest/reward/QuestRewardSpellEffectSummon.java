@@ -19,20 +19,16 @@ public class QuestRewardSpellEffectSummon extends QuestReward {
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
 		String spell;
-		switch (getSummonType()) {
-		case animal:
+		SpellUtility.SummonType _st = getSummonType();
+		if (_st == SpellUtility.SummonType.animal) {
 			spell = "Summon Animal";
-			break;
-		case elemental:
+		} else if (_st == SpellUtility.SummonType.elemental) {
 			spell = "Summon Elemental";
-			break;
-		case undead:
+		} else if (_st == SpellUtility.SummonType.undead) {
 			spell = "Raise Dead";
-			break;
-		case demon:
+		} else if (_st == SpellUtility.SummonType.demon) {
 			spell = "Summon Demon";
-			break;
-		default:
+		} else {
 			return;
 		}
 		SpellWrapper spellWrapper = SpellCreator.CreateSpellWrapper(spell, character);

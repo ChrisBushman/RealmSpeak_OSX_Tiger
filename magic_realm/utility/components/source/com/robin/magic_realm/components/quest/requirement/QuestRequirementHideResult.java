@@ -38,21 +38,21 @@ public class QuestRequirementHideResult extends QuestRequirement {
 	
 	public int getDieRoll() {
 		String dieRoll = getString(DIE_ROLL);
-		switch (DieRollType.valueOf(dieRoll)) {
-			case One:
-				return 1;
-			case Two:
-				return 2;
-			case Three:
-				return 3;
-			case Four:
-				return 4;
-			case Five:
-				return 5;
-			case Six:
-				return 6;
-			default:
-				return RandomNumber.getDieRoll(6);
+		DieRollType _drt = DieRollType.valueOf(dieRoll);
+		if (_drt == DieRollType.One) {
+			return 1;
+		} else if (_drt == DieRollType.Two) {
+			return 2;
+		} else if (_drt == DieRollType.Three) {
+			return 3;
+		} else if (_drt == DieRollType.Four) {
+			return 4;
+		} else if (_drt == DieRollType.Five) {
+			return 5;
+		} else if (_drt == DieRollType.Six) {
+			return 6;
+		} else {
+			return RandomNumber.getDieRoll(6);
 		}
 	}
 }

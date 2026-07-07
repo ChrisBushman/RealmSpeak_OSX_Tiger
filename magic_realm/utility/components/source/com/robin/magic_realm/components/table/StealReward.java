@@ -64,8 +64,9 @@ public class StealReward extends RealmTable {
 
 	public String applyFour(CharacterWrapper character) {
 		GameObject holder = SetupCardUtility.getDenizenHolder(victim.getGameObject());
-		ArrayList<RealmComponent> treasures = new ArrayList<RealmComponent>();
-		for(GameObject item:holder.getHold()) {
+		ArrayList treasures = new ArrayList();
+		for (java.util.Iterator _j14it2074 = (holder.getHold()).iterator(); _j14it2074.hasNext(); ) {
+		  GameObject item = (GameObject) _j14it2074.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(item);
 			if ( rc.isTreasure()) {
 				treasures.add(rc);
@@ -75,7 +76,7 @@ public class StealReward extends RealmTable {
 			JOptionPane.showMessageDialog(getParentFrame(),"No treasure to steal from "+victim.getGameObject().getNameWithNumber(),"Steal Reward",JOptionPane.INFORMATION_MESSAGE);
 		}
 		else {
-			GameObject loot = treasures.get(RandomNumber.getRandom(treasures.size())).getGameObject();
+			GameObject loot = ((RealmComponent) treasures.get(RandomNumber.getRandom(treasures.size()))).getGameObject();
 			Loot.addItemToCharacter(getParentFrame(), null, character, loot);
 			// Check for Thieves Guild join requirement
 			GuildStore currentGuild = character.getCurrentGuildStore(false);

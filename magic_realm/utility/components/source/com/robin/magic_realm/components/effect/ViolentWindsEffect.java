@@ -8,7 +8,6 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class ViolentWindsEffect implements ISpellEffect {	
 	
-	@Override
 	public void apply(SpellEffectContext context) {
 		ClearingDetail clearing = context.getClearingTarget();
 		if(!clearing.isAffectedByViolentWinds()){
@@ -20,7 +19,8 @@ public class ViolentWindsEffect implements ISpellEffect {
 			return;
 		}
 		
-		for (RealmComponent rc : clearing.getTileLocation().tile.getRealmComponentsBetweenClearing(clearing.getNum())) {
+		for (java.util.Iterator _j14it2038 = (clearing.getTileLocation().tile.getRealmComponentsBetweenClearing(clearing.getNum())).iterator(); _j14it2038.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2038.next();
 			if (!rc.isCharacter()) continue;
 			CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 			if (character.getCurrentLocation().isFlying()) {
@@ -31,7 +31,6 @@ public class ViolentWindsEffect implements ISpellEffect {
 		moveFlyingCharactersBackToClearings(clearing);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		ClearingDetail clearing = context.getClearingTarget();
 		if(clearing.isAffectedByViolentWinds()){
@@ -40,7 +39,8 @@ public class ViolentWindsEffect implements ISpellEffect {
 	}
 
 	private static void moveFlyingCharactersBackToClearings(ClearingDetail clearing) {
-		for (RealmComponent rc : clearing.getTileLocation().tile.getRealmComponentsBetweenClearing(clearing.getNum())) {
+		for (java.util.Iterator _j14it2039 = (clearing.getTileLocation().tile.getRealmComponentsBetweenClearing(clearing.getNum())).iterator(); _j14it2039.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2039.next();
 			if (!rc.isCharacter()) continue;
 			CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 			if (character.getRunAwayLastUsedChit().matches("FLY")) {

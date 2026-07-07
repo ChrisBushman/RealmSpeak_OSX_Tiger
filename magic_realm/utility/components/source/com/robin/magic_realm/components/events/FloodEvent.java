@@ -16,11 +16,13 @@ public class FloodEvent implements IEvent {
 	public void applyBirdsong(GameData data) {
 	}
 	public void applySunset(GameData data) {
-		ArrayList<TileComponent> waterTiles = RealmEvents.chooseRandomWaterAndAdjacentTiles(data);
+		ArrayList waterTiles = RealmEvents.chooseRandomWaterAndAdjacentTiles(data);
 		if (!waterTiles.isEmpty()) {
-			for (TileComponent tile : waterTiles) {
+			for (java.util.Iterator _j14it2468 = (waterTiles).iterator(); _j14it2468.hasNext(); ) {
+			  TileComponent tile = (TileComponent) _j14it2468.next();
 				GameObject config = RealmEvents.findEventsConfig(data);
-				for (ClearingDetail clearing : tile.getClearings()) {
+				for (java.util.Iterator _j14it2469 = (tile.getClearings()).iterator(); _j14it2469.hasNext(); ) {
+				  ClearingDetail clearing = (ClearingDetail) _j14it2469.next();
 					if (!clearing.isMountain()) {
 						tile.getGameObject().addThisAttributeListItem(Constants.EVENT_FLOOD,clearing.getNumString());
 					}
@@ -32,26 +34,26 @@ public class FloodEvent implements IEvent {
 	}
 	public void expire(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_FLOOD);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_FLOOD);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2470 = (ids).iterator(); _j14it2470.hasNext(); ) {
+			  String id = (String) _j14it2470.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				tile.removeThisAttribute(Constants.EVENT_FLOOD);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_FLOOD,id);
 			}
 		}
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
 		String text = "";
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_FLOOD);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_FLOOD);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2471 = (ids).iterator(); _j14it2471.hasNext(); ) {
+			  String id = (String) _j14it2471.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				text = text + tile.getNameWithNumber() + ", ";
 			}

@@ -29,14 +29,16 @@ public class HallOfFame {
 	public static final String CAT_MAGIC_USERS = "MagicUser";
 	public static final String CAT_FIGHTERS = "Fighter";
 	
-	private Comparator<GameObject> scoreComparator = new Comparator<GameObject>() {
-		public int compare(GameObject go1, GameObject go2) {
+	private Comparator scoreComparator = new Comparator() {
+		public int compare(Object o1, Object o2) {
+			GameObject go1 = (GameObject) o1;
+			GameObject go2 = (GameObject) o2;
 			int ret = 0;
-			
+
 			int s1 = go1.getThisInt(TOTAL_SCORE);
 			int s2 = go2.getThisInt(TOTAL_SCORE);
 			ret = s2 - s1; // High scores should be first
-			
+
 			return ret;
 		}
 	};
@@ -59,9 +61,10 @@ public class HallOfFame {
 		}
 	}
 	
-	public ArrayList<String> getAllCharacterNames() {
-		ArrayList<String> names = new ArrayList<String>();
-		for (GameObject go : hallData.getGameObjects()) {
+	public ArrayList getAllCharacterNames() {
+		ArrayList names = new ArrayList();
+		for (java.util.Iterator _j14it2556 = (hallData.getGameObjects()).iterator(); _j14it2556.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2556.next();
 			if (go.getHeldBy()!=null && !names.contains(go.getName())) {
 				names.add(go.getName());
 			}
@@ -79,9 +82,10 @@ public class HallOfFame {
 		return go;
 	}
 	
-	private static boolean isWorthy(ArrayList<GameObject> list,GameObject go) {
+	private static boolean isWorthy(ArrayList list,GameObject go) {
 		int score = go.getThisInt(TOTAL_SCORE);
-		for (GameObject test : list) {
+		for (java.util.Iterator _j14it2557 = (list).iterator(); _j14it2557.hasNext(); ) {
+		  GameObject test = (GameObject) _j14it2557.next();
 			int ts = test.getThisInt(TOTAL_SCORE);
 			if (score>ts) { // only need one!
 				return true;
@@ -98,7 +102,7 @@ public class HallOfFame {
 	private void updateList(String listName,GameObject go) {
 		GameObject listGo = getHolderFor(listName);
 		
-		ArrayList<GameObject> list = listGo.getHold();
+		ArrayList list = listGo.getHold();
 		if (list.size()<MAX_ENTRIES_PER_CATEGORY || isWorthy(list,go)) {
 			add(listGo,go);
 			Collections.sort(list,scoreComparator);
@@ -128,7 +132,8 @@ public class HallOfFame {
 		go.setThisAttribute(GAME_DATE,DateUtility.convertDate2String(DateUtility.getNow()));
 		
 		// Check for duplicate entry
-		for (GameObject existing : hallData.getGameObjects()) {
+		for (java.util.Iterator _j14it2558 = (hallData.getGameObjects()).iterator(); _j14it2558.hasNext(); ) {
+		  GameObject existing = (GameObject) _j14it2558.next();
 			if (!existing.getName().matches(go.getName())) continue;
 			if (!existing.getThisAttribute(CharacterWrapper.V_GREAT_TREASURES).matches(go.getThisAttribute(CharacterWrapper.V_GREAT_TREASURES))) continue;
 			if (!existing.getThisAttribute(CharacterWrapper.V_USABLE_SPELLS).matches(go.getThisAttribute(CharacterWrapper.V_USABLE_SPELLS))) continue;
@@ -159,7 +164,8 @@ public class HallOfFame {
 	private void saveResults() {
 		if (hallData!=null) {
 			// First, remove all NEW_ENTRY keys
-			for (GameObject go : hallData.getGameObjects()) {
+			for (java.util.Iterator _j14it2559 = (hallData.getGameObjects()).iterator(); _j14it2559.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2559.next();
 				go.removeThisAttribute(NEW_ENTRY);
 			}
 			hallData.zipToFile(zipFile);

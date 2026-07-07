@@ -21,13 +21,13 @@ public class QuestRewardChooseNextStep extends QuestReward {
 		super(go);
 	}
 
-	@Override
 	public void processReward(JFrame frame, CharacterWrapper character) {
 		QuestRequirementParams params = new QuestRequirementParams();
 		params.timeOfCall = character.getCurrentGamePhase();
 		
-		ArrayList<QuestStep> dependentSteps = new ArrayList<QuestStep>();
-		for(QuestStep step:Quest.currentQuest.getSteps()) {
+		ArrayList dependentSteps = new ArrayList();
+		for (java.util.Iterator _j14it2404 = (Quest.currentQuest.getSteps()).iterator(); _j14it2404.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2404.next();
 			if (step.getState()!=QuestStepState.Pending) continue;
 			if (step.requires(QuestStep.currentStep)) {
 				dependentSteps.add(step);
@@ -38,8 +38,9 @@ public class QuestRewardChooseNextStep extends QuestReward {
 		String dayKey = character.getCurrentDayKey();
 		String stepName=null;
 		
-		ArrayList<String> availableSteps = new ArrayList<String>();
-		for(QuestStep step:dependentSteps) {
+		ArrayList availableSteps = new ArrayList();
+		for (java.util.Iterator _j14it2405 = (dependentSteps).iterator(); _j14it2405.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2405.next();
 			if (step.fulfillsRequirements(frame,character,params)) {
 				availableSteps.add(step.getName());
 			}
@@ -47,12 +48,13 @@ public class QuestRewardChooseNextStep extends QuestReward {
 		
 		if (randomNextStep()) {
 			int random = RandomNumber.getRandom(availableSteps.size());
-			stepName = availableSteps.get(random);
+			stepName = (String) availableSteps.get(random);
 		}
 		else {
 			RealmComponent rc = RealmComponent.getRealmComponent(Quest.currentQuest.getGameObject());
 			ButtonOptionDialog dialog = new ButtonOptionDialog(frame,rc.getIcon(),getString(TEXT),"Choose",false);
-			for(String availableStepName : availableSteps) {
+			for (java.util.Iterator _j14it2406 = (availableSteps).iterator(); _j14it2406.hasNext(); ) {
+			  String availableStepName = (String) _j14it2406.next();
 				dialog.addSelectionObject(availableStepName);
 			}
 			if (dialog.getSelectionObjectCount()>0) {
@@ -61,21 +63,20 @@ public class QuestRewardChooseNextStep extends QuestReward {
 			}
 		}
 		
-		for(QuestStep step:dependentSteps) {
+		for (java.util.Iterator _j14it2407 = (dependentSteps).iterator(); _j14it2407.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2407.next();
 			if (!step.getName().equals(stepName)) {
 				step.setState(QuestStepState.Failed,dayKey);
 			}
 		}
 	}
 	
-	@Override
 	public RewardType getRewardType() {
 		return RewardType.ChooseNextStep;
 	}
 
-	@Override
 	public String getDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Choose ");
 		if (randomNextStep()) {
 			sb.append("randomly ");

@@ -14,17 +14,14 @@ public class QuestRewardRest extends QuestReward {
 		super(go);
 	}
 
-	@Override
 	public void processReward(JFrame frame, CharacterWrapper character) {
 		ChitRestManager rester = new ChitRestManager(frame,character,getAmount());
 		rester.setVisible(true);
 	}
 	
-	@Override
 	public RewardType getRewardType() {
 		return RewardType.Rest;
 	}
-	@Override
 	public String getDescription() {
 		return "Character can rest " +getAmount() +" asterisks.";
 	}

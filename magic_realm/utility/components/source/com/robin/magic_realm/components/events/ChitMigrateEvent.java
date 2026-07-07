@@ -24,7 +24,8 @@ public class ChitMigrateEvent implements IEvent {
 			return;
 		}
 		GameObject chosenChit = null;
-		for (GameObject go : randomTile.getHold()) {
+		for (java.util.Iterator _j14it2450 = (randomTile.getHold()).iterator(); _j14it2450.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2450.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc.isSound() && go.getThisAttribute("sound").matches(soundType.toLowerCase()) && ((StateChitComponent)rc).isFaceUp()) {
 				if (chosenChit == null || go.getThisInt("clearing") > chosenChit.getThisInt("clearing")) {
@@ -38,12 +39,14 @@ public class ChitMigrateEvent implements IEvent {
 		}
 		GameObject tile = chosenChit.getHeldBy();
 		if (tile.hasThisAttribute(RealmComponent.TILE)) {
-			ArrayList<GameObject> adjacentTiles = RealmEvents.getAllAdjacentTiles(tile,data);
+			ArrayList adjacentTiles = RealmEvents.getAllAdjacentTiles(tile,data);
 			Collections.shuffle(adjacentTiles);
 			Collections.shuffle(adjacentTiles);
 			GameObject chosenTile = null;
-			for (GameObject adjTile : adjacentTiles) {
-				for (GameObject held : adjTile.getHold()) {
+			for (java.util.Iterator _j14it2451 = (adjacentTiles).iterator(); _j14it2451.hasNext(); ) {
+			  GameObject adjTile = (GameObject) _j14it2451.next();
+				for (java.util.Iterator _j14it2452 = (adjTile.getHold()).iterator(); _j14it2452.hasNext(); ) {
+				  GameObject held = (GameObject) _j14it2452.next();
 					RealmComponent rc = RealmComponent.getRealmComponent(held);
 					if (rc.isCharacter() || rc.isHiredOrControlled()) {
 						chosenTile = adjTile;
@@ -67,11 +70,9 @@ public class ChitMigrateEvent implements IEvent {
 	}
 	public void expire(GameData data) {
 	}
-	@Override
 	public String getTitle() {
 		return soundType+" Migrate";
 	}
-	@Override
 	public String getDescription(GameData data) {
 		return "At sunset the highest numbered "+soundType+" chit is moved to an adjacent hex and summons denizens.";
 	}

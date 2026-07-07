@@ -7,7 +7,6 @@ import com.robin.magic_realm.components.utility.ArmorCreator;
 
 public class MageGuardEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		int ARMOR_CHOICE = 8;
 
@@ -30,10 +29,10 @@ public class MageGuardEffect implements ISpellEffect {
 		context.Caster.add(guard);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		GameObject guard = null;
-		for (GameObject go : context.Caster.getHold()) {
+		for (java.util.Iterator _j14it2068 = (context.Caster.getHold()).iterator(); _j14it2068.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2068.next();
 			if ("Mage Guard".equals(go.getName())) {
 				guard = go;
 				break;

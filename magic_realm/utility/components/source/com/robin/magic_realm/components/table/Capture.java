@@ -71,9 +71,8 @@ public class Capture extends RealmTable {
 		
 		return "You captured the "+traveler.getGameObject().getName()+"!";
 	}
-	@Override
-	protected ArrayList<ImageIcon> getHintIcons(CharacterWrapper character) {
-		ArrayList<ImageIcon> list = new ArrayList<ImageIcon>();
+	protected ArrayList getHintIcons(CharacterWrapper character) {
+		ArrayList list = new ArrayList();
 		list.add(getIconForSearch(traveler));
 		return list;
 	}

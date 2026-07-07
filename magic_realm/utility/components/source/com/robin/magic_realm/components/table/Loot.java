@@ -27,7 +27,7 @@ public class Loot extends RealmTable {
 	protected ActionPrerequisite searchPr;
 	protected ActionPrerequisite drawPr;
 	protected CharacterWrapper character;
-	protected Boolean ignorePit;
+	protected boolean ignorePit;
 	protected GameObject foundItem;
 	
 	public Loot(JFrame frame,ChangeListener listener) {
@@ -79,7 +79,8 @@ public class Loot extends RealmTable {
 			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
 			if (!hostPrefs.hasPref(Constants.SR_NO_SPYING)) {
 				ClearingDetail current = character.getCurrentLocation().clearing;
-				for (RealmComponent rc : current.getClearingComponents()) {
+				for (java.util.Iterator _j14it2103 = (current.getClearingComponents()).iterator(); _j14it2103.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it2103.next();
 					if (rc.canSpy() && !rc.getGameObject().equals(character.getGameObject())) {
 						CharacterWrapper spy = new CharacterWrapper(rc.getGameObject());
 						if (!character.isHidden() || spy.foundHiddenEnemy(character.getGameObject())) {
@@ -95,7 +96,8 @@ public class Loot extends RealmTable {
 					}
 				}
 			}
-			for (CharacterWrapper follower : character.getActionFollowers()) {
+			for (java.util.Iterator _j14it2104 = (character.getActionFollowers()).iterator(); _j14it2104.hasNext(); ) {
+			  CharacterWrapper follower = (CharacterWrapper) _j14it2104.next();
 				if (!follower.hasTreasureLocationDiscovery(treasureLocation.getName())) {
 					follower.addTreasureLocationDiscovery(treasureLocation.getName());
 				}
@@ -164,14 +166,15 @@ public class Loot extends RealmTable {
 	}
 
 	protected String doLoot(CharacterWrapper character, int treasureNumber) {
-		Collection<GameObject> treasures;
+		Collection treasures;
 		boolean lostInMaze = false;
 		
 		if (treasureLocation.hasThisAttribute(Constants.MAZE)) {
 			if (!character.hasActiveInventoryThisKey(Constants.REALM_MAP)) {
 				character.getGameObject().setThisAttribute(Constants.LOST_IN_THE_MAZE);
 				lostInMaze = true;
-				for (CharacterWrapper follower : character.getActionFollowers()) {
+				for (java.util.Iterator _j14it2105 = (character.getActionFollowers()).iterator(); _j14it2105.hasNext(); ) {
+				  CharacterWrapper follower = (CharacterWrapper) _j14it2105.next();
 					follower.getGameObject().setThisAttribute(Constants.LOST_IN_THE_MAZE);
 				}
 			}
@@ -223,7 +226,8 @@ public class Loot extends RealmTable {
 		qp.actionType = CharacterActionType.SearchTable;
 		qp.targetOfSearch = treasureLocation;
 		qp.searchType = SearchResultType.getLootSearchResultType(treasureNumber);
-		for (GameObject thing : treasures) {
+		for (java.util.Iterator _j14it2106 = (treasures).iterator(); _j14it2106.hasNext(); ) {
+		  GameObject thing = (GameObject) _j14it2106.next();
 			treasureNumber--;
 			if (treasureNumber == 0) {
 				ret = characterFindsItem(character, thing);
@@ -246,7 +250,8 @@ public class Loot extends RealmTable {
 
 	protected String takeWeapon(CharacterWrapper character) {
 		if (tileLocation!=null) return null;
-		for (GameObject thing : treasureLocation.getHold()) {
+		for (java.util.Iterator _j14it2107 = (treasureLocation.getHold()).iterator(); _j14it2107.hasNext(); ) {
+		  GameObject thing = (GameObject) _j14it2107.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(thing);
 			if (rc.isWeapon()) {
 				return characterFindsItem(character, thing);
@@ -257,7 +262,8 @@ public class Loot extends RealmTable {
 
 	protected String takeArmor(CharacterWrapper character) {
 		if (tileLocation!=null) return null;
-		for (GameObject thing : treasureLocation.getHold()) {
+		for (java.util.Iterator _j14it2108 = (treasureLocation.getHold()).iterator(); _j14it2108.hasNext(); ) {
+		  GameObject thing = (GameObject) _j14it2108.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(thing);
 			if (rc.isArmor()) {
 				return characterFindsItem(character, thing);
@@ -268,7 +274,8 @@ public class Loot extends RealmTable {
 
 	protected String takeHorse(CharacterWrapper character) {
 		if (tileLocation!=null) return null;
-		for (GameObject thing : treasureLocation.getHold()) {
+		for (java.util.Iterator _j14it2109 = (treasureLocation.getHold()).iterator(); _j14it2109.hasNext(); ) {
+		  GameObject thing = (GameObject) _j14it2109.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(thing);
 			if (rc.isHorse()) {
 				return characterFindsItem(character, thing);
@@ -279,7 +286,8 @@ public class Loot extends RealmTable {
 	
 	protected String takeWeaponType(CharacterWrapper character,String type) {
 		if (tileLocation!=null) return null;
-		for (GameObject thing : treasureLocation.getHold()) {
+		for (java.util.Iterator _j14it2110 = (treasureLocation.getHold()).iterator(); _j14it2110.hasNext(); ) {
+		  GameObject thing = (GameObject) _j14it2110.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(thing);
 			if (rc.isWeapon() && rc.getGameObject().hasThisAttribute(type)) {
 				return characterFindsItem(character, thing);
@@ -290,7 +298,8 @@ public class Loot extends RealmTable {
 	
 	protected String takeArmorType(CharacterWrapper character,String type) {
 		if (tileLocation!=null) return null;
-		for (GameObject thing : treasureLocation.getHold()) {
+		for (java.util.Iterator _j14it2111 = (treasureLocation.getHold()).iterator(); _j14it2111.hasNext(); ) {
+		  GameObject thing = (GameObject) _j14it2111.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(thing);
 			if (rc.isArmor() && rc.getGameObject().hasThisAttribute(type)) {
 				return characterFindsItem(character, thing);
@@ -301,7 +310,8 @@ public class Loot extends RealmTable {
 
 	protected String takeTreasure(CharacterWrapper character) {
 		if (tileLocation!=null) return null;
-		for (GameObject thing : treasureLocation.getHold()) {
+		for (java.util.Iterator _j14it2112 = (treasureLocation.getHold()).iterator(); _j14it2112.hasNext(); ) {
+		  GameObject thing = (GameObject) _j14it2112.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(thing);
 			if (rc.isTreasure()) {
 				return characterFindsItem(character, thing);
@@ -312,7 +322,8 @@ public class Loot extends RealmTable {
 	
 	public String learnSpell(CharacterWrapper character) {
 		if (tileLocation!=null) return null;
-		for (GameObject spell : treasureLocation.getHold()) {
+		for (java.util.Iterator _j14it2113 = (treasureLocation.getHold()).iterator(); _j14it2113.hasNext(); ) {
+		  GameObject spell = (GameObject) _j14it2113.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(spell);
 			if (rc.isSpell()) {
 				dumpGoldSpecialsToClearing();
@@ -337,7 +348,8 @@ public class Loot extends RealmTable {
 		if (unhide) {
 			character.setHidden(false);
 			if (current!=null && current.hasClearing()) {
-				for (RealmComponent rc:current.clearing.getClearingComponents()) {
+				for (java.util.Iterator _j14it2114 = (current.clearing.getClearingComponents()).iterator(); _j14it2114.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it2114.next();
 					if (rc.isCharacter()) {
 						(new CharacterWrapper(rc.getGameObject())).setHidden(false);
 					}
@@ -394,7 +406,8 @@ public class Loot extends RealmTable {
 		if (source!=null && source.hasThisAttribute(Constants.MIN_LARGE_T) && !source.hasThisAttribute(Constants.DESTROYED)) {
 			int minLarge = source.getThisInt(Constants.MIN_LARGE_T);
 			int totalLarge = 0;
-			for (GameObject go : source.getHold()) {
+			for (java.util.Iterator _j14it2115 = (source.getHold()).iterator(); _j14it2115.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2115.next();
 				String treasureSize = go.getThisAttribute(RealmComponent.TREASURE);
 				if (treasureSize!=null && "large".equals(treasureSize) && !go.hasThisAttribute(Constants.TREASURE_SEEN)) {
 					totalLarge++;
@@ -416,8 +429,9 @@ public class Loot extends RealmTable {
 	private void dumpGoldSpecialsToClearing() {
 		if (tileLocation!=null) {
 			GamePool pool = new GamePool(character.getGameData().getGameObjects());
-			ArrayList<GameObject> boxes = pool.find("summon="+treasureLocation.getName().toLowerCase());
-			for (GameObject box : boxes) {
+			ArrayList boxes = pool.find("summon="+treasureLocation.getName().toLowerCase());
+			for (java.util.Iterator _j14it2116 = (boxes).iterator(); _j14it2116.hasNext(); ) {
+			  GameObject box = (GameObject) _j14it2116.next();
 				ClearingUtility.dumpGoldSpecialsToTile(tileLocation.tile.getGameObject(),box,tileLocation.clearing.getNum());
 			}
 		}
@@ -439,7 +453,8 @@ public class Loot extends RealmTable {
 		if (unhide) {
 			character.setHidden(false);
 			if (current!=null && current.hasClearing()) {
-				for (RealmComponent rc:current.clearing.getClearingComponents()) {
+				for (java.util.Iterator _j14it2117 = (current.clearing.getClearingComponents()).iterator(); _j14it2117.hasNext(); ) {
+				  RealmComponent rc = (RealmComponent) _j14it2117.next();
 					if (rc.isCharacter()) {
 						(new CharacterWrapper(rc.getGameObject())).setHidden(false);
 					}
@@ -538,9 +553,11 @@ public class Loot extends RealmTable {
 		}
 		if (thing.hasThisAttribute("add_to_pile") && treasureLocation != null) {
 			// Add everything to pile
-			ArrayList<GameObject> list = new ArrayList<GameObject>(thing.getHold());
-			Collections.sort(list,new Comparator<GameObject>() { // sort by pile position (if any)
-				public int compare(GameObject go1,GameObject go2) {				
+			ArrayList list = new ArrayList(thing.getHold());
+			Collections.sort(list,new Comparator() { // sort by pile position (if any)
+				public int compare(Object o1,Object o2) {
+					GameObject go1 = (GameObject) o1;
+					GameObject go2 = (GameObject) o2;
 					int pos1 = go1.getThisInt("pile_position");
 					int pos2 = go2.getThisInt("pile_position");
 					
@@ -550,9 +567,10 @@ public class Loot extends RealmTable {
 			
 			int listCount = list.size();
 			
-			ArrayList<GameObject> pile = new ArrayList<GameObject>(treasureLocation.getHold());
+			ArrayList pile = new ArrayList(treasureLocation.getHold());
 			pile.addAll(0,list);
-			for (GameObject go : pile) {
+			for (java.util.Iterator _j14it2118 = (pile).iterator(); _j14it2118.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2118.next();
 				treasureLocation.add(go);
 			}
 			JOptionPane.showMessageDialog(getParentFrame(),listCount+" treasure"+(listCount==1?"":"s")+" added to the "+treasureLocation.getName()+" pile.","New Treasures",JOptionPane.INFORMATION_MESSAGE);
@@ -577,9 +595,10 @@ public class Loot extends RealmTable {
 		if (thing.hasThisAttribute(Constants.NO_LOOT)) {
 			// Gain all treasures immediately
 			RealmComponentDisplayDialog dialog = new RealmComponentDisplayDialog(getParentFrame(),"Found "+thing.getName(),"The "+thing.getName()+" contained the following items:");
-			ArrayList<GameObject> inside = new ArrayList<GameObject>(thing.getHold());
-			ArrayList<GameObject> gain = new ArrayList<GameObject>();
-			for (GameObject go : inside) {
+			ArrayList inside = new ArrayList(thing.getHold());
+			ArrayList gain = new ArrayList();
+			for (java.util.Iterator _j14it2119 = (inside).iterator(); _j14it2119.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2119.next();
 				RealmComponent goRc = RealmComponent.getRealmComponent(go);
 				dialog.addRealmComponent(goRc);
 				if (goRc.isCard()) {
@@ -592,7 +611,8 @@ public class Loot extends RealmTable {
 			
 			// Add these AFTER the player has seen the reason for the gain
 			HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(thing.getGameData());
-			for (GameObject go:gain) {
+			for (java.util.Iterator _j14it2120 = (gain).iterator(); _j14it2120.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2120.next();
 				addItemToCharacter(getParentFrame(),getListener(),character,go,hostPrefs);
 				if (testQuestRequirementsForLooting) {
 					QuestRequirementParams qp = new QuestRequirementParams();
@@ -629,9 +649,8 @@ public class Loot extends RealmTable {
 		}
 		return false;
 	}
-	@Override
-	protected ArrayList<ImageIcon> getHintIcons(CharacterWrapper character) {
-		ArrayList<ImageIcon> list = new ArrayList<ImageIcon>();
+	protected ArrayList getHintIcons(CharacterWrapper character) {
+		ArrayList list = new ArrayList();
 		list.add(getIconForSearch(RealmComponent.getRealmComponent(treasureLocation)));
 		return list;
 	}

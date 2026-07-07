@@ -18,21 +18,21 @@ public class CustomCharacterLibrary {
 		return singleton;
 	}
 	
-	private Hashtable<String,GameObject> customCharacterHash;
-	private Hashtable<String,ImageIcon> customCharacterImageHash;
+	private Hashtable customCharacterHash;
+	private Hashtable customCharacterImageHash;
 	private CustomCharacterLibrary() {
-		customCharacterHash = new Hashtable<String,GameObject>();
-		customCharacterImageHash = new Hashtable<String,ImageIcon>();
+		customCharacterHash = new Hashtable();
+		customCharacterImageHash = new Hashtable();
 	}
 	public void addCustomCharacterTemplate(GameObject character,ImageIcon detailImage) {
 		customCharacterHash.put(character.getName(),character);
 		customCharacterImageHash.put(character.getName(),detailImage);
 	}
-	public ArrayList<String> getCharacterTemplateNameList() {
-		return new ArrayList<String>(customCharacterHash.keySet());
+	public ArrayList getCharacterTemplateNameList() {
+		return new ArrayList(customCharacterHash.keySet());
 	}
 	public GameObject getCharacterTemplate(String name) {
-		return customCharacterHash.get(name);
+		return (GameObject) customCharacterHash.get(name);
 	}
 	private static String getNameFor(GameObject go) {
 		return go.getAttribute("level_4","name");
@@ -48,38 +48,40 @@ public class CustomCharacterLibrary {
 		}
 		return null;
 	}
-	public ArrayList<GameObject> getCharacterTemplateList() {
-		return new ArrayList<GameObject>(customCharacterHash.values());
+	public ArrayList getCharacterTemplateList() {
+		return new ArrayList(customCharacterHash.values());
 	}
 	public ImageIcon getCharacterImage(String name) {
-		return customCharacterImageHash.get(name);
+		return (ImageIcon) customCharacterImageHash.get(name);
 	}
-	public ArrayList<GameObject> getCharacterWeapons(GameObject go) {
+	public ArrayList getCharacterWeapons(GameObject go) {
 		GameObject character = getCharacterTemplate(getNameFor(go));
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());
 		return pool.find("weapon,!character,!magic");
 	}
-	public ArrayList<GameObject> getCharacterArmor(GameObject go) {
+	public ArrayList getCharacterArmor(GameObject go) {
 		GameObject character = getCharacterTemplate(getNameFor(go));
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());
 		return pool.find("armor,!character,!magic");
 	}
-	public ArrayList<GameObject> getCharacterCompanions(GameObject go) {
+	public ArrayList getCharacterCompanions(GameObject go) {
 		GameObject character = getCharacterTemplate(getNameFor(go));
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());
 		return pool.find("companion");
 	}
-	private ArrayList<String> getAllUniqueKeys() {
-		ArrayList<String> list =  new ArrayList<String>();
-		for (String name:getCharacterTemplateNameList()) {
+	private ArrayList getAllUniqueKeys() {
+		ArrayList list =  new ArrayList();
+		for (java.util.Iterator _j14it2686 = (getCharacterTemplateNameList()).iterator(); _j14it2686.hasNext(); ) {
+		  String name = (String) _j14it2686.next();
 			list.add(getCharacterUniqueKey(name));
 		}
 		return list;
 	}
-	public ArrayList<String> getMissingCharacterNames(ArrayList<String> expectedList) {
-		ArrayList<String> allUniqueKeys = getAllUniqueKeys();
-		ArrayList<String> list =  new ArrayList<String>();
-		for (String val:expectedList) {
+	public ArrayList getMissingCharacterNames(ArrayList expectedList) {
+		ArrayList allUniqueKeys = getAllUniqueKeys();
+		ArrayList list =  new ArrayList();
+		for (java.util.Iterator _j14it2687 = (expectedList).iterator(); _j14it2687.hasNext(); ) {
+		  String val = (String) _j14it2687.next();
 			if (!allUniqueKeys.contains(val)) {
 				int col = val.lastIndexOf(':');
 				list.add(val.substring(0,col));

@@ -27,9 +27,10 @@ public class QuestRequirementLoot extends QuestRequirement {
 	
 	protected boolean testFulfillsRequirement(JFrame frame,CharacterWrapper character,QuestRequirementParams reqParams) {
 		if (reqParams!=null && "Loot".equals(reqParams.actionName)) {
-			ArrayList<GameObject> matches = filterObjectsForRequirement(character,reqParams.objectList,logger);
+			ArrayList matches = filterObjectsForRequirement(character,reqParams.objectList,logger);
 			if (markItems() && !matches.isEmpty() ) {
-				for (GameObject item : matches) {
+				for (java.util.Iterator _j14it2292 = (matches).iterator(); _j14it2292.hasNext(); ) {
+				  GameObject item = (GameObject) _j14it2292.next();
 					item.setThisAttribute(QuestConstants.QUEST_MARK,getParentQuest().getGameObject().getStringId());
 				}
 			}
@@ -39,8 +40,8 @@ public class QuestRequirementLoot extends QuestRequirement {
 		return false;
 	}
 	
-	protected ArrayList<GameObject> filterObjectsForRequirement(CharacterWrapper character,ArrayList<GameObject> objects,Logger myLogger) {
-		ArrayList<GameObject> matches = new ArrayList<GameObject>();
+	protected ArrayList filterObjectsForRequirement(CharacterWrapper character,ArrayList objects,Logger myLogger) {
+		ArrayList matches = new ArrayList();
 		if (objects.isEmpty()) {
 			myLogger.fine("No items to test.");
 			return matches;
@@ -48,49 +49,35 @@ public class QuestRequirementLoot extends QuestRequirement {
 		GamePool pool = new GamePool(objects);
 		String query = null;
 		TreasureType tt = getTreasureType();
-		switch(tt) {
-			case Any:
-				query = "";
-				break;
-			case Artifact:
-			case Book:
-			case Boots:
-			case Gloves:
-			case Great:
-			case Scroll:
-				query = tt.toString().toLowerCase();
-				break;
-			case Large:
-				query="treasure=large";
-				break;
-			case MagicArmor:
-				query="armor,magic";
-				break;
-			case MagicWeapon:
-				query="weapon,magic";
-				break;
-			case Small:
-				query="treasure=small";
-				break;
-			case Treasure:
-				query="treasure";
-				break;
-			case TWT:
-				query="treasure_within_treasure";
-				break;
-			case Armor:
-				query="armor,!character";
-				break;
-			case Weapon:
-				query="weapon,!character";
-				break;
+		if (tt == TreasureType.Any) {
+			query = "";
+		} else if (tt == TreasureType.Artifact || tt == TreasureType.Book || tt == TreasureType.Boots
+				|| tt == TreasureType.Gloves || tt == TreasureType.Great || tt == TreasureType.Scroll) {
+			query = tt.toString().toLowerCase();
+		} else if (tt == TreasureType.Large) {
+			query="treasure=large";
+		} else if (tt == TreasureType.MagicArmor) {
+			query="armor,magic";
+		} else if (tt == TreasureType.MagicWeapon) {
+			query="weapon,magic";
+		} else if (tt == TreasureType.Small) {
+			query="treasure=small";
+		} else if (tt == TreasureType.Treasure) {
+			query="treasure";
+		} else if (tt == TreasureType.TWT) {
+			query="treasure_within_treasure";
+		} else if (tt == TreasureType.Armor) {
+			query="armor,!character";
+		} else if (tt == TreasureType.Weapon) {
+			query="weapon,!character";
 		}
-		ArrayList<GameObject> typeMatches = query==null?objects:pool.find(query);
+		ArrayList typeMatches = query==null?objects:pool.find(query);
 		if (!typeMatches.isEmpty()) {
 			String regex = getRegExFilter();
 			Pattern pattern = regex==null || regex.trim().length()==0?null:Pattern.compile(regex);
 			String questId = getParentQuest().getGameObject().getStringId();
-			for(GameObject go:typeMatches) {
+			for (java.util.Iterator _j14it2293 = (typeMatches).iterator(); _j14it2293.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2293.next();
 				if (pattern==null || pattern.matcher(go.getName()).find()) {
 					if (requiresMark()) {
 						String mark = go.getThisAttribute(QuestConstants.QUEST_MARK);
@@ -119,7 +106,7 @@ public class QuestRequirementLoot extends QuestRequirement {
 	}
 	
 	protected String buildDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must loot a");
 		TreasureType tt = getTreasureType();
 		if (tt!=TreasureType.Any) {

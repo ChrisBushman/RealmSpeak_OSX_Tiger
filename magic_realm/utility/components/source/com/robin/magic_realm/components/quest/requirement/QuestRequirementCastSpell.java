@@ -23,7 +23,6 @@ public class QuestRequirementCastSpell extends QuestRequirement {
 		super(go);
 	}
 
-	@Override
 	protected boolean testFulfillsRequirement(JFrame frame, CharacterWrapper character, QuestRequirementParams reqParams) {
 		if (reqParams.actionType != CharacterActionType.CastSpell) {
 			return false;
@@ -36,7 +35,7 @@ public class QuestRequirementCastSpell extends QuestRequirement {
 				logger.fine("Nothing to match to regex /"+regex+"/");
 				return false;
 			}
-			GameObject go = reqParams.objectList.get(0);
+			GameObject go = (GameObject) reqParams.objectList.get(0);
 			if (!pattern.matcher(go.getName()).find()) {
 				logger.fine(go.getName()+" does not match regex /"+regex+"/");
 				return false;
@@ -44,7 +43,7 @@ public class QuestRequirementCastSpell extends QuestRequirement {
 		}
 		
 		if (mustUseScrollOrBook()) {
-			GameObject spell = reqParams.objectList.get(0);
+			GameObject spell = (GameObject) reqParams.objectList.get(0);
 			GameObject spellOwner = spell.getHeldBy();
 			if (!spellOwner.hasThisAttribute(Constants.SCROLL) && !spellOwner.hasThisAttribute(Constants.BOOK)) {
 				logger.fine("Did not use scroll or book for casting the spell.");
@@ -52,7 +51,7 @@ public class QuestRequirementCastSpell extends QuestRequirement {
 			}
 		}
 		if (mustUseArtifact()) {
-			GameObject spell = reqParams.objectList.get(0);
+			GameObject spell = (GameObject) reqParams.objectList.get(0);
 			GameObject spellOwner = spell.getHeldBy();
 			if (!spellOwner.hasThisAttribute(Constants.ARTIFACT)) {
 				logger.fine("Did not use an Artifact for casting the spell.");
@@ -60,7 +59,7 @@ public class QuestRequirementCastSpell extends QuestRequirement {
 			}
 		}
 		if (mustUseRing()) {
-			GameObject spell = reqParams.objectList.get(0);
+			GameObject spell = (GameObject) reqParams.objectList.get(0);
 			SpellWrapper spellWrapper = new SpellWrapper(spell);
 			if (spellWrapper.getIncantationObject()==null || !spellWrapper.getIncantationObject().hasThisAttribute(Constants.RING)) {
 				logger.fine("Did not use a Ring for casting the spell.");
@@ -71,14 +70,12 @@ public class QuestRequirementCastSpell extends QuestRequirement {
 		return true;
 	}
 
-	@Override
 	public RequirementType getRequirementType() {
 		return RequirementType.CastSpell;
 	}
 
-	@Override
 	protected String buildDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must cast a spell");
 		String regex = getRegExFilter();
 		if (regex != null && regex.trim().length() > 0) {

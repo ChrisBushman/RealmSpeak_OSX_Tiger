@@ -25,7 +25,7 @@ public class QuestRewardMinorCharacter extends QuestReward {
 		String id = getString(MINOR_CHARACTER);
 		if (id==null) return;
 		try {
-			long sid = Long.valueOf(id);
+			long sid = Long.parseLong(id);
 			GameObject go = getGameData().getGameObject(sid);
 			if (go!=null) {
 				setString(MINOR_CHARACTER,go.getName());
@@ -46,7 +46,7 @@ public class QuestRewardMinorCharacter extends QuestReward {
 			character.getGameObject().add(minorCharacter.getGameObject());
 		}
 		else {
-			ArrayList<String> controls = new ArrayList<String>();
+			ArrayList controls = new ArrayList();
 			if (minorCharacter.getGameObject().hasThisAttribute(Constants.MONSTER_CONTROL_VALIDATE_CONTROL)) {
 				if (minorCharacter.getGameObject().hasThisAttribute(Constants.MONSTER_CONTROL)) {
 					controls.addAll(minorCharacter.getGameObject().getThisAttributeList(Constants.MONSTER_CONTROL));
@@ -57,10 +57,12 @@ public class QuestRewardMinorCharacter extends QuestReward {
 			
 			if (minorCharacter.getGameObject().hasThisAttribute(Constants.MONSTER_CONTROL_VALIDATE_CONTROL)) {
 				RealmComponent characterRC = RealmComponent.getRealmComponent(character.getGameObject());
-				Set<String> canControl = characterRC.getControllableMonsters().keySet();
-				for (RealmComponent monster : character.getAllHirelings()) {
+				Set canControl = characterRC.getControllableMonsters().keySet();
+				for (java.util.Iterator _j14it2370 = (character.getAllHirelings()).iterator(); _j14it2370.hasNext(); ) {
+				  RealmComponent monster = (RealmComponent) _j14it2370.next();
 					if (!monster.isMonster()) continue;
-					for (String monsterType : controls) {
+					for (java.util.Iterator _j14it2371 = (controls).iterator(); _j14it2371.hasNext(); ) {
+					  String monsterType = (String) _j14it2371.next();
 						if (canControl.contains(monsterType)) continue;
 						if (monster.getGameObject().getName().matches(monsterType.toString())) {
 							character.removeHireling(monster.getGameObject());
@@ -74,7 +76,7 @@ public class QuestRewardMinorCharacter extends QuestReward {
 	}
 
 	public String getDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append(getString(MINOR_CHARACTER));
 		sb.append(getGainType()==GainType.Gain?" joins ":" leaves ");
 		sb.append("the character.");
@@ -92,11 +94,11 @@ public class QuestRewardMinorCharacter extends QuestReward {
 		CharacterWrapper character = getParentQuest().getOwner();
 		if (character==null) return null; // what to do here?  shouldn't ever happen - the reward shouldn't be given while this quest is still a template!
 		
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add(Quest.QUEST_MINOR_CHARS);
 		query.add("name="+id);
 		
-		ArrayList<GameObject> mcs = new ArrayList<GameObject>();
+		ArrayList mcs = new ArrayList();
 		// Try the quest FIRST
 		GamePool pool = new GamePool(getParentQuest().getGameObject().getHold());
 		mcs.addAll(pool.find(query));
@@ -112,7 +114,7 @@ public class QuestRewardMinorCharacter extends QuestReward {
 		}
 		if (!mcs.isEmpty()) {
 			//setString(MINOR_CHARACTER,mc.getStringId()); // save for future reference?
-			return new QuestMinorCharacter(mcs.get(RandomNumber.getRandom(mcs.size())));
+			return new QuestMinorCharacter((GameObject) mcs.get(RandomNumber.getRandom(mcs.size())));
 		}
 		return null;
 	}	

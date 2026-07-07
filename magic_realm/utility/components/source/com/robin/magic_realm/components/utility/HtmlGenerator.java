@@ -67,7 +67,7 @@ public class HtmlGenerator {
 		}
 	}
 	protected String generateLinkElement(String url,String content) {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("<a href=\"");
 		sb.append(url);
 		sb.append("\">");
@@ -76,7 +76,7 @@ public class HtmlGenerator {
 		return sb.toString();
 	}
 	protected String generateImageElement(int border,String alternate,String path) {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("<img alt=\"");
 		sb.append(alternate);
 		sb.append("\" src=\"");
@@ -86,9 +86,10 @@ public class HtmlGenerator {
 		sb.append(" >");
 		return sb.toString();
 	}
-	protected void populateInventory(String path,StringBuilder sb,CharacterWrapper character,boolean active) {
-		ArrayList<GameObject> inventory = active?character.getActiveInventory():character.getInactiveInventory();
-		for (GameObject inv:inventory) {
+	protected void populateInventory(String path,StringBuffer sb,CharacterWrapper character,boolean active) {
+		ArrayList inventory = active?character.getActiveInventory():character.getInactiveInventory();
+		for (java.util.Iterator _j14it2758 = (inventory).iterator(); _j14it2758.hasNext(); ) {
+		  GameObject inv = (GameObject) _j14it2758.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(inv);
 			String name = inv.getName();
 			ImageIcon icon = rc.getIcon();
@@ -103,7 +104,7 @@ public class HtmlGenerator {
 		}
 	}
 	protected void saveLog(String detailLog,String path,String fileName,String title,String returnTarget) {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append(detailLog);
 		String string = sb.toString();
 		string = StringUtilities.findAndReplace(string,RealmLogWindow.INDENT_BLOCK,"&nbsp;&nbsp;&nbsp;&nbsp;");

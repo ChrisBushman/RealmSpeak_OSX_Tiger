@@ -37,7 +37,7 @@ public class QuestRequirementTimePassed extends QuestRequirement {
 
 	protected String buildDescription() {
 		int val = getValue();
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must wait ");
 		sb.append(val);
 		sb.append(" day");

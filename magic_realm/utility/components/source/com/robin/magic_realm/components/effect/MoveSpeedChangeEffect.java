@@ -6,12 +6,12 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class MoveSpeedChangeEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		if (context.Target.isCharacter()) {
 			CharacterWrapper character = context.getCharacterTarget();
 
-			for (CharacterActionChitComponent chit : character.getAllChits()) {
+			for (java.util.Iterator _j14it2033 = (character.getAllChits()).iterator(); _j14it2033.hasNext(); ) {
+			  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2033.next();
 				if ("MOVE".equals(chit.getAction())) {
 					SpellUtility.setAlteredSpeed(chit, "strength", context.Spell);
 				}
@@ -22,12 +22,12 @@ public class MoveSpeedChangeEffect implements ISpellEffect {
 		}
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		if (context.Target.isCharacter()) {
 			CharacterWrapper character = context.getCharacterTarget();
 
-			for (CharacterActionChitComponent chit : character.getAllChits()) {
+			for (java.util.Iterator _j14it2034 = (character.getAllChits()).iterator(); _j14it2034.hasNext(); ) {
+			  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2034.next();
 				if ("MOVE".equals(chit.getAction())) {
 					chit.getGameObject().removeThisAttribute("move_speed_change");
 				}

@@ -12,7 +12,6 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class PhantasmEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		GameObject spellObj = context.Spell.getGameObject();
 		CharacterWrapper character = context.getCharacterTarget();
@@ -41,25 +40,25 @@ public class PhantasmEffect implements ISpellEffect {
 		}
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		CharacterWrapper character = context.getCharacterTarget();
 		String spawn = context.Spell.getGameObject().getThisAttribute("spawn");
 		
 		if ("phantasm".equals(spawn)) {
 			// Simply remove ALL phantasms - they could only have been the result of previous days casting
-			Collection<GameObject> c = character.getMinions();
+			Collection c = character.getMinions();
 			if (c!=null) {
-				ArrayList<GameObject> toRemove = new ArrayList<GameObject>();
+				ArrayList toRemove = new ArrayList();
 							
-				for (GameObject minion : c) {
+				for (java.util.Iterator _j14it2049 = (c).iterator(); _j14it2049.hasNext(); ) {
+				  GameObject minion = (GameObject) _j14it2049.next();
 					if (minion.hasThisAttribute("phantasm")) {
 						toRemove.add(minion);
 					}
 				}
 				
-				for (Iterator<GameObject> i=toRemove.iterator();i.hasNext();) {
-					GameObject minion = i.next();
+				for (Iterator i=toRemove.iterator();i.hasNext();) {
+					GameObject minion = (GameObject) i.next();
 					character.removeMinion(minion);
 					ClearingUtility.moveToLocation(minion,null);
 				}

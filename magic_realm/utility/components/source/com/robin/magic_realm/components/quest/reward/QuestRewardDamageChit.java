@@ -21,12 +21,29 @@ public class QuestRewardDamageChit extends QuestReward {
 	public static final String MAGIC_TYPE = "_magic_type";
 	public static final String ONLY_ACTIVE = "_only_active";
 	
-	public enum ChitType {
-		Any,
-		Move,
-		Fight,
-		Magic,
-		Fly
+	public static final class ChitType {
+		private final String _name;
+		private final int _ordinal;
+		private ChitType(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final ChitType Any = new ChitType("Any", 0);
+		public static final ChitType Move = new ChitType("Move", 1);
+		public static final ChitType Fight = new ChitType("Fight", 2);
+		public static final ChitType Magic = new ChitType("Magic", 3);
+		public static final ChitType Fly = new ChitType("Fly", 4);
+
+		private static final ChitType[] _VALUES = { Any, Move, Fight, Magic, Fly };
+		public static ChitType[] values() { ChitType[] r = new ChitType[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static ChitType valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 		
 	public QuestRewardDamageChit(GameObject go) {
@@ -34,40 +51,39 @@ public class QuestRewardDamageChit extends QuestReward {
 	}
 
 	public void processReward(JFrame frame, CharacterWrapper character) {
-		ArrayList<CharacterActionChitComponent> chitsToCheck = character.getAllChits();
-		ArrayList<CharacterActionChitComponent> chits = new ArrayList<CharacterActionChitComponent>();
-		switch(getType()) {
-		case Move:
-			for (CharacterActionChitComponent chit : chitsToCheck) {
+		ArrayList chitsToCheck = character.getAllChits();
+		ArrayList chits = new ArrayList();
+		ChitType _ct = getType();
+		if (_ct == ChitType.Move) {
+			for (java.util.Iterator _j14it2388 = (chitsToCheck).iterator(); _j14it2388.hasNext(); ) {
+			  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2388.next();
 				if (chit.isMove()) chits.add(chit);
 			}
-			break;
-		case Fight:
-			for (CharacterActionChitComponent chit : chitsToCheck) {
+		} else if (_ct == ChitType.Fight) {
+			for (java.util.Iterator _j14it2389 = (chitsToCheck).iterator(); _j14it2389.hasNext(); ) {
+			  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2389.next();
 				if (chit.isFight()) chits.add(chit);
 			}
-			break;
-		case Magic:
-			for (CharacterActionChitComponent chit : chitsToCheck) {
+		} else if (_ct == ChitType.Magic) {
+			for (java.util.Iterator _j14it2390 = (chitsToCheck).iterator(); _j14it2390.hasNext(); ) {
+			  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2390.next();
 				if (chit.isMagic() && chit.getMagicNumber()==getMagicType() && (getMagicColor().matches("Any") || chit.getColorMagic().getColorName().matches(getMagicColor()))) {
 					chits.add(chit);
 				}
 			}
-			break;
-		case Fly:
-			for (CharacterActionChitComponent chit : chitsToCheck) {
+		} else if (_ct == ChitType.Fly) {
+			for (java.util.Iterator _j14it2391 = (chitsToCheck).iterator(); _j14it2391.hasNext(); ) {
+			  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2391.next();
 				if (chit.isFly()) chits.add(chit);
 			}
-			break;
-		case Any:
-		default:
+		} else {
 			chits.addAll(chitsToCheck);
-			break;
 		}
 		chitsToCheck.clear();
 		chitsToCheck.addAll(chits);
 		chits.clear();
-		for (CharacterActionChitComponent chit : chitsToCheck) {
+		for (java.util.Iterator _j14it2392 = (chitsToCheck).iterator(); _j14it2392.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2392.next();
 				if (getStrength() != VulnerabilityType.Any && chit.getStrength().weakerTo(new Strength(getStrength().toString()))) continue;
 				if (getSpeed() != 0 && chit.getSpeed().getNum()>getSpeed()) continue;
 				if (onlyActive() && !chit.isActive()) continue;
@@ -76,13 +92,11 @@ public class QuestRewardDamageChit extends QuestReward {
 		}
 		
 		String dmgType = "";
-		switch (getDamageType()) {
-			case WeatherFatigue:
-				dmgType = "fatigue";
-				break;
-			case Wounds:
-				dmgType = "wound";
-				break;
+		DamageType _dt = getDamageType();
+		if (_dt == DamageType.WeatherFatigue) {
+			dmgType = "fatigue";
+		} else if (_dt == DamageType.Wounds) {
+			dmgType = "wound";
 		}
 		if (chits.isEmpty()) return;
 		
@@ -90,18 +104,16 @@ public class QuestRewardDamageChit extends QuestReward {
 		chooser.addRealmComponents(chits,false);
 		chooser.setVisible(true);
 		CharacterActionChitComponent chit = (CharacterActionChitComponent)chooser.getFirstSelectedComponent();
-		switch (getDamageType()) {
-			case WeatherFatigue:
-				chit.makeFatigued();
-				break;
-			case Wounds:
-				chit.makeWounded();
-				break;
+		DamageType _dt2 = getDamageType();
+		if (_dt2 == DamageType.WeatherFatigue) {
+			chit.makeFatigued();
+		} else if (_dt2 == DamageType.Wounds) {
+			chit.makeWounded();
 		}
 	}
 
 	public String getDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must damage a");
 		if (getType() != ChitType.Any) {
 			sb.append(getType()+" ");

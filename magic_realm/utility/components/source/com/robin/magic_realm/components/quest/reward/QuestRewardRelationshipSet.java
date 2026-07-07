@@ -23,19 +23,20 @@ public class QuestRewardRelationshipSet extends QuestReward {
 	}
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
-		ArrayList<GameObject> representativeNativesToChange = getRepresentativeNatives(character);
+		ArrayList representativeNativesToChange = getRepresentativeNatives(character);
 		if (representativeNativesToChange==null) return;
 		
 		String name = getRelationshipName();
 		int targetRel = RelationshipType.getIntFor(name);
-		for(GameObject denizen:representativeNativesToChange) {
+		for (java.util.Iterator _j14it2344 = (representativeNativesToChange).iterator(); _j14it2344.hasNext(); ) {
+		  GameObject denizen = (GameObject) _j14it2344.next();
 			int current = character.getRelationship(denizen);
 			int diff = targetRel - current;
 			character.changeRelationship(denizen,diff);
 		}
 	}
 	
-	public ArrayList<GameObject> getRepresentativeNatives(CharacterWrapper character) {
+	public ArrayList getRepresentativeNatives(CharacterWrapper character) {
 		TileLocation tl = character.getCurrentLocation();
 		if (isAllNatives()) {
 			if (!tl.isInClearing()) return null;
@@ -44,15 +45,16 @@ public class QuestRewardRelationshipSet extends QuestReward {
 		
 		// Fetch the group leader - if multiple boards, then match the warning chit board
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());
-		ArrayList<String> queryNatives = new ArrayList<String>();
-		ArrayList<String> queryVisitors = new ArrayList<String>();
+		ArrayList queryNatives = new ArrayList();
+		ArrayList queryVisitors = new ArrayList();
 		queryNatives.add("rank=HQ");
 		queryNatives.add("native="+getNativeGroup());
 		queryVisitors.add("visitor="+getNativeGroup().toLowerCase());
 		
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(character.getGameData());
 		if (hostPrefs.getMultiBoardEnabled()) {
-			for(GameObject go : tl.tile.getGameObject().getHold()) {
+			for (java.util.Iterator _j14it2345 = (tl.tile.getGameObject().getHold()).iterator(); _j14it2345.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2345.next();
 				if (go.hasThisAttribute("warning") && go.hasThisAttribute("chit")) {
 					String board = go.getThisAttribute(Constants.BOARD_NUMBER);
 					if (board!=null) {
@@ -63,7 +65,7 @@ public class QuestRewardRelationshipSet extends QuestReward {
 			}
 		}
 		
-		ArrayList<GameObject> representativeNatives = pool.find(queryNatives);
+		ArrayList representativeNatives = pool.find(queryNatives);
 		representativeNatives.addAll(pool.find(queryVisitors));
 		return representativeNatives;
 	}
@@ -73,11 +75,12 @@ public class QuestRewardRelationshipSet extends QuestReward {
 		return group.equals("Clearing");
 	}
 	
-	private static ArrayList<GameObject> fetchNativesFromClearing(TileLocation tl, CharacterWrapper character) {
+	private static ArrayList fetchNativesFromClearing(TileLocation tl, CharacterWrapper character) {
 		
-		ArrayList<String> groupsToChange = new ArrayList<String>();
-		ArrayList<GameObject> representativeNativesToChange = new ArrayList<GameObject>();
-		for(RealmComponent rc:tl.clearing.getClearingComponents()) {
+		ArrayList groupsToChange = new ArrayList();
+		ArrayList representativeNativesToChange = new ArrayList();
+		for (java.util.Iterator _j14it2346 = (tl.clearing.getClearingComponents()).iterator(); _j14it2346.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2346.next();
 			if (!rc.isNative()) continue;
 			
 			NativeChitComponent nat = (NativeChitComponent)rc;

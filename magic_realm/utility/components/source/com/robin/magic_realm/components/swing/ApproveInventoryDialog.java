@@ -20,7 +20,7 @@ import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class ApproveInventoryDialog extends AggressiveDialog {
 	
-	ArrayList<GameObject> toApprove;
+	ArrayList toApprove;
 	
 	private JTable leftTable;
 	private ItemTableModel leftTableModel;
@@ -29,14 +29,14 @@ public class ApproveInventoryDialog extends AggressiveDialog {
 	
 	private JButton doneButton;
 	
-	public ApproveInventoryDialog(JFrame frame,ArrayList<GameObject> toApprove) {
+	public ApproveInventoryDialog(JFrame frame,ArrayList toApprove) {
 		super(frame,"Approve Inventory",true);
 		
 		this.toApprove = toApprove;
 		initComponents(toApprove);
 		setLocationRelativeTo(frame);
 	}
-	private void initComponents(ArrayList<GameObject> toApprove) {
+	private void initComponents(ArrayList toApprove) {
 		setSize(800,600);
 		getContentPane().setLayout(new BorderLayout());
 		
@@ -49,7 +49,7 @@ public class ApproveInventoryDialog extends AggressiveDialog {
 		
 		JPanel invPanel = new JPanel(new BorderLayout());
 		invPanel.add(getTitleLabel("Rejected"),"North");
-		leftTableModel = new ItemTableModel(new ArrayList<GameObject>());
+		leftTableModel = new ItemTableModel(new ArrayList());
 		leftTable = new JTable(leftTableModel);
 		leftTable.setDefaultRenderer(String.class, new InventoryTableStringRenderer(leftTable));
 		leftTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -95,11 +95,11 @@ public class ApproveInventoryDialog extends AggressiveDialog {
 		getContentPane().add(box,"South");
 	}
 	
-	public ArrayList<GameObject> getRejected() {
+	public ArrayList getRejected() {
 		return leftTableModel.getInventory();
 	}
 	
-	public ArrayList<GameObject> getApproved() {
+	public ArrayList getApproved() {
 		return rightTableModel.getInventory();
 	}
 	
@@ -132,22 +132,23 @@ public class ApproveInventoryDialog extends AggressiveDialog {
 				ImageIcon.class,
 		};
 		
-		private ArrayList<GameObject> inventory;
+		private ArrayList inventory;
 		
-		public ItemTableModel(ArrayList<GameObject> items) {
-			inventory = new ArrayList<GameObject>();
-			for (GameObject go:items) {
+		public ItemTableModel(ArrayList items) {
+			inventory = new ArrayList();
+			for (java.util.Iterator _j14it1855 = (items).iterator(); _j14it1855.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it1855.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				if (rc.isItem()) {
 					inventory.add(go);
 				}
 			}
 		}
-		public ArrayList<GameObject> getInventory() {
+		public ArrayList getInventory() {
 			return inventory;
 		}
 		public GameObject removeInventory(int index) {
-			GameObject go = inventory.remove(index);
+			GameObject go = (GameObject) inventory.remove(index);
 			fireTableDataChanged();
 			return go;
 		}
@@ -169,7 +170,7 @@ public class ApproveInventoryDialog extends AggressiveDialog {
 		}
 		public Object getValueAt(int row, int col) {
 			if (row<inventory.size()) {
-				GameObject go = inventory.get(row);
+				GameObject go = (GameObject) inventory.get(row);
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				switch(col) {
 					case 0:
@@ -187,7 +188,7 @@ public class ApproveInventoryDialog extends AggressiveDialog {
 		public void updateRowHeights(JTable table) {
 			int maxIconColWidth = 0;
 			for (int i=0;i<inventory.size();i++) {
-				GameObject go = inventory.get(i);
+				GameObject go = (GameObject) inventory.get(i);
 				RealmComponent rc = RealmComponent.getRealmComponent(go);
 				
 				ImageIcon icon = rc.getIcon();
@@ -236,11 +237,13 @@ public class ApproveInventoryDialog extends AggressiveDialog {
 		dialog.setVisible(true);
 		
 		System.out.println("Rejected:");
-		for (GameObject go:dialog.getRejected()) {
+		for (java.util.Iterator _j14it1856 = (dialog.getRejected()).iterator(); _j14it1856.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1856.next();
 			System.out.println(go.getName());
 		}
 		System.out.println("Approved:");
-		for (GameObject go:dialog.getApproved()) {
+		for (java.util.Iterator _j14it1857 = (dialog.getApproved()).iterator(); _j14it1857.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it1857.next();
 			System.out.println(go.getName());
 		}
 	}

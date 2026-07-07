@@ -20,7 +20,7 @@ import com.robin.magic_realm.components.utility.RealmUtility;
 public class RealmObjectChooser extends JDialog {
 	protected RealmObjectPanel panel;
 	protected boolean okay = false;
-	protected ArrayList<GameObject> chosenObjects = null;
+	protected ArrayList chosenObjects = null;
 	protected GameData gameData; // for validation purposes
 	protected int minCount = -1;
 	protected int maxCount = -1;
@@ -73,7 +73,7 @@ public class RealmObjectChooser extends JDialog {
 	private void updateInstructions() {
 		boolean singleSelection = panel.getSelectionMode()==RealmObjectPanel.SINGLE_SELECTION;
 		if (!singleSelection) {
-			StringBuilder sb = new StringBuilder("** ");
+			StringBuffer sb = new StringBuffer("** ");
 			if (minCount>1) {
 				sb.append("You must select at least ");
 				sb.append(minCount);
@@ -84,7 +84,7 @@ public class RealmObjectChooser extends JDialog {
 				sb.append(maxCount);
 			}
 			if (minCount>1 && minCount == maxCount) {
-				sb = new StringBuilder("** You must select exactly ");
+				sb = new StringBuffer("** You must select exactly ");
 				sb.append(minCount);
 			}
 			if (minCount>1 || maxCount>1) {
@@ -148,15 +148,17 @@ public class RealmObjectChooser extends JDialog {
 		setModal(true);
 		setSize(640,500);
 	}
-	public void addObjectsToChoose(Collection<GameObject> objects) {
-		ArrayList<GameObject> list = new ArrayList<GameObject>(objects);
-		for (GameObject object : list) {
+	public void addObjectsToChoose(Collection objects) {
+		ArrayList list = new ArrayList(objects);
+		for (java.util.Iterator _j14it2021 = (list).iterator(); _j14it2021.hasNext(); ) {
+		  GameObject object = (GameObject) _j14it2021.next();
 			panel.addObject(object);
 		}
 		panel.revalidate();
 	}
-	public void addComponentsToChoose(Collection<RealmComponent> components) {
-		for (RealmComponent rc : components) {
+	public void addComponentsToChoose(Collection components) {
+		for (java.util.Iterator _j14it2022 = (components).iterator(); _j14it2022.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2022.next();
 			panel.add(rc);
 		}
 		panel.revalidate();
@@ -170,7 +172,7 @@ public class RealmObjectChooser extends JDialog {
 		
 		if (object.length>0) {
 			okay = true;
-			chosenObjects = new ArrayList<GameObject>();
+			chosenObjects = new ArrayList();
 			for (int i=0;i<object.length;i++) {
 				// quickly verify that the chosenObject is still in gameData!
 				if (validateChosenObjects && !gameData.validate(object[i])) {
@@ -196,9 +198,9 @@ public class RealmObjectChooser extends JDialog {
 		return okay;
 	}
 	public GameObject getChosenObject() {
-		return (chosenObjects!=null && !chosenObjects.isEmpty())?chosenObjects.get(0):null;
+		return (chosenObjects!=null && !chosenObjects.isEmpty())?(GameObject) chosenObjects.get(0):null;
 	}
-	public ArrayList<GameObject> getChosenObjects() {
+	public ArrayList getChosenObjects() {
 		return chosenObjects;
 	}
 	public static void main(String[] args) {

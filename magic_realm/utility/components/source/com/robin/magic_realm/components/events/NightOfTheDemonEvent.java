@@ -24,26 +24,26 @@ public class NightOfTheDemonEvent implements IEvent {
 	}
 	public void expire(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_NIGHT_OF_THE_DEMON);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_NIGHT_OF_THE_DEMON);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2482 = (ids).iterator(); _j14it2482.hasNext(); ) {
+			  String id = (String) _j14it2482.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				tile.removeThisAttribute(Constants.EVENT_NIGHT_OF_THE_DEMON);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_NIGHT_OF_THE_DEMON,id);
 			}
 		}
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
 		String text = "";
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_NIGHT_OF_THE_DEMON);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_NIGHT_OF_THE_DEMON);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2483 = (ids).iterator(); _j14it2483.hasNext(); ) {
+			  String id = (String) _j14it2483.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				text = text + tile.getNameWithNumber() + ", ";
 			}

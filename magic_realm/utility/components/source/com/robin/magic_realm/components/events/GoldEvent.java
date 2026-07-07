@@ -16,11 +16,9 @@ public class GoldEvent implements IEvent {
 	public void expire(GameData data) {
 		RealmEvents.removeInfiniteColorMagicSource(data,ColorMagic.Gold);
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		return description;
 	}

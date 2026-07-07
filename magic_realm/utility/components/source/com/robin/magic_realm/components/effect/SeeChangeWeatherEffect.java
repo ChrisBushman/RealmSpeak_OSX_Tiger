@@ -6,7 +6,6 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class SeeChangeWeatherEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		String type = context.Spell.getExtraIdentifier();
 		
@@ -27,7 +26,6 @@ public class SeeChangeWeatherEffect implements ISpellEffect {
 		}
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 	}
 

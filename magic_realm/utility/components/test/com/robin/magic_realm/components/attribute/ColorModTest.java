@@ -37,13 +37,13 @@ public class ColorModTest {
 
 	@Test
 	public void testConvertNoColor() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList things = new ArrayList();
 		things.add(GameObject.createEmptyGameObject());
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList colors = new ArrayList();
 		colors.add(new ColorMagic(ColorMagic.WHITE,true));
 		
-		ArrayList<ColorMagic> result = ColorMod.getConvertedColorsForThings(things,colors);
+		ArrayList result = ColorMod.getConvertedColorsForThings(things,colors);
 		
 		assertEquals(1,result.size());
 		assertTrue(result.contains(new ColorMagic(ColorMagic.WHITE,true)));
@@ -51,13 +51,13 @@ public class ColorModTest {
 	
 	@Test
 	public void testConvertOneColor() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList things = new ArrayList();
 		things.add(createColorModThing("1.2"));
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList colors = new ArrayList();
 		colors.add(new ColorMagic(ColorMagic.WHITE,true));
 		
-		ArrayList<ColorMagic> result = ColorMod.getConvertedColorsForThings(things,colors);
+		ArrayList result = ColorMod.getConvertedColorsForThings(things,colors);
 		
 		assertEquals(1,result.size());
 		assertTrue(result.contains(new ColorMagic(ColorMagic.GRAY,true)));
@@ -66,13 +66,13 @@ public class ColorModTest {
 	
 	@Test
 	public void testConvertMultipleColorsInOne() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList things = new ArrayList();
 		things.add(createColorModThing("1.2;1.3"));
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList colors = new ArrayList();
 		colors.add(new ColorMagic(ColorMagic.WHITE,true));
 		
-		ArrayList<ColorMagic> result = ColorMod.getConvertedColorsForThings(things,colors);
+		ArrayList result = ColorMod.getConvertedColorsForThings(things,colors);
 		
 		assertEquals(2,result.size());
 		assertTrue(result.contains(new ColorMagic(ColorMagic.GRAY,true)));
@@ -82,14 +82,14 @@ public class ColorModTest {
 	
 	@Test
 	public void testConvertOneColorInMultiple() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList things = new ArrayList();
 		things.add(createColorModThing("1.2"));
 		things.add(createColorModThing("1.3"));
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList colors = new ArrayList();
 		colors.add(new ColorMagic(ColorMagic.WHITE,true));
 		
-		ArrayList<ColorMagic> result = ColorMod.getConvertedColorsForThings(things,colors);
+		ArrayList result = ColorMod.getConvertedColorsForThings(things,colors);
 		
 		assertEquals(2,result.size());
 		assertTrue(result.contains(new ColorMagic(ColorMagic.GRAY,true)));
@@ -99,15 +99,15 @@ public class ColorModTest {
 	
 	@Test
 	public void testConvertColorSwap() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList things = new ArrayList();
 		things.add(createColorModThing("1.5"));
 		things.add(createColorModThing("5.1"));
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList colors = new ArrayList();
 		colors.add(new ColorMagic(ColorMagic.WHITE,true));
 		colors.add(new ColorMagic(ColorMagic.GOLD,true));
 		
-		ArrayList<ColorMagic> result = ColorMod.getConvertedColorsForThings(things,colors);
+		ArrayList result = ColorMod.getConvertedColorsForThings(things,colors);
 		
 		assertEquals(2,result.size());
 		assertTrue(result.contains(new ColorMagic(ColorMagic.BLACK,true)));
@@ -117,15 +117,15 @@ public class ColorModTest {
 	
 	@Test
 	public void testAllThreeInPlayWithWhite() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList things = new ArrayList();
 		things.add(createColorModThing("1.5;4.2"));
 		things.add(createColorModThing("1.2;1.3;1.4"));
 		things.add(createColorModThing("1.5"));
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList colors = new ArrayList();
 		colors.add(new ColorMagic(ColorMagic.WHITE,true));
 		
-		ArrayList<ColorMagic> result = ColorMod.getConvertedColorsForThings(things,colors);
+		ArrayList result = ColorMod.getConvertedColorsForThings(things,colors);
 		
 		assertEquals(4,result.size());
 		assertFalse(result.contains(new ColorMagic(ColorMagic.WHITE,true)));
@@ -136,16 +136,16 @@ public class ColorModTest {
 	}
 	@Test
 	public void testAllThreeInPlayWithWhiteAndPurple() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList things = new ArrayList();
 		things.add(createColorModThing("1.5;4.2"));
 		things.add(createColorModThing("1.2;1.3;1.4"));
 		things.add(createColorModThing("1.5"));
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList colors = new ArrayList();
 		colors.add(new ColorMagic(ColorMagic.WHITE,true));
 		colors.add(new ColorMagic(ColorMagic.PURPLE,true));
 		
-		ArrayList<ColorMagic> result = ColorMod.getConvertedColorsForThings(things,colors);
+		ArrayList result = ColorMod.getConvertedColorsForThings(things,colors);
 		
 		assertEquals(4,result.size());
 		assertFalse(result.contains(new ColorMagic(ColorMagic.WHITE,true)));
@@ -157,15 +157,15 @@ public class ColorModTest {
 	
 	@Test
 	public void testAllThreeInPlayWithPurple() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList things = new ArrayList();
 		things.add(createColorModThing("1.5;4.2"));
 		things.add(createColorModThing("1.2;1.3;1.4"));
 		things.add(createColorModThing("1.5"));
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList colors = new ArrayList();
 		colors.add(new ColorMagic(ColorMagic.PURPLE,true));
 		
-		ArrayList<ColorMagic> result = ColorMod.getConvertedColorsForThings(things,colors);
+		ArrayList result = ColorMod.getConvertedColorsForThings(things,colors);
 		
 		assertEquals(1,result.size());
 		assertFalse(result.contains(new ColorMagic(ColorMagic.WHITE,true)));
@@ -174,15 +174,15 @@ public class ColorModTest {
 	
 	@Test
 	public void testReversePowerWithWhiteAndPurple() {
-		ArrayList<GameObject> things = new ArrayList<GameObject>();
+		ArrayList things = new ArrayList();
 		things.add(createColorModThing("1.5;4.2"));
 		
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
+		ArrayList colors = new ArrayList();
 		colors.add(new ColorMagic(ColorMagic.WHITE,true));
 		colors.add(new ColorMagic(ColorMagic.PURPLE,true));
 		colors.add(new ColorMagic(ColorMagic.GOLD,true));
 		
-		ArrayList<ColorMagic> result = ColorMod.getConvertedColorsForThings(things,colors);
+		ArrayList result = ColorMod.getConvertedColorsForThings(things,colors);
 		
 		assertEquals(3,result.size());
 		assertFalse(result.contains(new ColorMagic(ColorMagic.WHITE,true)));

@@ -16,7 +16,7 @@ public class VictoryConditionButton extends JPanel {
 	private JLabel titleLabel;
 	private JTextPane descriptionField;
 	private boolean selected = false;
-	private ArrayList<ChangeListener> changeListeners;
+	private ArrayList changeListeners;
 	
 	private MouseAdapter littleClicky = new MouseAdapter() {
 		public void mousePressed(MouseEvent ev) {
@@ -34,7 +34,9 @@ public class VictoryConditionButton extends JPanel {
 		descriptionField.setText(description);
 		descriptionField.setEditable(false);
 		descriptionField.setOpaque(false);
-		for(MouseListener ml:descriptionField.getMouseListeners()) {
+		MouseListener[] _j14arr1860 = descriptionField.getMouseListeners();
+		for (int _j14i1860 = 0; _j14i1860 < _j14arr1860.length; _j14i1860++) {
+		    MouseListener ml = _j14arr1860[_j14i1860];
 			descriptionField.removeMouseListener(ml);
 		}
 		descriptionField.addMouseListener(littleClicky);
@@ -53,7 +55,7 @@ public class VictoryConditionButton extends JPanel {
 	}
 	public void addChangeListener(ChangeListener changeListener) {
 		if (changeListeners==null) {
-			changeListeners = new ArrayList<ChangeListener>();
+			changeListeners = new ArrayList();
 		}
 		if (!changeListeners.contains(changeListener)) {
 			changeListeners.add(changeListener);
@@ -70,7 +72,8 @@ public class VictoryConditionButton extends JPanel {
 	private void fireChanged() {
 		if (changeListeners==null) return;
 		ChangeEvent ev = new ChangeEvent(this);
-		for(ChangeListener changeListener:changeListeners) {
+		for (java.util.Iterator _j14it1861 = (changeListeners).iterator(); _j14it1861.hasNext(); ) {
+		  ChangeListener changeListener = (ChangeListener) _j14it1861.next();
 			changeListener.stateChanged(ev);
 		}
 	}

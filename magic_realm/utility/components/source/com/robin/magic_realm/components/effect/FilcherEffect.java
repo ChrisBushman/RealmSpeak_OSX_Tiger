@@ -16,7 +16,6 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 public class FilcherEffect implements ISpellEffect {
 	private boolean oneTime;
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		if(oneTime)return;
 
@@ -43,7 +42,8 @@ public class FilcherEffect implements ISpellEffect {
 				cc.changeRelationship(Constants.GAME_RELATIONSHIP, nativeGroup, 0, true);
 				msg = "You are caught red-handed by the " + nativeGroup + " and they are now your enemy!";
 				DieRollReporter.showMessageDialog(result.roller, context.Parent, "Filcher", msg, JOptionPane.INFORMATION_MESSAGE);
-				for (RealmComponent n : context.Spell.getTargets()) {
+				for (java.util.Iterator _j14it2030 = (context.Spell.getTargets()).iterator(); _j14it2030.hasNext(); ) {
+				  RealmComponent n = (RealmComponent) _j14it2030.next();
 					cc.addBattlingNative(n.getGameObject());
 				}
 				break;
@@ -56,8 +56,9 @@ public class FilcherEffect implements ISpellEffect {
 		String msg;
 		GameObject dwelling = context.Game.getGameData().getGameObjectByName(dwellingName);
 
-		ArrayList<GameObject> stuff = new ArrayList<GameObject>();
-		for (GameObject go : dwelling.getHold()) {
+		ArrayList stuff = new ArrayList();
+		for (java.util.Iterator _j14it2031 = (dwelling.getHold()).iterator(); _j14it2031.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2031.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc.isItem() && !rc.isHorse()) {
 				stuff.add(go);
@@ -66,7 +67,7 @@ public class FilcherEffect implements ISpellEffect {
 
 		RollResult stealRoll = SpellUtility.rollResult(context, "Steal");
 		int stealIndex = stealRoll.roll - 1;
-		GameObject stolenItem = (stealIndex < stuff.size()) ? stuff.get(stealIndex) : null;
+		GameObject stolenItem = (stealIndex < stuff.size()) ? (GameObject) stuff.get(stealIndex) : null;
 
 		String suspiciousMsg = suspicious ? ", but they become suspicious" : "";
 
@@ -81,7 +82,6 @@ public class FilcherEffect implements ISpellEffect {
 		DieRollReporter.showMessageDialog(result.roller, context.Parent, "Filcher", msg, JOptionPane.INFORMATION_MESSAGE);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 	}
 }

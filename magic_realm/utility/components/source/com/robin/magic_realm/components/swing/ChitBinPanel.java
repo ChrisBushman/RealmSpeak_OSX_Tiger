@@ -65,9 +65,9 @@ public abstract class ChitBinPanel extends JComponent {
 		return layout.getChitAt(p);
 	}
 
-	public void addChits(ArrayList<StateChitComponent> list) {
+	public void addChits(ArrayList list) {
 		for (int i=0;i<list.size();i++) {
-			StateChitComponent chit = list.get(i);
+			StateChitComponent chit = (StateChitComponent) list.get(i);
 			addChit(chit, i);
 		}
 	}
@@ -87,12 +87,13 @@ public abstract class ChitBinPanel extends JComponent {
 
 	public void paint(Graphics g1) {
 		Graphics2D g = (Graphics2D)g1;
-		ArrayList<String> groups = layout.getGroups();
+		ArrayList groups = layout.getGroups();
 		int left = PANEL_BORDER + LABEL_WIDTH;
 		int top = PANEL_BORDER;
 		int r=0;
 		int c=0;
-		for (String group : groups) {
+		for (java.util.Iterator _j14it1882 = (groups).iterator(); _j14it1882.hasNext(); ) {
+		  String group = (String) _j14it1882.next();
 			boolean isMagic = "MAGIC".equals(group);
 			boolean isOther = "OTHER".equals(group);
 			g.setColor(Color.black);
@@ -101,9 +102,10 @@ public abstract class ChitBinPanel extends JComponent {
 				yText+=COLOR_MAGIC_SPACE;
 			}
 			GraphicsUtil.drawCenteredString(g,PANEL_BORDER,yText,LABEL_WIDTH,cellSize,group);
-			ArrayList<ChitBin> bins = layout.getBins(group);
+			ArrayList bins = layout.getBins(group);
 			int rtop = (r*cellSize)+top;
-			for (ChitBin bin : bins) {
+			for (java.util.Iterator _j14it1883 = (bins).iterator(); _j14it1883.hasNext(); ) {
+			  ChitBin bin = (ChitBin) _j14it1883.next();
 				Rectangle a = new Rectangle(c * cellSize, r * cellSize, cellSize, cellSize);
 				bin.setRectangle(a);
 				a.x += left;
@@ -155,7 +157,8 @@ public abstract class ChitBinPanel extends JComponent {
 	}
 
 	public void makeAllChitsFatigued() {
-		for (ChitComponent chit : layout.getAllChits()) {
+		for (java.util.Iterator _j14it1884 = (layout.getAllChits()).iterator(); _j14it1884.hasNext(); ) {
+		  ChitComponent chit = (ChitComponent) _j14it1884.next();
 			if (chit.isActionChit()) {
 				CharacterActionChitComponent achit = (CharacterActionChitComponent)chit;
 				achit.makeFatigued();
@@ -164,7 +167,8 @@ public abstract class ChitBinPanel extends JComponent {
 	}
 
 	public void makeAllChitsActive() {
-		for (ChitComponent chit : layout.getAllChits()) {
+		for (java.util.Iterator _j14it1885 = (layout.getAllChits()).iterator(); _j14it1885.hasNext(); ) {
+		  ChitComponent chit = (ChitComponent) _j14it1885.next();
 			if (chit.isActionChit()) {
 				CharacterActionChitComponent achit = (CharacterActionChitComponent)chit;
 				if (!achit.isAlerted() && !achit.isColor()) { // ignore alerted and color chits
@@ -175,7 +179,8 @@ public abstract class ChitBinPanel extends JComponent {
 	}
 
 	public void makeAllChitsWounded() {
-		for (ChitComponent chit : layout.getAllChits()) {
+		for (java.util.Iterator _j14it1886 = (layout.getAllChits()).iterator(); _j14it1886.hasNext(); ) {
+		  ChitComponent chit = (ChitComponent) _j14it1886.next();
 			if (chit.isActionChit()) {
 				CharacterActionChitComponent achit = (CharacterActionChitComponent)chit;
 				achit.makeWounded();
@@ -183,10 +188,10 @@ public abstract class ChitBinPanel extends JComponent {
 		}
 	}
 	
-	public ArrayList<ChitComponent> getAllChits() {
+	public ArrayList getAllChits() {
 		return layout.getAllChits();
 	}
-	public ArrayList<ChitComponent> getColorChits() {
+	public ArrayList getColorChits() {
 		return layout.getColorChits();
 	}
 	public static void main(String[] args) {
@@ -220,7 +225,7 @@ public abstract class ChitBinPanel extends JComponent {
 		CharacterWrapper character = new CharacterWrapper(go);
 		GameObject f1 = data.getGameObjectByName("Test Fly Chit 1");
 		go.add(f1);
-		ArrayList<StateChitComponent> chits = new ArrayList<StateChitComponent>(character.getCompleteChitList());
+		ArrayList chits = new ArrayList(character.getCompleteChitList());
 		ChitBinLayout layout = new ChitBinLayout(chits);
 		ChitBinPanel panel = new ChitBinPanel(layout) {
 			public boolean canClickChit(ChitComponent aChit) {
@@ -230,7 +235,7 @@ public abstract class ChitBinPanel extends JComponent {
 			}
 		};
 		for (int i=0;i<chits.size();i++) {
-			StateChitComponent chit = chits.get(i);
+			StateChitComponent chit = (StateChitComponent) chits.get(i);
 			panel.addChit(chit, i);
 		}
 		JOptionPane.showMessageDialog(null, panel,name,JOptionPane.PLAIN_MESSAGE);

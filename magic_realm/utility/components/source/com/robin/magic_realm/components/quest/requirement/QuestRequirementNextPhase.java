@@ -47,27 +47,26 @@ public class QuestRequirementNextPhase extends QuestRequirement {
 		return dayKey == null ? null : new DayKey(dayKey);
 	}
 	private static int getPhaseNumber(GamePhaseType phase) {
-		switch (phase) {
-		case Birdsong:
+		if (phase == GamePhaseType.Birdsong) {
 			return 0;
-		case EndOfPhase:
+		} else if (phase == GamePhaseType.EndOfPhase) {
 			return 1;
-		case EndOfTurn:
+		} else if (phase == GamePhaseType.EndOfTurn) {
 			return 2;
-		case StartOfEvening:
+		} else if (phase == GamePhaseType.StartOfEvening) {
 			return 3;
-		case Midnight:
+		} else if (phase == GamePhaseType.Midnight) {
 			return 5;
-		case Unspecified:
+		} else if (phase == GamePhaseType.Unspecified) {
 			return -1;
-		default: 
+		} else {
 			return 5;
 		}
 	}
 	
 	protected String buildDescription() {
 		int val = +getNumberOfSkipPhases();
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must wait ");
 		sb.append(val);
 		sb.append(" phase");

@@ -91,7 +91,7 @@ public class QuestRewardCounter extends QuestReward {
 	private boolean needToDecreaseQuestCount() {
 		return getValueToDecrease() != 0;
 	}
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,COUNTER);
 	}
 }

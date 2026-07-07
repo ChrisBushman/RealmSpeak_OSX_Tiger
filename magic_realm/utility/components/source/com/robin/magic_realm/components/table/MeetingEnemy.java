@@ -10,7 +10,7 @@ import com.robin.magic_realm.components.attribute.TradeInfo;
 import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class MeetingEnemy extends Meeting {
-	public MeetingEnemy(JFrame frame,TradeInfo tradeInfo,GameObject merchandise,Collection<RealmComponent> hireGroup) {
+	public MeetingEnemy(JFrame frame,TradeInfo tradeInfo,GameObject merchandise,Collection hireGroup) {
 		super(frame,tradeInfo,merchandise,hireGroup);
 	}
 	public String getMeetingTableName() {

@@ -24,12 +24,13 @@ public class QuestRewardRegenerateDenizen extends QuestReward {
 	}
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
-		ArrayList<GameObject> denizens = character.getGameData().getGameObjectsByNameRegex(getDenizenNameRegex());
+		ArrayList denizens = character.getGameData().getGameObjectsByNameRegex(getDenizenNameRegex());
 		int regeneratedDenizens = 0;
 		if (numberOfDenizens()!=0) {
 			Collections.shuffle(denizens);
 		}
-		for (GameObject denizen : denizens) {
+		for (java.util.Iterator _j14it2350 = (denizens).iterator(); _j14it2350.hasNext(); ) {
+		  GameObject denizen = (GameObject) _j14it2350.next();
 			if (denizen != null && denizen.hasThisAttribute("denizen") && !denizen.hasThisAttribute(Constants.CLONED) && !denizen.hasThisAttribute(Constants.COMPANION) && !denizen.hasThisAttribute(Constants.SUMMONED)) {				
 				RealmComponent denizenRc = RealmComponent.getRealmComponent(denizen);
 				if (denizenRc.getOwner()!=null && !regenerateHirelings()) continue;
@@ -72,13 +73,13 @@ public class QuestRewardRegenerateDenizen extends QuestReward {
 	private int numberOfDenizens() {
 		return getInt(DENIZEN_AMOUNT);
 	}
-	private Boolean charactersClearingOnly() {
+	private boolean charactersClearingOnly() {
 		return getBoolean(CHARACTERS_CLEARING);
 	}
-	private Boolean charactersTileOnly() {
+	private boolean charactersTileOnly() {
 		return getBoolean(CHARACTERS_TILE);
 	}
-	private Boolean regenerateHirelings() {
+	private boolean regenerateHirelings() {
 		return getBoolean(REGENERATE_HIRELINGS);
 	}
 	

@@ -37,7 +37,8 @@ public class ChitWoundManager extends ChitManager {
 			if (clickedChit!=null) {
 				if (clickedChit.isColor()) {
 					// Color chits can only be wounded if there are NO woundable non-color chits
-					for (ChitComponent chit : activeChits.getAllChits()) {
+					for (java.util.Iterator _j14it1937 = (activeChits.getAllChits()).iterator(); _j14it1937.hasNext(); ) {
+					  ChitComponent chit = (ChitComponent) _j14it1937.next();
 						if (chit.isActionChit()) {
 							CharacterActionChitComponent aChit = (CharacterActionChitComponent)chit;
 							if (!aChit.isColor()) {
@@ -111,19 +112,20 @@ public class ChitWoundManager extends ChitManager {
 		CharacterWrapper wrapper = new CharacterWrapper(character);
 		
 		// artifically fatigue and wound some chits
-		ArrayList<CharacterActionChitComponent> list = new ArrayList<CharacterActionChitComponent>(wrapper.getAllChits());
+		ArrayList list = new ArrayList(wrapper.getAllChits());
 		Collections.sort(list);
 		int n=0;
-		for (CharacterActionChitComponent aChit : list) {
+		for (java.util.Iterator _j14it1938 = (list).iterator(); _j14it1938.hasNext(); ) {
+		  CharacterActionChitComponent aChit = (CharacterActionChitComponent) _j14it1938.next();
 			System.out.println((n++)+" "+aChit.getGameObject().getName());
 		}
-		CharacterActionChitComponent aChit = list.get(3);
+		CharacterActionChitComponent aChit = (CharacterActionChitComponent) list.get(3);
 		aChit.makeFatigued();
 		for (int i=4;i<9;i++) {
-			aChit = list.get(i);
+			aChit = (CharacterActionChitComponent) list.get(i);
 			aChit.makeWounded();
 		}
-		aChit = list.get(11);
+		aChit = (CharacterActionChitComponent) list.get(11);
 		aChit.enchant();
 //		(new Curse(new JFrame())).applyThree(wrapper);
 		

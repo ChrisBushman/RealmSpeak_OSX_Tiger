@@ -13,7 +13,7 @@ import com.robin.magic_realm.components.wrapper.CharacterWrapper;
 
 public class RelationshipTable extends JTable {
 	private RelationshipTableModel tableModel;
-	public RelationshipTable(ArrayList<String[]> relationshipNames,CharacterWrapper character) {
+	public RelationshipTable(ArrayList relationshipNames,CharacterWrapper character) {
 		tableModel = new RelationshipTableModel(character,relationshipNames);
 		setModel(tableModel);
 		setDefaultRenderer(String.class,new RelationshipNameRenderer());
@@ -26,8 +26,8 @@ public class RelationshipTable extends JTable {
 	private static class RelationshipTableModel extends AbstractTableModel {
 		private final String[] header = {" ","Enemy","Unfriendly","Neutral","Friendly","Ally"};
 		private CharacterWrapper character;
-		private ArrayList<String[]> list;
-		public RelationshipTableModel(CharacterWrapper character,ArrayList<String[]> list) {
+		private ArrayList list;
+		public RelationshipTableModel(CharacterWrapper character,ArrayList list) {
 			this.character = character;
 			this.list = list;
 		}
@@ -45,7 +45,7 @@ public class RelationshipTable extends JTable {
 		}
 		public Object getValueAt(int row, int column) {
 			if (row<list.size()) {
-				String[] ret = list.get(row);
+				String[] ret = (String[]) list.get(row);
 				String relBlock = ret[0];
 				String fullName = ret[1];
 				String groupName = fullName.substring(1); // First letter is either N or V or G

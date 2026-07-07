@@ -15,7 +15,6 @@ public class QuestRewardWeather extends QuestReward {
 		super(go);
 	}
 
-	@Override
 	public void processReward(JFrame frame, CharacterWrapper character) {
 		RealmCalendar realmCalender = RealmCalendar.getCalendar(character.getGameData());
 		realmCalender.setWeatherResult(RealmCalendar.getWeatherInt(getWeather()));
@@ -23,11 +22,9 @@ public class QuestRewardWeather extends QuestReward {
 		RealmUtility.updateWaterClearings(character.getGameData(),freezing);
 	}
 	
-	@Override
 	public RewardType getRewardType() {
 		return RewardType.Weather;
 	}
-	@Override
 	public String getDescription() {
 		return "Sets the weather to '"+getWeather()+"'.";
 	}

@@ -14,49 +14,50 @@ public class DuelEffect implements ISpellEffect {
 
 	private static String DUELLING = "duelling";
 	
-	@Override
 	public void apply(SpellEffectContext context) {
 		HostPrefWrapper hostPrefs = HostPrefWrapper.findHostPrefs(context.getGameData());
 		
-		ArrayList<RealmComponent> targets = context.Spell.getTargets();
+		ArrayList targets = context.Spell.getTargets();
 		if (targets.size() != 2 || context.Spell.getExtraIdentifier() == DUELLING) return;
-		
-		targets.get(0).clearTargets();
-		targets.get(1).clearTargets();
-		targets.get(0).setTarget(targets.get(1));
-		targets.get(1).setTarget(targets.get(0));
-		
-		CombatWrapper combat0 = new CombatWrapper(targets.get(0).getGameObject());
+		RealmComponent t0 = (RealmComponent) targets.get(0);
+		RealmComponent t1 = (RealmComponent) targets.get(1);
+
+		t0.clearTargets();
+		t1.clearTargets();
+		t0.setTarget(t1);
+		t1.setTarget(t0);
+
+		CombatWrapper combat0 = new CombatWrapper(t0.getGameObject());
 		combat0.setSheetOwner(true);
-		CombatWrapper combat1 = new CombatWrapper(targets.get(1).getGameObject());
-		combat1.setSheetOwnerId(targets.get(0));
+		CombatWrapper combat1 = new CombatWrapper(t1.getGameObject());
+		combat1.setSheetOwnerId(t0);
 		if (hostPrefs.hasPref(Constants.SR_COMBAT)) {
 			if (combat0.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_ATTACK)) {
-				ArrayList<String> boxes = combat0.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
-				String box = boxes.get(RandomNumber.getRandom(boxes.size()));
+				ArrayList boxes = combat0.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
+				String box = (String) boxes.get(RandomNumber.getRandom(boxes.size()));
 				combat0.setCombatBoxAttack(Integer.parseInt(box));
 			}
 			else {
 				combat0.setCombatBoxAttack(RandomNumber.getRandom(3)+1);
 			}
 			if (combat0.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_DEFENSE)) {
-				ArrayList<String> boxes = combat0.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_DEFENSE);
-				String box = boxes.get(RandomNumber.getRandom(boxes.size()));
+				ArrayList boxes = combat0.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_DEFENSE);
+				String box = (String) boxes.get(RandomNumber.getRandom(boxes.size()));
 				combat0.setCombatBoxAttack(Integer.parseInt(box));
 			} else {
 				combat0.setCombatBoxDefense(RandomNumber.getRandom(3)+1);
 			}
 			if (combat1.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_ATTACK)) {
-				ArrayList<String> boxes = combat1.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
-				String box = boxes.get(RandomNumber.getRandom(boxes.size()));
+				ArrayList boxes = combat1.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
+				String box = (String) boxes.get(RandomNumber.getRandom(boxes.size()));
 				combat1.setCombatBoxAttack(Integer.parseInt(box));
 			}
 			else {
 				combat1.setCombatBoxAttack(RandomNumber.getRandom(3)+1);
 			}
 			if (combat1.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_DEFENSE)) {
-				ArrayList<String> boxes = combat1.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_DEFENSE);
-				String box = boxes.get(RandomNumber.getRandom(boxes.size()));
+				ArrayList boxes = combat1.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_DEFENSE);
+				String box = (String) boxes.get(RandomNumber.getRandom(boxes.size()));
 				combat1.setCombatBoxAttack(Integer.parseInt(box));
 			} else {
 				combat1.setCombatBoxDefense(RandomNumber.getRandom(3)+1);
@@ -64,11 +65,12 @@ public class DuelEffect implements ISpellEffect {
 		}
 		else {
 			if (combat0.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_ATTACK) && combat0.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_DEFENSE)) {
-				ArrayList<String> boxesA = combat0.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
-				ArrayList<String> boxesD = combat0.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
-				ArrayList<String> result = new ArrayList<String>();
-				for (String b : boxesA) { if (boxesD.contains(b) && !result.contains(b)) result.add(b); }
-				String box = result.get(RandomNumber.getRandom(result.size()));
+				ArrayList boxesA = combat0.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
+				ArrayList boxesD = combat0.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
+				ArrayList result = new ArrayList();
+				for (java.util.Iterator _j14it2063 = (boxesA).iterator(); _j14it2063.hasNext(); ) {
+				  String b = (String) _j14it2063.next(); if (boxesD.contains(b) && !result.contains(b)) result.add(b); }
+				String box = (String) result.get(RandomNumber.getRandom(result.size()));
 				combat0.setCombatBoxAttack(Integer.parseInt(box));
 				combat0.setCombatBoxDefense(Integer.parseInt(box));
 			}
@@ -78,11 +80,12 @@ public class DuelEffect implements ISpellEffect {
 				combat0.setCombatBoxDefense(random1);
 			}
 			if (combat1.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_ATTACK) && combat1.getGameObject().hasThisAttribute(Constants.SPIDER_WEB_BOXES_DEFENSE)) {
-				ArrayList<String> boxesA = combat1.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
-				ArrayList<String> boxesD = combat1.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
-				ArrayList<String> result = new ArrayList<String>();
-				for (String b : boxesA) { if (boxesD.contains(b) && !result.contains(b)) result.add(b); }
-				String box = result.get(RandomNumber.getRandom(result.size()));
+				ArrayList boxesA = combat1.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
+				ArrayList boxesD = combat1.getGameObject().getThisAttributeList(Constants.SPIDER_WEB_BOXES_ATTACK);
+				ArrayList result = new ArrayList();
+				for (java.util.Iterator _j14it2064 = (boxesA).iterator(); _j14it2064.hasNext(); ) {
+				  String b = (String) _j14it2064.next(); if (boxesD.contains(b) && !result.contains(b)) result.add(b); }
+				String box = (String) result.get(RandomNumber.getRandom(result.size()));
 				combat1.setCombatBoxAttack(Integer.parseInt(box));
 				combat1.setCombatBoxDefense(Integer.parseInt(box));
 			} else {
@@ -92,7 +95,8 @@ public class DuelEffect implements ISpellEffect {
 			}
 		}
 		
-		for (RealmComponent target : targets) {
+		for (java.util.Iterator _j14it2065 = (targets).iterator(); _j14it2065.hasNext(); ) {
+		  RealmComponent target = (RealmComponent) _j14it2065.next();
 			if (target instanceof MonsterChitComponent) {
 				MonsterPartChitComponent weapon = ((MonsterChitComponent) target).getWeapon();
 				if (weapon != null) {
@@ -108,7 +112,6 @@ public class DuelEffect implements ISpellEffect {
 		context.Spell.setExtraIdentifier(DUELLING);
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 	}
 

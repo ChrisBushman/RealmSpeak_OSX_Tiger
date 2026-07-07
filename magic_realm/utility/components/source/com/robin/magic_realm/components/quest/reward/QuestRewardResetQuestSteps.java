@@ -17,39 +17,56 @@ public class QuestRewardResetQuestSteps extends QuestReward {
 	public static final String RESET_DEPENDENT_FAILED_QUEST_STEPS = "_reset_dependent_failed_steps";
 	public static final String READY_RESETTED_STEPS = "_ready_resetted_steps";
 
-	public enum ResetMethod {
-		CascadedReset,
-		SingleQuestStep
+	public static final class ResetMethod {
+		private final String _name;
+		private final int _ordinal;
+		private ResetMethod(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final ResetMethod CascadedReset = new ResetMethod("CascadedReset", 0);
+		public static final ResetMethod SingleQuestStep = new ResetMethod("SingleQuestStep", 1);
+
+		private static final ResetMethod[] _VALUES = { CascadedReset, SingleQuestStep };
+		public static ResetMethod[] values() { ResetMethod[] r = new ResetMethod[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static ResetMethod valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	public QuestRewardResetQuestSteps(GameObject go) {
 		super(go);
 	}
 	
-	@Override
 	public void processReward(JFrame frame, CharacterWrapper character) {
 		String currentDay = character.getCurrentDayKey();
-		ArrayList<QuestStep> stepsToReset = new ArrayList<QuestStep>();
-		ArrayList<QuestStep> dependentSteps = new ArrayList<QuestStep>();
+		ArrayList stepsToReset = new ArrayList();
+		ArrayList dependentSteps = new ArrayList();
 		Quest quest = getParentQuest();
 		QuestStep currentStep = getParentStep();
 		
-		switch (resetMode()) {
-		case SingleQuestStep:
-			for (QuestStep step:quest.getSteps()) {
+		ResetMethod _rm = resetMode();
+		if (_rm == ResetMethod.SingleQuestStep) {
+			for (java.util.Iterator _j14it2437 = (quest.getSteps()).iterator(); _j14it2437.hasNext(); ) {
+			  QuestStep step = (QuestStep) _j14it2437.next();
 				if (step.toString().matches(questStepToReset())) {
 					stepsToReset.add(step);
 				}
 			}
-			break;
-		case CascadedReset:
-		default:
+		} else {
 			stepsToReset.add(currentStep);
-			dependentSteps.add(currentStep);		
+			dependentSteps.add(currentStep);
 			int i=0;
 			while (i < questStepsDepthToReset()) {
-				for(QuestStep step:quest.getSteps()) {
-					for(QuestStep dependentStep:dependentSteps) {
+				for (java.util.Iterator _j14it2438 = (quest.getSteps()).iterator(); _j14it2438.hasNext(); ) {
+				  QuestStep step = (QuestStep) _j14it2438.next();
+					for (java.util.Iterator _j14it2439 = (dependentSteps).iterator(); _j14it2439.hasNext(); ) {
+					  QuestStep dependentStep = (QuestStep) _j14it2439.next();
 						if (dependentStep.requires(step) && !stepsToReset.contains(step)) {
 							stepsToReset.add(step);
 						}
@@ -58,16 +75,17 @@ public class QuestRewardResetQuestSteps extends QuestReward {
 				dependentSteps.addAll(stepsToReset);
 				i++;
 			}
-			break;
 		}
 		
 		if (resetRequiredSteps() || resetRequiredFailedSteps()) {
-			ArrayList<QuestStep> moreStepsToReset = new ArrayList<QuestStep>();
+			ArrayList moreStepsToReset = new ArrayList();
 			boolean newStepsToAdd = true;
 			while (newStepsToAdd) {
 				newStepsToAdd = false;
-				for(QuestStep step:quest.getSteps()) {
-					for(QuestStep resettedStep:stepsToReset) {
+				for (java.util.Iterator _j14it2440 = (quest.getSteps()).iterator(); _j14it2440.hasNext(); ) {
+				  QuestStep step = (QuestStep) _j14it2440.next();
+					for (java.util.Iterator _j14it2441 = (stepsToReset).iterator(); _j14it2441.hasNext(); ) {
+					  QuestStep resettedStep = (QuestStep) _j14it2441.next();
 						if (!moreStepsToReset.contains(step) && ((resetRequiredSteps() && step.requires(resettedStep)) || (resetRequiredFailedSteps() && step.requiresFail(resettedStep)))) {
 							moreStepsToReset.add(step);
 							newStepsToAdd = true;
@@ -78,7 +96,8 @@ public class QuestRewardResetQuestSteps extends QuestReward {
 			}
 		}
 		
-		for(QuestStep step:stepsToReset) {
+		for (java.util.Iterator _j14it2442 = (stepsToReset).iterator(); _j14it2442.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2442.next();
 			if (step.getState() == QuestStepState.Pending) continue;
 			step.clearStates();
 			if (readyResettedSteps()) {
@@ -91,20 +110,16 @@ public class QuestRewardResetQuestSteps extends QuestReward {
 		quest.updateStepStates(currentDay);
 	}
 	
-	@Override
 	public RewardType getRewardType() {
 		return RewardType.ResetQuestSteps;
 	}
 
-	@Override
 	public String getDescription() {
-		switch (resetMode()) {
-			case SingleQuestStep:
-				return questStepToReset()+" is reset.";
-			case CascadedReset:
-			default:
-				return "Resets all quest steps depending on current step with a depth of "+questStepsDepthToReset()+". ";
+		ResetMethod _rm2 = resetMode();
+		if (_rm2 == ResetMethod.SingleQuestStep) {
+			return questStepToReset()+" is reset.";
 		}
+		return "Resets all quest steps depending on current step with a depth of "+questStepsDepthToReset()+". ";
 	}
 	
 	private ResetMethod resetMode() {

@@ -64,13 +64,14 @@ public class Locate extends Search {
 		return "Nothing";
 	}
 	
-	@Override
-	protected ArrayList<ImageIcon> getHintIcons(CharacterWrapper character) {
-		ArrayList<ImageIcon> list = new ArrayList<ImageIcon>();
-		for(PathDetail path:getAllUndiscoveredPassages(character)) {
+	protected ArrayList getHintIcons(CharacterWrapper character) {
+		ArrayList list = new ArrayList();
+		for (java.util.Iterator _j14it2176 = (getAllUndiscoveredPassages(character)).iterator(); _j14it2176.hasNext(); ) {
+		  PathDetail path = (PathDetail) _j14it2176.next();
 			list.add(new PathIcon(path));
 		}
-		for(RealmComponent rc:getAllDiscoverableChits(character,true)) {
+		for (java.util.Iterator _j14it2177 = (getAllDiscoverableChits(character,true)).iterator(); _j14it2177.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2177.next();
 			list.add(getIconForSearch(rc));
 		}
 		return list;

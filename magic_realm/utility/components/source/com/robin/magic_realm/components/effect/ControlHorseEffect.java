@@ -9,7 +9,6 @@ import com.robin.magic_realm.components.wrapper.CombatWrapper;
 
 public class ControlHorseEffect implements ISpellEffect {
 	
-	@Override
 	public void apply(SpellEffectContext context) {
 		if (context.Target.getGameObject().hasThisAttribute(Constants.CONTROLLED_HORSE)) {
 			context.Spell.cancelSpell();
@@ -25,7 +24,6 @@ public class ControlHorseEffect implements ISpellEffect {
 		context.Caster.add(context.Target.getGameObject());
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		context.Target.getGameObject().removeThisAttribute(Constants.ACTIVATED);
 		context.Target.getGameObject().removeThisAttribute(Constants.BREAK_CONTROL_WHEN_INACTIVE);

@@ -24,21 +24,20 @@ public class QuestRewardSpellFromSite extends QuestReward {
 		super(go);
 	}
 
-	@Override
 	public void processReward(JFrame frame, CharacterWrapper character) {
 		GamePool pool = new GamePool(getGameData().getGameObjects());
-		ArrayList<GameObject> sourceObjects = pool.find("spell_site");
+		ArrayList sourceObjects = pool.find("spell_site");
 		sourceObjects.addAll(pool.find("visitor,!name=Scholar")); 
 		sourceObjects.addAll(pool.find("artifact")); 
 		sourceObjects.addAll(pool.find("book,magic")); 
-		ArrayList<GameObject> objects = getObjectList(sourceObjects,getSiteRegex());
+		ArrayList objects = getObjectList(sourceObjects,getSiteRegex());
 		if (objects.isEmpty()) {
 			JOptionPane.showMessageDialog(frame,"The site specified by the reward was not found!","Quest Error",JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		GameObject selected = null;
 		if (objects.size()==1) {
-			selected = objects.get(0);
+			selected = (GameObject) objects.get(0);
 		}
 		else {
 			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,getTitleForDialog()+" Select a Site to learn a spell from:",false);
@@ -47,9 +46,10 @@ public class QuestRewardSpellFromSite extends QuestReward {
 			selected = chooser.getFirstSelectedComponent().getGameObject();
 		}
 		
-		ArrayList<GameObject> hold = selected.getHold();
-		ArrayList<GameObject> learnable = new ArrayList<GameObject>();
-		for(GameObject spell:hold) {
+		ArrayList hold = selected.getHold();
+		ArrayList learnable = new ArrayList();
+		for (java.util.Iterator _j14it2408 = (hold).iterator(); _j14it2408.hasNext(); ) {
+		  GameObject spell = (GameObject) _j14it2408.next();
 			if (character.canLearn(spell)) {
 				learnable.add(spell);
 			}
@@ -59,48 +59,39 @@ public class QuestRewardSpellFromSite extends QuestReward {
 			return;
 		}
 		GameObject spell = null;
-		switch(getDrawType()) {
-			case Top:
-				spell = learnable.get(0);
-				break;
-			case Bottom:
-				spell = learnable.get(learnable.size()-1);
-				break;
-			case Random:
-				spell = learnable.get(RandomNumber.getRandom(learnable.size()));
-				break;
-			case Choice:
-				RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,getTitleForDialog()+" Which spell?",false);
-				chooser.addGameObjects(learnable,true);
-				chooser.setVisible(true);
-				spell = chooser.getFirstSelectedComponent().getGameObject();
-				break;
+		DrawType _dt = getDrawType();
+		if (_dt == DrawType.Top) {
+			spell = (GameObject) learnable.get(0);
+		} else if (_dt == DrawType.Bottom) {
+			spell = (GameObject) learnable.get(learnable.size()-1);
+		} else if (_dt == DrawType.Random) {
+			spell = (GameObject) learnable.get(RandomNumber.getRandom(learnable.size()));
+		} else if (_dt == DrawType.Choice) {
+			RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(frame,getTitleForDialog()+" Which spell?",false);
+			chooser.addGameObjects(learnable,true);
+			chooser.setVisible(true);
+			spell = chooser.getFirstSelectedComponent().getGameObject();
 		}		
 		if (spell!=null) { // shouldn't ever be null
 			character.recordNewSpell(frame,spell);
 		}
 	}
 	
-	@Override
 	public RewardType getRewardType() {
 		return RewardType.SpellFromSite;
 	}
 
-	@Override
 	public String getDescription() {
-		StringBuilder sb = new StringBuilder();
-		switch(getDrawType()) {
-			case Top:
-				sb.append("Learn the top");
-				break;
-			case Bottom:
-				sb.append("Learn the bottom");
-				break;
-			case Choice:
-				sb.append("Learn a");
-				break;
-			case Random:
-				sb.append("Learn a random");
+		StringBuffer sb = new StringBuffer();
+		DrawType _dt2 = getDrawType();
+		if (_dt2 == DrawType.Top) {
+			sb.append("Learn the top");
+		} else if (_dt2 == DrawType.Bottom) {
+			sb.append("Learn the bottom");
+		} else if (_dt2 == DrawType.Choice) {
+			sb.append("Learn a");
+		} else if (_dt2 == DrawType.Random) {
+			sb.append("Learn a random");
 		}
 		sb.append(" spell from /");
 		sb.append(getSiteRegex());
@@ -115,10 +106,11 @@ public class QuestRewardSpellFromSite extends QuestReward {
 	public String getSiteRegex() {
 		return getString(SITE_REGEX);
 	}
-	public static ArrayList<GameObject> getObjectList(ArrayList<GameObject> sourceObjects,String regEx) {
+	public static ArrayList getObjectList(ArrayList sourceObjects,String regEx) {
 		Pattern pattern = (regEx==null || regEx.length()==0)?null:Pattern.compile(regEx);
-		ArrayList<GameObject> objects = new ArrayList<GameObject>();
-		for(GameObject obj:sourceObjects) {
+		ArrayList objects = new ArrayList();
+		for (java.util.Iterator _j14it2409 = (sourceObjects).iterator(); _j14it2409.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it2409.next();
 			if (pattern==null || pattern.matcher(obj.getName()).find()) {
 				objects.add(obj);
 			}

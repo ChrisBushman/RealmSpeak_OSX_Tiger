@@ -25,13 +25,13 @@ public abstract class Meeting extends Trade {
 	public static final String BLOCK_BATTLE = "Block/Battle";
 	
 	protected GameObject merchandise; // might be null if hiring or rolling for meeting
-	protected Collection<RealmComponent> hireGroup; // might be null if trading or rolling for meeting
-	protected Collection<RealmComponent> sucessfullyHiredGroup; // might be null if trading or rolling for meeting
+	protected Collection hireGroup; // might be null if trading or rolling for meeting
+	protected Collection sucessfullyHiredGroup; // might be null if trading or rolling for meeting
 	
 	protected boolean blockBattle;
 	protected boolean creditFame = false;
 	
-	public Meeting(JFrame frame,TradeInfo trader,GameObject merchandise,Collection<RealmComponent> hireGroup) {
+	public Meeting(JFrame frame,TradeInfo trader,GameObject merchandise,Collection hireGroup) {
 		super(frame,trader);
 		this.merchandise = merchandise;
 		this.hireGroup = hireGroup;
@@ -265,7 +265,8 @@ public abstract class Meeting extends Trade {
 		int basePrice = 0;
 		RealmComponent last = null;
 		boolean hireWithChit = false;
-		for (RealmComponent hire : hireGroup) {
+		for (java.util.Iterator _j14it2076 = (hireGroup).iterator(); _j14it2076.hasNext(); ) {
+		  RealmComponent hire = (RealmComponent) _j14it2076.next();
 			basePrice += hire.getGameObject().getThisInt("base_price");
 			if (hire.getGameObject().hasThisAttribute(Constants.HIRE_WITH_CHIT)) {
 				hireWithChit = true;
@@ -286,36 +287,38 @@ public abstract class Meeting extends Trade {
 			String amountString = last.getGameObject().getThisAttribute(Constants.HIRE_WITH_CHIT);
 			if (amountString.length() == 0) amountString = "1";
 			int amount = Integer.parseInt(amountString);
-			ArrayList<CharacterActionChitComponent> chits = character.getActiveChits();
+			ArrayList chits = character.getActiveChits();
 			if (chits == null || chits.size() == 0 || chits.size()<amount) {
 				JOptionPane.showMessageDialog(getParentFrame(),"You have not enough active character chits for hiring available.","Cannot hire "+last.getName(),JOptionPane.INFORMATION_MESSAGE,last.getIcon());
 				return;
 			}
 			int amountLeft = amount;
 			int amountSelected = 0;
-			ArrayList<RealmComponent> allSelectedChits = new ArrayList<RealmComponent>();
+			ArrayList allSelectedChits = new ArrayList();
 			
 			while (amountSelected < amountLeft) {
 				RealmComponentOptionChooser chooser = new RealmComponentOptionChooser(getParentFrame(),"You want to hire the "+last.getName()+" for "+amount+" character chit(s)?",true);
-				for (CharacterActionChitComponent chit : chits) {
+				for (java.util.Iterator _j14it2077 = (chits).iterator(); _j14it2077.hasNext(); ) {
+				  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2077.next();
 					chooser.addRealmComponent(chit);
 				}
 				chooser.setVisible(true);
 							
-				Collection<RealmComponent> selectedChits = chooser.getSelectedComponents();
+				Collection selectedChits = chooser.getSelectedComponents();
 				if (selectedChits == null) return;
 				amountSelected = amountSelected+1;
 				chits.removeAll(selectedChits);
 				allSelectedChits.addAll(selectedChits);
 			}
 			
-			for (RealmComponent chit : allSelectedChits) {
+			for (java.util.Iterator _j14it2078 = (allSelectedChits).iterator(); _j14it2078.hasNext(); ) {
+			  RealmComponent chit = (RealmComponent) _j14it2078.next();
 				last.getGameObject().addThisAttributeListItem(Constants.ABSORBED_CHITS, chit.getGameObject().getStringId());
 				last.getGameObject().add(chit.getGameObject());
 			}
 			character.updateChitEffects();
 			character.addHireling(last.getGameObject());
-			sucessfullyHiredGroup=new ArrayList<RealmComponent>();
+			sucessfullyHiredGroup=new ArrayList();
 			sucessfullyHiredGroup.add(last);
 			return;
 		}
@@ -405,8 +408,9 @@ public abstract class Meeting extends Trade {
 					else {
 						character.addFame(-askingPrice);
 						character.addCreditFame(tradeInfo.getTrader().getGameObject(),askingPrice);
-						sucessfullyHiredGroup=new ArrayList<RealmComponent>();
-						for (RealmComponent rc : hireGroup) {
+						sucessfullyHiredGroup=new ArrayList();
+						for (java.util.Iterator _j14it2079 = (hireGroup).iterator(); _j14it2079.hasNext(); ) {
+						  RealmComponent rc = (RealmComponent) _j14it2079.next();
 							character.addHireling(rc.getGameObject());
 							sucessfullyHiredGroup.add(rc);
 						}
@@ -419,8 +423,9 @@ public abstract class Meeting extends Trade {
 					character.addGold(-askingPrice);
 					
 					// Hire the group!
-					sucessfullyHiredGroup=new ArrayList<RealmComponent>();
-					for (RealmComponent rc : hireGroup) {
+					sucessfullyHiredGroup=new ArrayList();
+					for (java.util.Iterator _j14it2080 = (hireGroup).iterator(); _j14it2080.hasNext(); ) {
+					  RealmComponent rc = (RealmComponent) _j14it2080.next();
 						character.addHireling(rc.getGameObject());
 						sucessfullyHiredGroup.add(rc);
 					}
@@ -440,7 +445,7 @@ public abstract class Meeting extends Trade {
 			JOptionPane.showMessageDialog(getParentFrame(),sb.toString(),offerTitle,JOptionPane.INFORMATION_MESSAGE,last.getIcon());
 		}
 	}
-	public Collection<RealmComponent> getSucessfullyHiredGroup() {
+	public Collection getSucessfullyHiredGroup() {
 		return sucessfullyHiredGroup;
 	}
 	protected String useCompletedActiveTask(CharacterWrapper character, String text) {
@@ -473,7 +478,7 @@ public abstract class Meeting extends Trade {
 		}
 		return null;
 	}
-	public static Meeting createMeetingTable(JFrame frame,CharacterWrapper character,TileLocation currentLocation,RealmComponent trader,RealmComponent merchandise,Collection<RealmComponent> hireGroup,int ignoreBuyDrinksLimit) {
+	public static Meeting createMeetingTable(JFrame frame,CharacterWrapper character,TileLocation currentLocation,RealmComponent trader,RealmComponent merchandise,Collection hireGroup,int ignoreBuyDrinksLimit) {
 		TradeInfo tradeInfo = getTradeInfo(frame,character,trader,currentLocation,ignoreBuyDrinksLimit,hireGroup==null?0:hireGroup.size());
 		
 		GameObject merchObj = merchandise==null?null:merchandise.getGameObject();

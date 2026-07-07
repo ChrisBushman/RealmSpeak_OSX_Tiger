@@ -23,7 +23,7 @@ public class ChitStateViewer extends ChitManager {
 		super(parent,character.getCharacterName()+" Chits",modal,character,0);
 		initialize();
 	}
-	protected void finishedChitUpdate(ArrayList<ChitComponent> chits) {
+	protected void finishedChitUpdate(ArrayList chits) {
 		// override, so that nothing is logged here
 	}
 	protected String getActionName() {
@@ -96,13 +96,13 @@ public class ChitStateViewer extends ChitManager {
 		CharacterWrapper wrapper = new CharacterWrapper(character);
 		
 		// artifically fatigue and wound some chits
-		ArrayList<CharacterActionChitComponent> list = new ArrayList<CharacterActionChitComponent>(wrapper.getAllChits());
+		ArrayList list = new ArrayList(wrapper.getAllChits());
 		for (int i=2;i<5;i+=2) {
-			CharacterActionChitComponent aChit = list.get(i);
+			CharacterActionChitComponent aChit = (CharacterActionChitComponent) list.get(i);
 			aChit.makeFatigued();
 		}
 		for (int i=8;i<10;i++) {
-			CharacterActionChitComponent aChit = list.get(i);
+			CharacterActionChitComponent aChit = (CharacterActionChitComponent) list.get(i);
 			aChit.makeWounded();
 		}
 //		(new Curse(new JFrame())).applyThree(wrapper);

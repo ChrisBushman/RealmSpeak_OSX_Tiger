@@ -18,7 +18,6 @@ public class QuestRewardPowerOfThePit extends QuestReward {
 		super(go);
 	}
 
-	@Override
 	public void processReward(JFrame frame, CharacterWrapper character) {
 		PowerOfThePit powerOfthePit = new PowerOfThePit(frame, character.getGameObject(),new Speed(0));
 		DieRoller roller;
@@ -31,11 +30,9 @@ public class QuestRewardPowerOfThePit extends QuestReward {
 		powerOfthePit.apply(character,roller);
 	}
 	
-	@Override
 	public RewardType getRewardType() {
 		return RewardType.PowerOfThePit;
 	}
-	@Override
 	public String getDescription() {
 		return "Grants the character a Power of the Pit.";
 	}

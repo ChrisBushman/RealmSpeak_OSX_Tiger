@@ -20,28 +20,48 @@ import com.robin.magic_realm.components.table.*;
 import com.robin.magic_realm.components.wrapper.*;
 
 public class SpellUtility {
-	public enum TeleportType {
-		ChooseAny,
-		ChooseTileTwo,
-		RandomClearing,
-		KnownGate,
-		ClearingInSameTile,
-		Location,
+	public static final class TeleportType {
+		private final String _name;
+		private final int _ordinal;
+		private TeleportType(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final TeleportType ChooseAny = new TeleportType("ChooseAny", 0);
+		public static final TeleportType ChooseTileTwo = new TeleportType("ChooseTileTwo", 1);
+		public static final TeleportType RandomClearing = new TeleportType("RandomClearing", 2);
+		public static final TeleportType KnownGate = new TeleportType("KnownGate", 3);
+		public static final TeleportType ClearingInSameTile = new TeleportType("ClearingInSameTile", 4);
+		public static final TeleportType Location = new TeleportType("Location", 5);
+
+		private static final TeleportType[] _VALUES = { ChooseAny, ChooseTileTwo, RandomClearing, KnownGate, ClearingInSameTile, Location };
+		public static TeleportType[] values() { TeleportType[] r = new TeleportType[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static TeleportType valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	
 	public static void heal(CharacterWrapper character) {
 		// Heal all fatigue and wounds - cancels wither curse
 		character.removeCurse(Constants.WITHER);
-		for (CharacterActionChitComponent chit:character.getWoundedChits()) {
+		for (java.util.Iterator _j14it2613 = (character.getWoundedChits()).iterator(); _j14it2613.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2613.next();
 			chit.makeActive();
 		}
-		for (CharacterActionChitComponent chit:character.getFatiguedChits()) {
+		for (java.util.Iterator _j14it2614 = (character.getFatiguedChits()).iterator(); _j14it2614.hasNext(); ) {
+		  CharacterActionChitComponent chit = (CharacterActionChitComponent) _j14it2614.next();
 			chit.makeActive();
 		}
 	}
 	
 	public static void repair(CharacterWrapper character){
-		for (GameObject obj : character.getInventory()) {
+		for (java.util.Iterator _j14it2615 = (character.getInventory()).iterator(); _j14it2615.hasNext(); ) {
+		  GameObject obj = (GameObject) _j14it2615.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(obj);
 			if (rc.isArmor()) {
 				ArmorChitComponent armor = (ArmorChitComponent) rc;
@@ -52,14 +72,15 @@ public class SpellUtility {
 		}
 	}
 	
-	public static ArrayList<SpellWrapper> getBewitchingSpells(GameObject go) {
+	public static ArrayList getBewitchingSpells(GameObject go) {
 		SpellMasterWrapper spellMaster = SpellMasterWrapper.getSpellMaster(go.getGameData());
 		return spellMaster.getAffectingSpells(go);
 	}
 	
-	public static ArrayList<SpellWrapper>getBewitchingSpellsWithKey(GameObject target, String key){
-		ArrayList<SpellWrapper>result = new ArrayList<SpellWrapper>();
-		for(SpellWrapper spell:getBewitchingSpells(target)){
+	public static ArrayList getBewitchingSpellsWithKey(GameObject target, String key){
+		ArrayList result = new ArrayList();
+		for (java.util.Iterator _j14it2616 = (getBewitchingSpells(target)).iterator(); _j14it2616.hasNext(); ) {
+		  SpellWrapper spell = (SpellWrapper) _j14it2616.next();
 			if(spell.isActive() && spell.getGameObject().hasThisAttribute(key)){
 				result.add(spell);
 			}
@@ -71,7 +92,8 @@ public class SpellUtility {
 		GameData gameData = go.getGameData();
 		if (gameData!=null) { // can be null in the character builder tool
 			SpellMasterWrapper spellMaster = SpellMasterWrapper.getSpellMaster(gameData);
-			for (SpellWrapper spell:spellMaster.getAffectingSpells(go)) {
+			for (java.util.Iterator _j14it2617 = (spellMaster.getAffectingSpells(go)).iterator(); _j14it2617.hasNext(); ) {
+			  SpellWrapper spell = (SpellWrapper) _j14it2617.next();
 				if (spell.isActive() && spell.getGameObject().hasThisAttribute(key)) {
 					return true;
 				}
@@ -93,61 +115,62 @@ public class SpellUtility {
 		TileLocation chosen;
 		TileLocation planned = character.getPlannedLocation();
 		if (teleportType==TeleportType.RandomClearing) {
-			ArrayList<ClearingDetail> clearings = planned.tile.getClearings();
+			ArrayList clearings = planned.tile.getClearings();
 			clearings.remove(planned.clearing); // Any clearing EXCEPT this one
 			int r = RandomNumber.getRandom(clearings.size());
-			chosen = clearings.get(r).getTileLocation();
+			chosen = ((ClearingDetail) clearings.get(r)).getTileLocation();
 			JOptionPane.showMessageDialog(frame,"The "+character.getGameObject().getName()+" teleports to "+chosen,reason,JOptionPane.INFORMATION_MESSAGE);
 		}
 		else if (teleportType==TeleportType.Location) {
-			ArrayList<ClearingDetail> clearings = new ArrayList<ClearingDetail>();
+			ArrayList clearings = new ArrayList();
 			GamePool pool = new GamePool(character.getGameData().getGameObjects());
-			ArrayList<GameObject> destinations = pool.find("name="+location);
-			for (GameObject destination : destinations) {
+			ArrayList destinations = pool.find("name="+location);
+			for (java.util.Iterator _j14it2618 = (destinations).iterator(); _j14it2618.hasNext(); ) {
+			  GameObject destination = (GameObject) _j14it2618.next();
 				TileLocation loc = ClearingUtility.getTileLocation(destination);
 				if (loc!=null && loc.clearing!=null) {
 					clearings.add(loc.clearing);
 				}
 			}
 			int r = RandomNumber.getRandom(clearings.size());
-			chosen = clearings.get(r).getTileLocation();
+			chosen = ((ClearingDetail) clearings.get(r)).getTileLocation();
 			JOptionPane.showMessageDialog(frame,"The "+character.getGameObject().getName()+" teleports to "+chosen,reason,JOptionPane.INFORMATION_MESSAGE);
 		}
 		else {
-			switch(teleportType) {
-				default:
-				case ChooseAny:
-					CenteredMapView.getSingleton().setMarkClearingAlertText("Teleport "+character.getGameObject().getName()+" to which clearing?");
-					CenteredMapView.getSingleton().markAllClearings(true);
-					if (planned.isInClearing()) {
-						planned.clearing.setMarked(false);
-					}
-					break;
-				case ChooseTileTwo:
-					CenteredMapView.getSingleton().setMarkClearingAlertText("Teleport "+character.getGameObject().getName()+" to which tile?");
-					CenteredMapView.getSingleton().markAdjacentTiles(planned.tile,true,1); // recurse once to pick up the second set!
-					break;
-				case KnownGate:
-					ArrayList<GateChitComponent> knownGates = findKnownGatesForCharacter(character);
-					if (!knownGates.isEmpty()) {
-						CenteredMapView.getSingleton().setMarkClearingAlertText("Which known gate?");
-						for (GateChitComponent gate:knownGates) {
-							ClearingDetail clearing = gate.getCurrentLocation().clearing;
-							clearing.setMarked(true);
-						}
-					}
-					else {
-						JOptionPane.showMessageDialog(frame,"The "+character.getGameObject().getName()+" has not discovered any gates!  Spell fails.",reason,JOptionPane.WARNING_MESSAGE);
-						return;
-					}
-					break;
-				case ClearingInSameTile:
-					CenteredMapView.getSingleton().setMarkClearingAlertText("Teleport "+character.getGameObject().getName()+" to which clearing?");
-					CenteredMapView.getSingleton().markAllClearings(false);
-					for (ClearingDetail clearing : planned.tile.getClearings()) {
+			TeleportType _tt = teleportType;
+			if (_tt == TeleportType.ChooseTileTwo) {
+				CenteredMapView.getSingleton().setMarkClearingAlertText("Teleport "+character.getGameObject().getName()+" to which tile?");
+				CenteredMapView.getSingleton().markAdjacentTiles(planned.tile,true,1); // recurse once to pick up the second set!
+			}
+			else if (_tt == TeleportType.KnownGate) {
+				ArrayList knownGates = findKnownGatesForCharacter(character);
+				if (!knownGates.isEmpty()) {
+					CenteredMapView.getSingleton().setMarkClearingAlertText("Which known gate?");
+					for (java.util.Iterator _j14it2619 = (knownGates).iterator(); _j14it2619.hasNext(); ) {
+					  GateChitComponent gate = (GateChitComponent) _j14it2619.next();
+						ClearingDetail clearing = gate.getCurrentLocation().clearing;
 						clearing.setMarked(true);
 					}
-					break;
+				}
+				else {
+					JOptionPane.showMessageDialog(frame,"The "+character.getGameObject().getName()+" has not discovered any gates!  Spell fails.",reason,JOptionPane.WARNING_MESSAGE);
+					return;
+				}
+			}
+			else if (_tt == TeleportType.ClearingInSameTile) {
+				CenteredMapView.getSingleton().setMarkClearingAlertText("Teleport "+character.getGameObject().getName()+" to which clearing?");
+				CenteredMapView.getSingleton().markAllClearings(false);
+				for (java.util.Iterator _j14it2620 = (planned.tile.getClearings()).iterator(); _j14it2620.hasNext(); ) {
+				  ClearingDetail clearing = (ClearingDetail) _j14it2620.next();
+					clearing.setMarked(true);
+				}
+			}
+			else { // default / ChooseAny
+				CenteredMapView.getSingleton().setMarkClearingAlertText("Teleport "+character.getGameObject().getName()+" to which clearing?");
+				CenteredMapView.getSingleton().markAllClearings(true);
+				if (planned.isInClearing()) {
+					planned.clearing.setMarked(false);
+				}
 			}
 			TileLocationChooser chooser = new TileLocationChooser(frame,CenteredMapView.getSingleton(),planned);
 			chooser.setVisible(true);
@@ -166,7 +189,8 @@ public class SpellUtility {
 		}
 
 		// Followers should stay behind!
-		for (RealmComponent h : character.getFollowingHirelings()) {
+		for (java.util.Iterator _j14it2621 = (character.getFollowingHirelings()).iterator(); _j14it2621.hasNext(); ) {
+		  RealmComponent h = (RealmComponent) _j14it2621.next();
 			ClearingUtility.moveToLocation(h.getGameObject(), planned);
 			if (h.getGameObject().hasThisAttribute(Constants.CAPTURE)) {
 				character.removeHireling(h.getGameObject());
@@ -189,7 +213,8 @@ public class SpellUtility {
 		character.clearCombat();
 		CombatWrapper.clearAllCombatInfo(character.getGameObject());
 		SpellMasterWrapper sm = SpellMasterWrapper.getSpellMaster(character.getGameData());
-		for (SpellWrapper spell : sm.getAffectingSpells(character.getGameObject())) {
+		for (java.util.Iterator _j14it2622 = (sm.getAffectingSpells(character.getGameObject())).iterator(); _j14it2622.hasNext(); ) {
+		  SpellWrapper spell = (SpellWrapper) _j14it2622.next();
 			if (spell.isActive() && !spell.hasAffectedTargets() && spell.getAttackSpeed().getNum() > teleportSpeed) {
 				spell.removeTarget(character.getGameObject());
 				if (spell.getTargetCount() == 0) {
@@ -205,11 +230,12 @@ public class SpellUtility {
 		character.testQuestRequirements(frame,params);
 	}
 	
-	private static ArrayList<GateChitComponent> findKnownGatesForCharacter(CharacterWrapper character) {
+	private static ArrayList findKnownGatesForCharacter(CharacterWrapper character) {
 		GameData gameData = character.getGameObject().getGameData();
-		ArrayList<GateChitComponent> knownGates = new ArrayList<GateChitComponent>();
+		ArrayList knownGates = new ArrayList();
 		
-		for (String d : character.getOtherChitDiscoveries()) {
+		for (java.util.Iterator _j14it2623 = (character.getOtherChitDiscoveries()).iterator(); _j14it2623.hasNext(); ) {
+		  String d = (String) _j14it2623.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(gameData.getGameObjectByName(d));
 			if (rc.isGate()) {
 				knownGates.add((GateChitComponent) rc);
@@ -243,27 +269,43 @@ started the game, and any other monster or native goes to its box
 on the Appearance Chart. Note: If a hired native is teleported to
 the Appearance Chart, he instantly becomes unhired.
 	 */
-	public static enum SummonType {
-		undead,
-		animal,
-		elemental,
-		demon,
+	public static final class SummonType {
+		private final String _name;
+		private final int _ordinal;
+		private SummonType(String name, int ordinal) { this._name = name; this._ordinal = ordinal; }
+		public String toString() { return _name; }
+		public String name() { return _name; }
+		public int ordinal() { return _ordinal; }
+		public boolean equals(Object o) { return this == o; }
+		public int hashCode() { return _ordinal; }
+		private int _thisOrdinal() { return _ordinal; }
+
+		public static final SummonType undead = new SummonType("undead", 0);
+		public static final SummonType animal = new SummonType("animal", 1);
+		public static final SummonType elemental = new SummonType("elemental", 2);
+		public static final SummonType demon = new SummonType("demon", 3);
+
+		private static final SummonType[] _VALUES = { undead, animal, elemental, demon };
+		public static SummonType[] values() { SummonType[] r = new SummonType[_VALUES.length]; System.arraycopy(_VALUES,0,r,0,_VALUES.length); return r; }
+		public static SummonType valueOf(String s) {
+			for (int i=0;i<_VALUES.length;i++) if (_VALUES[i]._name.equals(s)) return _VALUES[i];
+			throw new IllegalArgumentException(s);
+		}
 	}
 	private static MonsterTable getMonsterTableFor(JFrame parent,String summonType) {
 		MonsterTable monsterTable = null;
-		switch(SummonType.valueOf(summonType)) {
-			case undead:
-				monsterTable = new RaiseDead(parent);
-				break;
-			case elemental:
-				monsterTable = new SummonElemental(parent);
-				break;
-			case animal:
-				monsterTable = new SummonAnimal(parent);
-				break;
-			case demon:
-				monsterTable = new SummonDemon(parent);
-				break;
+		SummonType _st = SummonType.valueOf(summonType);
+		if (_st == SummonType.undead) {
+			monsterTable = new RaiseDead(parent);
+		}
+		else if (_st == SummonType.elemental) {
+			monsterTable = new SummonElemental(parent);
+		}
+		else if (_st == SummonType.animal) {
+			monsterTable = new SummonAnimal(parent);
+		}
+		else if (_st == SummonType.demon) {
+			monsterTable = new SummonDemon(parent);
 		}
 		return monsterTable;
 	}
@@ -286,22 +328,24 @@ the Appearance Chart, he instantly becomes unhired.
 		String result = monsterTable.apply(character,roller);
 		RealmLogging.logMessage(caster.getName(),monsterTable.getTableName(true)+" roll: "+roller.getDescription());
 		RealmLogging.logMessage(caster.getName(),monsterTable.getTableName(true)+" result: "+result);
-		ArrayList<String> list = spell.getGameObject().getThisAttributeList("created");
+		ArrayList list = spell.getGameObject().getThisAttributeList("created");
 		if (list==null) {
-			list = new ArrayList<String>();
+			list = new ArrayList();
 		}
-		for(GameObject go:monsterTable.getMonsterCreator().getMonstersCreated()) {
+		for (java.util.Iterator _j14it2624 = (monsterTable.getMonsterCreator().getMonstersCreated()).iterator(); _j14it2624.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2624.next();
 			list.add(go.getStringId());
 		}
 		spell.getGameObject().setThisAttributeList("created",list);
 	}
 	
-	public static ArrayList<GameObject> getCreatedCompanions(SpellWrapper spell) {
+	public static ArrayList getCreatedCompanions(SpellWrapper spell) {
 		GameData gameData = spell.getGameObject().getGameData();
-		ArrayList<GameObject> created = new ArrayList<GameObject>();
-		ArrayList<String> list = spell.getGameObject().getThisAttributeList("created");
+		ArrayList created = new ArrayList();
+		ArrayList list = spell.getGameObject().getThisAttributeList("created");
 		if (list!=null) {
-			for(String id : list) {
+			for (java.util.Iterator _j14it2625 = (list).iterator(); _j14it2625.hasNext(); ) {
+			  String id = (String) _j14it2625.next();
 				GameObject go = gameData.getGameObject(Long.valueOf(id));
 				created.add(go);
 			}
@@ -310,8 +354,9 @@ the Appearance Chart, he instantly becomes unhired.
 	}
 	public static void unsummonCompanions(SpellWrapper spell) {
 		CharacterWrapper caster = spell.getCaster();
-		ArrayList<GameObject> created = getCreatedCompanions(spell);
-		for (GameObject go:created) {
+		ArrayList created = getCreatedCompanions(spell);
+		for (java.util.Iterator _j14it2626 = (created).iterator(); _j14it2626.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2626.next();
 			go.removeThisAttribute("clearing");
 			go.setThisAttribute(Constants.DEAD);
 			caster.removeHireling(go);
@@ -324,12 +369,13 @@ the Appearance Chart, he instantly becomes unhired.
 	public static int getSpellCount(GameObject spellLocation,Boolean awakened,boolean excludeAsteriskType) {
 		return getSpells(spellLocation,awakened,excludeAsteriskType,false).size();
 	}
-	public static ArrayList<GameObject> getSpells(GameObject spellLocation,Boolean awakened,boolean excludeAsteriskType,boolean ignoreEnchanted) {
-		ArrayList<GameObject> list = new ArrayList<GameObject>();
+	public static ArrayList getSpells(GameObject spellLocation,Boolean awakened,boolean excludeAsteriskType,boolean ignoreEnchanted) {
+		ArrayList list = new ArrayList();
 		
 		RealmComponent sl = RealmComponent.getRealmComponent(spellLocation);
 		if (ignoreEnchanted || !sl.isEnchanted()) { // enchanted artifacts/books cannot have active spells!
-			for (GameObject obj : spellLocation.getHold()) {
+			for (java.util.Iterator _j14it2627 = (spellLocation.getHold()).iterator(); _j14it2627.hasNext(); ) {
+			  GameObject obj = (GameObject) _j14it2627.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(obj);
 				if (rc.isSpell()) {
 					String spellType = obj.getThisAttribute("spell");
@@ -357,10 +403,11 @@ the Appearance Chart, he instantly becomes unhired.
 		return colorName;
 	}
 	
-	public static ArrayList<ColorMagic> getSourcesOfColor(RealmComponent test) {
-		ArrayList<ColorMagic> colors = new ArrayList<ColorMagic>();
-		ArrayList<RealmComponent> seen = ClearingUtility.dissolveIntoSeenStuff(test);
-		for (RealmComponent rc : seen) {
+	public static ArrayList getSourcesOfColor(RealmComponent test) {
+		ArrayList colors = new ArrayList();
+		ArrayList seen = ClearingUtility.dissolveIntoSeenStuff(test);
+		for (java.util.Iterator _j14it2628 = (seen).iterator(); _j14it2628.hasNext(); ) {
+		  RealmComponent rc = (RealmComponent) _j14it2628.next();
 			String colorName = getColorSourceName(rc);
 			ColorMagic cm = ColorMagic.makeColorMagic(colorName,true);
 			if (cm!=null) {
@@ -453,12 +500,13 @@ the Appearance Chart, he instantly becomes unhired.
 		}
 	}
 	
-	public static void ApplyNamedSpellEffectWithValuesToTarget(String effect, GameObject target, SpellWrapper spellWrapper, ArrayList<String> values) {
+	public static void ApplyNamedSpellEffectWithValuesToTarget(String effect, GameObject target, SpellWrapper spellWrapper, ArrayList values) {
 		if(!target.hasThisAttribute(effect)){
 			target.setThisAttributeList(effect, values);
 		}
 		else {
-			for (String value : values) {
+			for (java.util.Iterator _j14it2629 = (values).iterator(); _j14it2629.hasNext(); ) {
+			  String value = (String) _j14it2629.next();
 				target.addThisAttributeListItem(effect, value);
 			}
 		}
@@ -480,8 +528,9 @@ the Appearance Chart, he instantly becomes unhired.
 		chit.getGameObject().setThisAttribute("move_speed_change", newspeed);
 	}
 
-	public static boolean targetsAreBeingAttackedByHirelings(ArrayList<GameObject>attackers, GameObject caster) {
-		for (GameObject atk : attackers) {
+	public static boolean targetsAreBeingAttackedByHirelings(ArrayList attackers, GameObject caster) {
+		for (java.util.Iterator _j14it2630 = (attackers).iterator(); _j14it2630.hasNext(); ) {
+		  GameObject atk = (GameObject) _j14it2630.next();
 			RealmComponent rc = RealmComponent.getRealmComponent(atk);
 			if (!rc.getGameObject().equals(caster)) {
 				RealmComponent owner = rc.getOwner();
@@ -493,13 +542,15 @@ the Appearance Chart, he instantly becomes unhired.
 		return false;
 	}
 	
-	public static GameObject findNativeFromTheseGroups(ArrayList<String> groups, GameObjectFilter filter, GameWrapper game) {
-		ArrayList<String> lowerCaseGroups = new ArrayList<String>();
-		for (String g : groups) {
+	public static GameObject findNativeFromTheseGroups(ArrayList groups, GameObjectFilter filter, GameWrapper game) {
+		ArrayList lowerCaseGroups = new ArrayList();
+		for (java.util.Iterator _j14it2631 = (groups).iterator(); _j14it2631.hasNext(); ) {
+		  String g = (String) _j14it2631.next();
 			lowerCaseGroups.add(g.toLowerCase());
 		}
-		ArrayList<GameObject> candidates = new ArrayList<GameObject>();
-		for (GameObject go : game.getGameData().getGameObjects()) {
+		ArrayList candidates = new ArrayList();
+		for (java.util.Iterator _j14it2632 = (game.getGameData().getGameObjects()).iterator(); _j14it2632.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2632.next();
 			if (go.hasThisAttribute("native") && go.hasThisAttribute("denizen")
 					&& lowerCaseGroups.contains(go.getThisAttribute("native").toLowerCase())
 					&& filter.test(go)) {
@@ -508,12 +559,13 @@ the Appearance Chart, he instantly becomes unhired.
 		}
 		if (candidates.isEmpty()) return null;
 		Collections.sort(candidates, new NativeHireOrder());
-		return candidates.get(0);
+		return (GameObject) candidates.get(0);
 	}
 
 	public static GameObject findNativeFromTheseGroups(String group, GameObjectFilter filter, GameWrapper game) {
-		ArrayList<GameObject> candidates = new ArrayList<GameObject>();
-		for (GameObject go : game.getGameData().getGameObjects()) {
+		ArrayList candidates = new ArrayList();
+		for (java.util.Iterator _j14it2633 = (game.getGameData().getGameObjects()).iterator(); _j14it2633.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2633.next();
 			if (go.hasThisAttribute("native") && go.hasThisAttribute("denizen")
 					&& go.getThisAttribute("native").toLowerCase().equals(group.toLowerCase())
 					&& filter.test(go)) {
@@ -522,10 +574,10 @@ the Appearance Chart, he instantly becomes unhired.
 		}
 		if (candidates.isEmpty()) return null;
 		Collections.sort(candidates, new NativeHireOrder());
-		return candidates.get(0);
+		return (GameObject) candidates.get(0);
 	}
-		
-	public static void bringSummonToClearing(CharacterWrapper character, GameObject summon, SpellWrapper spell, ArrayList<GameObject>createdMonsters){
+
+	public static void bringSummonToClearing(CharacterWrapper character, GameObject summon, SpellWrapper spell, ArrayList createdMonsters){
 		TileLocation tl = character.getCurrentLocation();
 		character.addHireling(summon);
 		CombatWrapper combat = new CombatWrapper(summon);
@@ -535,15 +587,16 @@ the Appearance Chart, he instantly becomes unhired.
 		}
 		character.getGameObject().add(summon); // so that you don't have to assign as a follower right away
 		
-		ArrayList<String> list = spell.getGameObject().getThisAttributeList("created");
+		ArrayList list = spell.getGameObject().getThisAttributeList("created");
 		if (list==null) {
-			list = new ArrayList<String>();
+			list = new ArrayList();
 		}
 		
 		if(createdMonsters == null){
 			list.add(summon.getStringId());
 		} else {
-			for(GameObject go:createdMonsters) {
+			for (java.util.Iterator _j14it2634 = (createdMonsters).iterator(); _j14it2634.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2634.next();
 				list.add(go.getStringId());
 			}
 		}

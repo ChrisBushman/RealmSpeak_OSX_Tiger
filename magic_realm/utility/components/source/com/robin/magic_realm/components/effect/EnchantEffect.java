@@ -7,7 +7,6 @@ import com.robin.magic_realm.components.wrapper.SpellWrapper;
 
 public class EnchantEffect implements ISpellEffect {
 
-	@Override
 	public void apply(SpellEffectContext context) {
 		if (context.Target.getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON)) {
 			context.Spell.cancelSpell();
@@ -30,7 +29,6 @@ public class EnchantEffect implements ISpellEffect {
 	}
 	
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 		// Remove the secondary target spell and chit type from the artifact
 		SpellWrapper spellToAdd = new SpellWrapper(context.Spell.getSecondaryTarget());

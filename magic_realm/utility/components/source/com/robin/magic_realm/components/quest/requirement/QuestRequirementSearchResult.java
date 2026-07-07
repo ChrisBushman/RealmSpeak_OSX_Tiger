@@ -37,7 +37,7 @@ public class QuestRequirementSearchResult extends QuestRequirement {
 			return false;
 		}
 		
-		ArrayList<SearchResultType> acceptibleSearchResults = getAcceptableSearchResults();
+		ArrayList acceptibleSearchResults = getAcceptableSearchResults();
 		if (reqParams!=null && reqParams.searchType!=null && acceptibleSearchResults.contains(reqParams.searchType)) {
 			if(requiresGain() && !reqParams.searchHadAnEffect) {
 				logger.fine("Requires some type of search gain, and there wasn't any.");
@@ -78,7 +78,7 @@ public class QuestRequirementSearchResult extends QuestRequirement {
 		return false;
 	}
 	protected String buildDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Must get a search result of ");
 		sb.append(getSearchResult1());
 		SearchResultType r2 = getSearchResult2();
@@ -128,10 +128,11 @@ public class QuestRequirementSearchResult extends QuestRequirement {
 	public SearchTableType getRequiredSearchTable() {
 		return SearchTableType.valueOf(getString(REQ_TABLENAME));
 	}
-	public ArrayList<SearchResultType> getAcceptableSearchResults() {
-		ArrayList<SearchResultType> list = new ArrayList<SearchResultType>();
+	public ArrayList getAcceptableSearchResults() {
+		ArrayList list = new ArrayList();
 		
-		for(String key:ALL_RESULTS) {
+		for (int _j14i2338 = 0; _j14i2338 < ALL_RESULTS.length; _j14i2338++) {
+		  String key = ALL_RESULTS[_j14i2338];
 			SearchResultType type = null;
 			try {
 				type = SearchResultType.valueOf(getString(key));
@@ -141,7 +142,9 @@ public class QuestRequirementSearchResult extends QuestRequirement {
 			}
 			if (type!=null) {
 				if (type==SearchResultType.Any) {
-					for(SearchResultType s:SearchResultType.values()) {
+					SearchResultType[] _j14v2339 = SearchResultType.values();
+				for (int _j14i2339 = 0; _j14i2339 < _j14v2339.length; _j14i2339++) {
+					  SearchResultType s = _j14v2339[_j14i2339];
 						if (s!=SearchResultType.Any && !list.contains(s)) {
 							list.add(s);
 						}
@@ -206,7 +209,7 @@ public class QuestRequirementSearchResult extends QuestRequirement {
 		return null;
 	}
 	
-	public void updateIds(Hashtable<Long, GameObject> lookup) {
+	public void updateIds(Hashtable lookup) {
 		updateIdsForKey(lookup,LOCATION);
 		updateIdsForKey(lookup,TARGET_LOC);
 	}

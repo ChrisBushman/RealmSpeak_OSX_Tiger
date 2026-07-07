@@ -7,18 +7,18 @@ import com.robin.game.objects.*;
 public class MonsterCreator {
 	
 	private String monsterKey;
-	private ArrayList<GameObject> monstersCreated;
+	private ArrayList monstersCreated;
 	
 	public MonsterCreator(String monsterKey) {
 		this.monsterKey = monsterKey;
-		monstersCreated = new ArrayList<GameObject>();
+		monstersCreated = new ArrayList();
 	}
-	public ArrayList<GameObject> getMonstersCreated() {
+	public ArrayList getMonstersCreated() {
 		return monstersCreated;
 	}
 	public GameObject createOrReuseMonster(GameData data) {
 		GamePool pool = new GamePool(data.getGameObjects());
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add(monsterKey);
 		query.add(Constants.DEAD);
 		GameObject go = pool.findFirst(query);

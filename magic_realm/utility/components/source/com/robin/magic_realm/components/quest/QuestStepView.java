@@ -25,12 +25,12 @@ public class QuestStepView extends JComponent {
 	
 	private static Font idFont = new Font("Dialog",Font.BOLD,12);
 	
-	ArrayList<QuestStepToken> tokens;
+	ArrayList tokens;
 	private int orientation = SwingConstants.HORIZONTAL;
 	private int maxRank;
 	private int maxDisplayOrder;
 	
-	private ArrayList<ChangeListener> changeListeners;
+	private ArrayList changeListeners;
 	
 	public QuestStepView(){
 		addMouseListener(new MouseAdapter() {
@@ -44,7 +44,7 @@ public class QuestStepView extends JComponent {
 		});		
 	}
 	public void addChangeListener(ChangeListener listener) {
-		if (changeListeners==null) changeListeners = new ArrayList<ChangeListener>();
+		if (changeListeners==null) changeListeners = new ArrayList();
 		if (!changeListeners.contains(listener)) {
 			changeListeners.add(listener);
 		}
@@ -57,7 +57,8 @@ public class QuestStepView extends JComponent {
 	protected void fireStateChanged() {
 		if (changeListeners==null) return;
 		ChangeEvent ev = new ChangeEvent(this);
-		for (ChangeListener listener:changeListeners) {
+		for (java.util.Iterator _j14it2252 = (changeListeners).iterator(); _j14it2252.hasNext(); ) {
+		  ChangeListener listener = (ChangeListener) _j14it2252.next();
 			listener.stateChanged(ev);
 		}
 	}
@@ -66,30 +67,33 @@ public class QuestStepView extends JComponent {
 	}
 	public void setSelectedStep(QuestStep step) {
 		if (tokens==null) return;
-		for(QuestStepToken token:tokens) {
+		for (java.util.Iterator _j14it2253 = (tokens).iterator(); _j14it2253.hasNext(); ) {
+		  QuestStepToken token = (QuestStepToken) _j14it2253.next();
 			token.setSelected(token.getStep()==step);
 		}
 		repaint();
 	}
 	public void setFirstSelectedStep() {
 		if (tokens==null || tokens.size()==0) return;
-		setSelectedStep(tokens.get(0).getStep());
+		setSelectedStep(((QuestStepToken) tokens.get(0)).getStep());
 		fireStateChanged();
 	}
 	public QuestStep getSelectedStep() {
-		for(QuestStepToken token:tokens) {
+		for (java.util.Iterator _j14it2254 = (tokens).iterator(); _j14it2254.hasNext(); ) {
+		  QuestStepToken token = (QuestStepToken) _j14it2254.next();
 			if (token.isSelected()) return token.getStep();
 		}
 		return null;
 	}
-	public void updateSteps(ArrayList<QuestStep> steps) {
+	public void updateSteps(ArrayList steps) {
 		rebuildTokens(steps);
 		layoutTokens();
 		repaint();
 	}
 	public QuestStep getStepAtPoint(Point p) {
 		if (tokens!=null) {
-			for(QuestStepToken token:tokens) {
+			for (java.util.Iterator _j14it2255 = (tokens).iterator(); _j14it2255.hasNext(); ) {
+			  QuestStepToken token = (QuestStepToken) _j14it2255.next();
 				Rectangle r = new Rectangle(token.drawX,token.drawY,SQUARE,SQUARE);
 				if (r.contains(p)) {
 					return token.getStep();
@@ -108,11 +112,13 @@ public class QuestStepView extends JComponent {
 		// Draw connectors
 		g.setColor(Color.black);
 		g.setStroke(Constants.THICK_STROKE);
-		for(QuestStepToken token:tokens) {
+		for (java.util.Iterator _j14it2256 = (tokens).iterator(); _j14it2256.hasNext(); ) {
+		  QuestStepToken token = (QuestStepToken) _j14it2256.next();
 			if (token.getStep().isOrigin()) continue;
 			int x1 = token.getDrawX()+(SQUARE>>1); 
 			int y1 = token.getDrawY()+(SQUARE>>1); 
-			for(QuestStepToken otherToken:tokens) {
+			for (java.util.Iterator _j14it2257 = (tokens).iterator(); _j14it2257.hasNext(); ) {
+			  QuestStepToken otherToken = (QuestStepToken) _j14it2257.next();
 				if (token==otherToken) continue;
 				if (token.getViewRank()!=otherToken.viewRank+1) continue;
 				boolean required = token.getStep().requires(otherToken.getStep());
@@ -133,7 +139,8 @@ public class QuestStepView extends JComponent {
 		
 		// Draw tokens
 		g.setFont(idFont);
-		for(QuestStepToken token:tokens) {
+		for (java.util.Iterator _j14it2258 = (tokens).iterator(); _j14it2258.hasNext(); ) {
+		  QuestStepToken token = (QuestStepToken) _j14it2258.next();
 			if (token.isVirtual()) {
 				if (SHOW_VIRTUAL) {
 					g.setColor(Color.white);
@@ -164,30 +171,33 @@ public class QuestStepView extends JComponent {
 		int height = orientation==SwingConstants.HORIZONTAL?displayOrderSize:rankSize;
 		ComponentTools.lockComponentSize(this,width,height);
 		setBorder(BorderFactory.createEtchedBorder());
-		Hashtable<Integer,Integer> hash = new Hashtable<Integer,Integer>();
-		for(QuestStepToken token:tokens) {
+		Hashtable hash = new Hashtable();
+		for (java.util.Iterator _j14it2259 = (tokens).iterator(); _j14it2259.hasNext(); ) {
+		  QuestStepToken token = (QuestStepToken) _j14it2259.next();
 			int viewRank = token.getViewRank();
-			if (hash.containsKey(viewRank)) {
-				hash.put(viewRank,hash.get(viewRank)+1);
+			if (hash.containsKey(Integer.valueOf(viewRank))) {
+				hash.put(Integer.valueOf(viewRank), Integer.valueOf(((Integer) hash.get(Integer.valueOf(viewRank))).intValue()+1));
 			}
 			else {
-				hash.put(viewRank,1);
+				hash.put(Integer.valueOf(viewRank), Integer.valueOf(1));
 			}
 		}
-		for(QuestStepToken token:tokens) {
-			token.initOrientation(orientation,BORDER,SQUARE,displayOrderSize,hash.get(token.getViewRank()));
+		for (java.util.Iterator _j14it2260 = (tokens).iterator(); _j14it2260.hasNext(); ) {
+		  QuestStepToken token = (QuestStepToken) _j14it2260.next();
+			token.initOrientation(orientation,BORDER,SQUARE,displayOrderSize,((Integer) hash.get(Integer.valueOf(token.getViewRank()))).intValue());
 		}
 	}
-	protected void rebuildTokens(ArrayList<QuestStep> steps) {
+	protected void rebuildTokens(ArrayList steps) {
 		maxRank = 0;
 		maxDisplayOrder = 0;
-		tokens = new ArrayList<QuestStepToken>();
+		tokens = new ArrayList();
 		if (steps==null) return;
-		steps = new ArrayList<QuestStep>(steps); // make a copy that we can modify
-		ArrayList<QuestStepToken> origins = new ArrayList<QuestStepToken>();
+		steps = new ArrayList(steps); // make a copy that we can modify
+		ArrayList origins = new ArrayList();
 		int displayOrder=0;
-		ArrayList<QuestStep> toRemove = new ArrayList<QuestStep>();
-		for(QuestStep step:steps) {
+		ArrayList toRemove = new ArrayList();
+		for (java.util.Iterator _j14it2261 = (steps).iterator(); _j14it2261.hasNext(); ) {
+		  QuestStep step = (QuestStep) _j14it2261.next();
 			if (step.isOrigin()) {
 				QuestStepToken token = new QuestStepToken(step);
 				token.setViewRank(0);
@@ -202,7 +212,8 @@ public class QuestStepView extends JComponent {
 		while(origins.size()>0) {
 			tokens.addAll(origins);
 			boolean allVirtual = true;
-			for(QuestStepToken test:origins) {
+			for (java.util.Iterator _j14it2262 = (origins).iterator(); _j14it2262.hasNext(); ) {
+			  QuestStepToken test = (QuestStepToken) _j14it2262.next();
 				if (!test.isVirtual()) {
 					allVirtual = false;
 					break;
@@ -210,12 +221,14 @@ public class QuestStepView extends JComponent {
 			}
 			if (allVirtual) break;
 			displayOrder = 0;
-			ArrayList<QuestStep> virtualCovered = new ArrayList<QuestStep>();
-			ArrayList<QuestStepToken> newTokens = new ArrayList<QuestStepToken>();
-			for(QuestStepToken token:origins) {
+			ArrayList virtualCovered = new ArrayList();
+			ArrayList newTokens = new ArrayList();
+			for (java.util.Iterator _j14it2263 = (origins).iterator(); _j14it2263.hasNext(); ) {
+			  QuestStepToken token = (QuestStepToken) _j14it2263.next();
 				//if (token.isVirtual()) continue;
 				toRemove.clear();
-				for(QuestStep step:steps) {
+				for (java.util.Iterator _j14it2264 = (steps).iterator(); _j14it2264.hasNext(); ) {
+				  QuestStep step = (QuestStep) _j14it2264.next();
 					boolean sameAsToken = step.getId()==token.getStep().getId();
 					boolean tokenIsRequiredByStep = step.requires(token.getStep()) || step.requiresFail(token.getStep());
 					if (!sameAsToken && !tokenIsRequiredByStep) continue;
@@ -242,13 +255,14 @@ public class QuestStepView extends JComponent {
 		}
 //		System.out.println("------------------");
 //		System.out.println(maxRank);
-//		for(QuestStepToken token:tokens) {
+//		for (java.util.Iterator _j14it2265 = (tokens).iterator(); _j14it2265.hasNext(); ) {
+//		  QuestStepToken token = (QuestStepToken) _j14it2265.next();
 //			System.out.println(token);
 //		}
 	}
-	private static ArrayList<QuestStep> getTestSteps1() {
+	private static ArrayList getTestSteps1() {
 		GameData data = new GameData();
-		ArrayList<QuestStep> steps = new ArrayList<QuestStep>();
+		ArrayList steps = new ArrayList();
 		QuestStep step1 = new QuestStep(data.createNewObject());
 		step1.setName("Step 1");
 		step1.setId(1);
@@ -282,9 +296,9 @@ public class QuestStepView extends JComponent {
 		steps.add(step6);
 		return steps;
 	}
-	private static ArrayList<QuestStep> getTestSteps2() {
+	private static ArrayList getTestSteps2() {
 		GameData data = new GameData();
-		ArrayList<QuestStep> steps = new ArrayList<QuestStep>();
+		ArrayList steps = new ArrayList();
 		QuestStep step1 = new QuestStep(data.createNewObject());
 		step1.setName("Step 1");
 		step1.setId(1);
@@ -316,9 +330,9 @@ public class QuestStepView extends JComponent {
 		steps.add(step6);
 		return steps;
 	}
-	private static ArrayList<QuestStep> getTestSteps3() {
+	private static ArrayList getTestSteps3() {
 		GameData data = new GameData();
-		ArrayList<QuestStep> steps = new ArrayList<QuestStep>();
+		ArrayList steps = new ArrayList();
 		QuestStep step1 = new QuestStep(data.createNewObject());
 		step1.setName("Step 1");
 		step1.setId(1);
@@ -352,9 +366,9 @@ public class QuestStepView extends JComponent {
 		steps.add(step6);
 		return steps;
 	}
-	private static ArrayList<QuestStep> getTestSteps4() {
+	private static ArrayList getTestSteps4() {
 		GameData data = new GameData();
-		ArrayList<QuestStep> steps = new ArrayList<QuestStep>();
+		ArrayList steps = new ArrayList();
 		QuestStep step1 = new QuestStep(data.createNewObject());
 		step1.setName("Step 1");
 		step1.setId(1);
@@ -388,9 +402,9 @@ public class QuestStepView extends JComponent {
 		steps.add(step6);
 		return steps;
 	}
-	private static ArrayList<QuestStep> getTestSteps5() {
+	private static ArrayList getTestSteps5() {
 		GameData data = new GameData();
-		ArrayList<QuestStep> steps = new ArrayList<QuestStep>();
+		ArrayList steps = new ArrayList();
 		QuestStep step1 = new QuestStep(data.createNewObject());
 		step1.setName("Step 1");
 		step1.setId(1);
@@ -423,9 +437,9 @@ public class QuestStepView extends JComponent {
 		steps.add(step6);
 		return steps;
 	}
-	private static ArrayList<QuestStep> getTestSteps6() {
+	private static ArrayList getTestSteps6() {
 		GameData data = new GameData();
-		ArrayList<QuestStep> steps = new ArrayList<QuestStep>();
+		ArrayList steps = new ArrayList();
 		QuestStep step1 = new QuestStep(data.createNewObject());
 		step1.setName("Step 1");
 		step1.setId(1);

@@ -31,10 +31,10 @@ public class QuestRewardSummonTraveler extends QuestReward {
 	}
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
-		ArrayList<GameObject> travelersToSummone = new ArrayList<GameObject>();
-		ArrayList<GameObject> travelerTemplatesToSummon = new ArrayList<GameObject>();
+		ArrayList travelersToSummone = new ArrayList();
+		ArrayList travelerTemplatesToSummon = new ArrayList();
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());
-		ArrayList<GameObject> allTravelerTemplates = pool.find(Constants.TRAVELER_TEMPLATE+",!"+Constants.USED);
+		ArrayList allTravelerTemplates = pool.find(Constants.TRAVELER_TEMPLATE+",!"+Constants.USED);
 		if (allTravelerTemplates==null || allTravelerTemplates.isEmpty()) {
 			logger.fine("No traveler template found.");
 			return;
@@ -43,14 +43,16 @@ public class QuestRewardSummonTraveler extends QuestReward {
 			travelerTemplatesToSummon.add(allTravelerTemplates.get(RandomNumber.getRandom(allTravelerTemplates.size())));
 		} else {
 			String pattern = travelerName();
-			for (GameObject go : allTravelerTemplates) {
+			for (java.util.Iterator _j14it2446 = (allTravelerTemplates).iterator(); _j14it2446.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2446.next();
 				if (pattern!=null && pattern.matches(go.getName())) {
 					travelerTemplatesToSummon.add(go);
 				}
 			}
 		}
 			
-		for (GameObject template : travelerTemplatesToSummon) {
+		for (java.util.Iterator _j14it2447 = (travelerTemplatesToSummon).iterator(); _j14it2447.hasNext(); ) {
+		  GameObject template = (GameObject) _j14it2447.next();
 			template.setName(template.getName());
 			template.copyAttributeBlockFrom(template,"this");
 			template.removeThisAttribute(Constants.TRAVELER_TEMPLATE);
@@ -64,26 +66,27 @@ public class QuestRewardSummonTraveler extends QuestReward {
 			travelersToSummone.add(template);
 		}
 
-		for (GameObject traveler : travelersToSummone) {
+		for (java.util.Iterator _j14it2448 = (travelersToSummone).iterator(); _j14it2448.hasNext(); ) {
+		  GameObject traveler = (GameObject) _j14it2448.next();
 			if (markTravelers()) {
 				traveler.setThisAttribute(QuestConstants.QUEST_MARK,getParentQuest().getGameObject().getStringId());
 			}
 			if (locationOnly()) {
 				QuestLocation loc = getQuestLocation();
 				if (loc == null) return;
-				ArrayList<TileLocation> validLocations = new ArrayList<TileLocation>();
+				ArrayList validLocations = new ArrayList();
 				validLocations = loc.fetchAllLocations(frame, character, getGameData());
 				if(validLocations.isEmpty()) {
 					logger.fine("QuestLocation "+loc.getName()+" doesn't have any valid locations!");
 					return;
 				}
 					int random = RandomNumber.getRandom(validLocations.size());
-				TileLocation tileLocation = validLocations.get(random);
+				TileLocation tileLocation = (TileLocation) validLocations.get(random);
 				tileLocation.clearing.add(traveler,null);
 			} else 	if (randomClearing()) {
-				ArrayList<ClearingDetail> clearings = character.getCurrentLocation().tile.getClearings();
+				ArrayList clearings = character.getCurrentLocation().tile.getClearings();
 				int random = RandomNumber.getRandom(clearings.size());
-				clearings.get(random).add(traveler,null);
+				((ClearingDetail) clearings.get(random)).add(traveler,null);
 			} else {
 				character.getCurrentLocation().clearing.add(traveler,null);
 			}
@@ -91,7 +94,7 @@ public class QuestRewardSummonTraveler extends QuestReward {
 	}
 	
 	public String getDescription() {
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append("Summons ");
 		if (randomTraveler()) {
 			sb.append("a random traveler");

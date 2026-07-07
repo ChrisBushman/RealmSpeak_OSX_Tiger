@@ -9,7 +9,6 @@ public class TeleportEffect implements ISpellEffect {
 		_teleportType = type;
 	}
 	
-	@Override
 	public void apply(SpellEffectContext context) {
 		SpellUtility.doTeleport(context.Parent,
 				context.Spell.getGameObject().getName(),
@@ -18,7 +17,6 @@ public class TeleportEffect implements ISpellEffect {
 				context.Spell.getAttackSpeed().getNum());
 	}
 
-	@Override
 	public void unapply(SpellEffectContext context) {
 	}
 

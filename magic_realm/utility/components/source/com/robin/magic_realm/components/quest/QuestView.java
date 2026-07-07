@@ -123,7 +123,8 @@ public class QuestView extends JPanel implements Scrollable {
 		description = description.replaceAll(Constants.CHARACTERS_NAME_PLACEHOLDER, charactersName);
 		questDescription.setText(description);
 		model.clear();
-		for(QuestJournalEntry entry:quest.getJournalEntries()) {
+		for (java.util.Iterator _j14it2192 = (quest.getJournalEntries()).iterator(); _j14it2192.hasNext(); ) {
+		  QuestJournalEntry entry = (QuestJournalEntry) _j14it2192.next();
 			model.addElement(entry);
 		}
 		splitPane.setDividerLocation(questJournalList.getModel().getSize() == 0 ? 1.0 : 0.5);
@@ -138,7 +139,8 @@ public class QuestView extends JPanel implements Scrollable {
 		if (quest!=null && quest.getGameObject().hasThisAttribute(QuestConstants.MAKRED_VIEW)) {
 			GamePool pool = new GamePool(quest.getGameData().getGameObjects());
 			String questId = quest.getGameObject().getStringId();
-			for (GameObject go : pool.find(QuestConstants.QUEST_MARK)) {
+			for (java.util.Iterator _j14it2193 = (pool.find(QuestConstants.QUEST_MARK)).iterator(); _j14it2193.hasNext(); ) {
+			  GameObject go = (GameObject) _j14it2193.next();
 				if (go.getThisAttribute(QuestConstants.QUEST_MARK).equals(questId)) {
 					RealmComponent rc = RealmComponent.getRealmComponent(go);
 					markedView.add(rc);

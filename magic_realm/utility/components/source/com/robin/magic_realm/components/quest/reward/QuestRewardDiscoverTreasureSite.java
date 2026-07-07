@@ -16,8 +16,9 @@ public class QuestRewardDiscoverTreasureSite extends QuestReward {
 	}
 
 	public void processReward(JFrame frame,CharacterWrapper character) {
-		ArrayList<GameObject> treasureSites = character.getGameData().getGameObjectsByNameRegex(getTreasureSiteRegex());
-		for (GameObject site : treasureSites) {
+		ArrayList treasureSites = character.getGameData().getGameObjectsByNameRegex(getTreasureSiteRegex());
+		for (java.util.Iterator _j14it2444 = (treasureSites).iterator(); _j14it2444.hasNext(); ) {
+		  GameObject site = (GameObject) _j14it2444.next();
 			if (!site.hasThisAttribute("treasure_location")) continue;
 			character.addTreasureLocationDiscovery(site.getName());
 		}

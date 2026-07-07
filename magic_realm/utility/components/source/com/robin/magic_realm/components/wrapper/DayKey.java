@@ -2,7 +2,7 @@ package com.robin.magic_realm.components.wrapper;
 
 import com.robin.general.util.StringUtilities;
 
-public class DayKey implements Comparable<DayKey> {
+public class DayKey implements Comparable {
 	private int month;
 	private int day;
 	public DayKey(int month,int day) {
@@ -27,6 +27,9 @@ public class DayKey implements Comparable<DayKey> {
 			return equals((DayKey)obj);
 		}
 		return false;
+	}
+	public int compareTo(Object o) {
+		return compareTo((DayKey) o);
 	}
 	public int compareTo(DayKey dayKey) {
 		int val = day - dayKey.day;

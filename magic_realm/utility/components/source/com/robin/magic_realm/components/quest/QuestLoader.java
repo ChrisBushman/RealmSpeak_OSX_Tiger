@@ -22,14 +22,15 @@ public class QuestLoader {
 		return questCount;
 	}
 
-	public static ArrayList<Quest> findAvailableQuests(CharacterWrapper character, HostPrefWrapper hostPrefs) {
+	public static ArrayList findAvailableQuests(CharacterWrapper character, HostPrefWrapper hostPrefs) {
 		GamePool pool = new GamePool(character.getGameData().getGameObjects());
-		ArrayList<String> query = new ArrayList<String>();
+		ArrayList query = new ArrayList();
 		query.add(RealmComponent.QUEST);
 		query.add("!"+Quest.STATE);
-		ArrayList<GameObject> allUnassingedQuests = pool.find(query);
-		ArrayList<Quest> quests = new ArrayList<Quest>();
-		for (GameObject go : allUnassingedQuests) {
+		ArrayList allUnassingedQuests = pool.find(query);
+		ArrayList quests = new ArrayList();
+		for (java.util.Iterator _j14it2181 = (allUnassingedQuests).iterator(); _j14it2181.hasNext(); ) {
+		  GameObject go = (GameObject) _j14it2181.next();
 			Quest quest = new Quest(go);
 			if (quest.canChooseQuest(character, hostPrefs)) {
 				if (hostPrefs.isUsingQuestCards() || (hostPrefs.isUsingBookOfQuests() && !quest.isEvent()) || hostPrefs.isUsingGuildQuests()) {
@@ -49,14 +50,15 @@ public class QuestLoader {
 	}
 	
 	public static Quest loadQuestByName(String name) {
-		for(Quest quest:loadAllQuestsFromQuestFolder()) {
+		for (java.util.Iterator _j14it2182 = (loadAllQuestsFromQuestFolder()).iterator(); _j14it2182.hasNext(); ) {
+		  Quest quest = (Quest) _j14it2182.next();
 			if (quest.getName().equals(name)) return quest;
 		}
 		return null;
 	}
 
-	public static ArrayList<Quest> loadAllQuestsFromQuestFolder() {
-		ArrayList<Quest> quests = new ArrayList<Quest>();
+	public static ArrayList loadAllQuestsFromQuestFolder() {
+		ArrayList quests = new ArrayList();
 		File questFolder = new File(getQuestFolderPath());
 		if (questFolder.isDirectory() && questFolder.exists()) {
 			File[] questFile = questFolder.listFiles();
@@ -78,7 +80,7 @@ public class QuestLoader {
 		data.ignoreRandomSeed = true;
 		File file = new File(filePath);
 		if (data.zipFromFile(file)) {
-			Quest quest = new Quest(data.getGameObjects().iterator().next());
+			Quest quest = new Quest((GameObject) data.getGameObjects().iterator().next());
 			if (quest.isValid()) {
 				quest.filepath = filePath; // This is just here so that the builder can save a quest it just loaded for viewDeck() - not guaranteed!
 				return quest;

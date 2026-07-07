@@ -13,10 +13,11 @@ public class IllusionEvent implements IEvent {
 	private static final String description = "A random hex and all adjacent hexes are affected by Illusion.";
 	private static final String dieMod = "+1:locate,loot,peer,readrunes,magicsight,event_illusion:all";
 	public void applyBirdsong(GameData data) {
-		ArrayList<TileComponent> tiles = RealmEvents.chooseRandomAndAdjacentTiles(data);
+		ArrayList tiles = RealmEvents.chooseRandomAndAdjacentTiles(data);
 		if (tiles!=null && !tiles.isEmpty()) {
 			GameObject config = RealmEvents.findEventsConfig(data);
-			for (TileComponent tile : tiles) {
+			for (java.util.Iterator _j14it2455 = (tiles).iterator(); _j14it2455.hasNext(); ) {
+			  TileComponent tile = (TileComponent) _j14it2455.next();
 				tile.getGameObject().addThisAttributeListItem(Constants.DIEMOD,dieMod);
 				RealmEvents.addEffectForTile(config,Constants.EVENT_ILLUSION,tile.getGameObject().getStringId());
 				RealmLogging.logMessage("Event","Illusion: Add one to all SEARCH die rolls in "+tile.getGameObject().getNameWithNumber());
@@ -27,9 +28,10 @@ public class IllusionEvent implements IEvent {
 	}
 	public void expire(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_ILLUSION);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_ILLUSION);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2456 = (ids).iterator(); _j14it2456.hasNext(); ) {
+			  String id = (String) _j14it2456.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				tile.removeThisAttributeListItem(Constants.DIEMOD,dieMod);
 				tile.removeThisAttribute(Constants.EVENT_ILLUSION);
@@ -37,17 +39,16 @@ public class IllusionEvent implements IEvent {
 			}
 		}
 	}
-	@Override
 	public String getTitle() {
 		return title;
 	}
-	@Override
 	public String getDescription(GameData data) {
 		GameObject config = RealmEvents.findEventsConfig(data);
 		String text = "";
-		ArrayList<String> ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_ILLUSION);
+		ArrayList ids = RealmEvents.getTileIdsForEffect(config,Constants.EVENT_ILLUSION);
 		if (ids!=null && !ids.isEmpty()) {
-			for (String id : ids) {
+			for (java.util.Iterator _j14it2457 = (ids).iterator(); _j14it2457.hasNext(); ) {
+			  String id = (String) _j14it2457.next();
 				GameObject tile = data.getGameObject(Long.valueOf(id));
 				text = text + tile.getNameWithNumber() + ", ";
 			}
