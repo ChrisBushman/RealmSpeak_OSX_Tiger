@@ -2116,16 +2116,23 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 			// Make sure there is a DieRoller logger
 			DieRoller.setDieRollerLog(RealmUtility.getDieRollerLog(init.getGameData()));
 			
-			// Do all the pregame work
-			init.buildGame();
-			
-			// Save off the initial layout
-			init.getGameData().zipToFile(RealmHostPanel.INITIALSAVEFILE);
-			
-			// Make a host
-			makeHost(init.getMaster(),init.getGameData(),netConnect);
-//			// This works well, even though it technically doubles the resources on the host machine.
-//			// Probably not worth the effort to change, unless memory becomes an issue.
+			// Do all the pregame work on a background thread so the UI stays responsive
+			showStatus("Building game world...");
+			final RealmSpeakInit finalInit = init;
+			final boolean finalNetConnect = netConnect;
+			new Thread(new Runnable() {
+				public void run() {
+					finalInit.buildGame();
+					finalInit.getGameData().zipToFile(RealmHostPanel.INITIALSAVEFILE);
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							makeHost(finalInit.getMaster(),finalInit.getGameData(),finalNetConnect);
+							resetStatus();
+						}
+					});
+				}
+			}).start();
+			return;
 		}
 		resetStatus();
 	}

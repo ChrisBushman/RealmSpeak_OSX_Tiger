@@ -453,9 +453,7 @@ public class CharacterActionControlManager {
 			}
 		}
 		getGameHandler().getInspector().getMap().clearMarkClearingAlertText();
-		getGameHandler().getInspector().getMap().markAllTiles(false);
-		getGameHandler().getInspector().getMap().markAllClearings(false);
-		getGameHandler().getInspector().getMap().markAllMapEdges(false);
+		getGameHandler().getInspector().getMap().clearAllMarkings();
 		if (cap!=null) {
 			cap.getCharacterFrame().updateControls();
 			cap.getCharacterFrame().toFront();

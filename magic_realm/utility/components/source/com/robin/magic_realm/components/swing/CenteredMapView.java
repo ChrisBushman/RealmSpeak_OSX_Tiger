@@ -390,7 +390,12 @@ public class CenteredMapView extends JComponent {
 	public boolean isTileAtPosition(Point pos) {
 		return mapGrid.get(pos)!=null;
 	}
+	private int lastTilesStyle = -1;
+
 	public void updateTilesStyle() {
+		int currentStyle = TileComponent.displayTilesStyle;
+		if (currentStyle == lastTilesStyle) return;
+		lastTilesStyle = currentStyle;
 		ArrayList tileObjects = RealmObjectMaster.getRealmObjectMaster(gameData).getTileObjects();
 		for (java.util.Iterator _j14it1950 = (tileObjects).iterator(); _j14it1950.hasNext(); ) {
 		  GameObject obj = (GameObject) _j14it1950.next();
@@ -681,6 +686,23 @@ public class CenteredMapView extends JComponent {
 		}
 		return list;
 	}
+	public void clearAllMarkings() {
+		for (java.util.Iterator _cit = (mapGrid.values()).iterator(); _cit.hasNext(); ) {
+			TileComponent tile = (TileComponent) _cit.next();
+			tile.setMarked(false);
+			for (java.util.Iterator _clit = tile.getClearings().iterator(); _clit.hasNext(); ) {
+				ClearingDetail clearing = (ClearingDetail) _clit.next();
+				clearing.setMarked(false);
+			}
+			for (java.util.Iterator _eit = tile.getMapEdges().iterator(); _eit.hasNext(); ) {
+				ClearingDetail edge = (ClearingDetail) _eit.next();
+				edge.setMarked(false);
+			}
+		}
+		replot = true;
+		repaint();
+	}
+
 	public void markAllClearings(boolean setMark) {
 		for (java.util.Iterator _j14it1958 = (mapGrid.values()).iterator(); _j14it1958.hasNext(); ) {
 		  TileComponent tile = (TileComponent) _j14it1958.next();
@@ -695,6 +717,18 @@ public class CenteredMapView extends JComponent {
 		repaint();
 	}
 	public void markAllMapEdges(boolean setMark) {
+		if (!setMark) {
+			// Fast path: unmark all edges without rebuilding the map structure.
+			// Only markAllMapEdges(true) needs the Borderland-connectivity check.
+			for (java.util.Iterator _fast = (mapGrid.values()).iterator(); _fast.hasNext(); ) {
+				TileComponent tile = (TileComponent) _fast.next();
+				for (java.util.Iterator _eit = tile.getMapEdges().iterator(); _eit.hasNext(); ) {
+					ClearingDetail detail = (ClearingDetail) _eit.next();
+					detail.setMarked(false);
+				}
+			}
+			return;
+		}
 		String anchorTileName = this.anchorTileName;
 		ArrayList allMapEdges = new ArrayList();
 		for (java.util.Iterator _j14it1960 = (mapGrid.values()).iterator(); _j14it1960.hasNext(); ) {

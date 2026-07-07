@@ -4,7 +4,9 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.ImageIcon;
 
@@ -14,6 +16,7 @@ import com.robin.general.graphics.GraphicsUtil;
 public class Hex {
 
 	public static long unique_hex_id_sequence = 0;
+	private static HashMap compositeCache = new HashMap();
 
 	public static final String WALLS = "_WALLS";
 	public static final Font font = new Font("Dialog",Font.BOLD,12);
@@ -175,12 +178,27 @@ public class Hex {
 		}
 	}
 	public void draw(Graphics g,int x,int y,boolean showNumbering) {
-		g.drawImage(icon.getImage(),x,y,null);
-		for (int i=0;i<currentWall.length;i++) {
-			if (currentWall[i]) {
-				g.drawImage(wallIcon[i],x,y,null);
-			}
+		int wallMask = 0;
+		for (int i = 0; i < currentWall.length; i++) {
+			if (currentWall[i]) wallMask |= (1 << i);
 		}
+		String cacheKey = System.identityHashCode(icon) + "_" + wallMask;
+		BufferedImage composite = (BufferedImage) compositeCache.get(cacheKey);
+		if (composite == null) {
+			int w = icon.getIconWidth();
+			int h = icon.getIconHeight();
+			composite = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+			Graphics cg = composite.getGraphics();
+			cg.drawImage(icon.getImage(), 0, 0, null);
+			for (int i = 0; i < currentWall.length; i++) {
+				if (currentWall[i]) {
+					cg.drawImage(wallIcon[i], 0, 0, null);
+				}
+			}
+			cg.dispose();
+			compositeCache.put(cacheKey, composite);
+		}
+		g.drawImage(composite, x, y, null);
 		if (showNumbering && !suppressID && id!=null) {
 			g.setColor(idColor);
 			g.setFont(font);

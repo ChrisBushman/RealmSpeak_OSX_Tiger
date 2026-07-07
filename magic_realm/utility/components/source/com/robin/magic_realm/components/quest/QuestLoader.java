@@ -10,6 +10,7 @@ import com.robin.magic_realm.components.wrapper.HostPrefWrapper;
 
 public class QuestLoader {
 	private static int questCount = -1;
+	private static ArrayList questFolderCache = null;
 
 	public static boolean hasQuestsToLoad(CharacterWrapper character, HostPrefWrapper hostPrefs) {
 		return getQuestCount(character, hostPrefs) > 0;
@@ -58,6 +59,7 @@ public class QuestLoader {
 	}
 
 	public static ArrayList loadAllQuestsFromQuestFolder() {
+		if (questFolderCache != null) return questFolderCache;
 		ArrayList quests = new ArrayList();
 		File questFolder = new File(getQuestFolderPath());
 		if (questFolder.isDirectory() && questFolder.exists()) {
@@ -72,6 +74,7 @@ public class QuestLoader {
 				}
 			}
 		}
+		questFolderCache = quests;
 		return quests;
 	}
 
