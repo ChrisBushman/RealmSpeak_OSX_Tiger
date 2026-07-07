@@ -89,7 +89,7 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 		ArrayList fHirelings = getCharacter().getFollowingHirelings(); // likely the same group
 		for (java.util.Iterator _j14it978 = (fHirelings).iterator(); _j14it978.hasNext(); ) {
 		  RealmComponent fHireling = (RealmComponent) _j14it978.next();
-			if (!allHirelings.contains(fHireling)) {
+			if (allHirelings.indexOf(fHireling) < 0) {
 				allHirelings.add(fHireling);
 			}
 		}
@@ -371,7 +371,7 @@ public class CharacterHirelingPanel extends CharacterFramePanel {
 				}
 				termOfHire = null;
 				if (!rc.getGameObject().hasThisAttribute(Constants.COMPANION)) {
-					termOfHire = Integer.valueOf(rc.getTermOfHire());
+					termOfHire = new Integer(rc.getTermOfHire());
 				}
 			}
 			else {

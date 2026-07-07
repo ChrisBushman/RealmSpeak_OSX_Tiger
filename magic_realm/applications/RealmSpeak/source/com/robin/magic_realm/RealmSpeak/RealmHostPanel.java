@@ -384,7 +384,7 @@ public class RealmHostPanel extends JPanel {
 				
 				if (blownSpellId!=null) {
 					// Regardless, expire the wind spell
-					GameObject spellGo = host.getGameData().getGameObject(Long.valueOf(blownSpellId));
+					GameObject spellGo = host.getGameData().getGameObject(new Long(blownSpellId));
 					SpellWrapper spell = new SpellWrapper(spellGo);
 					spell.expireSpell();
 				}
@@ -1133,7 +1133,7 @@ public class RealmHostPanel extends JPanel {
 			if (charName==null || charName.equals(character.getPlayerName())) { // specific character or all
 				if (character.isMissingInAction()) { // offline
 					String email = SendMail.normalizeEmail(character.getPlayerEmail());
-					if (email.length()>0 && !offlineEmails.contains(email)) { // unique
+					if (email.length()>0 && offlineEmails.indexOf(email) < 0) { // unique
 						offlineEmails.add(email);
 					}
 				}
@@ -1151,7 +1151,7 @@ public class RealmHostPanel extends JPanel {
 			CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 			if (character.isMissingInAction()) { // offline
 				String email = SendMail.normalizeEmail(character.getPlayerEmail());
-				if (email.length()>0 && !offlineEmails.contains(email)) { // unique
+				if (email.length()>0 && offlineEmails.indexOf(email) < 0) { // unique
 					offlineEmails.add(email);
 				}
 			}
@@ -1264,7 +1264,7 @@ public class RealmHostPanel extends JPanel {
 							return email == null ? "NA" : email;
 						case 3:
 							ArrayList c = RealmObjectMaster.getRealmObjectMaster(host.getGameData()).getPlayerCharacterObjects();
-							return Integer.valueOf((new GamePool(c)).find(CharacterWrapper.NAME_KEY + "=" + server.getClientName()).size());
+							return new Integer((new GamePool(c)).find(CharacterWrapper.NAME_KEY + "=" + server.getClientName()).size());
 					}
 				}
 			}

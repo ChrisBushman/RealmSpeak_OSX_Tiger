@@ -23,13 +23,13 @@ public class StopWatch {
     }
     
     public void start() {
-        this.startTime = System.nanoTime();
+        this.startTime = System.currentTimeMillis();
         this.running = true;
     }
 
     
     public void stop() {
-        this.stopTime = System.nanoTime();
+        this.stopTime = System.currentTimeMillis();
         this.running = false;
     }
 
@@ -38,7 +38,7 @@ public class StopWatch {
     public long getElapsedTime() {
         long elapsed;
         if (running) {
-             elapsed = (System.nanoTime() - startTime);
+             elapsed = (System.currentTimeMillis() - startTime);
         }
         else {
             elapsed = (stopTime - startTime);

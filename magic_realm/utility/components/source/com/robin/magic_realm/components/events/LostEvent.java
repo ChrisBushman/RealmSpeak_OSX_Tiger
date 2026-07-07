@@ -30,7 +30,7 @@ public class LostEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2477 = (ids).iterator(); _j14it2477.hasNext(); ) {
 			  String id = (String) _j14it2477.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				tile.removeThisAttribute(Constants.EVENT_LOST);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_LOST,id);
 			}
@@ -46,7 +46,7 @@ public class LostEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2478 = (ids).iterator(); _j14it2478.hasNext(); ) {
 			  String id = (String) _j14it2478.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				text = text + tile.getNameWithNumber() + ", ";
 			}
 		}

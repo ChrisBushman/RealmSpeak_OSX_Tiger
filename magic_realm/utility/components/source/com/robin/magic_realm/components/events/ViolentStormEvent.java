@@ -48,7 +48,7 @@ public class ViolentStormEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2459 = (ids).iterator(); _j14it2459.hasNext(); ) {
 			  String id = (String) _j14it2459.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				tile.removeThisAttribute(Constants.EVENT_VIOLENT_STORM);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_VIOLENT_STORM,id);
 			}
@@ -65,7 +65,7 @@ public class ViolentStormEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2460 = (ids).iterator(); _j14it2460.hasNext(); ) {
 			  String id = (String) _j14it2460.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				phasesLost = tile.getThisInt(Constants.EVENT_VIOLENT_STORM);
 				text = text + tile.getNameWithNumber() + ", ";
 			}

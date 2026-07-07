@@ -104,7 +104,7 @@ public class QuestTesterFrame extends JFrame {
 		setTitle("RealmSpeak Quest Tester");
 		setSize(1400, 1080);
 
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BorderLayout());
 
 		JPanel top = new JPanel(new BorderLayout());
 		ComponentTools.lockComponentSize(top, 2000, 200);
@@ -141,7 +141,7 @@ public class QuestTesterFrame extends JFrame {
 		questDescription.setBackground(null);
 		questDescription.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		top.add(new JScrollPane(questDescription), BorderLayout.CENTER);
-		add(top, BorderLayout.NORTH);
+		getContentPane().add(top, BorderLayout.NORTH);
 
 		JPanel main = new JPanel(new GridLayout(2, 1));
 		JPanel mainTop = new JPanel(new GridLayout(1, 3));
@@ -173,7 +173,7 @@ public class QuestTesterFrame extends JFrame {
 		mainTop.add(new JScrollPane(stepDetails));
 		main.add(mainTop);
 		main.add(buildCharacterPanel());
-		add(main, BorderLayout.CENTER);
+		getContentPane().add(main, BorderLayout.CENTER);
 	}
 
 	private JPanel buildCharacterPanel() {

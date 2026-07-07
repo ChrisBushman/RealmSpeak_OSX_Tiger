@@ -139,7 +139,7 @@ public class TransmorphEffect implements ISpellEffect {
 			if (list!=null) {
 				for (java.util.Iterator _j14it2054 = (list).iterator(); _j14it2054.hasNext(); ) {
 				  String id = (String) _j14it2054.next();
-					GameObject go = data.getGameObject(Long.valueOf(id));
+					GameObject go = data.getGameObject(new Long(id));
 					if (go!=null && inv.contains(go)) { // only do this if the item still exists in inventory
 						TreasureUtility.doActivate(null, spell.getCaster(),go,new ChangeListener() {
 							public void stateChanged(ChangeEvent ev) {

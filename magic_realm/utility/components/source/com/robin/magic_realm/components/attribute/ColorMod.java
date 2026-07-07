@@ -14,7 +14,7 @@ public class ColorMod {
 		setMod(mod);
 	}
 	public boolean willAffect(ColorMagic cm) {
-		return conversions.containsKey(Integer.valueOf(cm.getColorNumber()));
+		return conversions.containsKey(new Integer(cm.getColorNumber()));
 	}
 	private void setMod(String mod) {
 		// Like 1.2;1.3 (means white->grey, white->gold)
@@ -27,7 +27,7 @@ public class ColorMod {
 				int dot = change.indexOf('.');
 				int fromColor = Integer.parseInt(change.substring(0,dot));
 				int toColor = Integer.parseInt(change.substring(dot+1));
-				conversions.put(Integer.valueOf(fromColor),Integer.valueOf(toColor));
+				conversions.put(new Integer(fromColor),new Integer(toColor));
 			}
 		}
 		catch(IndexOutOfBoundsException ex) {
@@ -42,8 +42,8 @@ public class ColorMod {
 	}
 	
 	public ColorMagic convertColor(ColorMagic cm) {
-		if (cm!=null && conversions.containsKey(Integer.valueOf(cm.getColorNumber()))) {
-			for (java.util.Iterator _j14it1461 = (conversions.getList(Integer.valueOf(cm.getColorNumber()))).iterator(); _j14it1461.hasNext(); ) {
+		if (cm!=null && conversions.containsKey(new Integer(cm.getColorNumber()))) {
+			for (java.util.Iterator _j14it1461 = (conversions.getList(new Integer(cm.getColorNumber()))).iterator(); _j14it1461.hasNext(); ) {
 			  int toColorNumber = ((Integer) _j14it1461.next()).intValue();
 				return new ColorMagic(toColorNumber,cm.isInfinite()); // Just return the first in this case...
 			}
@@ -56,8 +56,8 @@ public class ColorMod {
 		
 		for (java.util.Iterator _j14it1462 = (colors).iterator(); _j14it1462.hasNext(); ) {
 		  ColorMagic fromColor = (ColorMagic) _j14it1462.next();
-			if (conversions.containsKey(Integer.valueOf(fromColor.getColorNumber()))) {
-				for (java.util.Iterator _j14it1463 = (conversions.getList(Integer.valueOf(fromColor.getColorNumber()))).iterator(); _j14it1463.hasNext(); ) {
+			if (conversions.containsKey(new Integer(fromColor.getColorNumber()))) {
+				for (java.util.Iterator _j14it1463 = (conversions.getList(new Integer(fromColor.getColorNumber()))).iterator(); _j14it1463.hasNext(); ) {
 				  int toColorNumber = ((Integer) _j14it1463.next()).intValue();
 					modColors.add(new ColorMagic(toColorNumber,fromColor.isInfinite()));
 				}
@@ -70,7 +70,7 @@ public class ColorMod {
 		ArrayList filteredColors = new ArrayList();
 		for (java.util.Iterator _j14it1464 = (colors).iterator(); _j14it1464.hasNext(); ) {
 		  ColorMagic magic = (ColorMagic) _j14it1464.next();
-			if (!conversions.containsKey(Integer.valueOf(magic.getColorNumber()))) {
+			if (!conversions.containsKey(new Integer(magic.getColorNumber()))) {
 				filteredColors.add(magic);
 			}
 		}

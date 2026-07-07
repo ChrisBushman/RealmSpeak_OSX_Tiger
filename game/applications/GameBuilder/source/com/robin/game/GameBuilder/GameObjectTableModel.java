@@ -47,14 +47,14 @@ public class GameObjectTableModel extends AbstractTableModel implements ColumnSi
 			GameObject obj = (GameObject) data.get(row);
 			switch(col) {
 				case 0:
-					return Long.valueOf(obj.getId());
+					return new Long(obj.getId());
 				case 1:
 					return obj.getName();
 				case 2:
 					GameObject hb = obj.getHeldBy();
 					return hb==null?"":hb.toString();
 				case 3:
-					return Integer.valueOf(obj.getHoldCount());
+					return new Integer(obj.getHoldCount());
 				default:
 					throw new IllegalArgumentException("Invalid column index");
 			}

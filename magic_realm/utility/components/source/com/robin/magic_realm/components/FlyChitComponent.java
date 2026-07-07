@@ -91,7 +91,7 @@ public class FlyChitComponent extends StateChitComponent {
 	}
 	public void expireSourceSpell() {
 		String stringId = getGameObject().getThisAttribute(Constants.SPELL_ID);
-		GameObject sourceSpell = getGameObject().getGameData().getGameObject(Long.valueOf(stringId));
+		GameObject sourceSpell = getGameObject().getGameData().getGameObject(new Long(stringId));
 		SpellWrapper spell = new SpellWrapper(sourceSpell);
 		spell.expireSpell();
 	}

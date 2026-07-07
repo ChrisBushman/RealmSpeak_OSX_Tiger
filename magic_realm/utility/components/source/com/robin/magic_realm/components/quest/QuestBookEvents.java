@@ -47,7 +47,7 @@ public class QuestBookEvents extends GameObjectWrapper {
 		if (list!=null && list.size()>0) {
 			for (java.util.Iterator _j14it2289 = (list).iterator(); _j14it2289.hasNext(); ) {
 			  String questId = (String) _j14it2289.next();
-				GameObject go = getGameData().getGameObject(Long.valueOf(questId));
+				GameObject go = getGameData().getGameObject(new Long(questId));
 				allPlay.add(go);
 			}
 		}
@@ -78,7 +78,7 @@ public class QuestBookEvents extends GameObjectWrapper {
 			GamePool pool = new GamePool(data.getGameObjects());
 			GameObject go = pool.findFirst(QUEST_BOOK_KEY);
 			if (go!=null) {
-				BOOK_ID = Long.valueOf(go.getId());
+				BOOK_ID = new Long(go.getId());
 				return new QuestBookEvents(go);
 			}
 		}
@@ -92,7 +92,7 @@ public class QuestBookEvents extends GameObjectWrapper {
 		go.setThisAttribute(QUEST_BOOK_KEY);
 		
 		QuestBookEvents book = new QuestBookEvents(go);
-		BOOK_ID = Long.valueOf(go.getId());
+		BOOK_ID = new Long(go.getId());
 		
 		return book;
 	}

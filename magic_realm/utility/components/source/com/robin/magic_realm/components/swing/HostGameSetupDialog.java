@@ -522,12 +522,12 @@ public class HostGameSetupDialog extends AggressiveDialog {
 		
 		optionPane.buildPane();
 		
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BorderLayout());
 		
 		optionSetControl = new OptionSetControl(this);
-		add(optionSetControl,"North");
+		getContentPane().add(optionSetControl,"North");
 		
-		add(optionPane,"Center");
+		getContentPane().add(optionPane,"Center");
 		
 			box = Box.createHorizontalBox();
 				defaultButton = new JButton("Use Defaults");
@@ -577,7 +577,7 @@ public class HostGameSetupDialog extends AggressiveDialog {
 			box.add(startHost);
 			box.add(Box.createHorizontalGlue());
 			
-		add(box,"South");
+		getContentPane().add(box,"South");
 		
 		getRootPane().setDefaultButton(startHost);		
 		

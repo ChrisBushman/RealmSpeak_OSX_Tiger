@@ -28,7 +28,7 @@ public class PeacefulDayEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2462 = (ids).iterator(); _j14it2462.hasNext(); ) {
 			  String id = (String) _j14it2462.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				tile.removeThisAttribute(Constants.EVENT_PEACEFUL_DAY);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_PEACEFUL_DAY,id);
 			}

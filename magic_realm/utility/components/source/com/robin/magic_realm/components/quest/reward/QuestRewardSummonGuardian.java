@@ -62,7 +62,7 @@ public class QuestRewardSummonGuardian extends QuestReward {
 	public QuestLocation getQuestLocation() {
 		String id = getString(LOCATION);
 		if (id!=null) {
-			GameObject go = getGameData().getGameObject(Long.valueOf(id));
+			GameObject go = getGameData().getGameObject(new Long(id));
 			if (go!=null) {
 				return new QuestLocation(go);
 			}

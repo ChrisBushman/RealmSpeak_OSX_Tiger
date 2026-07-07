@@ -43,7 +43,7 @@ public class MagicShieldEffect implements ISpellEffect {
 			GameObject magicShield = context.Spell
 					.getGameObject()
 					.getGameData()
-					.getGameObject(Long.valueOf(context.Spell.getGameObject().getThisAttribute(Constants.MAGIC_SHIELD_ID)));
+					.getGameObject(new Long(context.Spell.getGameObject().getThisAttribute(Constants.MAGIC_SHIELD_ID)));
 			if (magicShield != null && magicShield.getHeldBy() != null) {
 				magicShield.getHeldBy().remove(magicShield);
 			}

@@ -21,7 +21,7 @@ public class MonthDaySelectionDialog extends AggressiveDialog {
 		setSize(250,100);
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BorderLayout());
 		
 		JPanel inputs = new JPanel(new GridLayout(2,3));
 		JPanel monthInput = new JPanel(new GridLayout(1,2));
@@ -36,7 +36,7 @@ public class MonthDaySelectionDialog extends AggressiveDialog {
 		monthInput.add(day);		
 		inputs.add(monthInput);
 		inputs.add(dayInput);
-		add(inputs,BorderLayout.CENTER);
+		getContentPane().add(inputs,BorderLayout.CENTER);
 		
 		JPanel buttons = new JPanel(new GridLayout(1,2));
 		JButton buttonOk = new JButton("Ok");
@@ -55,7 +55,7 @@ public class MonthDaySelectionDialog extends AggressiveDialog {
 		});
 		buttons.add(buttonOk);
 		buttons.add(buttonCancel);
-		add(buttons,BorderLayout.SOUTH);
+		getContentPane().add(buttons,BorderLayout.SOUTH);
 	}
 		
 	public DayKey getSelectedDayKey() {

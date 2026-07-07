@@ -34,7 +34,7 @@ public class ThornsEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2475 = (ids).iterator(); _j14it2475.hasNext(); ) {
 			  String id = (String) _j14it2475.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				tile.removeThisAttribute(Constants.EVENT_THORNS);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_THORNS,id);
 			}

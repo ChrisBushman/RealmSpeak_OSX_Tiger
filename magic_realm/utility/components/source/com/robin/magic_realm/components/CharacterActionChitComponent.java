@@ -324,7 +324,7 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 	public int getEffortAsterisks() {
 		String effort = getChitAttribute("effort");
 		try {
-			Integer num = Integer.valueOf(effort);
+			Integer num = new Integer(effort);
 			return num.intValue();
 		}
 		catch (NumberFormatException ex) {
@@ -456,7 +456,7 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 
 		String effort = getChitAttribute("effort");
 		try {
-			Integer num = Integer.valueOf(effort);
+			Integer num = new Integer(effort);
 			effort = StringUtilities.getRepeatString("*", num.intValue());
 		}
 		catch (NumberFormatException ex) {
@@ -862,7 +862,7 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 	
 	public ArrayList getEnchantableNumbers() {
 		ArrayList list = new ArrayList();
-		list.add(Integer.valueOf(getMagicNumber()));
+		list.add(new Integer(getMagicNumber()));
 		return list;
 	}
 	public void enchant() {
@@ -1130,7 +1130,7 @@ public class CharacterActionChitComponent extends StateChitComponent implements 
 	public void expireSourceSpell() {
 		if (getGameObject().hasThisAttribute(Constants.SPELL_ID)) {
 			String stringId = getGameObject().getThisAttribute(Constants.SPELL_ID);
-			GameObject sourceSpell = getGameObject().getGameData().getGameObject(Long.valueOf(stringId));
+			GameObject sourceSpell = getGameObject().getGameData().getGameObject(new Long(stringId));
 			SpellWrapper spell = new SpellWrapper(sourceSpell);
 			spell.expireSpell();
 		}

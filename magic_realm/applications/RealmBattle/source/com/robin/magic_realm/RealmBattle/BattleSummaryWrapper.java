@@ -66,8 +66,8 @@ public class BattleSummaryWrapper extends GameObjectWrapper {
 			while(k.hasNext()) {
 				String kid = (String) k.next();
 				String did = (String) d.next();
-				GameObject kGo = data.getGameObject(Long.valueOf(kid));
-				GameObject dGo = data.getGameObject(Long.valueOf(did));
+				GameObject kGo = data.getGameObject(new Long(kid));
+				GameObject dGo = data.getGameObject(new Long(did));
 				bs.addAttackerTarget(kGo,dGo);
 			}
 		}

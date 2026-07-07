@@ -33,7 +33,7 @@ public class CaveInEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2465 = (ids).iterator(); _j14it2465.hasNext(); ) {
 			  String id = (String) _j14it2465.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				tile.removeThisAttribute(Constants.EVENT_CAVE_IN);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_CAVE_IN,id);
 			}
@@ -49,7 +49,7 @@ public class CaveInEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2466 = (ids).iterator(); _j14it2466.hasNext(); ) {
 			  String id = (String) _j14it2466.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				for (java.util.Iterator _j14it2467 = (tile.getThisAttributeList(Constants.EVENT_CAVE_IN)).iterator(); _j14it2467.hasNext(); ) {
 				  String cl = (String) _j14it2467.next();;
 					text = text + tile.getNameWithNumber() +" ("+cl+")"+ ", ";

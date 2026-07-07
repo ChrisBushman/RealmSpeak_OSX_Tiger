@@ -194,7 +194,7 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 	}
 	private boolean actionLocked(GameObject thing) {
 		RealmTurnPanel turnPanel = getCharacterFrame().getTurnPanel();
-		return (turnPanel!=null && turnPanel.getPhaseManager().getAllObjects().contains(thing) && !turnPanel.getPhaseManager().getUsedObjects().contains(thing));
+		return (turnPanel!=null && turnPanel.getPhaseManager().getAllObjects().indexOf(thing) >= 0 && turnPanel.getPhaseManager().getUsedObjects().indexOf(thing) < 0);
 	}
 	private void doDistribute() {
 		// Find all characters in the clearing
@@ -236,7 +236,7 @@ public class CharacterInventoryPanel extends CharacterFramePanel {
 						if (item.hasThisAttribute("boots")) {
 							// Make sure character is not prohibited from wearing boots (only affects custom characters)
 							ArrayList list = character.getGameObject().getThisAttributeList(Constants.ITEM_RESTRICTIONS);
-							if (list==null || !list.contains("Boots")) {
+							if (list==null || list.indexOf("Boots") < 0) {
 								// Note:  shouldn't have to worry about boots that are too small for a character, because it wont affect them in any case!
 								item.setThisAttribute(Constants.ACTIVATED);
 							}

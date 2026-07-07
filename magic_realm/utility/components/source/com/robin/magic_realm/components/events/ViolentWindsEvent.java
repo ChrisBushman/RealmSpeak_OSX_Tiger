@@ -27,7 +27,7 @@ public class ViolentWindsEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2464 = (ids).iterator(); _j14it2464.hasNext(); ) {
 			  String id = (String) _j14it2464.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				tile.removeThisAttribute(Constants.EVENT_VIOLENT_WINDS);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_VIOLENT_WINDS,id);
 			}

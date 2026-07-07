@@ -425,7 +425,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			playerNames.add(client.getClientName());
 			for (java.util.Iterator _j14it1039 = (getMainFrame().getAllServerNames()).iterator(); _j14it1039.hasNext(); ) {
 			  String name = (String) _j14it1039.next();
-				if (!playerNames.contains(name)) {
+				if (playerNames.indexOf(name) < 0) {
 					playerNames.add(name);
 				}
 			}
@@ -1062,7 +1062,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 			// requestQueue for delivery on the next loop iteration.
 			String string = info.getString();
 			int colon = string.indexOf(":");
-			final long id = Long.valueOf(string.substring(0, colon)).longValue();
+			final long id = new Long(string.substring(0, colon)).longValue();
 			final String message = string.substring(colon + 1);
 			final String playerName = info.getPlayerName();
 			SwingUtilities.invokeLater(new Runnable() { public void run() {
@@ -1152,7 +1152,7 @@ public class RealmGameHandler extends RealmSpeakInternalFrame {
 		}
 		else if (key.startsWith(Constants.BROADCAST_CHAT)) {
 			String id = key.substring(Constants.BROADCAST_CHAT.length());
-			GameObject go = client.getGameData().getGameObject(Long.valueOf(id));
+			GameObject go = client.getGameData().getGameObject(new Long(id));
 			ChatLine line = new ChatLine(new CharacterWrapper(go), message);
 			if (line.isValid()) {
 				CharacterChatPanel.updateAllChatPanels(line);

@@ -292,49 +292,49 @@ public class RealmCharacterBuilderPanel extends JPanel {
 				startInnChoice = new JCheckBox("Inn",true); // ALWAYS true
 				startInnChoice.setEnabled(false); // ALWAYS disabled (MUST have INN as a choice)
 				
-				startGuardChoice = new JCheckBox("Guard",list.contains("Guard"));
+				startGuardChoice = new JCheckBox("Guard",list.indexOf("Guard") >= 0);
 				startGuardChoice.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent ev) {
 						updateStartingLocation("Guard",startGuardChoice.isSelected());
 					}
 				});
-				startChapelChoice = new JCheckBox("Chapel",list.contains("Chapel"));
+				startChapelChoice = new JCheckBox("Chapel",list.indexOf("Chapel") >= 0);
 				startChapelChoice.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent ev) {
 						updateStartingLocation("Chapel",startChapelChoice.isSelected());
 					}
 				});
-				startHouseChoice = new JCheckBox("House",list.contains("House"));
+				startHouseChoice = new JCheckBox("House",list.indexOf("House") >= 0);
 				startHouseChoice.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent ev) {
 						updateStartingLocation("House",startHouseChoice.isSelected());
 					}
 				});
-				startGhostsChoice = new JCheckBox("Ghosts",list.contains("Ghost"));
+				startGhostsChoice = new JCheckBox("Ghosts",list.indexOf("Ghost") >= 0);
 				startGhostsChoice.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent ev) {
 						updateStartingLocation("Ghost",startGhostsChoice.isSelected());
 					}
 				});
-				startHutChoice = new JCheckBox("Hut",list.contains("Hut"));
+				startHutChoice = new JCheckBox("Hut",list.indexOf("Hut") >= 0);
 				startHutChoice.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent ev) {
 						updateStartingLocation("Hut",startHutChoice.isSelected());
 					}
 				});
-				startSettlementChoice = new JCheckBox("Settlement",list.contains("Settlement"));
+				startSettlementChoice = new JCheckBox("Settlement",list.indexOf("Settlement") >= 0);
 				startSettlementChoice.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent ev) {
 						updateStartingLocation("Settlement",startSettlementChoice.isSelected());
 					}
 				});
-				startCottageChoice = new JCheckBox("Cottage",list.contains("Cottage"));
+				startCottageChoice = new JCheckBox("Cottage",list.indexOf("Cottage") >= 0);
 				startCottageChoice.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent ev) {
 						updateStartingLocation("Cottage",startCottageChoice.isSelected());
 					}
 				});
-				startHamletChoice = new JCheckBox("Hamlet",list.contains("Hamlet"));
+				startHamletChoice = new JCheckBox("Hamlet",list.indexOf("Hamlet") >= 0);
 				startHamletChoice.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent ev) {
 						updateStartingLocation("Hamlet",startHamletChoice.isSelected());
@@ -709,7 +709,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 		}
 		else {
 			// remove it
-			while(list.contains(location)) { // guarantees all instance of it are removed!!
+			while(list.indexOf(location) >= 0) { // guarantees all instance of it are removed!!
 				list.remove(location);
 			}
 		}
@@ -903,7 +903,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			String armorList = model.getCharacter().getGameObject().getAttribute(levelKey,"armor");
 			if (armorList==null) armorList = "";
 			JPanel armorPanel = new JPanel(new GridLayout(8,1));
-			cap = new JCheckBox("Cap",armorList.contains("Cap"));
+			cap = new JCheckBox("Cap",armorList.indexOf("Cap") >= 0);
 			cap.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
 					updateArmor("Cap",cap.isSelected());
@@ -914,7 +914,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 				}
 			});
 			armorPanel.add(cap);
-			cuirass = new JCheckBox("Cuirass",armorList.contains("Cuirass"));
+			cuirass = new JCheckBox("Cuirass",armorList.indexOf("Cuirass") >= 0);
 			cuirass.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
 					updateArmor("Cuirass",cuirass.isSelected());
@@ -925,7 +925,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 				}
 			});
 			armorPanel.add(cuirass);
-			buckler = new JCheckBox("Buckler",armorList.contains("Buckler"));
+			buckler = new JCheckBox("Buckler",armorList.indexOf("Buckler") >= 0);
 			buckler.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
 					updateArmor("Buckler",buckler.isSelected());
@@ -936,7 +936,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 				}
 			});
 			armorPanel.add(buckler);
-			helmet = new JCheckBox("Helmet",armorList.contains("Helmet"));
+			helmet = new JCheckBox("Helmet",armorList.indexOf("Helmet") >= 0);
 			helmet.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
 					updateArmor("Helmet",helmet.isSelected());
@@ -947,7 +947,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 				}
 			});
 			armorPanel.add(helmet);
-			breastplate = new JCheckBox("Breastplate",armorList.contains("Breastplate"));
+			breastplate = new JCheckBox("Breastplate",armorList.indexOf("Breastplate") >= 0);
 			breastplate.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
 					updateArmor("Breastplate",breastplate.isSelected());
@@ -958,7 +958,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 				}
 			});
 			armorPanel.add(breastplate);
-			shield = new JCheckBox("Shield",armorList.contains("Shield"));
+			shield = new JCheckBox("Shield",armorList.indexOf("Shield") >= 0);
 			shield.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
 					updateArmor("Shield",shield.isSelected());
@@ -969,7 +969,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 				}
 			});
 			armorPanel.add(shield);
-			armor = new JCheckBox("Armor",armorList.contains("Armor"));
+			armor = new JCheckBox("Armor",armorList.indexOf("Armor") >= 0);
 			armor.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ev) {
 					updateArmor("Armor",armor.isSelected());
@@ -1078,7 +1078,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			  CharacterActionChitComponent cc = (CharacterActionChitComponent) _j14it912.next();
 				if (cc.isMagic()) {
 					String type = cc.getMagicType();
-					if (!magicTypes.contains(type)) {
+					if (magicTypes.indexOf(type) < 0) {
 						magicTypes.add(type);
 					}
 				}
@@ -1208,7 +1208,7 @@ public class RealmCharacterBuilderPanel extends JPanel {
 			if (armorList==null) armorList = "";
 			ArrayList list = StringUtilities.stringToCollection(armorList,",");
 			if (val) {
-				if (!list.contains(armor)) {
+				if (list.indexOf(armor) < 0) {
 					list.add(armor);
 				}
 			}

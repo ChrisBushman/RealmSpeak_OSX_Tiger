@@ -300,7 +300,7 @@ public class CharacterChitComponent extends RoundChitComponent implements Battle
 				}
 			}
 		}
-		return Integer.valueOf(length);
+		return new Integer(length);
 	}
 
 	public String getLightSideStat() {

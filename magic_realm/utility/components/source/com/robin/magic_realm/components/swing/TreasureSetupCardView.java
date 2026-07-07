@@ -462,7 +462,7 @@ public class TreasureSetupCardView extends JComponent {
 					ChitComponent chit = (ChitComponent)rc;
 					if (chit instanceof GoldSpecialChitComponent && chit.getGameObject().hasThisAttribute("pairid")) {
 						GameObject chitGo = chit.getGameObject();
-						GameObject other = data.getGameObject(Long.valueOf(chitGo.getThisAttribute("pairid")));
+						GameObject other = data.getGameObject(new Long(chitGo.getThisAttribute("pairid")));
 						ChitComponent otherRc = (ChitComponent)RealmComponent.getRealmComponent(other);
 						rcImage = otherRc.getFlipSideImage();
 					}
@@ -520,7 +520,7 @@ public class TreasureSetupCardView extends JComponent {
 			if (roller!=null) {
 				int n = roller.getNumberOfDice();
 				for (int i=0;i<n;i++) {
-					dice.add(Integer.valueOf(roller.getValue(i)));
+					dice.add(new Integer(roller.getValue(i)));
 				}
 			}
 		} else {
@@ -528,7 +528,7 @@ public class TreasureSetupCardView extends JComponent {
 			if (roller!=null) {
 				int n = roller.getNumberOfDice();
 				for (int i=0;i<n;i++) {
-					dice.add(Integer.valueOf(roller.getValue(i)));
+					dice.add(new Integer(roller.getValue(i)));
 				}
 			}
 		}
@@ -547,7 +547,7 @@ public class TreasureSetupCardView extends JComponent {
 			int x = LEFT_BORDER;
 			int y = ((n-1)*h)+SPACING+TEXT_SPACING+25;
 			
-			boolean prowling = dice.contains(Integer.valueOf(n));
+			boolean prowling = dice.contains(new Integer(n));
 			
 			if (prowling) {
 				Dimension s = getSize();

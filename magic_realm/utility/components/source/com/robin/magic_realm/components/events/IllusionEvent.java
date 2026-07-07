@@ -32,7 +32,7 @@ public class IllusionEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2456 = (ids).iterator(); _j14it2456.hasNext(); ) {
 			  String id = (String) _j14it2456.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				tile.removeThisAttributeListItem(Constants.DIEMOD,dieMod);
 				tile.removeThisAttribute(Constants.EVENT_ILLUSION);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_ILLUSION,id);
@@ -49,7 +49,7 @@ public class IllusionEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2457 = (ids).iterator(); _j14it2457.hasNext(); ) {
 			  String id = (String) _j14it2457.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				text = text + tile.getNameWithNumber() + ", ";
 			}
 		}

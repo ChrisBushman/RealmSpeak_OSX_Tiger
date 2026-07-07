@@ -25,7 +25,7 @@ public class SpellTargetingUncontrolledMonsters extends SpellTargetingSingle {
 				String name = rc.getGameObject().getName().toLowerCase();
 				for (int _j14i784 = 0; _j14i784 < targetNames.length; _j14i784++) {
 				  String targetName = targetNames[_j14i784];
-					if (name.contains(targetName.trim()) || rc.getGameObject().hasThisAttribute(targetName)) {
+					if (name.indexOf(targetName.trim()) >= 0 || rc.getGameObject().hasThisAttribute(targetName)) {
 						gameObjects.add(rc.getGameObject());
 						continue;
 					}

@@ -28,7 +28,7 @@ public class NightOfTheDemonEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2482 = (ids).iterator(); _j14it2482.hasNext(); ) {
 			  String id = (String) _j14it2482.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				tile.removeThisAttribute(Constants.EVENT_NIGHT_OF_THE_DEMON);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_NIGHT_OF_THE_DEMON,id);
 			}
@@ -44,7 +44,7 @@ public class NightOfTheDemonEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2483 = (ids).iterator(); _j14it2483.hasNext(); ) {
 			  String id = (String) _j14it2483.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				text = text + tile.getNameWithNumber() + ", ";
 			}
 		}

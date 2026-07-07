@@ -40,9 +40,9 @@ public class QuestCounterEditor extends GenericEditor {
 	private void initComponents() {
 		setTitle("Quest Counter");
 		setSize(420,140);
-		setLayout(new BorderLayout());
-		add(buildForm(),BorderLayout.CENTER);
-		add(buildOkCancelLine(),BorderLayout.SOUTH);
+		getContentPane().setLayout(new BorderLayout());
+		getContentPane().add(buildForm(),BorderLayout.CENTER);
+		getContentPane().add(buildOkCancelLine(),BorderLayout.SOUTH);
 		updateControls();
 	}
 	private void updateControls() {

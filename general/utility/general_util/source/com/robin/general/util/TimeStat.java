@@ -62,7 +62,7 @@ public class TimeStat {
 				all = new ArrayList();
 				times.put(key,all);
 			}
-			all.add(Long.valueOf(diff));
+			all.add(new Long(diff));
 		}
 	}
 	

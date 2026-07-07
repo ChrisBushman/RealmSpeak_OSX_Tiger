@@ -119,7 +119,7 @@ public class PhaseManager {
 			if (free!=null) {
 				for (java.util.Iterator _j14it1478 = (free).iterator(); _j14it1478.hasNext(); ) {
 				  String freeAction = (String) _j14it1478.next();
-					freeAction = freeAction.replace("SP", "E");
+					freeAction = freeAction.replaceAll("SP", "E");
 					addFreeAction(freeAction,thing);
 				}
 			}
@@ -240,7 +240,7 @@ public class PhaseManager {
 		  RealmComponent rc = (RealmComponent) _j14it1483.next();
 			String free = rc.getGameObject().getThisAttribute(Constants.EXTRA_ACTIONS_CLEARING);
 			if (free!=null) {
-				free = free.replace("SP", "E");
+				free = free.replaceAll("SP", "E");
 				addFreeAction(free,rc.getGameObject(),tl,false);
 			}
 		}

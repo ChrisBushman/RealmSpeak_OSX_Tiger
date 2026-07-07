@@ -80,7 +80,7 @@ public class QuestRequirementKillGuardian extends QuestRequirement {
 		StringTokenizer tokenizer = new StringTokenizer(getString(GUARDIAN_AND_SITE), "(");
 		tokenizer.nextToken();
 		String siteWithBracket = tokenizer.nextToken();
-		return siteWithBracket.replace("(","").replace(")","");
+		return siteWithBracket.replaceAll("\\(","").replaceAll("\\)","");
 	}
 	
 	public TargetValueType getTargetValueType() {

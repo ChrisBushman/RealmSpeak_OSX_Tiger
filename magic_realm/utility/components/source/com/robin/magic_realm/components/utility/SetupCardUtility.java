@@ -1433,7 +1433,7 @@ public class SetupCardUtility {
 					String rank2 = rc2.getGameObject().getThisAttribute("rank");
 					if (rank1.matches("HQ")) return -1;
 					if (rank2.matches("HQ")) return +1;
-					return Integer.valueOf(rank1).compareTo(Integer.valueOf(rank2));
+					return new Integer(rank1).compareTo(new Integer(rank2));
 				}
 			});
 			TileLocation loc = ((RealmComponent) groupMembers.get(0)).getCurrentLocation();

@@ -54,7 +54,7 @@ public class RealmRegexHelper extends AggressiveDialog {
 	}
 	private void initComponents() {
 		setSize(800,600);
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BorderLayout());
 		Box box = Box.createHorizontalBox();
 		box.add(Box.createHorizontalStrut(10));
 		box.add(createTitleLabel("Regular Expression:"));
@@ -69,8 +69,8 @@ public class RealmRegexHelper extends AggressiveDialog {
 		});
 		box.add(testField);
 		box.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-		add(box,BorderLayout.NORTH);
-		add(createListPanel(),BorderLayout.CENTER);
+		getContentPane().add(box,BorderLayout.NORTH);
+		getContentPane().add(createListPanel(),BorderLayout.CENTER);
 		box = Box.createHorizontalBox();
 		box.add(Box.createHorizontalGlue());
 		JButton doneButton = new JButton("Keep Changes");
@@ -90,8 +90,8 @@ public class RealmRegexHelper extends AggressiveDialog {
 			}
 		});
 		box.add(cancelButton);
-		add(box,BorderLayout.SOUTH);
-		add(createGuidePanel(),BorderLayout.EAST);
+		getContentPane().add(box,BorderLayout.SOUTH);
+		getContentPane().add(createGuidePanel(),BorderLayout.EAST);
 	}
 	private static JLabel createTitleLabel(String val) {
 		JLabel label = new JLabel(val);

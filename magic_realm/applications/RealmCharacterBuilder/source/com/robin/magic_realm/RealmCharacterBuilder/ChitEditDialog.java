@@ -67,13 +67,13 @@ public class ChitEditDialog extends AggressiveDialog {
 	}
 	private void initComponents() {
 		setSize(300,220);
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BorderLayout());
 		Box box = Box.createVerticalBox();
 		chitView = new JLabel();
 		ComponentTools.lockComponentSize(chitView,60,60);
 		box.add(chitView);
 		box.add(Box.createVerticalGlue());
-		add(box,"West");
+		getContentPane().add(box,"West");
 		
 		box = Box.createHorizontalBox();
 		box.add(Box.createHorizontalGlue());
@@ -85,7 +85,7 @@ public class ChitEditDialog extends AggressiveDialog {
 		});
 		box.add(doneButton);
 		box.add(Box.createHorizontalGlue());
-		add(box,"South");
+		getContentPane().add(box,"South");
 		
 		int w = 160;
 		
@@ -133,7 +133,7 @@ public class ChitEditDialog extends AggressiveDialog {
 				}
 			});
 			ComponentTools.lockComponentSize(typeSelector,250,25);
-			add(typeSelector,"North");
+			getContentPane().add(typeSelector,"North");
 		strengthLine = group.createLabelLine("Strength");
 			strengthSelector = new ButtonPanel(RealmCharacterConstants.STRENGTHS);
 			strengthSelector.addActionListener(new ActionListener() {
@@ -203,7 +203,7 @@ public class ChitEditDialog extends AggressiveDialog {
 			specialLine.add(specialSelections);
 		box.add(specialLine);
 		box.add(Box.createVerticalGlue());
-		add(box,"Center");
+		getContentPane().add(box,"Center");
 		
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		
@@ -235,7 +235,7 @@ public class ChitEditDialog extends AggressiveDialog {
 		int effort = chit.getGameObject().getThisInt("effort");
 		effortSelector.setSelectedItem("***".substring(3-effort));
 		String action = chit.getGameObject().getThisAttribute("action").toUpperCase();
-		if (reservedChitNames.contains(action)) {
+		if (reservedChitNames.indexOf(action) >= 0) {
 			typeSelector.setSelectedItem(action);
 		}
 		else {

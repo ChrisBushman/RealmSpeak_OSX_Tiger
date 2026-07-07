@@ -772,7 +772,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 									enemyClans.remove(clan);
 								}
 								if (!enemyClans.isEmpty()) {
-									if (enemyClans.contains("1")) {
+									if (enemyClans.indexOf("1") >= 0) {
 										foesToClan1.add(RealmComponent.getRealmComponent(livingCharacter));
 									}
 									else {
@@ -808,7 +808,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 									JOptionPane.showMessageDialog(gameHandler.getMainFrame(), "You do not have enough recorded notoriety points to collect this campaign as Bounty Hunter.", "Not enough notoriety points", JOptionPane.ERROR_MESSAGE);
 									return;
 								}
-								if (foesToClan1.contains(target) && character.getFame()<8) {
+								if (foesToClan1.indexOf(target) >= 0 && character.getFame()<8) {
 									JOptionPane.showMessageDialog(gameHandler.getMainFrame(), "You do not have enough recorded fame points to collect this campaign as Bounty Hunter.", "Not enough fame points", JOptionPane.ERROR_MESSAGE);
 									return;
 								}
@@ -819,7 +819,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 									gsrc.getGameObject().setThisAttribute(Constants.CAMPAIGN_FAME,gsrc.getGameObject().getThisAttribute("fame_cost"));
 									gsrc.getGameObject().removeThisAttribute("fame_cost");
 								}
-								if (foesToClan1.contains(target)) {
+								if (foesToClan1.indexOf(target) >= 0) {
 									gsrc.getGameObject().setThisAttribute("fame_cost",8);
 								}
 								if (gsrc.getGameObject().hasThisAttribute("notoriety_cost")) {
@@ -844,7 +844,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 									if (!nativeLeader.hasThisAttribute(Constants.CLAN)) continue;
 									if (targetedCharacter.getRelationship(nativeLeader)<=-2) {
 										String groupName = nativeLeader.getThisAttribute("native").toLowerCase();
-										if (groupName!=null && !foeNatives.contains(groupName)) {
+										if (groupName!=null && foeNatives.indexOf(groupName) < 0) {
 											foeNatives.add(groupName);
 										}
 									}
@@ -1141,7 +1141,7 @@ public class CharacterFrame extends RealmSpeakInternalFrame implements ICharacte
 			tabs.addTab(null, ImageCache.getIcon("tab/victoryreq"), getVictoryPanel(), "Victory Requirements");
 			tabs.addTab(null, ImageCache.getIcon("tab/notepad"), getNotesPanel(),"Character Notes");
 		}
-		if (hostPrefs.getGameKeyVals().contains("rw_expansion_1")) {
+		if (hostPrefs.getGameKeyVals().indexOf("rw_expansion_1") >= 0) {
 			tabs.addTab(null, ImageCache.getIcon("tab/expansionOne"), getExpansionOnePanel(),"Expansion");
 		}
 		if (hostPrefs.isUsingQuests()) {

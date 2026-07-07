@@ -20,7 +20,7 @@ public class FreeTheSoulEffect implements ISpellEffect {
 				RealmLogging.logMessage(context.Caster.getName(),"Free the Soul: Kills "+context.Target.getGameObject().getName());
 				CombatWrapper combat = context.getCombatTarget();
 				combat.setKilledBy(context.Caster);
-				combat.setKilledLength(Integer.valueOf(18));
+				combat.setKilledLength(new Integer(18));
 				combat.setKilledSpeed(context.Spell.getAttackSpeed());
 				if (context.Target.getHorse()!=null) {
 					killHorse(context);
@@ -47,7 +47,7 @@ public class FreeTheSoulEffect implements ISpellEffect {
 		RealmLogging.logMessage(context.Caster.getName(),"Free the Soul: Kills "+horseGo.getName());
 		CombatWrapper combatHorse = new CombatWrapper(horseGo);
 		combatHorse.setKilledBy(context.Caster);
-		combatHorse.setKilledLength(Integer.valueOf(18));
+		combatHorse.setKilledLength(new Integer(18));
 		combatHorse.setKilledSpeed(context.Spell.getAttackSpeed());
 	}
 

@@ -47,7 +47,7 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 	}
 	public GoldSpecialChitComponent getOtherSide() {
 		String pairId = getGameObject().getThisAttribute("pairid");
-		GameObject other = getGameObject().getGameData().getGameObject(Long.valueOf(pairId));
+		GameObject other = getGameObject().getGameData().getGameObject(new Long(pairId));
 		return (GoldSpecialChitComponent)RealmComponent.getRealmComponent(other);
 	}
 	
@@ -492,7 +492,7 @@ public class GoldSpecialChitComponent extends SquareChitComponent {
 	}
 	public boolean isComplete(CharacterWrapper character,TileLocation current) {
 		if (getGameObject().hasThisAttribute(Constants.BOUNTY_HUNTER)) {
-			GameObject target = getGameObject().getGameData().getGameObject(Long.valueOf(getGameObject().getThisAttribute(Constants.BOUNTY_HUNTER)));
+			GameObject target = getGameObject().getGameData().getGameObject(new Long(getGameObject().getThisAttribute(Constants.BOUNTY_HUNTER)));
 			CharacterWrapper targetdCharacter = new CharacterWrapper(target);
 			TileLocation loc = targetdCharacter.getCurrentLocation();
 			return target!=null && (target.hasThisAttribute(Constants.DEAD) || target.hasThisAttribute(Constants.DEAD_PERMANENT) || loc == null);

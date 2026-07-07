@@ -28,7 +28,7 @@ public class HorseWhisperEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2484 = (ids).iterator(); _j14it2484.hasNext(); ) {
 			  String id = (String) _j14it2484.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				tile.removeThisAttribute(Constants.EVENT_HORSE_WHISPER);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_HORSE_WHISPER,id);
 			}
@@ -44,7 +44,7 @@ public class HorseWhisperEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2485 = (ids).iterator(); _j14it2485.hasNext(); ) {
 			  String id = (String) _j14it2485.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				text = text + tile.getNameWithNumber() + ", ";
 			}
 		}

@@ -40,13 +40,13 @@ public class SymbolEditDialog extends AggressiveDialog {
 	}
 	private void initComponents() {
 		setSize(250,250);
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BorderLayout());
 		JPanel icons = new JPanel(new GridLayout(1,2));
 		mainIcon = new JLabel(model.getCharacterToken().getIcon());
 		icons.add(mainIcon);
 		invertedIcon = new JLabel("");
 		icons.add(invertedIcon);
-		add(icons,"Center");
+		getContentPane().add(icons,"Center");
 		
 		JPanel buttons = new JPanel(new GridLayout(4,1));
 		invertImageOption = new JCheckBox("Invert Icon on Black",!model.getCharacter().getGameObject().hasThisAttribute(CharacterInfoCard.NO_INVERT_ICON));
@@ -83,7 +83,7 @@ public class SymbolEditDialog extends AggressiveDialog {
 			}
 		});
 		buttons.add(doneButton);
-		add(buttons,"South");
+		getContentPane().add(buttons,"South");
 		
 		updateImages();
 	}

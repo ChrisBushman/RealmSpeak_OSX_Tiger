@@ -35,7 +35,7 @@ public class QuestChooser extends AggressiveDialog {
 	}
 	private void initComponents(final CharacterWrapper character) {
 		setSize(800,600);
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BorderLayout());
 		questList = new JList(listOfQuests.toArray());
 		questList.setBackground(new Color(200,255,255));
 		questList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -49,10 +49,10 @@ public class QuestChooser extends AggressiveDialog {
 		});
 		JScrollPane sp = new JScrollPane(questList);
 		ComponentTools.lockComponentSize(sp,200,1000);
-		add(sp,BorderLayout.WEST);
+		getContentPane().add(sp,BorderLayout.WEST);
 		
 		questView = new QuestView();
-		add(questView,BorderLayout.CENTER);
+		getContentPane().add(questView,BorderLayout.CENTER);
 		
 		JPanel bottom = new JPanel(new GridLayout(1,4));
 		bottom.add(Box.createGlue());
@@ -75,7 +75,7 @@ public class QuestChooser extends AggressiveDialog {
 				}
 			});
 		bottom.add(okButton);
-		add(bottom,BorderLayout.SOUTH);
+		getContentPane().add(bottom,BorderLayout.SOUTH);
 	}
 	public void updateControls() {
 		okButton.setEnabled(questList.getSelectedIndex()>=0);

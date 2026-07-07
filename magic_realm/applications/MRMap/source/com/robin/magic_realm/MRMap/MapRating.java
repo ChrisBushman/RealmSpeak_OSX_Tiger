@@ -44,7 +44,7 @@ public class MapRating {
 				  PathDetail path = (PathDetail) _j14it956.next();
 					if (path.isHidden() || path.isSecret()) continue;
 					ClearingDetail otherEnd = path.findConnection(clearing);
-					if (otherEnd==null || otherEnd.isCave() || otherEnd.isWater() || otherEnd.isEdge() || found.contains(otherEnd)) continue;
+					if (otherEnd==null || otherEnd.isCave() || otherEnd.isWater() || otherEnd.isEdge() || found.indexOf(otherEnd) >= 0) continue;
 					
 					found.add(otherEnd);
 					next.add(otherEnd);

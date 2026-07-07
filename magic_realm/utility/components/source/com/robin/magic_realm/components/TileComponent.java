@@ -948,7 +948,7 @@ public class TileComponent extends ChitComponent {
 						// if (rc==null) throw new IllegalStateException("rc is null!?!");
 						// if (p==null) throw new IllegalStateException("p is null!?!");
 						rc.paint(g.create(p.x - (w >> 1) - shift, p.y - (h >> 1) - shift, w, h));
-						clearingCount.put(numString,Integer.valueOf(count+1));
+						clearingCount.put(numString,new Integer(count+1));
 //						clearingCount[index]++;
 					}
 					else {

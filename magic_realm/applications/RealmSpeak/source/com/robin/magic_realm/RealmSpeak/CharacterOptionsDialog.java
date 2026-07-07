@@ -68,7 +68,7 @@ public class CharacterOptionsDialog extends AggressiveDialog {
 		}
 		int j=0;
 		for (int i = 0; i < locs.length; i++) {
-			if (startDwellingNames.contains(locs[i])) {
+			if (startDwellingNames.indexOf(locs[i]) >= 0) {
 				startChoose[j] = new JRadioButton(locs[i]);
 				buttonGroup1.add(startChoose[j]);
 				locationPanel.add(startChoose[j]);
@@ -116,8 +116,8 @@ public class CharacterOptionsDialog extends AggressiveDialog {
 
 		centerPanel.add(levelPanel,BorderLayout.CENTER);
 		
-		add(centerPanel, BorderLayout.CENTER);
-		add(sideBarPanel,BorderLayout.EAST);
+		getContentPane().add(centerPanel, BorderLayout.CENTER);
+		getContentPane().add(sideBarPanel,BorderLayout.EAST);
 		
 		Box line = Box.createHorizontalBox();
 		randomInventorySources = new JCheckBox("Fetch inventory from random location(s)", false);

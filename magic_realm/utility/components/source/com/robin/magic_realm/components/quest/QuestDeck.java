@@ -82,7 +82,7 @@ public class QuestDeck extends GameObjectWrapper {
 		if (list!=null && list.size()>0) {
 			for (java.util.Iterator _j14it2188 = (list).iterator(); _j14it2188.hasNext(); ) {
 			  String questId = (String) _j14it2188.next();
-				GameObject go = getGameData().getGameObject(Long.valueOf(questId));
+				GameObject go = getGameData().getGameObject(new Long(questId));
 				allPlay.add(go);
 			}
 		}
@@ -123,7 +123,7 @@ public class QuestDeck extends GameObjectWrapper {
 		if (quests!=null && quests.size()>0) {
 			for (java.util.Iterator _j14it2191 = (quests).iterator(); _j14it2191.hasNext(); ) {
 			  String questId = (String) _j14it2191.next();
-				GameObject go = gameData.getGameObject(Long.valueOf(questId));
+				GameObject go = gameData.getGameObject(new Long(questId));
 				names.add(go.getName());
 			}
 		}
@@ -139,7 +139,7 @@ public class QuestDeck extends GameObjectWrapper {
 			//int r = RandomNumber.getRandom(list.size());
 			int r = 0; // just take the top card - the deck is "shuffled" after all!
 			String questId = (String) list.get(r);
-			GameObject go = getGameData().getGameObject(Long.valueOf(questId));
+			GameObject go = getGameData().getGameObject(new Long(questId));
 			Quest card = new Quest(go);
 			
 			// Remove the card from the deck
@@ -207,7 +207,7 @@ public class QuestDeck extends GameObjectWrapper {
 			GamePool pool = new GamePool(data.getGameObjects());
 			GameObject go = pool.findFirst(QUEST_DECK_KEY);
 			if (go!=null) {
-				DECK_ID = Long.valueOf(go.getId());
+				DECK_ID = new Long(go.getId());
 				return new QuestDeck(go);
 			}
 		}
@@ -221,7 +221,7 @@ public class QuestDeck extends GameObjectWrapper {
 		go.setThisAttribute(QUEST_DECK_KEY);
 		
 		QuestDeck deck = new QuestDeck(go);
-		DECK_ID = Long.valueOf(go.getId());
+		DECK_ID = new Long(go.getId());
 		
 		return deck;
 	}

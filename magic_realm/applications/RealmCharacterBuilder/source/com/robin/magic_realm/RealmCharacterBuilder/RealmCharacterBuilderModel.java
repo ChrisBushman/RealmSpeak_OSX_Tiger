@@ -202,7 +202,7 @@ public class RealmCharacterBuilderModel {
 		for (int i=1;i<=4;i++) {
 			String levelKey = "level_"+i;
 			String item = character.getGameObject().getAttribute(levelKey,itemType);
-			if (item!=null && !items.contains(item)) {
+			if (item!=null && items.indexOf(item) < 0) {
 				items.add(item);
 			}
 		}
@@ -361,7 +361,7 @@ public class RealmCharacterBuilderModel {
 				StringTokenizer st = new StringTokenizer(armor,",");
 				while(st.hasMoreTokens()) {
 					String token = st.nextToken();
-					if (!armorNames.contains(token)) {
+					if (armorNames.indexOf(token) < 0) {
 						armorNames.add(token);
 					}
 				}
@@ -382,7 +382,7 @@ public class RealmCharacterBuilderModel {
 		ArrayList weaponNames = new ArrayList();
 		for (int i=1;i<=4;i++) {
 			String name = character.getGameObject().getAttribute("level_"+i,"weapon");
-			if (name!=null && !weaponNames.contains(name)) {
+			if (name!=null && weaponNames.indexOf(name) < 0) {
 				weaponNames.add(name);
 			}
 		}
@@ -398,7 +398,7 @@ public class RealmCharacterBuilderModel {
 		ArrayList armorNames = new ArrayList();
 		for (int i=1;i<=4;i++) {
 			String name = character.getGameObject().getAttribute("level_"+i,"custom_armor");
-			if (name!=null && !armorNames.contains(name)) {
+			if (name!=null && armorNames.indexOf(name) < 0) {
 				armorNames.add(name);
 			}
 		}
@@ -524,7 +524,7 @@ public class RealmCharacterBuilderModel {
 		ArrayList weaponNames = new ArrayList();
 		for (int i=1;i<=4;i++) {
 			String name = template.getAttribute("level_"+i,"weapon");
-			if (!weaponNames.contains(name)) {
+			if (weaponNames.indexOf(name) < 0) {
 				weaponNames.add(name);
 			}
 		}

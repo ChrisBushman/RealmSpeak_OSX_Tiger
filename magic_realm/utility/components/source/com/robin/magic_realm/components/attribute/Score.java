@@ -59,7 +59,7 @@ public class Score {
 	}
 	public int getBasicScore() {
 		double val = (double)getScore()/(double)getMultiplier();
-		return (Double.valueOf(Math.floor(val))).intValue();
+		return (new Double(Math.floor(val))).intValue();
 	}
 	public int getBonusScore() {
 		if (noPenalty) { 
@@ -79,7 +79,7 @@ public class Score {
 			p -= ownedPoints;
 		}
 		double val = p/getMultiplier();
-		int earnedVps = (Double.valueOf(Math.floor(val))).intValue();
+		int earnedVps = (new Double(Math.floor(val))).intValue();
 		if (restrictToAssigned) {
 			if (vps>0) {
 				earnedVps = Math.min(earnedVps,vps); // only get credit for the number of points you've assigned
@@ -93,9 +93,9 @@ public class Score {
 	public static void printResult(int score,int mult) {
 		double val = (double)score/(double)mult;
 		System.out.println("("+score+"/"+mult+")="+val);
-		System.out.println("Math.floor("+score+"/"+mult+")="+Double.valueOf(Math.floor(val)).intValue());
-		System.out.println("Math.ceil("+score+"/"+mult+")="+Double.valueOf(Math.ceil(val)).intValue());
-		System.out.println("Math.round("+score+"/"+mult+")="+Double.valueOf(Math.round(val)).intValue());
+		System.out.println("Math.floor("+score+"/"+mult+")="+new Double(Math.floor(val)).intValue());
+		System.out.println("Math.ceil("+score+"/"+mult+")="+new Double(Math.ceil(val)).intValue());
+		System.out.println("Math.round("+score+"/"+mult+")="+new Double(Math.round(val)).intValue());
 	}
 	public static void main(String[] args) {
 		printResult(-1,30);

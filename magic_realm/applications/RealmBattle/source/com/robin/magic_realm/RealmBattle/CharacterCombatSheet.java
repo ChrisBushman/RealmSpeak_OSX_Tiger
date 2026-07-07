@@ -333,7 +333,7 @@ public class CharacterCombatSheet extends CombatSheet {
 				if (!sheetOwner.isMistLike()) {
 					if (sheetOwner.equals(combatFrame.getActiveParticipant())) {
 						if (combatFrame.areDenizensToLure()) {
-							hotspotHash.put(Integer.valueOf(POS_TARGET),"Lure");
+							hotspotHash.put(new Integer(POS_TARGET),"Lure");
 						}
 					}
 				}
@@ -345,31 +345,31 @@ public class CharacterCombatSheet extends CombatSheet {
 						&& (combatFrame.getActiveParticipant().getTarget()==null
 						|| (combatFrame.getActiveParticipant().get2ndTarget()==null && combatFrame.getActiveParticipant().isCharacter()
 							&& ((weapons!=null && weapons.size()+activeParticipantCharacter.getActiveTreasureWeaponObjects().size()>1) || (activeParticipantCharacter.getActiveTreasureWeaponObjects().size()>1))))) {
-					if (containsEnemy(combatFrame.getActiveParticipant(),layoutHash.getList(Integer.valueOf(POS_TARGET)))) {
-						hotspotHash.put(Integer.valueOf(POS_TARGET),combatFrame.getActiveParticipant().getGameObject().getName()+" Target");
+					if (containsEnemy(combatFrame.getActiveParticipant(),layoutHash.getList(new Integer(POS_TARGET)))) {
+						hotspotHash.put(new Integer(POS_TARGET),combatFrame.getActiveParticipant().getGameObject().getName()+" Target");
 					}
 					
 					// Allow character to be targeted by another character
 					if (combatFrame.getActiveCharacterIsHere()
 							&& !sheetOwner.equals(combatFrame.getActiveParticipant())
 							&& combatFrame.canBeSeen(sheetOwner,false)) {
-						hotspotHash.put(Integer.valueOf(POS_OWNER),combatFrame.getActiveParticipant().getGameObject().getName()+" Target");
+						hotspotHash.put(new Integer(POS_OWNER),combatFrame.getActiveParticipant().getGameObject().getName()+" Target");
 					}
 				}
 				break;
 			case Constants.COMBAT_POSITIONING:
 				if (sheetOwner.equals(combatFrame.getActiveParticipant())) {
-					hotspotHash.put(Integer.valueOf(POS_MOVE_BOX1),"Maneuver");
-					hotspotHash.put(Integer.valueOf(POS_MOVE_BOX2),"Maneuver");
-					hotspotHash.put(Integer.valueOf(POS_MOVE_BOX3),"Maneuver");
+					hotspotHash.put(new Integer(POS_MOVE_BOX1),"Maneuver");
+					hotspotHash.put(new Integer(POS_MOVE_BOX2),"Maneuver");
+					hotspotHash.put(new Integer(POS_MOVE_BOX3),"Maneuver");
 					
 					GameObject chararacterGo = combatFrame.getActiveParticipant().getGameObject();
 					CharacterWrapper activeCharacter = new CharacterWrapper(chararacterGo);
 					if (hostPrefs.hasPref(Constants.SR_COMBAT) && this.getSheetOwner() == RealmComponent.getRealmComponent(chararacterGo) && !activeCharacter.isTransmorphed()
 							&& (hostPrefs.hasPref(Constants.OPT_PARRY) || activeCharacter.affectedByKey(Constants.PARRY))){
-						hotspotHash.put(Integer.valueOf(POS_PARRY1),"Parry");
-						hotspotHash.put(Integer.valueOf(POS_PARRY2),"Parry");
-						hotspotHash.put(Integer.valueOf(POS_PARRY3),"Parry");
+						hotspotHash.put(new Integer(POS_PARRY1),"Parry");
+						hotspotHash.put(new Integer(POS_PARRY2),"Parry");
+						hotspotHash.put(new Integer(POS_PARRY3),"Parry");
 					}
 					
 					boolean s1 = hasArmor(POS_SHIELD1);
@@ -381,41 +381,41 @@ public class CharacterCombatSheet extends CombatSheet {
 					}
 					
 					if (s2 || s3 || canParryLikeShield) {
-						hotspotHash.put(Integer.valueOf(POS_SHIELD1),"Position Shield");
+						hotspotHash.put(new Integer(POS_SHIELD1),"Position Shield");
 					}
 					if (s1 || s3 || canParryLikeShield) {
-						hotspotHash.put(Integer.valueOf(POS_SHIELD2),"Position Shield");
+						hotspotHash.put(new Integer(POS_SHIELD2),"Position Shield");
 					}
 					if (s1 || s2 || canParryLikeShield) {
-						hotspotHash.put(Integer.valueOf(POS_SHIELD3),"Position Shield");
+						hotspotHash.put(new Integer(POS_SHIELD3),"Position Shield");
 					}
 					
-					if (layoutHash.get(Integer.valueOf(POS_TARGET_BOX1))!=null
-							|| layoutHash.get(Integer.valueOf(POS_TARGET_BOX2))!=null
-							|| layoutHash.get(Integer.valueOf(POS_TARGET_BOX3))!=null
-							|| layoutHash.get(Integer.valueOf(POS_TARGET_CHARGE_SMASH))!=null
-							|| layoutHash.get(Integer.valueOf(POS_TARGET_CHARGE_SWING))!=null
-							|| layoutHash.get(Integer.valueOf(POS_TARGET_DODGE_SMASH))!=null
-							|| layoutHash.get(Integer.valueOf(POS_TARGET_DODGE_THRUST))!=null
-							|| layoutHash.get(Integer.valueOf(POS_TARGET_DUCK_SWING))!=null
-							|| layoutHash.get(Integer.valueOf(POS_TARGET_DUCK_THRUST))!=null) {
-						hotspotHash.put(Integer.valueOf(POS_TARGET),"Reset");
+					if (layoutHash.get(new Integer(POS_TARGET_BOX1))!=null
+							|| layoutHash.get(new Integer(POS_TARGET_BOX2))!=null
+							|| layoutHash.get(new Integer(POS_TARGET_BOX3))!=null
+							|| layoutHash.get(new Integer(POS_TARGET_CHARGE_SMASH))!=null
+							|| layoutHash.get(new Integer(POS_TARGET_CHARGE_SWING))!=null
+							|| layoutHash.get(new Integer(POS_TARGET_DODGE_SMASH))!=null
+							|| layoutHash.get(new Integer(POS_TARGET_DODGE_THRUST))!=null
+							|| layoutHash.get(new Integer(POS_TARGET_DUCK_SWING))!=null
+							|| layoutHash.get(new Integer(POS_TARGET_DUCK_THRUST))!=null) {
+						hotspotHash.put(new Integer(POS_TARGET),"Reset");
 					}
-					else if (layoutHash.get(Integer.valueOf(POS_TARGET))!=null && (!hostPrefs.hasPref(Constants.SR_COMBAT) || hostPrefs.hasPref(Constants.SR_COMBAT_POSITIONING))) {
-						hotspotHash.put(Integer.valueOf(POS_TARGET),"Auto-Position");
+					else if (layoutHash.get(new Integer(POS_TARGET))!=null && (!hostPrefs.hasPref(Constants.SR_COMBAT) || hostPrefs.hasPref(Constants.SR_COMBAT_POSITIONING))) {
+						hotspotHash.put(new Integer(POS_TARGET),"Auto-Position");
 					}
 					
-					if (layoutHash.get(Integer.valueOf(POS_TARGET))!=null && (!hostPrefs.hasPref(Constants.SR_COMBAT) || hostPrefs.hasPref(Constants.SR_COMBAT_POSITIONING))) {
-						hotspotHash.put(Integer.valueOf(POS_TARGET_BOX1),"Position Target");
-						hotspotHash.put(Integer.valueOf(POS_TARGET_BOX2),"Position Target");
-						hotspotHash.put(Integer.valueOf(POS_TARGET_BOX3),"Position Target");
+					if (layoutHash.get(new Integer(POS_TARGET))!=null && (!hostPrefs.hasPref(Constants.SR_COMBAT) || hostPrefs.hasPref(Constants.SR_COMBAT_POSITIONING))) {
+						hotspotHash.put(new Integer(POS_TARGET_BOX1),"Position Target");
+						hotspotHash.put(new Integer(POS_TARGET_BOX2),"Position Target");
+						hotspotHash.put(new Integer(POS_TARGET_BOX3),"Position Target");
 						if (hostPrefs.hasPref(Constants.SR_COMBAT)) {
-							hotspotHash.put(Integer.valueOf(POS_TARGET_CHARGE_SMASH),"Position Target");
-							hotspotHash.put(Integer.valueOf(POS_TARGET_CHARGE_SWING),"Position Target");
-							hotspotHash.put(Integer.valueOf(POS_TARGET_DODGE_SMASH),"Position Target");
-							hotspotHash.put(Integer.valueOf(POS_TARGET_DODGE_THRUST),"Position Target");
-							hotspotHash.put(Integer.valueOf(POS_TARGET_DUCK_SWING),"Position Target");
-							hotspotHash.put(Integer.valueOf(POS_TARGET_DUCK_THRUST),"Position Target");
+							hotspotHash.put(new Integer(POS_TARGET_CHARGE_SMASH),"Position Target");
+							hotspotHash.put(new Integer(POS_TARGET_CHARGE_SWING),"Position Target");
+							hotspotHash.put(new Integer(POS_TARGET_DODGE_SMASH),"Position Target");
+							hotspotHash.put(new Integer(POS_TARGET_DODGE_THRUST),"Position Target");
+							hotspotHash.put(new Integer(POS_TARGET_DUCK_SWING),"Position Target");
+							hotspotHash.put(new Integer(POS_TARGET_DUCK_THRUST),"Position Target");
 						}
 					}
 				}
@@ -425,28 +425,28 @@ public class CharacterCombatSheet extends CombatSheet {
 				RealmComponent target = combatFrame.getActiveParticipant().getTarget();
 				RealmComponent target2 = combatFrame.getActiveParticipant().get2ndTarget();
 				boolean sheetHasTarget = (target==null && target2==null && (spell==null || battleMage) && sheetOwner.equals(combatFrame.getActiveParticipant()))
-									|| (target!=null && allSheetParticipants.contains(target))
-									|| (target2!=null && allSheetParticipants.contains(target2));
+									|| (target!=null && allSheetParticipants.indexOf(target) >= 0)
+									|| (target2!=null && allSheetParticipants.indexOf(target2) >= 0);
 				boolean sheetHasSpellTarget = spell!=null && spell.isAttackSpell() && (spell.targetsRealmComponents(allSheetParticipants) || spell.noTargeting());
 				if (sheetHasTarget || sheetHasSpellTarget) {
 					int boxReq = spell==null?0:spell.getGameObject().getThisInt("box_req"); // most spells will be zero
 					if ((spell==null || battleMage) || boxReq==0 || boxReq==1) {
-						hotspotHash.put(Integer.valueOf(POS_ATTACK_WEAPON1),"Attack");
+						hotspotHash.put(new Integer(POS_ATTACK_WEAPON1),"Attack");
 					}
 					if ((spell==null || battleMage) || boxReq==0 || boxReq==2) {
-						hotspotHash.put(Integer.valueOf(POS_ATTACK_WEAPON2),"Attack");
+						hotspotHash.put(new Integer(POS_ATTACK_WEAPON2),"Attack");
 					}
 					if ((spell==null || battleMage) || boxReq==0 || boxReq==3) {
-						hotspotHash.put(Integer.valueOf(POS_ATTACK_WEAPON3),"Attack");
+						hotspotHash.put(new Integer(POS_ATTACK_WEAPON3),"Attack");
 					}
 				}
 				// Attacking hirelings
 				if (containsFriendOrDenizen(
 						combatFrame.getActiveParticipant(),
 						getAllBoxListFromLayout(POS_ATTACK_BOX1))) {
-					hotspotHash.put(Integer.valueOf(POS_ATTACK_BOX1),"Position");
-					hotspotHash.put(Integer.valueOf(POS_ATTACK_BOX2),"Position");
-					hotspotHash.put(Integer.valueOf(POS_ATTACK_BOX3),"Position");
+					hotspotHash.put(new Integer(POS_ATTACK_BOX1),"Position");
+					hotspotHash.put(new Integer(POS_ATTACK_BOX2),"Position");
+					hotspotHash.put(new Integer(POS_ATTACK_BOX3),"Position");
 				}
 				break;
 			case Constants.COMBAT_TACTICS:
@@ -456,9 +456,9 @@ public class CharacterCombatSheet extends CombatSheet {
 				if (sheetOwner.equals(combatFrame.getActiveParticipant())) {
 					if (character.canReplaceMove(attackers)) {
 						// can replace move
-						hotspotHash.put(Integer.valueOf(POS_MOVE_BOX1),"Replace Move");
-						hotspotHash.put(Integer.valueOf(POS_MOVE_BOX2),"Replace Move");
-						hotspotHash.put(Integer.valueOf(POS_MOVE_BOX3),"Replace Move");
+						hotspotHash.put(new Integer(POS_MOVE_BOX1),"Replace Move");
+						hotspotHash.put(new Integer(POS_MOVE_BOX2),"Replace Move");
+						hotspotHash.put(new Integer(POS_MOVE_BOX3),"Replace Move");
 					}
 				}
 				
@@ -469,23 +469,23 @@ public class CharacterCombatSheet extends CombatSheet {
 				boolean canReplaceFightForTarget2 = combatFrame.getActiveParticipant().get2ndTarget()!=null && (sheetParticipants.contains(aTarget2) || sheetOwner.equals(aTarget2));
 				if ((canReplaceFightForTarget1 && character.canReplaceFight(aTarget1)) || (canReplaceFightForTarget2 && character.canReplaceFight(aTarget2))) {
 					// can replace fight
-					hotspotHash.put(Integer.valueOf(POS_ATTACK_BOX1),"Replace Fight");
-					hotspotHash.put(Integer.valueOf(POS_ATTACK_BOX2),"Replace Fight");
-					hotspotHash.put(Integer.valueOf(POS_ATTACK_BOX3),"Replace Fight");
+					hotspotHash.put(new Integer(POS_ATTACK_BOX1),"Replace Fight");
+					hotspotHash.put(new Integer(POS_ATTACK_BOX2),"Replace Fight");
+					hotspotHash.put(new Integer(POS_ATTACK_BOX3),"Replace Fight");
 				}
 				else {
 					if (hostPrefs.hasPref(Constants.SR_ADV_SURVIVAL_TACTICS)) {
 						if ((canReplaceFightForTarget1 && character.canReplaceParryThrustAttacks(aTarget1)) || (canReplaceFightForTarget2 && character.canReplaceParryThrustAttacks(aTarget2))
 								|| (canReplaceFightForTarget1 && character.canReplaceAlertedParryInBox(aTarget1,1)) || (canReplaceFightForTarget2 && character.canReplaceAlertedParryInBox(aTarget2,1))) {
-							hotspotHash.put(Integer.valueOf(POS_ATTACK_BOX1),"Replace Fight");
+							hotspotHash.put(new Integer(POS_ATTACK_BOX1),"Replace Fight");
 						}
 						if ((canReplaceFightForTarget1 && character.canReplaceParrySwingAttacks(aTarget1)) || (canReplaceFightForTarget2 && character.canReplaceParrySwingAttacks(aTarget2))
 								|| (canReplaceFightForTarget1 && character.canReplaceAlertedParryInBox(aTarget1,2)) || (canReplaceFightForTarget2 && character.canReplaceAlertedParryInBox(aTarget2,2))) {
-							hotspotHash.put(Integer.valueOf(POS_ATTACK_BOX2),"Replace Fight");
+							hotspotHash.put(new Integer(POS_ATTACK_BOX2),"Replace Fight");
 						}
 						if ((canReplaceFightForTarget1 && character.canReplaceParrySmashAttacks(aTarget1)) || (canReplaceFightForTarget2 && character.canReplaceParrySmashAttacks(aTarget2))
 								|| (canReplaceFightForTarget1 && character.canReplaceAlertedParryInBox(aTarget1,3)) || (canReplaceFightForTarget2 && character.canReplaceAlertedParryInBox(aTarget2,3))) {
-							hotspotHash.put(Integer.valueOf(POS_ATTACK_BOX3),"Replace Fight");
+							hotspotHash.put(new Integer(POS_ATTACK_BOX3),"Replace Fight");
 						}
 					}
 				}				
@@ -493,7 +493,7 @@ public class CharacterCombatSheet extends CombatSheet {
 		}
 	}
 	protected boolean hasArmor(int index) {
-		ArrayList list = layoutHash.getList(Integer.valueOf(index));
+		ArrayList list = layoutHash.getList(new Integer(index));
 		if (list!=null) {
 			for (java.util.Iterator _j14it515 = (list).iterator(); _j14it515.hasNext(); ) {
 			  RealmComponent rc = (RealmComponent) _j14it515.next();
@@ -519,7 +519,7 @@ public class CharacterCombatSheet extends CombatSheet {
 		
 		battleChitsWithRolls.clear();
 		layoutHash.clear();
-		layoutHash.put(Integer.valueOf(POS_OWNER),sheetOwner);
+		layoutHash.put(new Integer(POS_OWNER),sheetOwner);
 		
 		/*
 		 * Cycle through all monsters and natives (not characters) that are in the model, that
@@ -601,7 +601,7 @@ public class CharacterCombatSheet extends CombatSheet {
 							if (maneuverChit.isCharacter()) { // This implies the character is transmorphed (normally, a character move chit is a chit)
 								maneuverChit = characterChit.getTransmorphedComponent().getMoveChit();
 							}
-							layoutHash.put(Integer.valueOf(POS_MOVE_BOX1+box-1),maneuverChit);
+							layoutHash.put(new Integer(POS_MOVE_BOX1+box-1),maneuverChit);
 						}
 					}
 					
@@ -613,12 +613,12 @@ public class CharacterCombatSheet extends CombatSheet {
 							if (box>0 && this.sheetOwner.getGameObject().getStringId().equals(combat.getSheetOwnerId())) {
 								if (combat.getPlacedAsParry()) {
 									if (hostPrefs.hasPref(Constants.SR_COMBAT)) {
-										layoutHash.put(Integer.valueOf(POS_PARRY1+box-1),chit);
+										layoutHash.put(new Integer(POS_PARRY1+box-1),chit);
 									} else {
-										layoutHash.put(Integer.valueOf(POS_MOVE_BOX1+box-1),chit);
+										layoutHash.put(new Integer(POS_MOVE_BOX1+box-1),chit);
 									}
 								} else if (combat.getPlacedAsParryShield()) {
-									layoutHash.put(Integer.valueOf(POS_SHIELD1+box-1),chit);
+									layoutHash.put(new Integer(POS_SHIELD1+box-1),chit);
 								}
 							}
 						}
@@ -638,12 +638,12 @@ public class CharacterCombatSheet extends CombatSheet {
 							if (box>0 && this.sheetOwner.getGameObject().getStringId().equals(combat.getSheetOwnerId())) {
 								if (combat.getPlacedAsParry()) {
 									if (hostPrefs.hasPref(Constants.SR_COMBAT)) {
-										layoutHash.put(Integer.valueOf(POS_PARRY1+box-1),weapon);
+										layoutHash.put(new Integer(POS_PARRY1+box-1),weapon);
 									} else {
-										layoutHash.put(Integer.valueOf(POS_MOVE_BOX1+box-1),weapon);
+										layoutHash.put(new Integer(POS_MOVE_BOX1+box-1),weapon);
 									}
 								} else if (combat.getPlacedAsParryShield()) {
-									layoutHash.put(Integer.valueOf(POS_SHIELD1+box-1),weapon);
+									layoutHash.put(new Integer(POS_SHIELD1+box-1),weapon);
 								}
 							}
 						}
@@ -666,16 +666,16 @@ public class CharacterCombatSheet extends CombatSheet {
 							if (needsSecrecy) {
 								box = 2; // default position for secrecy
 							}
-							layoutHash.put(Integer.valueOf(POS_SHIELD1+box-1),item);
+							layoutHash.put(new Integer(POS_SHIELD1+box-1),item);
 						}
 						else if (armorType==ArmorType.Helmet) {
-							layoutHash.put(Integer.valueOf(POS_HELMET),item);
+							layoutHash.put(new Integer(POS_HELMET),item);
 						}
 						else if (armorType==ArmorType.Breastplate) {
-							layoutHash.put(Integer.valueOf(POS_BREASTPLATE),item);
+							layoutHash.put(new Integer(POS_BREASTPLATE),item);
 						}
 						else if (armorType==ArmorType.Armor) {
-							layoutHash.put(Integer.valueOf(POS_SUITOFARMOR),item);
+							layoutHash.put(new Integer(POS_SUITOFARMOR),item);
 						}
 					}
 					else if (item.isTreasure() && item.getGameObject().hasThisAttribute("armor_box")) {
@@ -684,12 +684,12 @@ public class CharacterCombatSheet extends CombatSheet {
 						 * "vulnerability" describes how tough
 						 */
 						int box = item.getGameObject().getThisInt("armor_box");
-						layoutHash.put(Integer.valueOf(POS_SHIELD1+box-1),item);
+						layoutHash.put(new Integer(POS_SHIELD1+box-1),item);
 					}
 					else if (item.isTreasure() && item.getGameObject().hasThisAttribute("armor_row")) {
 						int row = item.getGameObject().getThisInt("armor_row");
 						if (row==3) { // This covers the Ointment of Steel
-							layoutHash.put(Integer.valueOf(POS_SUITOFARMOR),item);
+							layoutHash.put(new Integer(POS_SUITOFARMOR),item);
 						}
 					}
 					else if (!needsSecrecy) {
@@ -698,7 +698,7 @@ public class CharacterCombatSheet extends CombatSheet {
 						if (combat.getPlacedAsMove()) {
 							int box = combat.getCombatBoxDefense();
 							if (box>0) {
-								layoutHash.put(Integer.valueOf(POS_MOVE_BOX1+box-1),item);
+								layoutHash.put(new Integer(POS_MOVE_BOX1+box-1),item);
 							}
 						}
 					}
@@ -716,7 +716,7 @@ public class CharacterCombatSheet extends CombatSheet {
 			for (java.util.Iterator _j14it521 = (chargeChits).iterator(); _j14it521.hasNext(); ) {
 			  GameObject i = (GameObject) _j14it521.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(i);
-				layoutHash.put(Integer.valueOf(POS_CHARGECHITS),rc);
+				layoutHash.put(new Integer(POS_CHARGECHITS),rc);
 			}
 			
 			// Add all used chits to used box
@@ -725,7 +725,7 @@ public class CharacterCombatSheet extends CombatSheet {
 			  GameObject i = (GameObject) _j14it522.next();
 				RealmComponent rc = RealmComponent.getRealmComponent(i);
 				if (!rc.isMonster() && !rc.isNative()) {
-					layoutHash.put(Integer.valueOf(POS_USEDCHITS),rc);
+					layoutHash.put(new Integer(POS_USEDCHITS),rc);
 				}
 			}
 		}
@@ -739,7 +739,7 @@ public class CharacterCombatSheet extends CombatSheet {
 		if (!hostPrefs.hasPref(Constants.HOUSE3_HORSE_WEAPON_SAME_BOX)) {
 			swingConstant = SwingConstants.RIGHT; //always ask where to place native horse
 		}
-		if (hotspotHash.get(Integer.valueOf(index))==null) {
+		if (hotspotHash.get(new Integer(index))==null) {
 			// Don't handle clicks unless there is a hotspot
 			return;
 		}
@@ -765,46 +765,46 @@ public class CharacterCombatSheet extends CombatSheet {
 				}
 				else if (combatFrame.getActionState()==Constants.COMBAT_POSITIONING) {
 					// Auto-position targets or reset
-					if (layoutHash.get(Integer.valueOf(POS_TARGET_BOX1))!=null
-							|| layoutHash.get(Integer.valueOf(POS_TARGET_BOX2))!=null
-							|| layoutHash.get(Integer.valueOf(POS_TARGET_BOX3))!=null
-							|| layoutHash.get(Integer.valueOf(POS_TARGET_CHARGE_SMASH))!=null
-							|| layoutHash.get(Integer.valueOf(POS_TARGET_CHARGE_SWING))!=null
-							|| layoutHash.get(Integer.valueOf(POS_TARGET_DODGE_SMASH))!=null
-							|| layoutHash.get(Integer.valueOf(POS_TARGET_DODGE_THRUST))!=null
-							|| layoutHash.get(Integer.valueOf(POS_TARGET_DUCK_SWING))!=null
-							|| layoutHash.get(Integer.valueOf(POS_TARGET_DUCK_THRUST))!=null) {
+					if (layoutHash.get(new Integer(POS_TARGET_BOX1))!=null
+							|| layoutHash.get(new Integer(POS_TARGET_BOX2))!=null
+							|| layoutHash.get(new Integer(POS_TARGET_BOX3))!=null
+							|| layoutHash.get(new Integer(POS_TARGET_CHARGE_SMASH))!=null
+							|| layoutHash.get(new Integer(POS_TARGET_CHARGE_SWING))!=null
+							|| layoutHash.get(new Integer(POS_TARGET_DODGE_SMASH))!=null
+							|| layoutHash.get(new Integer(POS_TARGET_DODGE_THRUST))!=null
+							|| layoutHash.get(new Integer(POS_TARGET_DUCK_SWING))!=null
+							|| layoutHash.get(new Integer(POS_TARGET_DUCK_THRUST))!=null) {
 						// reset ALL when targets have already been placed, and the target hotspot is clicked
 						ArrayList toReset = new ArrayList();
 						for (int i=0;i<3;i++) {
-							ArrayList list = layoutHash.getList(Integer.valueOf(POS_TARGET_BOX1+i));
+							ArrayList list = layoutHash.getList(new Integer(POS_TARGET_BOX1+i));
 							if (list!=null) {
 								toReset.addAll(list);
 							}
 						}
 						
 						ArrayList listToAdd = new ArrayList();
-						listToAdd=layoutHash.getList(Integer.valueOf(POS_TARGET_CHARGE_SMASH));
+						listToAdd=layoutHash.getList(new Integer(POS_TARGET_CHARGE_SMASH));
 						if (listToAdd!=null) {
 							toReset.addAll(listToAdd);
 						}
-						listToAdd=layoutHash.getList(Integer.valueOf(POS_TARGET_CHARGE_SWING));
+						listToAdd=layoutHash.getList(new Integer(POS_TARGET_CHARGE_SWING));
 						if (listToAdd!=null) {
 							toReset.addAll(listToAdd);
 						}
-						listToAdd=layoutHash.getList(Integer.valueOf(POS_TARGET_DODGE_SMASH));
+						listToAdd=layoutHash.getList(new Integer(POS_TARGET_DODGE_SMASH));
 						if (listToAdd!=null) {
 							toReset.addAll(listToAdd);
 						}
-						listToAdd=layoutHash.getList(Integer.valueOf(POS_TARGET_DODGE_THRUST));
+						listToAdd=layoutHash.getList(new Integer(POS_TARGET_DODGE_THRUST));
 						if (listToAdd!=null) {
 							toReset.addAll(listToAdd);
 						}
-						listToAdd=layoutHash.getList(Integer.valueOf(POS_TARGET_DUCK_SWING));
+						listToAdd=layoutHash.getList(new Integer(POS_TARGET_DUCK_SWING));
 						if (listToAdd!=null) {
 							toReset.addAll(listToAdd);
 						}
-						listToAdd=layoutHash.getList(Integer.valueOf(POS_TARGET_DUCK_THRUST));
+						listToAdd=layoutHash.getList(new Integer(POS_TARGET_DUCK_THRUST));
 						if (listToAdd!=null) {
 							toReset.addAll(listToAdd);
 						}
@@ -829,7 +829,7 @@ public class CharacterCombatSheet extends CombatSheet {
 			case POS_TARGET_BOX2:
 			case POS_TARGET_BOX3:
 				// Position targets
-				ArrayList list = layoutHash.getList(Integer.valueOf(POS_TARGET));
+				ArrayList list = layoutHash.getList(new Integer(POS_TARGET));
 				int box = index-POS_TARGET_BOX1+1;
 				combatFrame.positionTarget(box,box,list,false,swingConstant==SwingConstants.LEFT);
 				break;
@@ -839,7 +839,7 @@ public class CharacterCombatSheet extends CombatSheet {
 			case POS_TARGET_DODGE_THRUST:
 			case POS_TARGET_DUCK_SWING:
 			case POS_TARGET_DUCK_THRUST:
-				ArrayList listTargets = layoutHash.getList(Integer.valueOf(POS_TARGET));
+				ArrayList listTargets = layoutHash.getList(new Integer(POS_TARGET));
 				switch(index) {
 				case POS_TARGET_CHARGE_SMASH:
 					combatFrame.positionTarget(3,1,listTargets,false,swingConstant==SwingConstants.LEFT);
@@ -934,7 +934,7 @@ public class CharacterCombatSheet extends CombatSheet {
 	}
 	private void autoPositioning(int swingConstant) {
 		// auto-position
-		ArrayList list = layoutHash.getList(Integer.valueOf(POS_TARGET));
+		ArrayList list = layoutHash.getList(new Integer(POS_TARGET));
 		if (list==null) return;
 		Collections.sort(list);
 		int n=0;
@@ -1024,7 +1024,7 @@ public class CharacterCombatSheet extends CombatSheet {
 		updateLayout();
 	}
 	public boolean hasUnpositionedDenizens() {
-		return layoutHash.get(Integer.valueOf(POS_TARGET))!=null;
+		return layoutHash.get(new Integer(POS_TARGET))!=null;
 	}
 	public boolean usesMaxCombatBoxes() {
 		return usesMaxCombatBoxes(POS_TARGET_BOX1);
@@ -1104,7 +1104,7 @@ public class CharacterCombatSheet extends CombatSheet {
 					for (java.util.Iterator _j14it524 = (spellSets).iterator(); _j14it524.hasNext(); ) {
 					  SpellSet ss = (SpellSet) _j14it524.next();
 						SpellCardComponent spell = (SpellCardComponent)RealmComponent.getRealmComponent(ss.getSpell());
-						if (!spells.contains(spell)) {
+						if (spells.indexOf(spell) < 0) {
 							spells.add(spell);
 						}
 					}
@@ -1212,7 +1212,7 @@ public class CharacterCombatSheet extends CombatSheet {
 		sheet.circleGroup.changeTacticsRoller2 = CombatSheet.makeRoller("2:4");
 		sheet.circleGroup.changeTacticsRoller3 = CombatSheet.makeRoller("2:4");
 		for (int i=0;i<24;i++) {
-			sheet.hotspotHash.put(Integer.valueOf(i),"test");
+			sheet.hotspotHash.put(new Integer(i),"test");
 		}
 		frame.getContentPane().add(sheet,"Center");
 		frame.setSize(800,600);

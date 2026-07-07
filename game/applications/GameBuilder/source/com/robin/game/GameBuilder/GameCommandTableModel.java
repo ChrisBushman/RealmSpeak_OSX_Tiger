@@ -39,7 +39,7 @@ public class GameCommandTableModel extends AbstractTableModel implements ColumnS
 			GameCommand command = (GameCommand)data.get(row);
 			switch(col) {
 				case 0:
-					return Integer.valueOf(row);
+					return new Integer(row);
 				case 1:
 					return command.toString();
 				default:

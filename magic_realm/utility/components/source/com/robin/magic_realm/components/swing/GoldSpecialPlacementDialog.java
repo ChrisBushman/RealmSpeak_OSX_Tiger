@@ -91,7 +91,7 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 			GameObject[] chit = new GameObject[2];
 			chit[0] = (GameObject) gs.remove(0);
 			if (chit[0].hasThisAttribute("pairid")) {
-				chit[1] = gameData.getGameObject(Long.valueOf(chit[0].getThisAttribute("pairid")));
+				chit[1] = gameData.getGameObject(new Long(chit[0].getThisAttribute("pairid")));
 				gs.remove(chit[1]);
 			}
 			else {
@@ -322,9 +322,9 @@ public class GoldSpecialPlacementDialog extends AggressiveDialog {
 				label.setBorder(BorderFactory.createEtchedBorder());
 				destHeader.add(label);
 			}
-			add(destHeader,"North");
+			getContentPane().add(destHeader,"North");
 			destBody = new JPanel(new GridLayout(7,1));
-			add(destBody,"Center");
+			getContentPane().add(destBody,"Center");
 		}
 		public void add(JComponent c) {
 			destBody.add(c);

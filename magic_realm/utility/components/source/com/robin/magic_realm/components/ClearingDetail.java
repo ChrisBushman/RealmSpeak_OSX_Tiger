@@ -746,7 +746,7 @@ public class ClearingDetail {
 			if (index>=0) {
 				ArrayList objectList = getParent().getGameObject().getThisAttributeList(freeActionObjectKey());
 				String id = (String) objectList.get(index);
-				return parent.getGameObject().getGameData().getGameObject(Long.valueOf(id));
+				return parent.getGameObject().getGameData().getGameObject(new Long(id));
 			}
 		}
 		return null;

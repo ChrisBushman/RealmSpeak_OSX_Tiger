@@ -635,7 +635,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 		ArrayList list = getList(SPELL_CONFLICTS);
 		for (java.util.Iterator _j14it1516 = (list).iterator(); _j14it1516.hasNext(); ) {
 		  String id = (String) _j14it1516.next();
-			GameObject go = getGameObject().getGameData().getGameObject(Long.valueOf(id));
+			GameObject go = getGameObject().getGameData().getGameObject(new Long(id));
 			conflicts.add(new SpellWrapper(go));
 		}
 		return conflicts;
@@ -1624,7 +1624,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 	public CharacterWrapper getCharacterImFollowing() {
 		String followId = getFollowStringId();
 		if (followId!=null) {
-			GameObject go = getGameObject().getGameData().getGameObject(Long.valueOf(followId));
+			GameObject go = getGameObject().getGameData().getGameObject(new Long(followId));
 			return new CharacterWrapper(go);
 		}
 		return null;
@@ -1662,8 +1662,8 @@ public class CharacterWrapper extends GameObjectWrapper {
 			GameData data = getGameObject().getGameData();
 			for (java.util.Iterator _j14it1552 = (ids).iterator(); _j14it1552.hasNext(); ) {
 			  String id = (String) _j14it1552.next();
-				GameObject kill = data.getGameObject(Long.valueOf(id));
-				if (!kills.contains(kill)) { // This check should be unnecessary if addKill is doing its job
+				GameObject kill = data.getGameObject(new Long(id));
+				if (kills.indexOf(kill) < 0) { // This check should be unnecessary if addKill is doing its job
 					kills.add(kill);
 				}
 			}
@@ -1713,7 +1713,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 			GameData data = getGameObject().getGameData();
 			for (java.util.Iterator _j14it1555 = (ids).iterator(); _j14it1555.hasNext(); ) {
 			  String id = (String) _j14it1555.next();
-				GameObject spell = data.getGameObject(Long.valueOf(id));
+				GameObject spell = data.getGameObject(new Long(id));
 				spells.add(spell);
 			}
 		}
@@ -1733,7 +1733,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 			GameData data = getGameObject().getGameData();
 			for (java.util.Iterator _j14it1556 = (ids).iterator(); _j14it1556.hasNext(); ) {
 			  String id = (String) _j14it1556.next();
-				treacheries.add(data.getGameObject(Long.valueOf(id)));
+				treacheries.add(data.getGameObject(new Long(id)));
 			}
 		}
 		return treacheries;
@@ -2480,7 +2480,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 						if (connectedClearing==null) {
 							connectedClearing = path.getEdgeAsClearing();
 						}
-						if (!ret.contains(connectedClearing)) {
+						if (ret.indexOf(connectedClearing) < 0) {
 							// Test that the connectedClearing CAN be moved to:
 							if (ignoreActionPhaseCheck || canMoveToClearing(connectedClearing)) {
 								ret.add(connectedClearing);
@@ -2706,7 +2706,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 			  RealmComponent rc = (RealmComponent) _j14it1588.next();
 				String free = rc.getGameObject().getThisAttribute(Constants.EXTRA_ACTIONS_CLEARING);
 				if (free!=null) {
-					free = free.replace("SP", "E");
+					free = free.replaceAll("SP", "E");
 					list.add(rc.getGameObject());
 				}
 			}
@@ -2748,7 +2748,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 	public boolean hasSpecialAction(ActionId id) {
 		String name = DayAction.getDayAction(id).getName().toUpperCase();
 		ArrayList specialActions = getSpecialActions();
-		return specialActions.contains(name);
+		return specialActions.indexOf(name) >= 0;
 	}
 	private ArrayList getSpecialActions() {
 		ArrayList specialActions = new ArrayList();
@@ -2783,7 +2783,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 		if (extra!=null) {
 			for (java.util.Iterator _j14it1590 = (extra).iterator(); _j14it1590.hasNext(); ) {
 			  String extraAction = (String) _j14it1590.next();
-				extraAction = extraAction.replace("SP", "E");
+				extraAction = extraAction.replaceAll("SP", "E");
 				pm.addFreeAction(extraAction,getGameObject(),null,true); // force character actions on the phase manager
 			}
 		}
@@ -3089,7 +3089,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 			ArrayList ret = new ArrayList();
 			for (java.util.Iterator _j14it1597 = (list).iterator(); _j14it1597.hasNext(); ) {
 			  String id = (String) _j14it1597.next();
-				GameObject fam = data.getGameObject(Long.valueOf(id));
+				GameObject fam = data.getGameObject(new Long(id));
 				ret.add(fam);
 			}
 			return ret;
@@ -3443,7 +3443,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 				totalLength = length;
 			}
 		}
-		return Integer.valueOf(totalLength);
+		return new Integer(totalLength);
 	}
 	private Speed getAttackSpeedForParrying(int box) {
 		// Find the character's attack for this round
@@ -4324,7 +4324,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 					// "first" follower is removed, so we need to update the NO_SUMMON to the next follower, if there is any
 					if (newlist.size()>0) {
 						String id = (String) newlist.iterator().next();
-						GameObject go = getGameObject().getGameData().getGameObject(Long.valueOf(id));
+						GameObject go = getGameObject().getGameData().getGameObject(new Long(id));
 						CharacterWrapper nextFollower = new CharacterWrapper(go);
 						nextFollower.setNoSummon(true);
 					}
@@ -4349,7 +4349,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 		if (list!=null && !list.isEmpty()) {
 			for (java.util.Iterator _j14it1643 = (list).iterator(); _j14it1643.hasNext(); ) {
 			  String i = (String) _j14it1643.next();
-				GameObject go = data.getGameObject(Long.valueOf(i));
+				GameObject go = data.getGameObject(new Long(i));
 				CharacterWrapper follower = new CharacterWrapper(go);
 				if (!follower.isStopFollowing()) {
 					ret.add(follower);
@@ -4365,7 +4365,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 		if (list!=null && !list.isEmpty()) {
 			for (java.util.Iterator _j14it1644 = (list).iterator(); _j14it1644.hasNext(); ) {
 			  String i = (String) _j14it1644.next();
-				GameObject go = data.getGameObject(Long.valueOf(i));
+				GameObject go = data.getGameObject(new Long(i));
 				CharacterWrapper follower = new CharacterWrapper(go);
 				if (follower.isStopFollowing()) {
 					ret.add(follower);
@@ -4492,7 +4492,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 			if (hps!=null && !hps.isEmpty()) {
 				for (java.util.Iterator _j14it1651 = (hps).iterator(); _j14it1651.hasNext(); ) {
 				  String disc = (String) _j14it1651.next();
-					if (stuff.contains(disc)) {
+					if (stuff.indexOf(disc) >= 0) {
 						list.add(disc);
 					}
 				}
@@ -4521,7 +4521,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 			if (sps!=null && !sps.isEmpty()) {
 				for (java.util.Iterator _j14it1653 = (sps).iterator(); _j14it1653.hasNext(); ) {
 				  String disc = (String) _j14it1653.next();
-					if (stuff.contains(disc)) {
+					if (stuff.indexOf(disc) >= 0) {
 						list.add(disc);
 					}
 				}
@@ -5097,7 +5097,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 		return !isNullifiedCurses() && getGameObject().hasAttribute(CURSES_BLOCK,curse);
 	}
 	public boolean hasMesmerizeEffect(String curse) {
-		return !isNullifiedCurses() && getGameObject().hasThisAttribute(Constants.MESMERIZE) && getGameObject().getThisAttributeList(Constants.MESMERIZE).contains(curse);
+		return !isNullifiedCurses() && getGameObject().hasThisAttribute(Constants.MESMERIZE) && getGameObject().getThisAttributeList(Constants.MESMERIZE).indexOf(curse) >= 0;
 	}
 	public void removeCurse(String curse) {
 		getGameObject().removeAttribute(CURSES_BLOCK,curse);
@@ -5482,7 +5482,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 		for (java.util.Iterator _j14it1677 = (levelBlock.keySet()).iterator(); _j14it1677.hasNext(); ) {
 		  String key = (String) _j14it1677.next();
 			if (key.toLowerCase().matches("replace")) {
-				String levelBlockName = blockName.replace("optional", "level");
+				String levelBlockName = blockName.replaceAll("optional", "level");
 				Object val = levelBlock.get(key);
 				if (val instanceof ArrayList) {
 					ArrayList list = (ArrayList)val;
@@ -5495,7 +5495,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 					getGameObject().removeAttribute(levelBlockName,(String)val);
 				}
 			}
-			if (!dontCopy.contains(key)) {
+			if (dontCopy.indexOf(key) < 0) {
 				Object val = levelBlock.get(key);
 				if (val instanceof ArrayList) {
 					ArrayList list = (ArrayList)val;
@@ -5526,7 +5526,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 		OrderedHashtable levelBlock = getGameObject().getAttributeBlock(blockName);
 		for (java.util.Iterator _j14it1680 = (levelBlock.keySet()).iterator(); _j14it1680.hasNext(); ) {
 		  String key = (String) _j14it1680.next();
-			if (!dontCopy.contains(key)) {
+			if (dontCopy.indexOf(key) < 0) {
 				getGameObject().removeThisAttribute(key);
 			}
 		}
@@ -5559,7 +5559,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 			fears.addAll(this.getActiveInventoryValuesForThisKey(Constants.TREASURE_LOCATION_FEAR,","));
 			
 			String name = rc.getGameObject().getThisAttribute(RealmComponent.TREASURE_LOCATION);
-			return !fears.contains(name);
+			return fears.indexOf(name) < 0;
 		}
 		return true;
 	}
@@ -5876,7 +5876,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 					if (spell.canCast(code,current.tile.getClearingCount()) || ignoreLocationRequirement) {
 						SpellSet set = new SpellSet(spell.getGameObject());
 						String spellType = set.getCastMagicType();
-						if (availMagicTypes.contains(spellType)) {
+						if (availMagicTypes.indexOf(spellType) >= 0) {
 							set.addTypeObject(treasure);
 							potentialSets.add(set);
 						}
@@ -5890,7 +5890,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 		  SpellWrapper spell = (SpellWrapper) _j14it1692.next();
 			if (spell.getGameObject().hasThisAttribute(Constants.FREED_SPELL)) {
 				String freedSpellId = spell.getGameObject().getThisAttribute(Constants.FREED_SPELL);
-				GameObject freedSpell = getGameData().getGameObject(Long.valueOf(freedSpellId));
+				GameObject freedSpell = getGameData().getGameObject(new Long(freedSpellId));
 				SpellSet set = new SpellSet(freedSpell);
 				set.addTypeObject(spell.getIncantationObject());
 				potentialSets.add(set);
@@ -5920,7 +5920,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 						continue; // tied up treasures cannot be used again
 					}
 					ArrayList availMagicTypes = TreasureCardComponent.readAvailableMagicTypes(dayKey,treasure);
-					if (availMagicTypes.contains(spellType)) {
+					if (availMagicTypes.indexOf(spellType) >= 0) {
 						MagicChit chit = (MagicChit)RealmComponent.getRealmComponent(treasure);
 						if (!chit.isColor()) {
 							set.addTypeObject(treasure);
@@ -5989,7 +5989,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 			}
 			
 			// Finally, add the spell set, but only if it can be cast
-			if (set.canBeCast() && !castableSpellSets.contains(set)) {
+			if (set.canBeCast() && castableSpellSets.indexOf(set) < 0) {
 				castableSpellSets.add(set);
 			}
 		}
@@ -6011,7 +6011,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 		if (!spellIds.isEmpty()) {
 			for (java.util.Iterator _j14it1698 = (spellIds).iterator(); _j14it1698.hasNext(); ) {
 			  String id = (String) _j14it1698.next();
-				GameObject spell = data.getGameObject(Long.valueOf(id));
+				GameObject spell = data.getGameObject(new Long(id));
 				allSpells.add(spell);
 			}
 		}
@@ -6053,7 +6053,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 		if (spellIds!=null && !spellIds.isEmpty()) {
 			for (java.util.Iterator _j14it1701 = (spellIds).iterator(); _j14it1701.hasNext(); ) {
 			  String id = (String) _j14it1701.next();
-				recordedSpells.add(data.getGameObject(Long.valueOf(id)));
+				recordedSpells.add(data.getGameObject(new Long(id)));
 			}
 		}
 		return recordedSpells;
@@ -6064,7 +6064,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 		if (spellIds!=null && !spellIds.isEmpty()) {
 			for (java.util.Iterator _j14it1702 = (spellIds).iterator(); _j14it1702.hasNext(); ) {
 			  String id = (String) _j14it1702.next();
-				recordedSpells.add(data.getGameObject(Long.valueOf(id)));
+				recordedSpells.add(data.getGameObject(new Long(id)));
 			}
 		}
 		return recordedSpells;
@@ -7365,7 +7365,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 		for (java.util.Iterator _j14it1758 = (getAllHirelings()).iterator(); _j14it1758.hasNext(); ) {
 		  RealmComponent rc = (RealmComponent) _j14it1758.next();
 			GameObject hireling = rc.getGameObject();
-			if (!getGameObject().getHold().contains(hireling)) {
+			if (getGameObject().getHold().indexOf(hireling) < 0) {
 				removeHireling(hireling);
 			}
 		}
@@ -7997,7 +7997,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 			ArrayList ret = new ArrayList();
 			for (java.util.Iterator _j14it1783 = (list).iterator(); _j14it1783.hasNext(); ) {
 			  String id = (String) _j14it1783.next();
-				GameObject go = data.getGameObject(Long.valueOf(id));
+				GameObject go = data.getGameObject(new Long(id));
 				ret.add(go);
 			}
 			return ret;
@@ -8015,7 +8015,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 	public GameObject getTransmorph() {
 		String id = getString(TRANSMORPH_ID);
 		if (id!=null) {
-			GameObject ret = getGameObject().getGameData().getGameObject(Long.valueOf(id));
+			GameObject ret = getGameObject().getGameData().getGameObject(new Long(id));
 			return ret;
 		}
 		return null;
@@ -8195,7 +8195,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 		return false;
 	}
 	public boolean isPlayingTurn() {
-		return getGameStatus().contains("Playing Turn");
+		return getGameStatus().indexOf("Playing Turn") >= 0;
 	}
 	public void setPonyLock(boolean val) {
 		setBoolean(Constants.PONY_LOCK,val);
@@ -8589,7 +8589,7 @@ public class CharacterWrapper extends GameObjectWrapper {
     		for (java.util.Iterator _j14it1791 = (list).iterator(); _j14it1791.hasNext(); ) {
     		  Object o = (Object) _j14it1791.next();
     			String id = (String)o;
-    			GameObject go = getGameData().getGameObject(Long.valueOf(id));
+    			GameObject go = getGameData().getGameObject(new Long(id));
     			quests.add(go);
     		}
     	}
@@ -8751,7 +8751,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 					for (java.util.Iterator _j14it1803 = (controllableMonsters.keySet()).iterator(); _j14it1803.hasNext(); ) {
 					  String monsterType = (String) _j14it1803.next();
 						if (monster.getGameObject().getName().matches(monsterType.toString())) {
-							if (!characterCanControl.contains(characterRc) && (((int[]) controllableMonsters.get(monsterType))[1]==0 || (new CharacterWrapper(characterRc.getGameObject()).getAllControlledMonstersWithSameName(monsterType).size()<((int[]) controllableMonsters.get(monsterType))[1]))) {
+							if (characterCanControl.indexOf(characterRc) < 0 && (((int[]) controllableMonsters.get(monsterType))[1]==0 || (new CharacterWrapper(characterRc.getGameObject()).getAllControlledMonstersWithSameName(monsterType).size()<((int[]) controllableMonsters.get(monsterType))[1]))) {
 								characterCanControl.add(characterRc);
 							}
 						}
@@ -8813,10 +8813,10 @@ public class CharacterWrapper extends GameObjectWrapper {
 		if (getGameObject().hasThisAttribute(PHASE_CHITS)) {
 			for (java.util.Iterator _j14it1808 = (getGameObject().getThisAttributeList(PHASE_CHITS)).iterator(); _j14it1808.hasNext(); ) {
 			  String phaseChitId = (String) _j14it1808.next();
-				GameObject phaseChit = gameData.getGameObject(Long.valueOf(phaseChitId));
+				GameObject phaseChit = gameData.getGameObject(new Long(phaseChitId));
 				if (phaseChit.hasAttributeBlock(Constants.EFFECTS)) {
 					String spellId = phaseChit.getThisAttribute(Constants.SPELL_ID);
-					GameObject spell = gameData.getGameObject(Long.valueOf(spellId));
+					GameObject spell = gameData.getGameObject(new Long(spellId));
 					SpellWrapper spellWrapper = new SpellWrapper(spell);
 					GameWrapper game = GameWrapper.findGame(getGameObject().getGameData());
 					SpellEffectContext context = new SpellEffectContext(null, game, RealmComponent.getRealmComponent(getGameObject()), spellWrapper, getGameObject());
@@ -8870,7 +8870,7 @@ public class CharacterWrapper extends GameObjectWrapper {
 				  String effect = (String) _j14it1814.next();
 					if (effect.toLowerCase().matches(Constants.LUCK.toLowerCase())) {
 						String spellId = phaseChit.getThisAttribute(Constants.SPELL_ID);
-						GameObject spell = gameData.getGameObject(Long.valueOf(spellId));
+						GameObject spell = gameData.getGameObject(new Long(spellId));
 						spellWrapper = new SpellWrapper(spell);
 						unapplyPhaseChit(frame, phaseChit, spellWrapper);
 						break;

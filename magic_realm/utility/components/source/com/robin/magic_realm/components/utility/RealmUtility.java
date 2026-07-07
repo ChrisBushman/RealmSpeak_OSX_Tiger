@@ -562,7 +562,7 @@ public class RealmUtility {
 			String id = rc.getGameObject().getThisAttribute(Constants.DESTROY_TREASURE_WHEN_KILLED);
 			if (id!=null) {
 				GameData data = rc.getGameObject().getGameData();
-				GameObject treasure = data.getGameObject(Long.valueOf(id));
+				GameObject treasure = data.getGameObject(new Long(id));
 				if (treasure!=null) {
 					treasure.detach();
 				}

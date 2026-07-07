@@ -60,7 +60,7 @@ public class QuestRewardCounter extends QuestReward {
 	public QuestCounter getQuestCounter() {
 		String id = getString(COUNTER);
 		if (id!=null) {
-			GameObject go = getGameData().getGameObject(Long.valueOf(id));
+			GameObject go = getGameData().getGameObject(new Long(id));
 			if (go!=null) {
 				return new QuestCounter(go, go.getThisInt("count"));
 			}

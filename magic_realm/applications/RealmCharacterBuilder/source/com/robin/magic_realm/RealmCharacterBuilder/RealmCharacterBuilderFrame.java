@@ -181,10 +181,10 @@ public class RealmCharacterBuilderFrame extends JFrame {
 			
 		setJMenuBar(menuBar);
 		
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BorderLayout());
 		blankPanel = new JPanel();
 		blankPanel.setBackground(Color.gray);
-		add(blankPanel,"Center");
+		getContentPane().add(blankPanel,"Center");
 		
 		updateControls();
 	}
@@ -327,13 +327,13 @@ public class RealmCharacterBuilderFrame extends JFrame {
 	private void startEditCharacter() {
 		buildPanel = new RealmCharacterBuilderPanel(this,model,magicRealmData);
 		remove(blankPanel);
-		add(buildPanel,"Center");
+		getContentPane().add(buildPanel,"Center");
 		buildPanel.revalidate();
 		repaint();
 	}
 	private void closeCharacter() {
 		remove(buildPanel);
-		add(blankPanel,"Center");
+		getContentPane().add(blankPanel,"Center");
 		repaint();
 		model = null;
 		buildPanel = null;

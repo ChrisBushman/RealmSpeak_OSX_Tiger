@@ -121,7 +121,7 @@ public class FrameManager {
 			if (frameIcon != null) {
 				this.setIconImage(frameIcon.getImage());
 			}
-			setLayout(new BorderLayout());
+			getContentPane().setLayout(new BorderLayout());
 			JPanel panel = new JPanel(new BorderLayout(10,10));
 			panel.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
 			panel.add(message,"Center");
@@ -136,7 +136,7 @@ public class FrameManager {
 			box.add(okButton);
 			box.add(Box.createHorizontalGlue());
 			panel.add(box,"South");
-			add(panel,"Center");
+			getContentPane().add(panel,"Center");
 			pack();
 			setLocationRelativeTo(parent);
 		}

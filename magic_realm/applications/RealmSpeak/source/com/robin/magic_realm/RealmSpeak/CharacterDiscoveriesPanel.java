@@ -94,7 +94,7 @@ public class CharacterDiscoveriesPanel extends CharacterFramePanel {
 		public void update(ArrayList allDiscoveries) {
 			for (java.util.Iterator _j14it1270 = (allDiscoveries).iterator(); _j14it1270.hasNext(); ) {
 			  String name = (String) _j14it1270.next();
-				if (!discoveryNamesList.contains(name)) {
+				if (discoveryNamesList.indexOf(name) < 0) {
 					GameObject go = getGameHandler().getClient().getGameData().getGameObjectByName(name);
 					list.add(go);
 					discoveryNamesList.add(name);

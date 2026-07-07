@@ -87,7 +87,7 @@ public class EndCombatFrame extends JFrame {
 	public void updateResponse(String respondingPlayer,String response) {
 		int colon = response.indexOf(":");
 		if (colon>=0) {
-			long responseid = Long.valueOf(response.substring(0,colon)).longValue();
+			long responseid = new Long(response.substring(0,colon)).longValue();
 			if (responseid==id) { // This prevents earlier END requests from getting out of sync
 				response = response.substring(colon+1);
 				responseHash.put(respondingPlayer,response);
@@ -106,7 +106,7 @@ public class EndCombatFrame extends JFrame {
 		ArrayList all = new ArrayList();
 		for (java.util.Iterator _j14it760 = (responseHash.values()).iterator(); _j14it760.hasNext(); ) {
 		  String response = (String) _j14it760.next();
-			if (!all.contains(response)) {
+			if (all.indexOf(response) < 0) {
 				all.add(response);
 			}
 		}

@@ -125,19 +125,19 @@ public class RealmDirectInfoHolder {
 	}
 	public CharacterWrapper getActiveCharacter() {
 		String id = (String) list.get(CHAR_ACTIVE);
-		GameObject go = data.getGameObject(Long.valueOf(id));
+		GameObject go = data.getGameObject(new Long(id));
 		return new CharacterWrapper(go);
 	}
 	public CharacterWrapper getIncludeCharacter() {
 		String id = (String) list.get(CHAR_INCLUDE);
-		GameObject go = data.getGameObject(Long.valueOf(id));
+		GameObject go = data.getGameObject(new Long(id));
 		return new CharacterWrapper(go);
 	}
 	public ArrayList getGameObjects() {
 		ArrayList ret = new ArrayList();
 		for (int i=GAME_OBJECT_ID_LIST_START;i<list.size();i++) {
 			String id = (String) list.get(i);
-			ret.add(data.getGameObject(Long.valueOf(id)));
+			ret.add(data.getGameObject(new Long(id)));
 		}
 		return ret;
 	}

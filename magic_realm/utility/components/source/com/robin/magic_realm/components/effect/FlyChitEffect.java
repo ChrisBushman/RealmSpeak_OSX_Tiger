@@ -31,7 +31,7 @@ public class FlyChitEffect implements ISpellEffect {
 		
 		String chitId = spellObj.getThisAttribute("flyChitID");
 		if (chitId==null) return;
-		GameObject flyChit = spellObj.getGameData().getGameObject(Long.valueOf(chitId));
+		GameObject flyChit = spellObj.getGameData().getGameObject(new Long(chitId));
 		context.Target.getGameObject().remove(flyChit);
 		spellObj.removeThisAttribute("flyChitID");
 	}

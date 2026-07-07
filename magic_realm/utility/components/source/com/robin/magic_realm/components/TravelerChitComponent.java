@@ -93,10 +93,10 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 			for (int i=1;i<=6;i++) {
 				DieRoller dr = new DieRoller(String.valueOf(i),16,4);
 				dr.setAllRed();
-				dieIconHash.put(Integer.valueOf(i),dr.getIcon());
+				dieIconHash.put(new Integer(i),dr.getIcon());
 			}
 		}
-		return (ImageIcon) dieIconHash.get(Integer.valueOf(val));
+		return (ImageIcon) dieIconHash.get(new Integer(val));
 	}
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -322,7 +322,7 @@ public class TravelerChitComponent extends StateChitComponent implements BattleC
 		return false;
 	}
 	public Integer getLength() {
-		return Integer.valueOf(getThisInt("length"));
+		return new Integer(getThisInt("length"));
 	}
 	public String getMagicType() {
 		return null; // For now, there are no magic flinging travelers.

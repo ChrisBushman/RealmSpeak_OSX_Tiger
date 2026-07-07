@@ -62,12 +62,12 @@ public class RealmCharacterWebFrame extends JFrame {
 	private void initComponents() {
 		setTitle("Character Web Builder");
 		setSize(800,600);
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BorderLayout());
 		
 		tableModel = new RscharTableModel();
 		layoutTable = new JTable(tableModel);
 		tableModel.formatColumns(layoutTable);
-		add(new JScrollPane(layoutTable),"Center");
+		getContentPane().add(new JScrollPane(layoutTable),"Center");
 		layoutTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent arg0) {
 				updateControls();
@@ -107,7 +107,7 @@ public class RealmCharacterWebFrame extends JFrame {
 		ComponentTools.lockComponentSize(webFolderText,200,25);
 		box.add(webFolderText);
 		box.add(Box.createHorizontalGlue());
-		add(box,"South");
+		getContentPane().add(box,"South");
 		
 		JMenuBar menuBar = new JMenuBar();
 		fileMenu = new JMenu("File");

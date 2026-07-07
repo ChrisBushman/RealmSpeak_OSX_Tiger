@@ -438,7 +438,7 @@ public class TreasureUtility {
 			if (thing.getHeldBy()!=null && thing.getHeldBy().equals(character.getGameObject())) {
 				if (thing.hasThisAttribute(Constants.PHASE_CHIT)) {
 					String id = thing.getThisAttribute(Constants.SPELL_ID);
-					GameObject go = character.getGameObject().getGameData().getGameObject(Long.valueOf(id));
+					GameObject go = character.getGameObject().getGameData().getGameObject(new Long(id));
 					SpellWrapper spell = new SpellWrapper(go);
 					SpellMasterWrapper.getSpellMaster(character.getGameObject().getGameData()).addSpell(spell);
 					spell.unaffectTargets();
@@ -990,7 +990,7 @@ public class TreasureUtility {
 			String id = thing.getThisAttribute(Constants.SUMMON_COMPANION_ID);
 			if (id!=null) {
 				GameData data = thing.getGameData();
-				GameObject companion = data.getGameObject(Long.valueOf(id));
+				GameObject companion = data.getGameObject(new Long(id));
 				if (companion != null) {
 					CombatWrapper combat = new CombatWrapper(companion);
 					RealmComponent companionRc = RealmComponent.getRealmComponent(companion);
@@ -1019,7 +1019,7 @@ public class TreasureUtility {
 				boolean success = true;
 				for (java.util.Iterator _j14it2729 = (ids).iterator(); _j14it2729.hasNext(); ) {
 				  String id = (String) _j14it2729.next();
-					GameObject companion = data.getGameObject(Long.valueOf(id));
+					GameObject companion = data.getGameObject(new Long(id));
 					if (companion != null) {
 						CombatWrapper combat = new CombatWrapper(companion);
 						RealmComponent companionRc = RealmComponent.getRealmComponent(companion);
@@ -1395,7 +1395,7 @@ public class TreasureUtility {
 			if (potion.hasThisAttribute(Constants.DISENCHANT)) {
 				String id = potion.getThisAttribute(Constants.DISENCHANT_POTION_AFFECTED_CHARACTER);
 				if (id!=null) {
-					GameObject charGo = potion.getGameData().getGameObject(Long.valueOf(id));
+					GameObject charGo = potion.getGameData().getGameObject(new Long(id));
 					if (charGo != null) {
 						charGo.removeThisAttribute(Constants.DISENCHANT_POTION);
 						potion.removeThisAttribute(Constants.DISENCHANT_POTION_AFFECTED_CHARACTER);
@@ -1419,7 +1419,7 @@ public class TreasureUtility {
 		if (potion.hasThisAttribute(key)) { // Only decrement keys that the potion supports
 			String id = potion.getThisAttribute(Constants.AFFECTED_WEAPON_ID);
 			if (id!=null) { // This shouldn't ever happen, but it did once, so I'll protect against NPE here.
-				GameObject go = potion.getGameData().getGameObject(Long.valueOf(id));
+				GameObject go = potion.getGameData().getGameObject(new Long(id));
 				if (go!=null) {
 					int val = go.getThisInt(key) - 1;
 					if (val==0) {
@@ -1437,7 +1437,7 @@ public class TreasureUtility {
 		if (potion.hasThisAttribute(effect)) {
 			String id = potion.getThisAttribute(itemId);
 			if (id!=null) {
-				GameObject charGo = potion.getGameData().getGameObject(Long.valueOf(id));
+				GameObject charGo = potion.getGameData().getGameObject(new Long(id));
 				if (charGo != null) {
 					charGo.removeThisAttribute(effect);
 					potion.removeThisAttribute(itemId);

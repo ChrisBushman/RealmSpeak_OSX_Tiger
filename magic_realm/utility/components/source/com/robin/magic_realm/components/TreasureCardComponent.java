@@ -373,7 +373,7 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 		  String type = (String) _j14it1312.next();
 			int mn = CharacterActionChitComponent.getMagicNumber(type);
 			if (mn>0 && mn<=maximum) {
-				list.add(Integer.valueOf(mn));
+				list.add(new Integer(mn));
 			}
 		}
 			
@@ -396,7 +396,7 @@ public class TreasureCardComponent extends CardComponent implements MagicChit {
 	public void validateColor() {
 		if (isColor()) {
 			int color = getGameObject().getThisInt(Constants.ENCHANTED_COLOR);
-			if (!getEnchantableNumbers().contains(Integer.valueOf(color))) {
+			if (!getEnchantableNumbers().contains(new Integer(color))) {
 				makeFatigued();
 			}
 		}

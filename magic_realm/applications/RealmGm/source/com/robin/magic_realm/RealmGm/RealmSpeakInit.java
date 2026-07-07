@@ -61,7 +61,7 @@ public class RealmSpeakInit {
 			prepSuperRealmCharacters();
 		}
 		
-		if(!hostPrefs.getGameKeyVals().contains("rw_expansion_1") && hostPrefs.hasPref(Constants.EXP_ASSASSIN_THIEF)){
+		if(hostPrefs.getGameKeyVals().indexOf("rw_expansion_1") < 0 && hostPrefs.hasPref(Constants.EXP_ASSASSIN_THIEF)){
 			GamePool pool = new GamePool(data.getGameObjects());
 			ArrayList exp1Characters = pool.find("rw_expansion_1_character");
 			for (java.util.Iterator _j14it256 = (exp1Characters).iterator(); _j14it256.hasNext(); ) {

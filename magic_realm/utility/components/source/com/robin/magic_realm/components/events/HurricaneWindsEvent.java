@@ -33,7 +33,7 @@ public class HurricaneWindsEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2517 = (ids).iterator(); _j14it2517.hasNext(); ) {
 			  String id = (String) _j14it2517.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				tile.removeThisAttribute(Constants.EVENT_HURRICANE_WINDS);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_HURRICANE_WINDS,id);
 			}
@@ -49,7 +49,7 @@ public class HurricaneWindsEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2518 = (ids).iterator(); _j14it2518.hasNext(); ) {
 			  String id = (String) _j14it2518.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				for (java.util.Iterator _j14it2519 = (tile.getThisAttributeList(Constants.EVENT_HURRICANE_WINDS)).iterator(); _j14it2519.hasNext(); ) {
 				  String cl = (String) _j14it2519.next();;
 					text = text + tile.getNameWithNumber() +" ("+cl+")"+ ", ";

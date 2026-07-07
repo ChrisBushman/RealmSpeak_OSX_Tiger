@@ -33,7 +33,7 @@ public class MoveChitEffect implements ISpellEffect {
 		GameObject spellObj = context.Spell.getGameObject();
 		
 		String chitId = spellObj.getThisAttribute("moveChitID");
-		GameObject moveChit =spellObj.getGameData().getGameObject(Long.valueOf(chitId));
+		GameObject moveChit =spellObj.getGameData().getGameObject(new Long(chitId));
 		context.Target.getGameObject().remove(moveChit);
 		spellObj.removeThisAttribute("moveChitID");
 	}

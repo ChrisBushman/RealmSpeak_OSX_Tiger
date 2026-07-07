@@ -22,7 +22,7 @@ public class QuestDeckViewer extends AggressiveDialog {
 		super(frame, "Quest Deck", true);
 		this.quests = input;
 		this.mode = mode;
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BorderLayout());
 		setSize(800,600);
 		
 		int allPlayCount = 0;
@@ -85,7 +85,7 @@ public class QuestDeckViewer extends AggressiveDialog {
 			ComponentTools.lockColumnWidth(table,7,40);
 			ComponentTools.lockColumnWidth(table,8,60);
 		}
-		add(new JScrollPane(table),BorderLayout.CENTER);
+		getContentPane().add(new JScrollPane(table),BorderLayout.CENTER);
 		
 		Box box = Box.createHorizontalBox();
 		box.add(Box.createHorizontalGlue());
@@ -111,7 +111,7 @@ public class QuestDeckViewer extends AggressiveDialog {
 			}
 		});
 		box.add(close);
-		add(box,BorderLayout.SOUTH);
+		getContentPane().add(box,BorderLayout.SOUTH);
 		getRootPane().setDefaultButton(close);
 	}
 	public Quest getSelectedQuest() {

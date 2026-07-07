@@ -92,9 +92,9 @@ public class RealmGmFrame extends JFrame {
 		setLocationRelativeTo(null);
 		
 		setJMenuBar(buildMenuBar());
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BorderLayout());
 		desktop = new JDesktopPane();
-		add(desktop,BorderLayout.CENTER);
+		getContentPane().add(desktop,BorderLayout.CENTER);
 		
 		fileExists = false;
 		updateControls();

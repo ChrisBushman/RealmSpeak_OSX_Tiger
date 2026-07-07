@@ -284,7 +284,7 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 		  GameObject go = (GameObject) _j14it284.next();
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(go);
 			String type = tile.getTileType();
-			if (!list.contains(type)) {
+			if (list.indexOf(type) < 0) {
 				list.add(type);
 			}
 		}
@@ -432,7 +432,7 @@ public class QuestRequirementEditor extends QuestBlockEditor {
 				for (java.util.Iterator _j14it296 = (boxes).iterator(); _j14it296.hasNext(); ) {
 				  GameObject box = (GameObject) _j14it296.next();
 					String guardianAndSite = monster.getName()+" ("+box.getName()+")";
-					if (!guardians.contains(guardianAndSite)) {
+					if (guardians.indexOf(guardianAndSite) < 0) {
 						guardians.add(guardianAndSite);
 					}
 				}

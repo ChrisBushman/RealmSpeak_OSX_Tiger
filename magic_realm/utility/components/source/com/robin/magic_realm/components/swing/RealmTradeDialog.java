@@ -285,10 +285,10 @@ public class RealmTradeDialog extends AggressiveDialog {
 				}
 			}
 			else if (repairMode && rc.isArmor() && ((ArmorChitComponent)rc).isDamaged()) {
-				basePrice = Integer.valueOf(TreasureUtility.getBaseRepairPrice((ArmorChitComponent)rc));
+				basePrice = new Integer(TreasureUtility.getBaseRepairPrice((ArmorChitComponent)rc));
 			}
 			else {
-				basePrice = Integer.valueOf(TreasureUtility.getBasePrice(trader,rc));
+				basePrice = new Integer(TreasureUtility.getBasePrice(trader,rc));
 			}
 			if (dealingCharacter!=null && rc.isSpell() && !dealingCharacter.canLearn(rc.getGameObject())) {
 				noDeal = true;

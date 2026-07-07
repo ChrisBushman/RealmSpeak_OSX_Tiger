@@ -35,7 +35,7 @@ public class FrozenRiverEvent implements IEvent {
 			if (ids!=null && !ids.isEmpty()) {
 				for (java.util.Iterator _j14it2480 = (ids).iterator(); _j14it2480.hasNext(); ) {
 				  String id = (String) _j14it2480.next();
-					GameObject tile = data.getGameObject(Long.valueOf(id));
+					GameObject tile = data.getGameObject(new Long(id));
 					tile.removeThisAttribute(Constants.EVENT_FROZEN_WATER);
 					RealmEvents.removeEffectForTile(config,Constants.EVENT_FROZEN_WATER,id);
 				}
@@ -52,7 +52,7 @@ public class FrozenRiverEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2481 = (ids).iterator(); _j14it2481.hasNext(); ) {
 			  String id = (String) _j14it2481.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				text = text + tile.getNameWithNumber() + ", ";
 			}
 		}

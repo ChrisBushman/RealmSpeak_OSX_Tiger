@@ -38,7 +38,7 @@ public class FloodEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2470 = (ids).iterator(); _j14it2470.hasNext(); ) {
 			  String id = (String) _j14it2470.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				tile.removeThisAttribute(Constants.EVENT_FLOOD);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_FLOOD,id);
 			}
@@ -54,7 +54,7 @@ public class FloodEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2471 = (ids).iterator(); _j14it2471.hasNext(); ) {
 			  String id = (String) _j14it2471.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				text = text + tile.getNameWithNumber() + ", ";
 			}
 		}

@@ -298,7 +298,7 @@ public class NativeChitComponent extends SquareChitComponent implements BattleCh
 			String textTypeLength = statColor;
 			if (RealmComponent.displayColoredStats) {
 				Integer defaultLength = getFaceAttributeInteger("length");
-				if (defaultLength==null) defaultLength = Integer.valueOf(0);
+				if (defaultLength==null) defaultLength = new Integer(0);
 				if (length.intValue()>defaultLength.intValue()) {
 					textTypeLength = "STAT_BLUE";
 				} else if(defaultLength.intValue()>length.intValue()) {
@@ -409,7 +409,7 @@ public class NativeChitComponent extends SquareChitComponent implements BattleCh
 		NativeSteedChitComponent horse = (NativeSteedChitComponent)getHorse(false);
 		if (horse!=null) {
 			String[] ret = horse.getFolderAndType();
-			int horseSize = ret[2]==null?20:40*Integer.valueOf(ret[2]).intValue();
+			int horseSize = ret[2]==null?20:40*new Integer(ret[2]).intValue();
 			ImageIcon icon = ImageCache.getIcon(ret[0]+"/"+ret[1],horseSize);
 			g.drawImage(icon.getImage(),size-icon.getIconWidth()-2,(size>>1),null);
 		}
@@ -424,11 +424,11 @@ public class NativeChitComponent extends SquareChitComponent implements BattleCh
 
 	public Integer getLength() {
 		if (getGameObject().hasThisAttribute(Constants.ENCHANTED_WEAPON_LENGTH)) {
-			return Integer.valueOf(getGameObject().getThisAttribute(Constants.ENCHANTED_WEAPON_LENGTH));
+			return new Integer(getGameObject().getThisAttribute(Constants.ENCHANTED_WEAPON_LENGTH));
 		}
 		Integer lengthObj = getFaceAttributeInteger("length");
 		if (lengthObj == null) {
-			lengthObj = Integer.valueOf(0);
+			lengthObj = new Integer(0);
 		}
 		int length = lengthObj.intValue();
 		if (gameObject.hasThisAttribute(Constants.ALTER_WEIGHT)) {
@@ -441,9 +441,9 @@ public class NativeChitComponent extends SquareChitComponent implements BattleCh
 		if (getGameObject().hasThisAttribute(Constants.ALTER_SIZE_INCREASED_WEIGHT)) {
 			length++;
 		}
-		if (length<=0) return Integer.valueOf(0);
-		if (length>=18) return Integer.valueOf(18);
-		return Integer.valueOf(length);
+		if (length<=0) return new Integer(0);
+		if (length>=18) return new Integer(18);
+		return new Integer(length);
 	}
 
 	public Speed getMoveSpeed() {

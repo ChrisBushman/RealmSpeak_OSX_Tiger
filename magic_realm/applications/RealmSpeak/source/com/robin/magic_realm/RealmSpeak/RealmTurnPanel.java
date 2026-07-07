@@ -995,11 +995,11 @@ public class RealmTurnPanel extends CharacterFramePanel {
 	
 	private static boolean SearchWasFruitful(String result) {
 		//CJM -- this is very rough. I will have to test and make sure I catch all the possible results I need.
-		if(result.contains("Nothing")) return false;
-		if(result.contains("none")) return false;
+		if(result.indexOf("Nothing") >= 0) return false;
+		if(result.indexOf("none") >= 0) return false;
 		
-		if(result.contains("Found")) return true;
-		if(result.contains("Discover")) return true;
+		if(result.indexOf("Found") >= 0) return true;
+		if(result.indexOf("Discover") >= 0) return true;
 		
 		return false;
 	}

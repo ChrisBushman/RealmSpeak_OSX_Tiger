@@ -95,7 +95,7 @@ public class HostPrefWrapper extends GameObjectWrapper {
 		return getString(GAME_KEYVALS_TAG);
 	}
 	public boolean usesSuperRealm() {
-		return getString(GAME_KEYVALS_TAG).contains(Constants.SUPER_REALM);
+		return getString(GAME_KEYVALS_TAG).indexOf(Constants.SUPER_REALM) >= 0;
 	}
 	public String getGameSetupName() {
 		return getString(GAME_SETUP_NAME_TAG);
@@ -359,7 +359,7 @@ public class HostPrefWrapper extends GameObjectWrapper {
 			Collection c = pool.extract(HostPrefWrapper.getKeyVals());
 			if (c!=null && c.size()==1) {
 				GameObject hp = (GameObject) c.iterator().next();
-				HOST_PREF_ID = Long.valueOf(hp.getId());
+				HOST_PREF_ID = new Long(hp.getId());
 				return new HostPrefWrapper(hp);
 			}
 		}

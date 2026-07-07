@@ -99,7 +99,7 @@ public class SpellTargetingBewitched extends SpellTargetingSingle {
 		for (java.util.Iterator _j14it790 = (character.getInventory()).iterator(); _j14it790.hasNext(); ) {
 		  GameObject go = (GameObject) _j14it790.next();
 			if (go.hasThisAttribute(Constants.PHASE_CHIT)) {
-				GameObject spellGo = theTarget.getGameObject().getGameData().getGameObject(Long.valueOf(go.getThisAttribute(Constants.SPELL_ID)));
+				GameObject spellGo = theTarget.getGameObject().getGameData().getGameObject(new Long(go.getThisAttribute(Constants.SPELL_ID)));
 				spellChooser.addRealmComponent(RealmComponent.getRealmComponent(spellGo));
 			}
 		}
@@ -159,7 +159,7 @@ public class SpellTargetingBewitched extends SpellTargetingSingle {
 			spellTargeting.populate(battleModel, selectedSpell);
 			for (java.util.Iterator _j14it792 = (possibleSecondaryTargets).iterator(); _j14it792.hasNext(); ) {
 			  GameObject go = (GameObject) _j14it792.next();
-				if (spellTargeting.getPossibleTargets().contains(go)) {
+				if (spellTargeting.getPossibleTargets().indexOf(go) >= 0) {
 					secondaryTargetChooser.addRealmComponent(RealmComponent.getRealmComponent(go));
 				}
 			}

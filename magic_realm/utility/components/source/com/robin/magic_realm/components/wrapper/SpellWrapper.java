@@ -242,7 +242,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	public CharacterWrapper getCaster() {
 		String id = getString(CASTER_ID);
 		if (id!=null) {
-			GameObject c = getGameObject().getGameData().getGameObject(Long.valueOf(id));
+			GameObject c = getGameObject().getGameData().getGameObject(new Long(id));
 			return new CharacterWrapper(c);
 		}
 		return null;
@@ -255,7 +255,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		if (isAlive()) {
 			String id = getString(INCANTATION_TIE);
 			if (id!=null) { // Might be null if using Enhanced Magic
-				GameObject go = getGameObject().getGameData().getGameObject(Long.valueOf(id));
+				GameObject go = getGameObject().getGameData().getGameObject(new Long(id));
 				return go;
 			}
 		}
@@ -264,7 +264,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	public GameObject getColorChitObject() {
 		String id = getString(COLOR_CHIT);
 		if (id!=null) { // Might be null if using other source
-			GameObject go = getGameObject().getGameData().getGameObject(Long.valueOf(id));
+			GameObject go = getGameObject().getGameData().getGameObject(new Long(id));
 			return go;
 		}
 		return null;
@@ -394,7 +394,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 			GameData data = this.getGameData();
 			for (java.util.Iterator _j14it1822 = (spellsToRestore).iterator(); _j14it1822.hasNext(); ) {
 			  String spellId = (String) _j14it1822.next();
-				SpellWrapper spell = new SpellWrapper(data.getGameObject(Long.valueOf(spellId)));
+				SpellWrapper spell = new SpellWrapper(data.getGameObject(new Long(spellId)));
 				spell.restoreSpell();
 			}
 		}
@@ -514,7 +514,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	public GameObject getSecondaryTarget() {
 		String id = getString(SECONDARY_TARGET);
 		if (id==null) return null;
-		GameObject go = getGameObject().getGameData().getGameObject(Long.valueOf(id));
+		GameObject go = getGameObject().getGameData().getGameObject(new Long(id));
 		return go;
 	}
 	public boolean removeTarget(GameObject target) {
@@ -619,7 +619,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 		ArrayList result = new ArrayList();
 		for (java.util.Iterator _j14it1824 = (targetids).iterator(); _j14it1824.hasNext(); ) {
 		  String id = (String) _j14it1824.next();
-			long lid = Long.valueOf(id).longValue();
+			long lid = new Long(id).longValue();
 			GameObject go = getGameObject().getGameData().getGameObject(lid);
 			result.add(RealmComponent.getRealmComponent(go));
 		}
@@ -782,7 +782,7 @@ public class SpellWrapper extends GameObjectWrapper implements BattleChit {
 	public Integer getLength() {
 		if (getGameObject().hasThisAttribute("length")) {
 			int len = getGameObject().getThisInt("length");
-			return Integer.valueOf(len);
+			return new Integer(len);
 		}
 		return null;
 	}

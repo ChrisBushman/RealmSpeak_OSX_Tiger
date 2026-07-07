@@ -73,7 +73,7 @@ public class QuestStep extends GameObjectWrapper {
 
 	public boolean usesLocationTag(String tag) {
 		String desc = getDescription();
-		if (desc != null && desc.contains(tag)) {
+		if (desc != null && desc.indexOf(tag) >= 0) {
 			return true;
 		}
 		for (java.util.Iterator _j14it2267 = (requirements).iterator(); _j14it2267.hasNext(); ) {
@@ -105,7 +105,7 @@ public class QuestStep extends GameObjectWrapper {
 	
 	public boolean usesCounterTag(String tag) {
 		String desc = getDescription();
-		if (desc != null && desc.contains(tag)) {
+		if (desc != null && desc.indexOf(tag) >= 0) {
 			return true;
 		}
 		for (java.util.Iterator _j14it2271 = (requirements).iterator(); _j14it2271.hasNext(); ) {
@@ -326,7 +326,7 @@ public class QuestStep extends GameObjectWrapper {
 		for (java.util.Iterator _j14it2277 = (oldIds).iterator(); _j14it2277.hasNext(); ) {
 		  Object obj = (Object) _j14it2277.next();
 			String stringId = (String) obj;
-			Long oldId = Long.valueOf(stringId);
+			Long oldId = new Long(stringId);
 			if (!lookup.containsKey(oldId)) {
 				throw new IllegalStateException("cannot find conversion for id " + oldId + " in quest step " + getId() + " of quest " + getGameObject().getHeldBy());
 			}
@@ -481,7 +481,7 @@ public class QuestStep extends GameObjectWrapper {
 		  QuestStep step = (QuestStep) _j14it2287.next();
 			if (step.getState()!=QuestStepState.Pending) continue;
 			ArrayList list = step.getFailSteps();
-			if (list!=null && list.contains(id)) ret.add(step);
+			if (list!=null && list.indexOf(id) >= 0) ret.add(step);
 		}
 		return ret;
 	}

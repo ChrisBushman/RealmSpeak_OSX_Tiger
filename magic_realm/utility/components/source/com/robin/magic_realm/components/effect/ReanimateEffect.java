@@ -72,7 +72,7 @@ public class ReanimateEffect implements ISpellEffect {
 			GameObject monster = context.Spell
 					.getGameObject()
 					.getGameData()
-					.getGameObject(Long.valueOf(id));
+					.getGameObject(new Long(id));
 			RealmUtility.makeDead(RealmComponent.getRealmComponent(monster));
 			context.Spell.setExtraIdentifier(null);
 		}

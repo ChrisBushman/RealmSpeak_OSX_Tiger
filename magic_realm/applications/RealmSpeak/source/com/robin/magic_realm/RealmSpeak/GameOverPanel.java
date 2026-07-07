@@ -170,7 +170,7 @@ public class GameOverPanel extends JPanel {
 					case 5:
 						return character.isDead()?"DEAD":String.valueOf(character.getTotalAssignedVPs());
 					case 6:
-						return Integer.valueOf(character.getTotalScore());
+						return new Integer(character.getTotalScore());
 				}
 			}
 			return null;

@@ -145,7 +145,7 @@ public class Hex {
 		
 		for (int i=0;i<wallPosition.length;i++) {
 			if (wallPosition[i]==true) {
-				walls.add(Integer.valueOf(i));
+				walls.add(new Integer(i));
 			}
 		}
 		

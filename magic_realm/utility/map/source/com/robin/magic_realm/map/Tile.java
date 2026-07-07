@@ -187,7 +187,7 @@ public class Tile {
 			// Cycle through connected clearings
 			for (java.util.Iterator _j14it2809 = (c).iterator(); _j14it2809.hasNext(); ) {
 			  String connectedClearing = (String) _j14it2809.next();
-				if (!touchedClearings.contains(name+":"+connectedClearing)) {
+				if (touchedClearings.indexOf(name+":"+connectedClearing) < 0) {
 					if (isEdge(connectedClearing)) {
 						touchedClearings.add(name+":"+connectedClearing);
 						// if path connects to edge, use mapGrid to determine new Tile and
@@ -284,7 +284,7 @@ public class Tile {
 	private void updateClearingList(String clearing) {
 		if (EDGE_MAP.indexOf("_"+clearing+"_")==-1) {
 			// Not an edge
-			if (!clearings.contains(clearing)) {
+			if (clearings.indexOf(clearing) < 0) {
 				clearings.add(clearing);
 			}
 		}
@@ -296,7 +296,7 @@ public class Tile {
 			list = new ArrayList();
 			pathHash.put(from,list);
 		}
-		if (!list.contains(to)) {
+		if (list.indexOf(to) < 0) {
 			list.add(to);
 		}
 		int index = EDGE_MAP.indexOf("_"+from+"_");
@@ -334,10 +334,10 @@ public class Tile {
 				}
 				ArrayList pathsTypes = tile.getPathTypes(tile.side,(edge-rot+6)%6);
 				ArrayList adjTilePathsTypes = adjTile.getPathTypes(adjTile.side,(edge+9-adjTile.getRotation())%6);
-				if ((pathsTypes.contains("river") && !adjTilePathsTypes.contains("river")) || (adjTilePathsTypes.contains("river") && !pathsTypes.contains("river"))) {
+				if ((pathsTypes.indexOf("river") >= 0 && adjTilePathsTypes.indexOf("river") < 0) || (adjTilePathsTypes.indexOf("river") >= 0 && pathsTypes.indexOf("river") < 0)) {
 					return false;
 				}
-				if (pathsTypes.contains("river") && adjTilePathsTypes.contains("river")) {
+				if (pathsTypes.indexOf("river") >= 0 && adjTilePathsTypes.indexOf("river") >= 0) {
 					riverConnected = true;
 				}
 				if ((rangeSetup || rangeSetupVariant) && !tile.hasRiverPaths(0)) {
@@ -596,7 +596,7 @@ public class Tile {
 				// only empty places
 				if (mapGrid.get(adjPos)==null) {
 					// only undiscovered places
-					if (!availableMapPositions.contains(adjPos)) {
+					if (availableMapPositions.indexOf(adjPos) < 0) {
 						// only joinable places
 						if (tile.getPathState(edge)) {
 							// Count adjacent tiles (joined or not)

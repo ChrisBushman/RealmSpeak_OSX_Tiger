@@ -175,16 +175,16 @@ public class QuestStepView extends JComponent {
 		for (java.util.Iterator _j14it2259 = (tokens).iterator(); _j14it2259.hasNext(); ) {
 		  QuestStepToken token = (QuestStepToken) _j14it2259.next();
 			int viewRank = token.getViewRank();
-			if (hash.containsKey(Integer.valueOf(viewRank))) {
-				hash.put(Integer.valueOf(viewRank), Integer.valueOf(((Integer) hash.get(Integer.valueOf(viewRank))).intValue()+1));
+			if (hash.containsKey(new Integer(viewRank))) {
+				hash.put(new Integer(viewRank), new Integer(((Integer) hash.get(new Integer(viewRank))).intValue()+1));
 			}
 			else {
-				hash.put(Integer.valueOf(viewRank), Integer.valueOf(1));
+				hash.put(new Integer(viewRank), new Integer(1));
 			}
 		}
 		for (java.util.Iterator _j14it2260 = (tokens).iterator(); _j14it2260.hasNext(); ) {
 		  QuestStepToken token = (QuestStepToken) _j14it2260.next();
-			token.initOrientation(orientation,BORDER,SQUARE,displayOrderSize,((Integer) hash.get(Integer.valueOf(token.getViewRank()))).intValue());
+			token.initOrientation(orientation,BORDER,SQUARE,displayOrderSize,((Integer) hash.get(new Integer(token.getViewRank()))).intValue());
 		}
 	}
 	protected void rebuildTokens(ArrayList steps) {

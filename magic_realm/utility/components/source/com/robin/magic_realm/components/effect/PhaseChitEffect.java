@@ -27,7 +27,7 @@ public class PhaseChitEffect implements ISpellEffect {
 			GameObject phaseChit = context.Spell
 					.getGameObject()
 					.getGameData()
-					.getGameObject(Long.valueOf(context.Spell.getGameObject().getThisAttribute(Constants.PHASE_CHIT_ID)));
+					.getGameObject(new Long(context.Spell.getGameObject().getThisAttribute(Constants.PHASE_CHIT_ID)));
 			context.getCharacterTarget().getGameObject().remove(phaseChit);
 			context.Spell.getGameObject().removeThisAttribute(Constants.PHASE_CHIT_ID);
 		}

@@ -92,9 +92,9 @@ public abstract class QuestBlockEditor extends GenericEditor {
 	private void initComponents() {
 		setTitle(getEditorTitle());
 		setSize(450,450);
-		setLayout(new BorderLayout());
-		add(buildForm(),BorderLayout.CENTER);
-		add(buildOkCancelLine(),BorderLayout.SOUTH);
+		getContentPane().setLayout(new BorderLayout());
+		getContentPane().add(buildForm(),BorderLayout.CENTER);
+		getContentPane().add(buildOkCancelLine(),BorderLayout.SOUTH);
 	}
 	private Box buildForm() {
 		UniformLabelGroup group = new UniformLabelGroup();
@@ -318,7 +318,7 @@ public abstract class QuestBlockEditor extends GenericEditor {
 		if (block.getFieldType()==FieldType.GameObjectWrapperSelector) {
 			String id = go.getString(block.getKeyName());
 			if (id!=null) {
-				GameObject ref = go.getGameData().getGameObject(Long.valueOf(id));
+				GameObject ref = go.getGameData().getGameObject(new Long(id));
 				if (ref != null) {
 					current = ref.getName();
 				}

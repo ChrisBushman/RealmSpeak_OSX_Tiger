@@ -180,7 +180,7 @@ public class RealmGameEditor extends JInternalFrame {
 		for (java.util.Iterator _j14it215 = (thingsWithLocations).iterator(); _j14it215.hasNext(); ) {
 		  RealmComponent rc = (RealmComponent) _j14it215.next();
 			String type = rc.getName();
-			if (uniqueTypes.contains(type)) continue;
+			if (uniqueTypes.indexOf(type) >= 0) continue;
 			uniqueTypes.add(type);
 		}
 		Collections.sort(uniqueTypes);

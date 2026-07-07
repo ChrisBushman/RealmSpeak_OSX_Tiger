@@ -84,10 +84,10 @@ public class QuestLocationEditor extends GenericEditor {
 	private static void initSuggestionWords(GameData realmSpeakData) {
 		suggestionWords = new ArrayList();
 		travelers = getAllTravelerNames(realmSpeakData);
-		Collections.addAll(suggestionWords, QuestConstants.wolfs);
-		Collections.addAll(suggestionWords, QuestConstants.transforms);
-		Collections.addAll(suggestionWords, companions);
-		Collections.addAll(suggestionWords, travelers);
+		suggestionWords.addAll(java.util.Arrays.asList(QuestConstants.wolfs));
+		suggestionWords.addAll(java.util.Arrays.asList(QuestConstants.transforms));
+		suggestionWords.addAll(java.util.Arrays.asList(companions));
+		suggestionWords.addAll(java.util.Arrays.asList(travelers));
 		GamePool pool = new GamePool(realmSpeakData.getGameObjects());
 		String query = "!part,!summon,!spell,!tile,!character_chit,!virtual_dwelling,!season,!test,!character";
 		for (java.util.Iterator _j14it364 = (pool.find(query)).iterator(); _j14it364.hasNext(); ) {
@@ -107,7 +107,7 @@ public class QuestLocationEditor extends GenericEditor {
 			for (java.util.Iterator _j14it366 = (tile.getClearings()).iterator(); _j14it366.hasNext(); ) {
 			  ClearingDetail clearing = (ClearingDetail) _j14it366.next();
 				String name = go.getName()+" "+clearing.getNum();
-				if (!suggestionWords.contains(name)) {
+				if (suggestionWords.indexOf(name) < 0) {
 					suggestionWords.add(name);
 				}
 			}
@@ -185,7 +185,7 @@ public class QuestLocationEditor extends GenericEditor {
 		for (java.util.Iterator _j14it371 = (getLocationList()).iterator(); _j14it371.hasNext(); ) {
 		  String token = (String) _j14it371.next();
 			sb.append(token);
-			if (!Arrays.asList(QuestConstants.wolfs).contains(token) && !Arrays.asList(QuestConstants.transforms).contains(token) && !Arrays.asList(companions).contains(token) && !Arrays.asList(travelers).contains(token) && !QuestLocation.validLocation(realmSpeakData,token)) {
+			if (Arrays.asList(QuestConstants.wolfs).indexOf(token) < 0 && Arrays.asList(QuestConstants.transforms).indexOf(token) < 0 && Arrays.asList(companions).indexOf(token) < 0 && Arrays.asList(travelers).indexOf(token) < 0 && !QuestLocation.validLocation(realmSpeakData,token)) {
 				sb.append(INVALID);
 			}
 			sb.append("\n");
@@ -205,9 +205,9 @@ public class QuestLocationEditor extends GenericEditor {
 	private void initComponents() {
 		setTitle("Quest Location");
 		setSize(800,480);
-		setLayout(new BorderLayout());
-		add(buildForm(),BorderLayout.CENTER);
-		add(buildOkCancelLine(),BorderLayout.SOUTH);
+		getContentPane().setLayout(new BorderLayout());
+		getContentPane().add(buildForm(),BorderLayout.CENTER);
+		getContentPane().add(buildOkCancelLine(),BorderLayout.SOUTH);
 		
 		updateControls();
 	}

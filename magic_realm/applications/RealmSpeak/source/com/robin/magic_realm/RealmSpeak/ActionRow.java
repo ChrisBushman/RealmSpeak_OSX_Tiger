@@ -167,7 +167,7 @@ public class ActionRow {
 								RealmComponent chitRc = RealmComponent.getRealmComponent(chitGo);
 								chitRc.setActivated(false);
 								String spellId = chitGo.getThisAttribute(Constants.SPELL_ID);
-								GameObject spellGo = gameData.getGameObject(Long.valueOf(spellId));
+								GameObject spellGo = gameData.getGameObject(new Long(spellId));
 								SpellWrapper spell = new SpellWrapper(spellGo);
 								spell.affectTargets(new JFrame(),GameWrapper.findGame(gameData),false,null);
 								SpellMasterWrapper.getSpellMaster(gameData).addSpell(spell);
@@ -180,7 +180,7 @@ public class ActionRow {
 						for (java.util.Iterator _j14it1166 = (character.getGameObject().getThisAttributeList(Constants.FORESIGHT_SAVED_STATS)).iterator(); _j14it1166.hasNext(); ) {
 						  String stat = (String) _j14it1166.next();
 							if (stat.startsWith(Constants.FORESIGHT_SAVED_STATS_WISHED_STRENGTH)) {
-								stat.replace(Constants.FORESIGHT_SAVED_STATS_WISHED_STRENGTH,"");
+								stat.replaceAll(Constants.FORESIGHT_SAVED_STATS_WISHED_STRENGTH,"");
 								character.setWishStrength(new Strength(stat));
 							}
 							else {
@@ -1053,7 +1053,7 @@ public class ActionRow {
 					if (current.isBetweenClearings()) {
 						validClearings.addAll(current.getOther().tile.getClearings());
 					}
-					if (validClearings.contains(location.clearing)) {
+					if (validClearings.indexOf(location.clearing) >= 0) {
 						overridePath = true;
 					}
 				}
@@ -2133,7 +2133,7 @@ public class ActionRow {
 				gameHandler.broadcast(character.getGameObject().getName(),"Canceled the "+optionKey+" spell by the Cleric.");
 				return true;
 			}
-			else if (character.getAllCurses().contains(optionKey)) {
+			else if (character.getAllCurses().indexOf(optionKey) >= 0) {
 				if (character.getGold()<5) {
 					JOptionPane.showMessageDialog(gameHandler.getMainFrame(),
 								"You do not have enough gold to cancel a curse or mesmerize effect.",
@@ -2966,7 +2966,7 @@ public class ActionRow {
 		// Make sure intended target tile for flying is possible (might not be if a previously recorded move is invalid!)
 		ArrayList allAvailableTiles = new ArrayList(current.tile.getAllAdjacentTiles());
 		allAvailableTiles.add(current.tile);
-		if (!allAvailableTiles.contains(location.tile)) {
+		if (allAvailableTiles.indexOf(location.tile) < 0) {
 			result = "Target tile too far away.";
 			cancelled = true;
 			return;

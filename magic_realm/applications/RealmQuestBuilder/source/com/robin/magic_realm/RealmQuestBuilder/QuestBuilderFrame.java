@@ -429,7 +429,7 @@ public class QuestBuilderFrame extends JFrame {
 		mainPanel.add(topPanel);
 		mainPanel.add(buildQuestStepPanel());
 
-		add(mainPanel);
+		getContentPane().add(mainPanel);
 	}
 
 	private JMenuBar buildMenuBar() {

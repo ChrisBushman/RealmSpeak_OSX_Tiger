@@ -320,13 +320,13 @@ public class DenizenCombatSheet extends CombatSheet {
 			case Constants.COMBAT_LURE:
 				if (isOwnedByActive && !sheetOwner.isMistLike()) {
 					if (canLureMoreDenizens() && combatFrame.areDenizensToLure()) {
-						hotspotHash.put(Integer.valueOf(POS_ATTACKERS_BOX1),"Lure");
+						hotspotHash.put(new Integer(POS_ATTACKERS_BOX1),"Lure");
 					}
 					if (denizenCanFlip(sheetOwner)) {
-						hotspotHash.put(Integer.valueOf(POS_DEFENDER_BOX1),"Flip");
+						hotspotHash.put(new Integer(POS_DEFENDER_BOX1),"Flip");
 					}
 					if (sheetOwner.hasHorse()) {
-						hotspotHash.put(Integer.valueOf(POS_DEFENDER_BOX2),"Flip");
+						hotspotHash.put(new Integer(POS_DEFENDER_BOX2),"Flip");
 					}
 				}
 				break;
@@ -336,7 +336,7 @@ public class DenizenCombatSheet extends CombatSheet {
 						if (combatFrame.areDenizensToLure()) {
 							// Now, need to make sure this sheetOwner is not currently targeted by a RED-side-up T Monster
 							boolean hasRedSideAttacker = false;
-							c = layoutHash.getList(Integer.valueOf(POS_ATTACKERS_BOX1));
+							c = layoutHash.getList(new Integer(POS_ATTACKERS_BOX1));
 							if (c!=null && !c.isEmpty()) {
 								for (java.util.Iterator _j14it647 = (c).iterator(); _j14it647.hasNext(); ) {
 								  RealmComponent rc = (RealmComponent) _j14it647.next();
@@ -350,7 +350,7 @@ public class DenizenCombatSheet extends CombatSheet {
 								}
 							}
 							if (!hasRedSideAttacker) {
-								hotspotHash.put(Integer.valueOf(POS_ATTACKERS_BOX1),"Random Assignment");
+								hotspotHash.put(new Integer(POS_ATTACKERS_BOX1),"Random Assignment");
 							}
 						}
 					}
@@ -359,12 +359,12 @@ public class DenizenCombatSheet extends CombatSheet {
 			case Constants.COMBAT_DEPLOY:
 				if (!sheetOwner.isMistLike()) {
 					// only unassigned hirelings owned by the playing character can deploy at this point
-					c = layoutHash.getList(Integer.valueOf(POS_ATTACKERS_BOX1));
+					c = layoutHash.getList(new Integer(POS_ATTACKERS_BOX1));
 					if (c==null || c.size()==0) { // No direct attackers
-						c = layoutHash.getList(Integer.valueOf(POS_DEFENDER_TARGET_BOX3));
+						c = layoutHash.getList(new Integer(POS_DEFENDER_TARGET_BOX3));
 						if (c==null || c.size()==0) { // Don't forget to check defender target for red-side up T Monsters
 							if (isOwnedByActive && model.getAllBattleGroups(true).size()>1) {
-								hotspotHash.put(Integer.valueOf(POS_DEFENDER_BOX1),"Deploy");
+								hotspotHash.put(new Integer(POS_DEFENDER_BOX1),"Deploy");
 							}
 						}
 					}
@@ -380,25 +380,25 @@ public class DenizenCombatSheet extends CombatSheet {
 					String title = combatFrame.getActiveCharacter().getGameObject().getName()+" Target";
 					if (containsEnemy(
 							combatFrame.getActiveParticipant(),
-							layoutHash.getList(Integer.valueOf(POS_ATTACKERS_BOX1)))) {
-						hotspotHash.put(Integer.valueOf(POS_ATTACKERS_BOX1),title);
+							layoutHash.getList(new Integer(POS_ATTACKERS_BOX1)))) {
+						hotspotHash.put(new Integer(POS_ATTACKERS_BOX1),title);
 					}
 					if (containsEnemy(
 							combatFrame.getActiveParticipant(),
-							layoutHash.getList(Integer.valueOf(POS_DEFENDER_TARGET_BOX3)))) {
-						hotspotHash.put(Integer.valueOf(POS_DEFENDER_TARGET_BOX3),title);
+							layoutHash.getList(new Integer(POS_DEFENDER_TARGET_BOX3)))) {
+						hotspotHash.put(new Integer(POS_DEFENDER_TARGET_BOX3),title);
 					}
 					RealmComponent sheetOwnerOwner = sheetOwner.getOwner();
 					if (combatFrame.allowsTreachery() || !combatFrame.getActiveParticipant().equals(sheetOwnerOwner)) {
-						hotspotHash.put(Integer.valueOf(POS_DEFENDER_BOX1),title);
+						hotspotHash.put(new Integer(POS_DEFENDER_BOX1),title);
 					}
 				}
 				// Hireling assign
 				if (isOwnedByActive
-						&& layoutHash.get(Integer.valueOf(POS_ATTACKERS_BOX1))!=null
+						&& layoutHash.get(new Integer(POS_ATTACKERS_BOX1))!=null
 						&& sheetOwner.getTarget()==null
 						&& sheetOwner.get2ndTarget()==null) {
-					hotspotHash.put(Integer.valueOf(POS_DEFENDER_TARGET_BOX3),sheetOwner.getGameObject().getName()+" Target");
+					hotspotHash.put(new Integer(POS_DEFENDER_TARGET_BOX3),sheetOwner.getGameObject().getName()+" Target");
 					targetNeedsAssignment = true;
 				}
 				break;
@@ -438,34 +438,34 @@ public class DenizenCombatSheet extends CombatSheet {
 				}
 				
 				if (canPositionRed) {
-					hotspotHash.put(Integer.valueOf(POS_DEFENDER_BOX1),"Maneuver");
-					hotspotHash.put(Integer.valueOf(POS_DEFENDER_BOX2),"Maneuver");
-					hotspotHash.put(Integer.valueOf(POS_DEFENDER_BOX3),"Maneuver");
+					hotspotHash.put(new Integer(POS_DEFENDER_BOX1),"Maneuver");
+					hotspotHash.put(new Integer(POS_DEFENDER_BOX2),"Maneuver");
+					hotspotHash.put(new Integer(POS_DEFENDER_BOX3),"Maneuver");
 					if (hostPrefs.hasPref(Constants.SR_COMBAT)) {
-						hotspotHash.put(Integer.valueOf(POS_DEFENDER_CHARGE_SMASH),"Maneuver");
-						hotspotHash.put(Integer.valueOf(POS_DEFENDER_CHARGE_SWING),"Maneuver");
-						hotspotHash.put(Integer.valueOf(POS_DEFENDER_DODGE_SMASH),"Maneuver");
-						hotspotHash.put(Integer.valueOf(POS_DEFENDER_DODGE_THRUST),"Maneuver");
-						hotspotHash.put(Integer.valueOf(POS_DEFENDER_DUCK_SWING),"Maneuver");
-						hotspotHash.put(Integer.valueOf(POS_DEFENDER_DUCK_THRUST),"Maneuver");
+						hotspotHash.put(new Integer(POS_DEFENDER_CHARGE_SMASH),"Maneuver");
+						hotspotHash.put(new Integer(POS_DEFENDER_CHARGE_SWING),"Maneuver");
+						hotspotHash.put(new Integer(POS_DEFENDER_DODGE_SMASH),"Maneuver");
+						hotspotHash.put(new Integer(POS_DEFENDER_DODGE_THRUST),"Maneuver");
+						hotspotHash.put(new Integer(POS_DEFENDER_DUCK_SWING),"Maneuver");
+						hotspotHash.put(new Integer(POS_DEFENDER_DUCK_THRUST),"Maneuver");
 					}
 				}
 				if (canPositionCircle) {
-					hotspotHash.put(Integer.valueOf(POS_ATTACKERS_BOX1),"Position");
-					hotspotHash.put(Integer.valueOf(POS_ATTACKERS_BOX2),"Position");
-					hotspotHash.put(Integer.valueOf(POS_ATTACKERS_BOX3),"Position");
+					hotspotHash.put(new Integer(POS_ATTACKERS_BOX1),"Position");
+					hotspotHash.put(new Integer(POS_ATTACKERS_BOX2),"Position");
+					hotspotHash.put(new Integer(POS_ATTACKERS_BOX3),"Position");
 				}
 				if (canPositionSquare && (!hostPrefs.hasPref(Constants.SR_COMBAT) || hostPrefs.hasPref(Constants.SR_COMBAT_POSITIONING))) {
-					hotspotHash.put(Integer.valueOf(POS_DEFENDER_TARGET_BOX1),"Position");
-					hotspotHash.put(Integer.valueOf(POS_DEFENDER_TARGET_BOX2),"Position");
-					hotspotHash.put(Integer.valueOf(POS_DEFENDER_TARGET_BOX3),"Position");
+					hotspotHash.put(new Integer(POS_DEFENDER_TARGET_BOX1),"Position");
+					hotspotHash.put(new Integer(POS_DEFENDER_TARGET_BOX2),"Position");
+					hotspotHash.put(new Integer(POS_DEFENDER_TARGET_BOX3),"Position");
 					if (hostPrefs.hasPref(Constants.SR_COMBAT)) {
-						hotspotHash.put(Integer.valueOf(POS_DEFENDER_TARGET_CHARGE_SMASH),"Position");
-						hotspotHash.put(Integer.valueOf(POS_DEFENDER_TARGET_CHARGE_SWING),"Position");
-						hotspotHash.put(Integer.valueOf(POS_DEFENDER_TARGET_DODGE_SMASH),"Position");
-						hotspotHash.put(Integer.valueOf(POS_DEFENDER_TARGET_DODGE_THRUST),"Position");
-						hotspotHash.put(Integer.valueOf(POS_DEFENDER_TARGET_DUCK_SWING),"Position");
-						hotspotHash.put(Integer.valueOf(POS_DEFENDER_TARGET_DUCK_THRUST),"Position");
+						hotspotHash.put(new Integer(POS_DEFENDER_TARGET_CHARGE_SMASH),"Position");
+						hotspotHash.put(new Integer(POS_DEFENDER_TARGET_CHARGE_SWING),"Position");
+						hotspotHash.put(new Integer(POS_DEFENDER_TARGET_DODGE_SMASH),"Position");
+						hotspotHash.put(new Integer(POS_DEFENDER_TARGET_DODGE_THRUST),"Position");
+						hotspotHash.put(new Integer(POS_DEFENDER_TARGET_DUCK_SWING),"Position");
+						hotspotHash.put(new Integer(POS_DEFENDER_TARGET_DUCK_THRUST),"Position");
 					}
 				}
 				
@@ -480,13 +480,13 @@ public class DenizenCombatSheet extends CombatSheet {
 				if (sheetHasTarget || sheetHasTarget2 || sheetHasSpellTarget) {
 					int boxReq = spell==null?0:spell.getGameObject().getThisInt("box_req"); // most spells will be zero
 					if ((spell==null || battleMage) || boxReq==0 || boxReq==1) {
-						hotspotHash.put(Integer.valueOf(POS_ATTACKERS_WEAPON1),"Attack");
+						hotspotHash.put(new Integer(POS_ATTACKERS_WEAPON1),"Attack");
 					}
 					if ((spell==null || battleMage) || boxReq==0 || boxReq==2) {
-						hotspotHash.put(Integer.valueOf(POS_ATTACKERS_WEAPON2),"Attack");
+						hotspotHash.put(new Integer(POS_ATTACKERS_WEAPON2),"Attack");
 					}
 					if ((spell==null || battleMage) || boxReq==0 || boxReq==3) {
-						hotspotHash.put(Integer.valueOf(POS_ATTACKERS_WEAPON3),"Attack");
+						hotspotHash.put(new Integer(POS_ATTACKERS_WEAPON3),"Attack");
 					}
 				}
 				break;
@@ -498,19 +498,19 @@ public class DenizenCombatSheet extends CombatSheet {
 				if (aTarget!=null && sheetParticipants.contains(aTarget)) {
 					if (character.canReplaceFight(aTarget)) {
 						// can replace fight
-						hotspotHash.put(Integer.valueOf(POS_ATTACKERS_WEAPON1),"Replace Attack");
-						hotspotHash.put(Integer.valueOf(POS_ATTACKERS_WEAPON2),"Replace Attack");
-						hotspotHash.put(Integer.valueOf(POS_ATTACKERS_WEAPON3),"Replace Attack");
+						hotspotHash.put(new Integer(POS_ATTACKERS_WEAPON1),"Replace Attack");
+						hotspotHash.put(new Integer(POS_ATTACKERS_WEAPON2),"Replace Attack");
+						hotspotHash.put(new Integer(POS_ATTACKERS_WEAPON3),"Replace Attack");
 					}
 					else if (hostPrefs.hasPref(Constants.SR_ADV_SURVIVAL_TACTICS)) {
 						if (character.canReplaceParryThrustAttacks(aTarget) || character.canReplaceAlertedParryInBox(aTarget,1)) {
-							hotspotHash.put(Integer.valueOf(POS_ATTACKERS_WEAPON1),"Replace Attack");
+							hotspotHash.put(new Integer(POS_ATTACKERS_WEAPON1),"Replace Attack");
 						}
 						if (character.canReplaceParrySwingAttacks(aTarget) || character.canReplaceAlertedParryInBox(aTarget,2)) {
-							hotspotHash.put(Integer.valueOf(POS_ATTACKERS_WEAPON2),"Replace Attack");
+							hotspotHash.put(new Integer(POS_ATTACKERS_WEAPON2),"Replace Attack");
 						}
 						if (character.canReplaceParrySmashAttacks(aTarget) || character.canReplaceAlertedParryInBox(aTarget,3)) {
-							hotspotHash.put(Integer.valueOf(POS_ATTACKERS_WEAPON2),"Replace Attack");
+							hotspotHash.put(new Integer(POS_ATTACKERS_WEAPON2),"Replace Attack");
 						}
 					}
 				}
@@ -561,7 +561,7 @@ public class DenizenCombatSheet extends CombatSheet {
 			ArrayList denizens = new ArrayList(model.getDenizenBattleGroup().getBattleParticipants());
 			for (java.util.Iterator _j14it648 = (denizens).iterator(); _j14it648.hasNext(); ) {
 			  RealmComponent denizen = (RealmComponent) _j14it648.next();
-				if (!excludeList.contains(denizen) && (
+				if (excludeList.indexOf(denizen) < 0 && (
 						(defenderTarget!=null && (defenderTarget.equals(denizen.getTarget()) || defenderTarget.equals(denizen.get2ndTarget())))
 					|| (defenderTarget2!=null && (defenderTarget2.equals(denizen.getTarget()) || defenderTarget2.equals(denizen.get2ndTarget())))
 						)) {
@@ -586,7 +586,7 @@ public class DenizenCombatSheet extends CombatSheet {
 		if (!hostPrefs.hasPref(Constants.HOUSE3_HORSE_WEAPON_SAME_BOX)) {
 			swingConstant = SwingConstants.RIGHT; //always ask where to place native horse
 		}
-		if (hotspotHash.get(Integer.valueOf(index))==null) {
+		if (hotspotHash.get(new Integer(index))==null) {
 			// Don't handle clicks unless there is a hotspot
 			return;
 		}
@@ -604,7 +604,7 @@ public class DenizenCombatSheet extends CombatSheet {
 				}
 				else if (combatFrame.getActionState()==Constants.COMBAT_ASSIGN) {
 					// Assign Target for character
-					combatFrame.assignTarget(filterEnemies(combatFrame.getActiveParticipant(),layoutHash.getList(Integer.valueOf(POS_ATTACKERS_BOX1))));
+					combatFrame.assignTarget(filterEnemies(combatFrame.getActiveParticipant(),layoutHash.getList(new Integer(POS_ATTACKERS_BOX1))));
 				}
 				else if (combatFrame.getActionState()==Constants.COMBAT_POSITIONING) {
 					ArrayList list = getAllBoxListFromLayout(POS_ATTACKERS_BOX1);
@@ -644,7 +644,7 @@ public class DenizenCombatSheet extends CombatSheet {
 			case POS_DEFENDER_DUCK_THRUST:
 				if (combatFrame.getActionState()==Constants.COMBAT_LURE) {
 					// Flip the counter
-					ArrayList list = layoutHash.getList(Integer.valueOf(index));
+					ArrayList list = layoutHash.getList(new Integer(index));
 					for (java.util.Iterator _j14it649 = (list).iterator(); _j14it649.hasNext(); ) {
 					  RealmComponent rc = (RealmComponent) _j14it649.next();
 						rc.flip();
@@ -695,11 +695,11 @@ public class DenizenCombatSheet extends CombatSheet {
 				else if (combatFrame.getActionState()==Constants.COMBAT_ASSIGN) {
 					// Character target assignment
 					ArrayList list = new ArrayList();
-					ArrayList list1 = layoutHash.getList(Integer.valueOf(POS_DEFENDER_BOX1));
+					ArrayList list1 = layoutHash.getList(new Integer(POS_DEFENDER_BOX1));
 					if (list1!=null) {
 						list.addAll(list1);
 					}
-					ArrayList list2 = layoutHash.getList(Integer.valueOf(POS_DEFENDER));
+					ArrayList list2 = layoutHash.getList(new Integer(POS_DEFENDER));
 					if (list2!=null) {
 						list.addAll(list2);
 					}
@@ -718,13 +718,13 @@ public class DenizenCombatSheet extends CombatSheet {
 				if (combatFrame.getActionState()==Constants.COMBAT_ASSIGN) {
 					if (sheetOwner.getTarget()==null && sheetOwner.get2ndTarget()==null) {
 						// Assign Target for denizen (sheetOwner)
-						combatFrame.assignTarget(sheetOwner,layoutHash.getList(Integer.valueOf(POS_ATTACKERS_BOX1)));
+						combatFrame.assignTarget(sheetOwner,layoutHash.getList(new Integer(POS_ATTACKERS_BOX1)));
 						updateLayout(); // so target can move to new box, if needed
 						repaint();
 					}
 					else {
 						// Assign Target for character from defenders target box
-						combatFrame.assignTarget(layoutHash.getList(Integer.valueOf(POS_DEFENDER_TARGET_BOX3)));
+						combatFrame.assignTarget(layoutHash.getList(new Integer(POS_DEFENDER_TARGET_BOX3)));
 					}
 				}
 				else if (combatFrame.getActionState()==Constants.COMBAT_POSITIONING) {
@@ -965,7 +965,7 @@ public class DenizenCombatSheet extends CombatSheet {
 	}
 	
 	public boolean canLureMoreDenizens() {
-		ArrayList c = layoutHash.getList(Integer.valueOf(DenizenCombatSheet.POS_ATTACKERS_BOX1));
+		ArrayList c = layoutHash.getList(new Integer(DenizenCombatSheet.POS_ATTACKERS_BOX1));
 		return (c==null || c.size()==0)?true:false;
 	}
 	
@@ -1007,7 +1007,7 @@ public class DenizenCombatSheet extends CombatSheet {
 		sheet.squareGroup.changeTacticsRoller2 = CombatSheet.makeRoller("2:4");
 		sheet.squareGroup.changeTacticsRoller3 = CombatSheet.makeRoller("2:4");
 		for (int i=0;i<16;i++) {
-			sheet.hotspotHash.put(Integer.valueOf(i),"test");
+			sheet.hotspotHash.put(new Integer(i),"test");
 		}
 		frame.getContentPane().add(sheet,"Center");
 		frame.setSize(800,600);

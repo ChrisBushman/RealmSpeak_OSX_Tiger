@@ -86,7 +86,7 @@ public class AbilityEditor extends GenericEditor {
 	}
 	private void initComponents() {
 		setSize(800,1000);
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BorderLayout());
 		editPanel = null;
 		JDialog frame = new JDialog();
 		AbilityType _at = type;
@@ -120,8 +120,8 @@ public class AbilityEditor extends GenericEditor {
 		if (editPanel==null) {
 			throw new IllegalStateException("Unsupported AbilityType "+type.toString());
 		}
-		add(editPanel);
-		add(buildOkCancelLine(),BorderLayout.SOUTH);
+		getContentPane().add(editPanel);
+		getContentPane().add(buildOkCancelLine(),BorderLayout.SOUTH);
 	}
 	public static void main(String[] args) {
 		ComponentTools.setSystemLookAndFeel();

@@ -38,7 +38,7 @@ public class Note {
 		}
 		else {
 			try {
-				Long gid = Long.valueOf(source);
+				Long gid = new Long(source);
 				go = data.getGameObject(gid);
 			}
 			catch(NumberFormatException ex) {

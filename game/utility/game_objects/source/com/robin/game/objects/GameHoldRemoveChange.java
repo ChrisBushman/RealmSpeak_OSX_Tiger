@@ -20,7 +20,7 @@ public class GameHoldRemoveChange extends GameObjectChange {
 //		return false;
 //	}
 	public void setHoldId(long val) {
-		holdId = Long.valueOf(val);
+		holdId = new Long(val);
 	}
 	protected void applyChange(GameData data,GameObject go) {
 		GameObject toRemove = data.getGameObject(holdId);

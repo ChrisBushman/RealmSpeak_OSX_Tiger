@@ -773,13 +773,13 @@ public class BattleBuilder extends JFrame {
 		for (java.util.Iterator _j14it725 = (spells).iterator(); _j14it725.hasNext(); ) {
 		  GameObject spell = (GameObject) _j14it725.next();
 			String spellType = spell.getThisAttribute("spell").trim();
-			if (spellType.length()==0 || !"IIIVIII".contains(spellType)) {
+			if (spellType.length()==0 || "IIIVIII".indexOf(spellType) < 0) {
 				toRemove.add(spell);
 				continue;
 			}
 			
 			String target = spell.getThisAttribute("target");
-			if (!"character,individual,monster".contains(target)) { // I'm only supporting these for the battle builder
+			if ("character,individual,monster".indexOf(target) < 0) { // I'm only supporting these for the battle builder
 				toRemove.add(spell);
 				continue;
 			}

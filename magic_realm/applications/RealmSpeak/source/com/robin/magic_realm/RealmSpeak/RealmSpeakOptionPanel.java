@@ -388,7 +388,7 @@ public class RealmSpeakOptionPanel extends JDialog {
 	}
 	
 	private void initComponents() {
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BorderLayout());
 		
 		JPanel center = new JPanel(new GridLayout(1,3));
 				
@@ -426,7 +426,7 @@ public class RealmSpeakOptionPanel extends JDialog {
 		right.add(Box.createVerticalGlue());
 		center.add(right);
 		
-		add(center,BorderLayout.CENTER);
+		getContentPane().add(center,BorderLayout.CENTER);
 		
 		Box buttons = Box.createHorizontalBox();
 		buttons.add(Box.createHorizontalGlue());
@@ -457,7 +457,7 @@ public class RealmSpeakOptionPanel extends JDialog {
 		buttons.add(cancelButton);
 		buttons.add(okButton);
 		getRootPane().setDefaultButton(okButton);
-		add(buttons,BorderLayout.SOUTH);
+		getContentPane().add(buttons,BorderLayout.SOUTH);
 		pack();
 	}
 	private void close() {

@@ -31,7 +31,7 @@ public class FogEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2473 = (ids).iterator(); _j14it2473.hasNext(); ) {
 			  String id = (String) _j14it2473.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				tile.removeThisAttribute(Constants.EVENT_FOG);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_FOG,id);
 			}
@@ -47,7 +47,7 @@ public class FogEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2474 = (ids).iterator(); _j14it2474.hasNext(); ) {
 			  String id = (String) _j14it2474.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				text = text + tile.getNameWithNumber() + ", ";
 			}
 		}

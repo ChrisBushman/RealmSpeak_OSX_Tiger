@@ -54,7 +54,7 @@ public class AttributeEditor extends AggressiveDialog {
 	}
 
 	private void initComponents(String title) {
-		setLayout(new BorderLayout(10, 10));
+		getContentPane().setLayout(new BorderLayout(10, 10));
 
 		Box top = Box.createHorizontalBox();
 		editTypeButton = new JToggleButton();
@@ -74,12 +74,12 @@ public class AttributeEditor extends AggressiveDialog {
 		ComponentTools.lockComponentSize(editTypeButton, 100, 23);
 		top.add(Box.createHorizontalGlue());
 		top.add(editTypeButton);
-		add(top, "North");
+		getContentPane().add(top, "North");
 
 		Box left = Box.createVerticalBox();
 		left.add(Box.createVerticalStrut(5));
 		left.add(new JLabel("     " + title));
-		add(left, "West");
+		getContentPane().add(left, "West");
 
 		Box bottom = Box.createHorizontalBox();
 		bottom.add(Box.createHorizontalGlue());
@@ -99,7 +99,7 @@ public class AttributeEditor extends AggressiveDialog {
 		});
 		bottom.add(cancelButton);
 		bottom.add(Box.createHorizontalGlue());
-		add(bottom, "South");
+		getContentPane().add(bottom, "South");
 
 		addButton = new JButton(IconFactory.findIcon("icons/plus.gif"));
 		addButton.setFocusable(false);
@@ -140,8 +140,8 @@ public class AttributeEditor extends AggressiveDialog {
 
 		editPanel = new JPanel();
 		buttonPanel = new JPanel();
-		add(buttonPanel, "East");
-		add(editPanel, "Center");
+		getContentPane().add(buttonPanel, "East");
+		getContentPane().add(editPanel, "Center");
 		
 		getRootPane().setDefaultButton(okayButton);
 

@@ -175,7 +175,7 @@ public class Quest extends GameObjectWrapper {
 		String id = getString(QUEST_OWNER);
 		if (id == null)
 			return null; // Original template card will never have an owner id
-		GameObject owner = getGameData().getGameObject(Long.valueOf(id));
+		GameObject owner = getGameData().getGameObject(new Long(id));
 		return new CharacterWrapper(owner);
 	}
 
@@ -249,7 +249,7 @@ public class Quest extends GameObjectWrapper {
 
 	public boolean usesLocationTag(String tag) {
 		String desc = getDescription();
-		if (desc != null && desc.contains(tag)) {
+		if (desc != null && desc.indexOf(tag) >= 0) {
 			return true;
 		}
 
@@ -274,7 +274,7 @@ public class Quest extends GameObjectWrapper {
 	
 	public boolean usesCounterTag(String tag) {
 		String desc = getDescription();
-		if (desc != null && desc.contains(tag)) {
+		if (desc != null && desc.indexOf(tag) >= 0) {
 			return true;
 		}
 
@@ -434,7 +434,7 @@ public class Quest extends GameObjectWrapper {
 	public QuestLocation getLostInventoryLocation() {
 		String id = getString(LOST_INVENTORY_LOCATION);
 		if (id != null) {
-			GameObject go = getGameData().getGameObject(Long.valueOf(id));
+			GameObject go = getGameData().getGameObject(new Long(id));
 			if (go != null) {
 				return new QuestLocation(go);
 			}
@@ -847,20 +847,20 @@ public class Quest extends GameObjectWrapper {
 		for (java.util.Iterator _j14it2248 = (allQuestObjects).iterator(); _j14it2248.hasNext(); ) {
 		  GameObject questGo = (GameObject) _j14it2248.next();
 			GameObject go = gameData.createNewObject(questGo);
-			lookup.put(Long.valueOf(questGo.getId()), go);
+			lookup.put(new Long(questGo.getId()), go);
 		}
 
 		// Now make sure the holds are setup correctly
 		for (java.util.Iterator _j14it2249 = (allQuestObjects).iterator(); _j14it2249.hasNext(); ) {
 		  GameObject questGo = (GameObject) _j14it2249.next();
-			GameObject go = (GameObject) lookup.get(Long.valueOf(questGo.getId()));
+			GameObject go = (GameObject) lookup.get(new Long(questGo.getId()));
 			for (java.util.Iterator _j14it2250 = (questGo.getHold()).iterator(); _j14it2250.hasNext(); ) {
 			  Object obj = (Object) _j14it2250.next();
 				GameObject held = (GameObject) obj;
-				go.add((GameObject) lookup.get(Long.valueOf(held.getId())));
+				go.add((GameObject) lookup.get(new Long(held.getId())));
 			}
 		}
-		Quest quest = new Quest((GameObject) lookup.get(Long.valueOf(getGameObject().getId())));
+		Quest quest = new Quest((GameObject) lookup.get(new Long(getGameObject().getId())));
 		for (java.util.Iterator _j14it2251 = (quest.getSteps()).iterator(); _j14it2251.hasNext(); ) {
 		  QuestStep step = (QuestStep) _j14it2251.next();
 			step.updateIds(lookup);

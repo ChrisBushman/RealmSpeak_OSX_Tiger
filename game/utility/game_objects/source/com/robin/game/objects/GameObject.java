@@ -69,7 +69,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 	}
 	
 	public GameObject getGameObjectFromId(String id) {
-		return id==null?null:getGameData().getGameObject(Long.valueOf(id));
+		return id==null?null:getGameData().getGameObject(new Long(id));
 	}
 	
 	/**
@@ -413,7 +413,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 		needHoldResolved = true;
 		for (java.util.Iterator _j14it97 = (obj.getHold()).iterator(); _j14it97.hasNext(); ) {
 		  GameObject held = (GameObject) _j14it97.next();
-			holdIds.add(Long.valueOf(held.getId()));
+			holdIds.add(new Long(held.getId()));
 		}
 	}
 
@@ -759,7 +759,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 		ArrayList fixedNegativeKeyVals = new ArrayList();
 		for (java.util.Iterator _j14it103 = (keyVals).iterator(); _j14it103.hasNext(); ) {
 		  String string = (String) _j14it103.next();
-			if (string.contains("|")) {
+			if (string.indexOf("|") >= 0) {
 				StringTokenizer tokens = new StringTokenizer(string, "|");
 				boolean keyFound = false;
 				while (tokens.hasMoreTokens()) {
@@ -1417,7 +1417,7 @@ public class GameObject extends ModifyableObject implements Serializable {
 			for (Iterator i = contains.iterator(); i.hasNext();) {
 				Element contain = (Element) i.next();
 				String csid = contain.getAttribute("id").getValue();
-				holdIds.add(Long.valueOf(csid));
+				holdIds.add(new Long(csid));
 			}
 			needHoldResolved = true;
 			setModified(true);

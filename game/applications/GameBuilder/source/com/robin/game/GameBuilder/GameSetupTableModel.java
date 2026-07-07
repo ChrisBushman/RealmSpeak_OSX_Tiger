@@ -38,7 +38,7 @@ public class GameSetupTableModel extends AbstractTableModel implements ColumnSiz
 				case 0:
 					return setup.getName();
 				case 1:
-					return Integer.valueOf(setup.getCommandCount());
+					return new Integer(setup.getCommandCount());
 				default:
 					throw new IllegalArgumentException("Invalid column index");
 			}

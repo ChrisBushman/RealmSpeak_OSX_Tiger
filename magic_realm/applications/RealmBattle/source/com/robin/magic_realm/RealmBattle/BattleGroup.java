@@ -59,7 +59,7 @@ public class BattleGroup implements Comparable {
 		return battleParticipants;
 	}
 	public boolean contains(RealmComponent rc) {
-		return battleParticipants.contains(rc);
+		return battleParticipants.indexOf(rc) >= 0;
 	}
 	/**
 	 * @return	The Character if present in the battle group, or null

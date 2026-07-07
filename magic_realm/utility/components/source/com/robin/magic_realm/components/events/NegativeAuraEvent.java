@@ -27,7 +27,7 @@ public class NegativeAuraEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2453 = (ids).iterator(); _j14it2453.hasNext(); ) {
 			  String id = (String) _j14it2453.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				tile.removeThisAttribute(Constants.EVENT_NEGATIVE_AURA);
 				RealmEvents.removeEffectForTile(config,Constants.EVENT_NEGATIVE_AURA,id);
 			}
@@ -43,7 +43,7 @@ public class NegativeAuraEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2454 = (ids).iterator(); _j14it2454.hasNext(); ) {
 			  String id = (String) _j14it2454.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				text = text + tile.getNameWithNumber() + ", ";
 			}
 		}

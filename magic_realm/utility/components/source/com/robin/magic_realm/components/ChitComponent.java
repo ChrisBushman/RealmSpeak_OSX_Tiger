@@ -123,7 +123,7 @@ public abstract class ChitComponent extends RealmComponent {
 	public Integer getFaceAttributeInteger(String val) {
 	    String ret = getFaceAttributeString(val);
 	    try {
-	        Integer n = Integer.valueOf(ret);
+	        Integer n = new Integer(ret);
 	        return n;
 	    }
 	    catch(NumberFormatException ex) {

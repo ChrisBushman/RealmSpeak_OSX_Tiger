@@ -60,7 +60,7 @@ public class ArmorEditDialog extends AggressiveDialog {
 	}
 	private void initComponents() {
 		setSize(800,680);
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BorderLayout());
 		
 		JPanel mainPanel = new JPanel(new GridLayout(2,1));
 		
@@ -241,7 +241,7 @@ public class ArmorEditDialog extends AggressiveDialog {
 		sideEditPanel[1] = new SideEditPanel(sideLabel[1],"damaged");
 		sideEditPanels.add(sideEditPanel[1]);
 		mainPanel.add(sideEditPanels);
-		add(mainPanel,"Center");
+		getContentPane().add(mainPanel,"Center");
 		
 		Box buttonsPanel = Box.createHorizontalBox();
 		buttonsPanel.add(Box.createHorizontalGlue());
@@ -259,7 +259,7 @@ public class ArmorEditDialog extends AggressiveDialog {
 				ArrayList list = TemplateLibrary.getSingleton().getAllArmorNames();
 				for (java.util.Iterator _j14it901 = (model.getAllArmorNames()).iterator(); _j14it901.hasNext(); ) {
 				  String val = (String) _j14it901.next();
-					if (!list.contains(val)) {
+					if (list.indexOf(val) < 0) {
 						list.add(val);
 					}
 				}
@@ -294,12 +294,12 @@ public class ArmorEditDialog extends AggressiveDialog {
 		});
 		buttonsPanel.add(doneButton);
 		buttonsPanel.add(Box.createHorizontalGlue());
-		add(buttonsPanel,"South");
+		getContentPane().add(buttonsPanel,"South");
 		
 		nameField = new JLabel("",SwingConstants.CENTER);
 		ComponentTools.lockComponentSize(nameField,450,35);
 		nameField.setFont(new Font("Dialog",Font.BOLD,32));
-		add(nameField,"North");
+		getContentPane().add(nameField,"North");
 		
 		updateControls();
 	}
@@ -504,7 +504,7 @@ public class ArmorEditDialog extends AggressiveDialog {
 			this.iconLabel = iconLabel;
 			this.sideName = sideNameIn;
 			
-			setLayout(new BorderLayout());
+			getContentPane().setLayout(new BorderLayout());
 			UniformLabelGroup group = new UniformLabelGroup();
 			Box line;
 			Box box = Box.createVerticalBox();
@@ -532,7 +532,7 @@ public class ArmorEditDialog extends AggressiveDialog {
 				line.add(priceField);
 			box.add(line);
 			box.add(Box.createVerticalGlue());			
-			add(box,"Center");
+			getContentPane().add(box,"Center");
 			
 			setBorder(BorderFactory.createTitledBorder(StringUtilities.capitalize(sideName)));
 		}

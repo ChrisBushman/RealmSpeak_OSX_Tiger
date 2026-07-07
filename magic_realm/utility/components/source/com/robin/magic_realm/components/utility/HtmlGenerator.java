@@ -54,7 +54,7 @@ public class HtmlGenerator {
 	}
 	protected void writeString(String path,String title,String string,String returnTarget) {
 		try {
-			PrintStream stream = new PrintStream(path);
+			PrintStream stream = new PrintStream(new java.io.FileOutputStream(path));
 			stream.println("<html><head><title>"+title+"</title></head><body>");
 			stream.println(string);
 			stream.println("<br><br><h4><a href=\""+returnTarget+"\">Return</a></h4>");

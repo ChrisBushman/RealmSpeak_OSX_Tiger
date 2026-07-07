@@ -46,9 +46,9 @@ public class MinorCharacterEditor extends GenericEditor {
 	private void initComponents() {
 		setTitle("Minor Character");
 		setSize(640,480);
-		setLayout(new BorderLayout());
-		add(buildForm(),BorderLayout.CENTER);
-		add(buildOkCancelLine(),BorderLayout.SOUTH);
+		getContentPane().setLayout(new BorderLayout());
+		getContentPane().add(buildForm(),BorderLayout.CENTER);
+		getContentPane().add(buildOkCancelLine(),BorderLayout.SOUTH);
 		
 		updateControls();
 	}

@@ -365,7 +365,7 @@ public class HexMap extends JComponent implements Scrollable {
 		Hashtable markHash = new Hashtable();
 		
 		// Now iteratively search for non-occupied hexes adjacent to a distance
-		Integer distance = Integer.valueOf(0);
+		Integer distance = new Integer(0);
 		while(toMark.size()>0) {
 			// Mark the toMark
 			for (java.util.Iterator _j14it185 = (toMark).iterator(); _j14it185.hasNext(); ) {
@@ -389,7 +389,7 @@ public class HexMap extends JComponent implements Scrollable {
 			}
 			
 			// Increment the distance
-			distance = Integer.valueOf(distance.intValue()+1);
+			distance = new Integer(distance.intValue()+1);
 		}
 		return markHash;
 	}
@@ -911,7 +911,7 @@ public class HexMap extends JComponent implements Scrollable {
 					flag |= BORDER_BIT[n];
 				}
 			}
-			selectionBorder.put(pos,Integer.valueOf(flag));
+			selectionBorder.put(pos,new Integer(flag));
 		}
 	}
 	public boolean isSelected(HexMapPoint pos) {

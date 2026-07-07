@@ -128,7 +128,7 @@ public class RealmBattle {
 					}
 					else {
 						// COMBAT_PREBATTLE will be tested in the nextCombatAction method, and will be skipped if unnecessary
-						if (!battleLocations.contains(tl)) {
+						if (battleLocations.indexOf(tl) < 0) {
 							battleLocations.add(tl);
 							logger.finer("combat in "+tl);
 						}
@@ -164,7 +164,7 @@ public class RealmBattle {
 			CharacterWrapper aChar = new CharacterWrapper(rc.getGameObject());
 			int astate = aChar.getCombatStatus();
 			if (astate>0) {
-				lists.put(Integer.valueOf(astate),aChar);
+				lists.put(new Integer(astate),aChar);
 			}
 		}
 		return lists;

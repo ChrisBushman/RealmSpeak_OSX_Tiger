@@ -500,7 +500,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 			  String pacifyBlock = (String) _j14it1331.next();
 				String charId = getGameObject().getAttribute(pacifyBlock,"pacifyChar");
 				if (charId.equals(testId)) {
-					pacifyType = Integer.valueOf(getGameObject().getInt(pacifyBlock,"pacifyType"));
+					pacifyType = new Integer(getGameObject().getInt(pacifyBlock,"pacifyType"));
 				}
 			}
 		}
@@ -528,7 +528,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 				if (pacified) {
 					int testPacify = test.getThisInt("pacifyType");
 					if (pacifyType==null || testPacify>pacifyType.intValue()) { // use the BEST one
-						pacifyType = Integer.valueOf(testPacify);
+						pacifyType = new Integer(testPacify);
 					}
 				}
 			}
@@ -544,7 +544,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 			  String pacifyBlock = (String) _j14it1334.next();
 				String charId = getGameObject().getAttribute(pacifyBlock,"pacifyChar");
 				if (charId.equals(testId)) {
-					GameObject theSpell = getGameObject().getGameData().getGameObject(Long.valueOf(pacifyBlock.substring(6)));
+					GameObject theSpell = getGameObject().getGameData().getGameObject(new Long(pacifyBlock.substring(6)));
 					return new SpellWrapper(theSpell);
 				}
 			}
@@ -1000,7 +1000,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		}
 		if (comp != null && cache) {
 			Hashtable componentHash = getComponentHash(obj);
-			componentHash.put(Long.valueOf(obj.getId()), comp);
+			componentHash.put(new Long(obj.getId()), comp);
 		}
 		return comp;
 	}
@@ -1034,7 +1034,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		if (dataComponentHash == null) {
 			dataComponentHash = new Hashtable();
 		}
-		Long dataid = Long.valueOf(data.getDataId());
+		Long dataid = new Long(data.getDataId());
 		Hashtable componentHash = (Hashtable) dataComponentHash.get(dataid);
 		if (componentHash == null) {
 			componentHash = new Hashtable();
@@ -1077,7 +1077,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		RealmComponent comp = null;
 		Hashtable componentHash = getComponentHash(obj);
 		if (componentHash != null) {
-			comp = (RealmComponent) componentHash.get(Long.valueOf(obj.getId()));
+			comp = (RealmComponent) componentHash.get(new Long(obj.getId()));
 		}
 		if (comp == null) {
 			comp = createRealmComponent(obj,true);
@@ -1112,7 +1112,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 		Hashtable componentHash = getComponentHash(dataSource);
 		if (stringId != null && componentHash != null) {
 			try {
-				Long id = Long.valueOf(stringId);
+				Long id = new Long(stringId);
 				GameObject go = dataSource.getGameObject(id);
 				if (go!=null) {
 					return getRealmComponent(go);
@@ -1214,7 +1214,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 			int limit = getGameObject().getThisInt(Constants.MONSTER_CONTROL_LIMIT);
 			for (java.util.Iterator _j14it1338 = (getGameObject().getThisAttributeList(Constants.MONSTER_CONTROL)).iterator(); _j14it1338.hasNext(); ) {
 			  String type = (String) _j14it1338.next();
-				controls.put(type,new Integer[] {Integer.valueOf(duration),Integer.valueOf(limit)});
+				controls.put(type,new Integer[] {new Integer(duration),new Integer(limit)});
 			}
 		}
 		if (isCharacter()) {
@@ -1229,7 +1229,7 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 						Integer[] values = (Integer[]) controls.get(type);
 						int durationCalc = values==null?duration:((values[0].intValue()==0||duration==0)?0:Math.max(values[0].intValue(), duration));
 						int limitCalc = values==null?limit:((values[1].intValue()==0||limit==0)?0:values[1].intValue()+limit);
-						controls.put(type,new Integer[] {Integer.valueOf(durationCalc),Integer.valueOf(limitCalc)});
+						controls.put(type,new Integer[] {new Integer(durationCalc),new Integer(limitCalc)});
 					}
 				}
 			}
@@ -1242,14 +1242,14 @@ public abstract class RealmComponent extends JComponent implements Comparable {
 	public Integer getControllableMonsterDuration(boolean enhancedOnly,String monsterType) {
 		if (getControllableMonsters(enhancedOnly).get(monsterType)!=null) {
 			int duration = ((Integer[]) getControllableMonsters(enhancedOnly).get(monsterType))[0].intValue();
-			return duration==0?Integer.valueOf(Constants.TEN_YEARS):Integer.valueOf(duration);
+			return duration==0?new Integer(Constants.TEN_YEARS):new Integer(duration);
 		}
 		return null;
 	}
 	public Integer getControllableMonsterLimit(boolean enhancedOnly,String monsterType) {
 		if (getControllableMonsters(enhancedOnly).get(monsterType)!=null) {
 			int limit = ((Integer[]) getControllableMonsters(enhancedOnly).get(monsterType))[1].intValue();
-			return limit==0?Integer.valueOf(999):Integer.valueOf(limit);
+			return limit==0?new Integer(999):new Integer(limit);
 		}
 		return null;
 	}

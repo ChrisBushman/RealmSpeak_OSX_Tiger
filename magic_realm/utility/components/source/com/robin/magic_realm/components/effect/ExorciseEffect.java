@@ -18,7 +18,7 @@ public class ExorciseEffect implements ISpellEffect {
 		}
 		if (context.Target.getGameObject().hasThisAttribute(Constants.DEMON)||context.Target.getGameObject().hasThisAttribute(Constants.IMP)||context.Target.getGameObject().hasThisAttribute(Constants.DEVIL)||context.Target.getGameObject().hasThisAttribute(Constants.VAMPIRE)||context.Target.getGameObject().hasThisAttribute(Constants.SUCCUBUS)) {
 			combat.setKilledBy(context.Caster);
-			combat.setKilledLength(Integer.valueOf(18));
+			combat.setKilledLength(new Integer(18));
 			combat.setKilledSpeed(context.Spell.getAttackSpeed());
 		}
 		else if (context.Target.isDenizen()) {

@@ -623,7 +623,7 @@ public class CombatFrame extends JFrame {
 		}
 		ret = theGame.getNextInformation(myName);
 		if (ret!=null) {
-			GameObject go = gameData.getGameObject(Long.valueOf(ret[0]));
+			GameObject go = gameData.getGameObject(new Long(ret[0]));
 			RealmComponent rc = RealmComponent.getRealmComponent(go);
 			if (rc.isCharacter()) {
 				CharacterWrapper character = new CharacterWrapper(go);
@@ -688,7 +688,7 @@ public class CombatFrame extends JFrame {
 			if (list.size()>0) {
 				String denizenId = (String) list.remove(0);
 				activeCharacter.getGameObject().setThisAttributeList(Constants.RANDOM_ASSIGNMENT_WINNER,list);
-				GameObject go = gameData.getGameObject(Long.valueOf(denizenId));
+				GameObject go = gameData.getGameObject(new Long(denizenId));
 				RealmComponent denizen = RealmComponent.getRealmComponent(go);
 				denizenPanel.setSelected(denizen);
 				denizenPanel.disableSelection(); // prevents changing selections
@@ -3788,7 +3788,7 @@ public class CombatFrame extends JFrame {
 			if (!combat.isLockNext()) {
 				CharacterWrapper character = new CharacterWrapper(rc.getGameObject());
 				String charPlayerName = character.getPlayerName();
-				if (!charPlayerName.equals(playerName) && !playersToRespond.contains(charPlayerName)) {
+				if (!charPlayerName.equals(playerName) && playersToRespond.indexOf(charPlayerName) < 0) {
 					playersToRespond.add(charPlayerName);
 				}
 			}

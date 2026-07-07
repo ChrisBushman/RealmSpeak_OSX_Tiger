@@ -625,13 +625,13 @@ public class BattleModel {
 			CombatWrapper character = new CombatWrapper(rc.getGameObject());
 			GameObject go = character.getCastSpell();
 			if (go!=null) {
-				if (!spellCasters.contains(rc)) {
+				if (spellCasters.indexOf(rc) < 0) {
 					spellCasters.add(rc);
 				}
 				SpellWrapper spell = new SpellWrapper(go);
 				if (spell.isAlive()) { // A spell might not be alive if it was already energized this round
-					spells.put(Integer.valueOf(spell.getAttackSpeed().getNum()),spell);
-					casters.put(Integer.valueOf(spell.getAttackSpeed().getNum()),rc);
+					spells.put(new Integer(spell.getAttackSpeed().getNum()),spell);
+					casters.put(new Integer(spell.getAttackSpeed().getNum()),rc);
 				}
 			}
 		}
@@ -649,9 +649,9 @@ public class BattleModel {
 					continue;
 				}
 				
-				if (hostPrefs.hasPref(Constants.OPT_POWER_OF_THE_PIT_DEMON) && Constants.POWER_OF_THE_PIT.matches(denizen.getAttackSpell()) && !spellCasters.contains(denizen)) {
+				if (hostPrefs.hasPref(Constants.OPT_POWER_OF_THE_PIT_DEMON) && Constants.POWER_OF_THE_PIT.matches(denizen.getAttackSpell()) && spellCasters.indexOf(denizen) < 0) {
 					spellCasters.add(denizen);
-					monsterSpells.put(Integer.valueOf(denizen.getAttackSpeed().getNum()),denizen);
+					monsterSpells.put(new Integer(denizen.getAttackSpeed().getNum()),denizen);
 				}
 				else if ((denizen.getGameObject().hasThisAttribute(Constants.FAST_CASTER) || ((ChitComponent)denizen).hasFaceAttribute(Constants.FAST_CASTER))
 						&& denizen.getMagicType()!=null&&(denizen.getMagicType().length() > 0)) {
@@ -670,7 +670,7 @@ public class BattleModel {
 							boolean validTarget = spell.selectTargetForDenizen(hostPrefs, battleLocation, denizen,denizen.getTarget());
 							if (validTarget) {
 								spell.castSpellByDenizen(denizen.getGameObject());
-								spells.put(Integer.valueOf(denizen.getAttackSpeed().getNum()),spell);
+								spells.put(new Integer(denizen.getAttackSpeed().getNum()),spell);
 							}
 						} else {
 							logBattleInfo(denizen.getGameObject().getNameWithNumber()+" is affected by Exorcise and thus cannot cast "+spell.getName()+".");
@@ -765,7 +765,7 @@ public class BattleModel {
 						for (java.util.Iterator _j14it423 = (monstersAtSpeed).iterator(); _j14it423.hasNext(); ) {
 						  BattleChit monster = (BattleChit) _j14it423.next();
 							RealmComponent target = monster.getTarget();
-							if (target == null || (unaffectedCasters != null && unaffectedCasters.contains(target))) continue;
+							if (target == null || (unaffectedCasters != null && unaffectedCasters.indexOf(target) >= 0)) continue;
 							CombatWrapper combat = new CombatWrapper(target.getGameObject());
 							GameObject spellToCancelGo = combat.getCastSpell();
 							if (spellToCancelGo == null) continue;
@@ -1278,7 +1278,7 @@ public class BattleModel {
 			if (killedBy!=null) {
 				killedTallyHash.put(combat.getGameObject(),killedBy);
 				killTallyHash.put(killedBy,combat.getGameObject());
-				if (!killerOrder.contains(killedBy)) killerOrder.add(killedBy);
+				if (killerOrder.indexOf(killedBy) < 0) killerOrder.add(killedBy);
 			}
 		}
 	}
@@ -1372,7 +1372,7 @@ public class BattleModel {
 		  BattleChit battleChit = (BattleChit) _j14it451.next();
 			String key = null;
 			key = battleChit.getLength()+":"+battleChit.getAttackSpeed().getNum();
-			if (!attackBlockOrder.contains(key)) {
+			if (attackBlockOrder.indexOf(key) < 0) {
 				attackBlockOrder.add(key);
 			}
 			attackBlocks.put(key,battleChit);
@@ -2287,7 +2287,7 @@ public class BattleModel {
 					
 					killedTallyHash.put(target.getGameObject(),attackerGo);
 					killTallyHash.put(attackerGo,target.getGameObject());
-					if (!killerOrder.contains(attackerGo)) killerOrder.add(attackerGo);
+					if (killerOrder.indexOf(attackerGo) < 0) killerOrder.add(attackerGo);
 					BattleUtility.handleSpoilsOfWar(rc,targetRc);
 				}
 				else {
@@ -3465,7 +3465,7 @@ public class BattleModel {
 				for (java.util.Iterator _j14it503 = (hqs).iterator(); _j14it503.hasNext(); ) {
 				  GameObject hq = (GameObject) _j14it503.next();
 					String nativeClanName = hq.getThisAttribute("native").toLowerCase();
-					if (!affectedClans.contains(nativeClanName) && !allFoes.contains(nativeClanName) && !responsibleCharacter.hasChangedRelationshipToday(hq)) {
+					if (affectedClans.indexOf(nativeClanName) < 0 && allFoes.indexOf(nativeClanName) < 0 && !responsibleCharacter.hasChangedRelationshipToday(hq)) {
 						affectedClans.add(hq.getThisAttribute("native").toLowerCase());
 						responsibleCharacter.changeRelationship(hq,-1);
 						String newClanRelString = RealmUtility.getRelationshipNameFor(responsibleCharacter,RealmComponent.getRealmComponent(hq));
@@ -3612,7 +3612,7 @@ public class BattleModel {
 		SpellWrapper spell = null;
 		TileLocation tl = null;
 		if (blownSpellId!=null) {
-			GameObject go = gameData.getGameObject(Long.valueOf(blownSpellId));
+			GameObject go = gameData.getGameObject(new Long(blownSpellId));
 			spell = new SpellWrapper(go);
 			TileComponent tile = (TileComponent)RealmComponent.getRealmComponent(spell.getSecondaryTarget());
 			tl = new TileLocation(tile,true);

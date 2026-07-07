@@ -20,7 +20,7 @@ public class EventSpellCardComponent extends SpellCardComponent implements Battl
 	public Integer getLength() {
 		if (getGameObject().hasThisAttribute("length")) {
 			int len = getGameObject().getThisInt("length");
-			return Integer.valueOf(len);
+			return new Integer(len);
 		}
 		return null;
 	}

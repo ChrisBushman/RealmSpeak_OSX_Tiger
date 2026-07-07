@@ -346,7 +346,7 @@ the Appearance Chart, he instantly becomes unhired.
 		if (list!=null) {
 			for (java.util.Iterator _j14it2625 = (list).iterator(); _j14it2625.hasNext(); ) {
 			  String id = (String) _j14it2625.next();
-				GameObject go = gameData.getGameObject(Long.valueOf(id));
+				GameObject go = gameData.getGameObject(new Long(id));
 				created.add(go);
 			}
 		}

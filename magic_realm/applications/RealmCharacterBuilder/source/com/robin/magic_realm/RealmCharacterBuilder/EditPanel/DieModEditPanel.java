@@ -170,7 +170,7 @@ public class DieModEditPanel extends AdvantageEditPanel {
 			}
 			else {
 				JCheckBox optionBox = (JCheckBox) optionsHash.get(option);
-				if (targetOptions.contains(optionBox)) {
+				if (targetOptions.indexOf(optionBox) >= 0) {
 					optionBox.setSelected(true);
 				}
 			}
@@ -226,7 +226,7 @@ public class DieModEditPanel extends AdvantageEditPanel {
 			for (java.util.Iterator _j14it943 = (optionsHash.keySet()).iterator(); _j14it943.hasNext(); ) {
 			  String option = (String) _j14it943.next();
 				JCheckBox control = (JCheckBox) optionsHash.get(option);
-				if (control.isSelected() && specificTableOptions.contains(control)) {
+				if (control.isSelected() && specificTableOptions.indexOf(control) >= 0) {
 					tableKey.append(option);
 				}
 			}
@@ -240,7 +240,7 @@ public class DieModEditPanel extends AdvantageEditPanel {
 			for (java.util.Iterator _j14it944 = (optionsHash.keySet()).iterator(); _j14it944.hasNext(); ) {
 			  String option = (String) _j14it944.next();
 				JCheckBox control = (JCheckBox) optionsHash.get(option);
-				if (control.isSelected() && specificConditionOptions.contains(control)) {
+				if (control.isSelected() && specificConditionOptions.indexOf(control) >= 0) {
 					conditionKey.append(option);
 				}
 			}
@@ -275,7 +275,7 @@ public class DieModEditPanel extends AdvantageEditPanel {
 			for (java.util.Iterator _j14it945 = (optionsHash.keySet()).iterator(); _j14it945.hasNext(); ) {
 			  String option = (String) _j14it945.next();
 				JCheckBox control = (JCheckBox) optionsHash.get(option);
-				if (control.isSelected() && specificTableOptions.contains(control)) {
+				if (control.isSelected() && specificTableOptions.indexOf(control) >= 0) {
 					list.append(control.getText().toUpperCase());
 					count++;
 				}
@@ -290,7 +290,7 @@ public class DieModEditPanel extends AdvantageEditPanel {
 			for (java.util.Iterator _j14it946 = (optionsHash.keySet()).iterator(); _j14it946.hasNext(); ) {
 			  String option = (String) _j14it946.next();
 				JCheckBox control = (JCheckBox) optionsHash.get(option);
-				if (control.isSelected() && specificConditionOptions.contains(control)) {
+				if (control.isSelected() && specificConditionOptions.indexOf(control) >= 0) {
 					list.append(control.getText());
 				}
 			}

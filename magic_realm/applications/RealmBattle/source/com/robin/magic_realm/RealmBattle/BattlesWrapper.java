@@ -86,7 +86,7 @@ public class BattlesWrapper extends GameObjectWrapper {
 						for (java.util.Iterator _j14it680 = (controllableMonsters.keySet()).iterator(); _j14it680.hasNext(); ) {
 						  String monsterType = (String) _j14it680.next();
 							if (monster.getGameObject().getName().matches(monsterType.toString())) {
-								if (!characterCanControl.contains(characterRc) && (((int[]) controllableMonsters.get(monsterType))[1]==0 || (new CharacterWrapper(characterRc.getGameObject()).getAllControlledMonstersWithSameName(monsterType).size()<((int[]) controllableMonsters.get(monsterType))[1]))) {
+								if (characterCanControl.indexOf(characterRc) < 0 && (((int[]) controllableMonsters.get(monsterType))[1]==0 || (new CharacterWrapper(characterRc.getGameObject()).getAllControlledMonstersWithSameName(monsterType).size()<((int[]) controllableMonsters.get(monsterType))[1]))) {
 									characterCanControl.add(characterRc);
 								}
 							}

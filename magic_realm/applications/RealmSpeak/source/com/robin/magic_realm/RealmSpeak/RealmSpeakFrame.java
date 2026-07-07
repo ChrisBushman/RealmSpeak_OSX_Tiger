@@ -1114,8 +1114,8 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 				organizeWindow[1] = new JMenuItem("Maximized Layout");
 				organizeWindow[1].addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent ev) {
-						mapForceLayout = Integer.valueOf((int)desktop.getSize().getWidth()-500);
-						characterFrameForceLayout = Integer.valueOf(500);
+						mapForceLayout = new Integer((int)desktop.getSize().getWidth()-500);
+						characterFrameForceLayout = new Integer(500);
 						organize();
 					}
 				});
@@ -1123,7 +1123,7 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 				organizeWindow[2] = new JMenuItem("Full Map Layout");
 				organizeWindow[2].addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent ev) {
-						mapForceLayout = Integer.valueOf((int)desktop.getSize().getWidth());
+						mapForceLayout = new Integer((int)desktop.getSize().getWidth());
 						characterFrameForceLayout = null;
 						organize();
 						if (gameHandler!=null && gameHandler.getInspector()!=null) {
@@ -2160,7 +2160,7 @@ public class RealmSpeakFrame extends JFrameWithStatus {
 	}
 	private static int readInt(String val) {
 		try {
-			Integer num = Integer.valueOf(val);
+			Integer num = new Integer(val);
 			return num.intValue();
 		}
 		catch(NumberFormatException ex) {

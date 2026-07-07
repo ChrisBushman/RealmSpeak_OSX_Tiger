@@ -77,6 +77,6 @@ public class QuestRequirementParams {
 	}
 	private static GameObject readGameObject(String val,GameData gameData) {
 		if (val==null) return null;
-		return gameData.getGameObject(Long.valueOf(val));
+		return gameData.getGameObject(new Long(val));
 	}
 }

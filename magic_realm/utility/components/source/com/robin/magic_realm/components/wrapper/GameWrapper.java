@@ -307,7 +307,7 @@ public class GameWrapper extends GameObjectWrapper {
 				ArrayList list = new ArrayList();
 				for (java.util.Iterator _j14it1513 = (ids).iterator(); _j14it1513.hasNext(); ) {
 				  String id = (String) _j14it1513.next();
-					list.add(getGameObject().getGameData().getGameObject(Long.valueOf(id)));
+					list.add(getGameObject().getGameData().getGameObject(new Long(id)));
 				}
 				return list;
 			}
@@ -392,7 +392,7 @@ public class GameWrapper extends GameObjectWrapper {
 			ArrayList list = pool.find(getKeyVals());
 			if (list.size()==1) {
 				GameObject gw = (GameObject) list.get(0);
-				GAME_ID = Long.valueOf(gw.getId());
+				GAME_ID = new Long(gw.getId());
 				return new GameWrapper(gw);
 			}
 		}
@@ -412,7 +412,7 @@ public class GameWrapper extends GameObjectWrapper {
 		
 		GameWrapper game = new GameWrapper(go);
 		game.setInitialValues();
-		GAME_ID = Long.valueOf(go.getId());
+		GAME_ID = new Long(go.getId());
 		
 		return game;
 	}

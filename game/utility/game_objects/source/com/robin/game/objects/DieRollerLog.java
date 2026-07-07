@@ -36,8 +36,8 @@ public class DieRollerLog implements DieRollerLoggable {
 		for (java.util.Iterator _j14it117 = (getDieRollers()).iterator(); _j14it117.hasNext(); ) {
 		  DieRoller roller = (DieRoller) _j14it117.next();
 			int nod = roller.getNumberOfDice();
-			if (!multiples.contains(Integer.valueOf(nod))) {
-				multiples.add(Integer.valueOf(nod));
+			if (!multiples.contains(new Integer(nod))) {
+				multiples.add(new Integer(nod));
 			}
 		}
 		Collections.sort(multiples);

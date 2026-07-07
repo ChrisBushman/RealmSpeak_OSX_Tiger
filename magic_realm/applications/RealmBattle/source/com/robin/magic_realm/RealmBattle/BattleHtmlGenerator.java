@@ -160,8 +160,8 @@ public class BattleHtmlGenerator extends HtmlGenerator {
 		ArrayList color = new ArrayList(); // only need to show one instance of each
 		for (java.util.Iterator _j14it768 = (current.clearing.getAllSourcesOfColor(true)).iterator(); _j14it768.hasNext(); ) {
 		  ColorMagic cm = (ColorMagic) _j14it768.next();
-			if (color.contains(Integer.valueOf(cm.getColorNumber()))) continue;
-			color.add(Integer.valueOf(cm.getColorNumber()));
+			if (color.contains(new Integer(cm.getColorNumber()))) continue;
+			color.add(new Integer(cm.getColorNumber()));
 			exportImage(path.path(cm.getColorName()+".jpg"),cm.getIcon(),1.0f,Color.white);
 			sb.append(generateImageElement(0,cm.getColorName(),cm.getColorName()+".jpg"));
 		}

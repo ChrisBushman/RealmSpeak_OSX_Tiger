@@ -53,7 +53,7 @@ public class MagicWeaponEffect implements ISpellEffect {
 			GameObject magicWeapon = context.Spell
 					.getGameObject()
 					.getGameData()
-					.getGameObject(Long.valueOf(context.Spell.getGameObject().getThisAttribute(Constants.MAGIC_WEAPON_ID)));
+					.getGameObject(new Long(context.Spell.getGameObject().getThisAttribute(Constants.MAGIC_WEAPON_ID)));
 			magicWeapon.getHeldBy().remove(magicWeapon);
 			context.Spell.getGameObject().removeThisAttribute(Constants.MAGIC_WEAPON_ID);
 		}

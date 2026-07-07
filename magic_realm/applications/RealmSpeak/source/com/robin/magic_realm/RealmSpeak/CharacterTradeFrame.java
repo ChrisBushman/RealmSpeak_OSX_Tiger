@@ -306,18 +306,18 @@ public class CharacterTradeFrame extends JFrame {
 			title.setOpaque(true);
 			title.setBackground(MagicRealmColor.LIGHTBLUE);
 			title.setFont(titleFont);
-			add(title,"North");
+			getContentPane().add(title,"North");
 			
 			boolean hasControl = clientName.equals(character.getPlayerName());
 			
 			view = new RealmObjectPanel(hasControl,false);
-			add(new JScrollPane(view),"Center");
+			getContentPane().add(new JScrollPane(view),"Center");
 			
 			discoveries = new ArrayList();
 			discoveryModel = new DiscoveryListModel(discoveries);
 			discoveryList = new JList(discoveryModel);
 			discoveryList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-			add(new JScrollPane(discoveryList),"East");
+			getContentPane().add(new JScrollPane(discoveryList),"East");
 			
 			Box box = Box.createVerticalBox();
 			box.add(Box.createVerticalGlue());
@@ -333,7 +333,7 @@ public class CharacterTradeFrame extends JFrame {
 			ComponentTools.lockComponentSize(goldPanel,50,50);
 			box.add(goldPanel);
 			box.add(Box.createVerticalGlue());
-			add(box,"West");
+			getContentPane().add(box,"West");
 			
 			if (hasControl) {
 				goldPanel.addMouseListener(new MouseAdapter() {
@@ -418,7 +418,7 @@ public class CharacterTradeFrame extends JFrame {
 				if (useApprove) {
 					box.add(approveBox);
 				}
-				add(box,"South");
+				getContentPane().add(box,"South");
 			}
 			else {
 				approveLabel = new JLabel("APPROVED");
@@ -426,7 +426,7 @@ public class CharacterTradeFrame extends JFrame {
 				approveLabel.setBackground(MagicRealmColor.DISCOVERY_HIGHLIGHT_COLOR);
 				approveLabel.setVisible(false);
 				if (useApprove) {
-					add(approveLabel,"South");
+					getContentPane().add(approveLabel,"South");
 				}
 			}
 		}

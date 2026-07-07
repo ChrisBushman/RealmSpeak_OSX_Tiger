@@ -44,7 +44,7 @@ public class MagicChitEffect implements ISpellEffect {
 		GameObject spellObj = context.Spell.getGameObject();
 		
 		String chitId = spellObj.getThisAttribute("magicChitID");
-		GameObject magicChit =spellObj.getGameData().getGameObject(Long.valueOf(chitId));
+		GameObject magicChit =spellObj.getGameData().getGameObject(new Long(chitId));
 		context.Target.getGameObject().remove(magicChit);
 		spellObj.removeThisAttribute("magicChitID");
 	}

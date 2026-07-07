@@ -186,7 +186,7 @@ public class CombatWrapper extends GameObjectWrapper {
 	public GameObject getCastSpell() {
 		String id = getString(CAST_SPELL);
 		if (id!=null) {
-			return getGameObject().getGameData().getGameObject(Long.valueOf(id));
+			return getGameObject().getGameData().getGameObject(new Long(id));
 		}
 		return null;
 	}
@@ -418,7 +418,7 @@ public class CombatWrapper extends GameObjectWrapper {
 				String type = (String) h.next();
 				String tid = (String) hi.next();
 				if (id.equals(tid)) {
-					return Integer.valueOf(type);
+					return new Integer(type);
 				}
 			}
 		}
@@ -500,7 +500,7 @@ public class CombatWrapper extends GameObjectWrapper {
 		String id = getString(KILLED_BY_ID);
 		if (id!=null) {
 			GameData data = getGameObject().getGameData();
-			return data.getGameObject(Long.valueOf(id));
+			return data.getGameObject(new Long(id));
 		}
 		return null;
 	}
@@ -536,7 +536,7 @@ public class CombatWrapper extends GameObjectWrapper {
 			ArrayList ret = new ArrayList();
 			for (java.util.Iterator _j14it1840 = (list).iterator(); _j14it1840.hasNext(); ) {
 			  String id = (String) _j14it1840.next();
-				ret.add(data.getGameObject(Long.valueOf(id)));
+				ret.add(data.getGameObject(new Long(id)));
 			}
 			return ret;
 		}
@@ -621,7 +621,7 @@ public class CombatWrapper extends GameObjectWrapper {
 			rounds = new ArrayList();
 			for (java.util.Iterator _j14it1841 = (getList(COMBAT_ROUND_RESULT_LIST)).iterator(); _j14it1841.hasNext(); ) {
 			  String i = (String) _j14it1841.next();
-				rounds.add(Integer.valueOf(i));
+				rounds.add(new Integer(i));
 			}
 		}
 		return rounds;
@@ -632,7 +632,7 @@ public class CombatWrapper extends GameObjectWrapper {
 		if (getBoolean(COMBAT_KILL_RESULT_LIST)) {
 			for (java.util.Iterator _j14it1842 = (getList(COMBAT_KILL_RESULT_LIST)).iterator(); _j14it1842.hasNext(); ) {
 			  String i = (String) _j14it1842.next();
-				kills.add(gameData.getGameObject(Long.valueOf(i)));
+				kills.add(gameData.getGameObject(new Long(i)));
 			}
 		}
 		return kills;
@@ -752,7 +752,7 @@ public class CombatWrapper extends GameObjectWrapper {
 		if (ids!=null) {
 			for (java.util.Iterator _j14it1844 = (ids).iterator(); _j14it1844.hasNext(); ) {
 			  String id = (String) _j14it1844.next();
-				GameObject go = data.getGameObject(Long.valueOf(id));
+				GameObject go = data.getGameObject(new Long(id));
 				list.add(go);
 			}
 		}
@@ -776,7 +776,7 @@ public class CombatWrapper extends GameObjectWrapper {
 		if (ids!=null) {
 			for (java.util.Iterator _j14it1845 = (ids).iterator(); _j14it1845.hasNext(); ) {
 			  String id = (String) _j14it1845.next();
-				GameObject go = data.getGameObject(Long.valueOf(id));
+				GameObject go = data.getGameObject(new Long(id));
 				list.add(go);
 			}
 		}
@@ -819,7 +819,7 @@ public class CombatWrapper extends GameObjectWrapper {
 		if (ids!=null) {
 			for (java.util.Iterator _j14it1846 = (ids).iterator(); _j14it1846.hasNext(); ) {
 			  String id = (String) _j14it1846.next();
-				GameObject go = data.getGameObject(Long.valueOf(id));
+				GameObject go = data.getGameObject(new Long(id));
 				list.add(go);
 			}
 		}
@@ -852,7 +852,7 @@ public class CombatWrapper extends GameObjectWrapper {
 		if (ids!=null) {
 			for (java.util.Iterator _j14it1848 = (ids).iterator(); _j14it1848.hasNext(); ) {
 			  String id = (String) _j14it1848.next();
-				GameObject go = data.getGameObject(Long.valueOf(id));
+				GameObject go = data.getGameObject(new Long(id));
 				list.add(go);
 			}
 		}

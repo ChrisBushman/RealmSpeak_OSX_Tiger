@@ -191,14 +191,14 @@ public class GameData extends ModifyableObject implements Serializable {
 		return scenarioShuffleQuestDeck;
 	}
 	public GameObject getGameObject(long id) {
-		return getGameObject(Long.valueOf(id));
+		return getGameObject(new Long(id));
 	}
 	public GameObject getGameObject(Long id) {
 		return (GameObject) gameObjectIDHash.get(id);
 	}
 	public GameObject getGameObject(Object obj){
 		String id = (String)obj;
-		return getGameObject(Long.valueOf(id));
+		return getGameObject(new Long(id));
 	}
 	
 	public ArrayList getGameObjects() {
@@ -312,7 +312,7 @@ public class GameData extends ModifyableObject implements Serializable {
 		for (java.util.Iterator _j14it146 = (gameObjects).iterator(); _j14it146.hasNext(); ) {
 		  GameObject go = (GameObject) _j14it146.next();
 			go.setId(cumulative_id++);
-			gameObjectIDHash.put(Long.valueOf(go.getId()),go);
+			gameObjectIDHash.put(new Long(go.getId()),go);
 		}
 		
 		rebuildFilteredGameObjects();
@@ -335,7 +335,7 @@ public class GameData extends ModifyableObject implements Serializable {
 		for (java.util.Iterator _j14it148 = (gameObjects).iterator(); _j14it148.hasNext(); ) {
 		  GameObject go = (GameObject) _j14it148.next();
 			go.setId(cumulative_id++);
-			gameObjectIDHash.put(Long.valueOf(go.getId()),go);
+			gameObjectIDHash.put(new Long(go.getId()),go);
 		}
 		
 		rebuildFilteredGameObjects();
@@ -484,7 +484,7 @@ public class GameData extends ModifyableObject implements Serializable {
 			String rt = game.getAttributeValue("_rgtype");
 			RandomNumber.setRandomNumberGenerator(rt==null ? RandomNumberType.System : RandomNumberType.valueOf(rt));
 			String countString = game.getAttributeValue("_rcount");
-			RandomNumber.init(Long.valueOf(seedString).longValue(),Long.valueOf(countString).longValue());
+			RandomNumber.init(new Long(seedString).longValue(),new Long(countString).longValue());
 		}
 		game.setAttribute(new Attribute("_rndSetup",String.valueOf(RandomNumber.getUseRandomNumberGeneratorForSetup())));
 		
@@ -498,7 +498,7 @@ public class GameData extends ModifyableObject implements Serializable {
 			GameObject newObj = new GameObject(this);
 			newObj.setXML(obj);
 			gameObjects.add(newObj);
-			gameObjectIDHash.put(Long.valueOf(newObj.getId()),newObj);
+			gameObjectIDHash.put(new Long(newObj.getId()),newObj);
 			gameObjectNameHash.put(newObj.getName(),newObj);
 		}
 		
@@ -641,7 +641,7 @@ public class GameData extends ModifyableObject implements Serializable {
 //			}
 			
 			gameObjects.remove(index);
-			gameObjectIDHash.remove(Long.valueOf(obj.getId()));
+			gameObjectIDHash.remove(new Long(obj.getId()));
 			gameObjectNameHash.removeKeyValue(obj.getName(),obj);
 			rebuildFilteredGameObjects();
 			setModified(true);
@@ -658,13 +658,13 @@ public class GameData extends ModifyableObject implements Serializable {
 		return createNewObject(cumulative_id);
 	}
 	public GameObject createNewObject(long anId) {
-		if (!gameObjectIDHash.containsKey(Long.valueOf(anId))) {
+		if (!gameObjectIDHash.containsKey(new Long(anId))) {
 			if (anId>=cumulative_id) {
 				cumulative_id = anId + 1;
 			}
 			GameObject obj = new GameObject(this,anId);
 			gameObjects.add(obj);
-			gameObjectIDHash.put(Long.valueOf(obj.getId()),obj);
+			gameObjectIDHash.put(new Long(obj.getId()),obj);
 			gameObjectNameHash.put(obj.getName(),obj);
 			rebuildFilteredGameObjects();
 			setModified(true);
@@ -694,7 +694,7 @@ public class GameData extends ModifyableObject implements Serializable {
 		if (old!=null) {
 			int oldIndex = gameObjects.indexOf(old);
 			gameObjects.set(oldIndex,obj);
-			gameObjectIDHash.put(Long.valueOf(obj.getId()),obj);
+			gameObjectIDHash.put(new Long(obj.getId()),obj);
 			gameObjectNameHash.removeKeyValue(old.getName(),old);
 			gameObjectNameHash.put(obj.getName(),obj);
 			return true;
@@ -723,7 +723,7 @@ public class GameData extends ModifyableObject implements Serializable {
 			GameObject theCopy = new GameObject(this);
 			theCopy.copyFrom(obj);
 			goCopy.add(theCopy);
-			map.put(Long.valueOf(obj.getId()),theCopy);
+			map.put(new Long(obj.getId()),theCopy);
 		}
 		for (java.util.Iterator _j14it157 = (goCopy).iterator(); _j14it157.hasNext(); ) {
 		  GameObject obj = (GameObject) _j14it157.next();
@@ -901,7 +901,7 @@ public class GameData extends ModifyableObject implements Serializable {
 		ArrayList newObjects = new ArrayList();
 		for (java.util.Iterator _j14it164 = (other.gameObjects).iterator(); _j14it164.hasNext(); ) {
 		  GameObject otherGo = (GameObject) _j14it164.next();
-			if (!gameObjectIDHash.containsKey(Long.valueOf(otherGo.getId()))) {
+			if (!gameObjectIDHash.containsKey(new Long(otherGo.getId()))) {
 //				if (otherGo.getId()<maxid) {
 //					throw new IllegalStateException("This is not good");
 //				}

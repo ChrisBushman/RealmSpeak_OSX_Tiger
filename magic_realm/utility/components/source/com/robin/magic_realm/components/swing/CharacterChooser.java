@@ -88,7 +88,7 @@ public class CharacterChooser extends AggressiveDialog {
 		updateControls();
 	}
 	private void initComponents() {
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BorderLayout());
 		
 		JPanel left = new JPanel(new BorderLayout());
 		listModel = new CharacterListModel();
@@ -114,7 +114,7 @@ public class CharacterChooser extends AggressiveDialog {
 			leftBottom.setBorder(BorderFactory.createTitledBorder("Show Characters"));
 			left.add(leftBottom,"North");
 		}
-		add(left,"West");
+		getContentPane().add(left,"West");
 		characterList.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent arg0) {
 				updateImage();
@@ -132,7 +132,7 @@ public class CharacterChooser extends AggressiveDialog {
 		
 		characterDisplay = new JLabel();
 		ComponentTools.lockComponentSize(characterDisplay,760,600);
-		add(characterDisplay,"Center");
+		getContentPane().add(characterDisplay,"Center");
 		
 		Box controls = Box.createHorizontalBox();
 		controls.add(Box.createGlue());
@@ -182,7 +182,7 @@ public class CharacterChooser extends AggressiveDialog {
 			}
 		});
 		controls.add(okayButton);
-		add(controls,"South");
+		getContentPane().add(controls,"South");
 		
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		

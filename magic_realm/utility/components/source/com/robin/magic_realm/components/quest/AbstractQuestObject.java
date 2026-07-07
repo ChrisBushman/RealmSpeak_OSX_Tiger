@@ -30,7 +30,7 @@ public abstract class AbstractQuestObject extends GameObjectWrapper {
 	public void updateIdsForKey(Hashtable lookup,String key) {
 		String stringId = getString(key);
 		if (stringId==null) return;
-		Long oldId = Long.valueOf(stringId);
+		Long oldId = new Long(stringId);
 		GameObject go = (GameObject) lookup.get(oldId);
 		if (go != null) {
 			setString(key,go.getStringId());

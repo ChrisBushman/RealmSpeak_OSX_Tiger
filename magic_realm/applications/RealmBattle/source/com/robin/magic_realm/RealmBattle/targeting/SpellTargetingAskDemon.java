@@ -62,7 +62,7 @@ public class SpellTargetingAskDemon extends SpellTargetingSpecial {
 		  GameObject go = (GameObject) _j14it825.next();
 			CharacterWrapper character = new CharacterWrapper(go);
 			String name = character.getPlayerName();
-			if (!playerNames.contains(name)) {
+			if (playerNames.indexOf(name) < 0) {
 				playerNames.add(name);
 			}
 		}

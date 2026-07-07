@@ -21,7 +21,7 @@ public class ImageSplitter {
 		this.rowHeights = new ArrayList();
 	}
 	public void addRow(int rowHeight) {
-		rowHeights.add(Integer.valueOf(rowHeight));
+		rowHeights.add(new Integer(rowHeight));
 	}
 	public void addRows(int[] rowHeight) {
 		for (int i=0;i<rowHeight.length;i++) {

@@ -62,7 +62,7 @@ public class AdvantageEditDialog extends AggressiveDialog {
 		setLocationRelativeTo(frame);
 	}
 	private void initComponents() {
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BorderLayout());
 		setSize(1200,1200);
 		
 		mainPanel = new JPanel(new BorderLayout());
@@ -162,7 +162,7 @@ public class AdvantageEditDialog extends AggressiveDialog {
 		mainPanel.add(box,"North");
 		mainPanel.add(getDetailPanel(),"Center");
 		
-		add(mainPanel,"Center");
+		getContentPane().add(mainPanel,"Center");
 		
 		Box controls = Box.createHorizontalBox();
 		controls.add(Box.createHorizontalGlue());
@@ -205,7 +205,7 @@ public class AdvantageEditDialog extends AggressiveDialog {
 		controls.add(doneButton);
 		controls.add(Box.createHorizontalGlue());
 		
-		add(controls,"South");
+		getContentPane().add(controls,"South");
 		
 		updateControls();
 		initControlsForAdvantage();
@@ -232,7 +232,7 @@ public class AdvantageEditDialog extends AggressiveDialog {
 		ArrayList keys = new ArrayList(attributeBlock.keySet());
 		for (java.util.Iterator _j14it900 = (keys).iterator(); _j14it900.hasNext(); ) {
 		  String key = (String) _j14it900.next();
-			if (!saveAttributes.contains(key)) {
+			if (saveAttributes.indexOf(key) < 0) {
 				model.getCharacter().getGameObject().removeAttribute(levelKey,key);
 			}
 		}

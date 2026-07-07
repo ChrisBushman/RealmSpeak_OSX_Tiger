@@ -129,7 +129,7 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 		ArrayList ret = new ArrayList();
 		for (java.util.Iterator _j14it1493 = (ids).iterator(); _j14it1493.hasNext(); ) {
 		  String id = (String) _j14it1493.next();
-			GameObject go = data.getGameObject(Long.valueOf(id));
+			GameObject go = data.getGameObject(new Long(id));
 			ret.add(new SpellWrapper(go));
 		}
 		return ret;
@@ -522,7 +522,7 @@ public class SpellMasterWrapper extends GameObjectWrapper {
 				gm.setName(SPELL_MASTER_KEY);
 				gm.setThisAttribute(SPELL_MASTER_KEY);
 			}
-			MASTER_ID = Long.valueOf(gm.getId());
+			MASTER_ID = new Long(gm.getId());
 			return new SpellMasterWrapper(gm);
 		}
 		return new SpellMasterWrapper(data.getGameObject(MASTER_ID));

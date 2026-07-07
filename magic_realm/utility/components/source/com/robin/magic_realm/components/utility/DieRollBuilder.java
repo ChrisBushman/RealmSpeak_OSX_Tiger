@@ -22,10 +22,10 @@ public class DieRollBuilder {
 		if (builderHash==null) {
 			builderHash = new Hashtable();
 		}
-		DieRollBuilder drb = (DieRollBuilder) builderHash.get(Long.valueOf(character.getGameObject().getId()));
+		DieRollBuilder drb = (DieRollBuilder) builderHash.get(new Long(character.getGameObject().getId()));
 		if (drb == null) {
 			drb = new DieRollBuilder(parent,character,redDie);
-			builderHash.put(Long.valueOf(character.getGameObject().getId()),drb);
+			builderHash.put(new Long(character.getGameObject().getId()),drb);
 		}
 		drb.parent = parent;
 		drb.redDie = redDie;

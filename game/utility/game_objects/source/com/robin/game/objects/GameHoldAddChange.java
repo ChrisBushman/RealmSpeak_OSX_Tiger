@@ -17,7 +17,7 @@ public class GameHoldAddChange extends GameObjectChange {
 //		return false;
 //	}
 	public void setHoldId(long val) {
-		holdId = Long.valueOf(val);
+		holdId = new Long(val);
 	}
 	protected void applyChange(GameData data,GameObject go) {
 		GameObject toAdd = data.getGameObject(holdId);

@@ -48,7 +48,7 @@ public class MountainSurgeEvent implements IEvent {
 			if (ids!=null && !ids.isEmpty()) {
 				for (java.util.Iterator _j14it2488 = (ids).iterator(); _j14it2488.hasNext(); ) {
 				  String id = (String) _j14it2488.next();
-					GameObject tile = data.getGameObject(Long.valueOf(id));
+					GameObject tile = data.getGameObject(new Long(id));
 					tile.removeThisAttribute(Constants.EVENT_MOUNTAIN_SURGE);
 					RealmEvents.removeEffectForTile(config,Constants.EVENT_MOUNTAIN_SURGE,id);
 				}
@@ -65,7 +65,7 @@ public class MountainSurgeEvent implements IEvent {
 		if (ids!=null && !ids.isEmpty()) {
 			for (java.util.Iterator _j14it2489 = (ids).iterator(); _j14it2489.hasNext(); ) {
 			  String id = (String) _j14it2489.next();
-				GameObject tile = data.getGameObject(Long.valueOf(id));
+				GameObject tile = data.getGameObject(new Long(id));
 				for (java.util.Iterator _j14it2490 = (tile.getThisAttributeList(Constants.EVENT_MOUNTAIN_SURGE)).iterator(); _j14it2490.hasNext(); ) {
 				  String cl = (String) _j14it2490.next();;
 					text = text + tile.getNameWithNumber() +" ("+cl+")"+ ", ";

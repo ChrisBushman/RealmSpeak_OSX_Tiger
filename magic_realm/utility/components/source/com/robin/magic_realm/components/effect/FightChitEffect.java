@@ -33,7 +33,7 @@ public class FightChitEffect implements ISpellEffect {
 		GameObject spellObj = context.Spell.getGameObject();
 		
 		String chitId = spellObj.getThisAttribute("fightChitID");
-		GameObject fightChit =spellObj.getGameData().getGameObject(Long.valueOf(chitId));
+		GameObject fightChit =spellObj.getGameData().getGameObject(new Long(chitId));
 		context.Target.getGameObject().remove(fightChit);
 		spellObj.removeThisAttribute("fightChitID");
 	}
