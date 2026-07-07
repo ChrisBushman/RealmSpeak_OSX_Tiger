@@ -416,7 +416,7 @@ public class HostGameSetupDialog extends AggressiveDialog {
 		useWeather.setEnabled(editMode && startingSeason.getSelectedIndex()>0);
 	}
 	private void initComponents() {
-		setSize(1080,1020);
+		setSize(1024,768);
 		setLocationRelativeTo(null);
 		setModal(true);
 		
@@ -502,8 +502,8 @@ public class HostGameSetupDialog extends AggressiveDialog {
 		mainBox.add(hostingBox,c);
 		
 		JPanel boardSetupSplit = new JPanel(new BorderLayout());
-		boardSetupSplit.add(buildGamePlayBox(group),"West");
-		boardSetupSplit.add(buildBoardSetupBox(group),"Center");
+		boardSetupSplit.add(buildGamePlayBox(new UniformLabelGroup()),"West");
+		boardSetupSplit.add(buildBoardSetupBox(new UniformLabelGroup()),"Center");
 		boardSetupSplit.add(buildRatingBox(),"East");
 		boardSetupSplit.setMaximumSize(new Dimension(2000,300));
 		c.gridy=1;
@@ -831,13 +831,13 @@ public class HostGameSetupDialog extends AggressiveDialog {
 		Box boardSetupBox = Box.createVerticalBox();
 			ButtonGroup boardSetupOptions = new ButtonGroup();
 			Box box = group.createLabelLine("Generated Map");
-				boardAutoSetup = notifier.getRadioButton("(RealmSpeak builds map)");
+				boardAutoSetup = notifier.getRadioButton("(auto)");
 				boardSetupOptions.add(boardAutoSetup);
 			box.add(boardAutoSetup);
 			box.add(Box.createHorizontalGlue());
 		boardSetupBox.add(box);
 			box = group.createLabelLine("Player Pick");
-				boardPlayerSetup = notifier.getRadioButton("(Players build map)");
+				boardPlayerSetup = notifier.getRadioButton("(manual)");
 				boardSetupOptions.add(boardPlayerSetup);
 			box.add(boardPlayerSetup);
 			box.add(Box.createHorizontalGlue());
@@ -848,7 +848,7 @@ public class HostGameSetupDialog extends AggressiveDialog {
 			box.add(Box.createHorizontalGlue());
 		boardSetupBox.add(box);
 			box = group.createLabelLine("Expansion Tiles");
-				mixExpansionTilesEnabled = notifier.getCheckBox("(randomly mixed)");
+				mixExpansionTilesEnabled = notifier.getCheckBox("(random)");
 			box.add(mixExpansionTilesEnabled);
 			box.add(Box.createHorizontalGlue());
 		boardSetupBox.add(box);
