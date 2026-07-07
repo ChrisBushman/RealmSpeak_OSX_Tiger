@@ -108,6 +108,81 @@ java -jar RealmSpeakFull.jar
 
 Or on Tiger, double-click `RealmSpeak.command` / launch directly via `java -jar`.
 
+# Building for Java 1.4 (Windows 98 / IRIX)
+
+This branch (`irix-java14`) targets **Java 1.4** for compatibility with Windows 98 and
+SGI IRIX workstations (which top out at Java 1.4.2).
+
+The build uses the [Eclipse Compiler for Java (ECJ)](https://wiki.eclipse.org/JDT_Core_Programmer_Guide/ECJ)
+with `-source 1.4 -target 1.4` and a bootclasspath pointing to a Java 1.4.2 `rt.jar`
+so that any Java 5+ API call is caught at compile time rather than failing at runtime.
+
+### Prerequisites
+
+1. Install [Apache Ant](http://ant.apache.org/) (1.8 or later).
+
+2. Install Temurin 8 JDK (the last JDK that accepts `-source 1.4`).  On macOS with Homebrew:
+
+   ```
+   brew install --cask temurin@8
+   ```
+
+   Or download from [Adoptium](https://adoptium.net/temurin/releases/?version=8).
+
+3. Obtain a Java 1.4.2 `rt.jar` from the Oracle JDK 1.4.2 archive and place it at:
+
+   ```
+   build/irix/rt.jar
+   ```
+
+   This file is not bundled in the repository. You can extract it from the
+   `j2sdk-1_4_2_19-linux-i586.bin` or Windows installer available from the
+   [Oracle Java Archive](https://www.oracle.com/java/technologies/java-archive-javase1.4.2-downloads.html).
+   The `ecj.jar` compiler adapter is already bundled at `build/irix/ecj.jar`.
+
+### Build
+
+Point `JAVA_HOME` at Temurin 8 and run Ant with the ECJ adapter and 1.4 bootclasspath:
+
+```sh
+export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
+export PATH="$JAVA_HOME/bin:$PATH"
+ant -f build/build.xml \
+    -lib build/irix/ecj.jar \
+    -Dcompile.source.version=1.4 \
+    -Dcompile.target.version=1.4 \
+    -Dcompile.bootclasspath=/path/to/build/irix/rt.jar \
+    build-all-projects
+```
+
+A successful build prints `BUILD SUCCESSFUL` and produces `products/RealmSpeakFull.jar`.
+All class files will be at version **48.0** (Java 1.4).
+
+### Run on Windows 98
+
+1. Extract the release zip into a folder.
+2. Install the J2SE 1.4.2 JRE (`j2re-1_4_2_19-windows-i586-p.exe`).
+3. Double-click `run98.bat`.
+
+**Recommended screen resolution: 1024×768 or higher.**
+
+### Run under Wine (for testing)
+
+```sh
+cd products
+WINEPREFIX=~/.wine-java14 wine /path/to/j2sdk1.4.2_19/jre/bin/javaw.exe \
+    -mx192m \
+    -Dswing.defaultlaf=com.sun.java.swing.plaf.windows.WindowsLookAndFeel \
+    -cp RealmSpeakFull.jar \
+    com.robin.magic_realm.RealmSpeak.RealmSpeakFrame
+```
+
+To simulate a specific screen resolution (e.g. 1024×768), use Wine's virtual desktop:
+
+```sh
+wine explorer /desktop=RealmSpeak,1024x768 javaw.exe ...
+```
+
 ---
 
 # License
